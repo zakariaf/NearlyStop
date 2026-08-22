@@ -14,10 +14,12 @@ notif_scratch=lib/core/notifications/_purity_scratch.dart
 dsns_scratch=lib/core/dsns/_purity_scratch.dart
 failures=0
 
+near=lib/core/drift_shaped/_purity_near_miss.dart
+
 cleanup() {
   [ -f "$clock_backup" ] && mv "$clock_backup" "$clock"
-  rm -f "$notif_scratch" "$dsns_scratch"
-  rmdir lib/core/notifications lib/core/dsns 2>/dev/null
+  rm -f "$notif_scratch" "$dsns_scratch" "$near"
+  rmdir lib/core/notifications lib/core/dsns lib/core/drift_shaped 2>/dev/null
   return 0
 }
 trap cleanup EXIT
@@ -94,6 +96,27 @@ else
 fi
 rm -f "$notif_scratch" "$dsns_scratch"
 rmdir lib/core/notifications lib/core/dsns 2>/dev/null
+
+echo "case 12b: near-misses the walker must NOT report"
+mkdir -p lib/core/drift_shaped
+cat >"$near" <<'DART'
+/// Scratch. Mentions package:flutter_lints and package:drift in prose only.
+///
+/// See also: import 'package:flutter/material.dart';
+const String importDirectiveExample = "import 'package:flutter/material.dart';";
+
+// package:riverpod/riverpod.dart named in a line comment
+const String other = 'package:drift/drift.dart';
+DART
+run_gate
+if [ "$code" -ne 0 ]; then
+  bad "a comment, a string literal, or a path containing 'drift' was reported"
+  echo "$out" | sed 's/^/         /'
+else
+  pass "comments, string literals and a drift-shaped PATH are not import directives"
+fi
+rm -f "$near"
+rmdir lib/core/drift_shaped 2>/dev/null
 
 echo "case 13: the gate refuses to report OK on a tree it could not scan"
 out="$(bash "$gate" /definitely/not/a/directory 2>&1)"

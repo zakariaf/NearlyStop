@@ -4,8 +4,8 @@
 /// returns a [Result]. Only genuine bugs throw, and those are caught once by
 /// the global error net installed in `bootstrap()`.
 ///
-/// The void arm is spelled `Result<void, F>` — `const Ok<void, F>(null)`.
-/// There is deliberately no `Unit` type in this codebase, and `tool/check_bans.sh`
+/// The void arm is spelled `Result<void, F>` — `const Ok<void, F>(null)`. There
+/// is deliberately no `Unit` type in this codebase, and `tool/check_bans.sh`
 /// fails the build if one appears under `lib/`.
 library;
 
@@ -28,12 +28,56 @@ abstract class Failure {
 
   /// Stable, localization-key-like identifier, e.g. `'storage.write_failed'`.
   String get code;
+
+  /// The subtype's typed parameters, in declaration order.
+  ///
+  /// Override this in every subtype that carries data; the default is the empty
+  /// list, which is correct for a payload-free failure.
+  List<Object?> get props => const <Object?>[];
+
+  /// Value equality over [props], keyed on the exact subtype.
+  ///
+  /// `error-handling-typed-results` says a sealed failure needs no `==`,
+  /// because you switch on it rather than comparing instances. That is true of
+  /// the failure alone — but [Result] carries value equality as a stated
+  /// EPIC-01 contract, and `Err.==` delegates here. Without this,
+  /// `Err(TargetAboveStart(a, b)) == Err(TargetAboveStart(a, b))` is false,
+  /// every `expect(result, Err(...))` silently never matches, and a Notifier
+  /// holding an `Err` re-notifies on every rebuild because its states never
+  /// compare equal. One implementation on the base, `props` per subtype.
+  @override
+  bool operator ==(Object other) =>
+      other is Failure &&
+      other.runtimeType == runtimeType &&
+      _deepEquals(other.props, props);
+
+  @override
+  int get hashCode => Object.hash(runtimeType, _deepHash(props));
 }
+
+bool _deepEquals(List<Object?> a, List<Object?> b) {
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    final x = a[i];
+    final y = b[i];
+    if (x is List<Object?> && y is List<Object?>) {
+      if (!_deepEquals(x, y)) return false;
+    } else if (x != y) {
+      return false;
+    }
+  }
+  return true;
+}
+
+int _deepHash(List<Object?> values) => Object.hashAll(<Object?>[
+  for (final value in values)
+    if (value is List<Object?>) _deepHash(value) else value,
+]);
 
 /// The outcome of an operation that can fail: either [Ok] or [Err].
 ///
-/// Sealed, so a `switch` covering both arms needs no `default:` and a third
-/// arm could never be added without breaking every call site on purpose.
+/// Sealed, so a `switch` covering both arms needs no `default:` and a third arm
+/// could never be added without breaking every call site on purpose.
 @immutable
 sealed class Result<T, F extends Failure> {
   /// Const base constructor so both arms can be `const`.

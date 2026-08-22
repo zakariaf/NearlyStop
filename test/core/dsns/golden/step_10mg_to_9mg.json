@@ -1,0 +1,886 @@
+[
+  {
+    "date": "2026-04-01",
+    "kind": "step",
+    "block": 1,
+    "dayInBlock": 1,
+    "dayInStep": 1,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-02",
+    "kind": "step",
+    "block": 1,
+    "dayInBlock": 2,
+    "dayInStep": 2,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-03",
+    "kind": "step",
+    "block": 1,
+    "dayInBlock": 3,
+    "dayInStep": 3,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-04",
+    "kind": "step",
+    "block": 1,
+    "dayInBlock": 4,
+    "dayInStep": 4,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-05",
+    "kind": "step",
+    "block": 1,
+    "dayInBlock": 5,
+    "dayInStep": 5,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-06",
+    "kind": "step",
+    "block": 1,
+    "dayInBlock": 6,
+    "dayInStep": 6,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-07",
+    "kind": "step",
+    "block": 1,
+    "dayInBlock": 7,
+    "dayInStep": 7,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-08",
+    "kind": "step",
+    "block": 2,
+    "dayInBlock": 1,
+    "dayInStep": 8,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-09",
+    "kind": "step",
+    "block": 2,
+    "dayInBlock": 2,
+    "dayInStep": 9,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-10",
+    "kind": "step",
+    "block": 2,
+    "dayInBlock": 3,
+    "dayInStep": 10,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-11",
+    "kind": "step",
+    "block": 2,
+    "dayInBlock": 4,
+    "dayInStep": 11,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-12",
+    "kind": "step",
+    "block": 2,
+    "dayInBlock": 5,
+    "dayInStep": 12,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-13",
+    "kind": "step",
+    "block": 2,
+    "dayInBlock": 6,
+    "dayInStep": 13,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-14",
+    "kind": "step",
+    "block": 3,
+    "dayInBlock": 1,
+    "dayInStep": 14,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-15",
+    "kind": "step",
+    "block": 3,
+    "dayInBlock": 2,
+    "dayInStep": 15,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-16",
+    "kind": "step",
+    "block": 3,
+    "dayInBlock": 3,
+    "dayInStep": 16,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-17",
+    "kind": "step",
+    "block": 3,
+    "dayInBlock": 4,
+    "dayInStep": 17,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-18",
+    "kind": "step",
+    "block": 3,
+    "dayInBlock": 5,
+    "dayInStep": 18,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-19",
+    "kind": "step",
+    "block": 4,
+    "dayInBlock": 1,
+    "dayInStep": 19,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-20",
+    "kind": "step",
+    "block": 4,
+    "dayInBlock": 2,
+    "dayInStep": 20,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-21",
+    "kind": "step",
+    "block": 4,
+    "dayInBlock": 3,
+    "dayInStep": 21,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-22",
+    "kind": "step",
+    "block": 4,
+    "dayInBlock": 4,
+    "dayInStep": 22,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-23",
+    "kind": "step",
+    "block": 5,
+    "dayInBlock": 1,
+    "dayInStep": 23,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-24",
+    "kind": "step",
+    "block": 5,
+    "dayInBlock": 2,
+    "dayInStep": 24,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-25",
+    "kind": "step",
+    "block": 5,
+    "dayInBlock": 3,
+    "dayInStep": 25,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-26",
+    "kind": "step",
+    "block": 6,
+    "dayInBlock": 1,
+    "dayInStep": 26,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-27",
+    "kind": "step",
+    "block": 6,
+    "dayInBlock": 2,
+    "dayInStep": 27,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-28",
+    "kind": "step",
+    "block": 7,
+    "dayInBlock": 1,
+    "dayInStep": 28,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-29",
+    "kind": "step",
+    "block": 7,
+    "dayInBlock": 2,
+    "dayInStep": 29,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-04-30",
+    "kind": "step",
+    "block": 7,
+    "dayInBlock": 3,
+    "dayInStep": 30,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-01",
+    "kind": "step",
+    "block": 8,
+    "dayInBlock": 1,
+    "dayInStep": 31,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-02",
+    "kind": "step",
+    "block": 8,
+    "dayInBlock": 2,
+    "dayInStep": 32,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-03",
+    "kind": "step",
+    "block": 8,
+    "dayInBlock": 3,
+    "dayInStep": 33,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-04",
+    "kind": "step",
+    "block": 8,
+    "dayInBlock": 4,
+    "dayInStep": 34,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-05",
+    "kind": "step",
+    "block": 9,
+    "dayInBlock": 1,
+    "dayInStep": 35,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-06",
+    "kind": "step",
+    "block": 9,
+    "dayInBlock": 2,
+    "dayInStep": 36,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-07",
+    "kind": "step",
+    "block": 9,
+    "dayInBlock": 3,
+    "dayInStep": 37,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-08",
+    "kind": "step",
+    "block": 9,
+    "dayInBlock": 4,
+    "dayInStep": 38,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-09",
+    "kind": "step",
+    "block": 9,
+    "dayInBlock": 5,
+    "dayInStep": 39,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-10",
+    "kind": "step",
+    "block": 10,
+    "dayInBlock": 1,
+    "dayInStep": 40,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-11",
+    "kind": "step",
+    "block": 10,
+    "dayInBlock": 2,
+    "dayInStep": 41,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-12",
+    "kind": "step",
+    "block": 10,
+    "dayInBlock": 3,
+    "dayInStep": 42,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-13",
+    "kind": "step",
+    "block": 10,
+    "dayInBlock": 4,
+    "dayInStep": 43,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-14",
+    "kind": "step",
+    "block": 10,
+    "dayInBlock": 5,
+    "dayInStep": 44,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-15",
+    "kind": "step",
+    "block": 10,
+    "dayInBlock": 6,
+    "dayInStep": 45,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-16",
+    "kind": "step",
+    "block": 11,
+    "dayInBlock": 1,
+    "dayInStep": 46,
+    "mg": "10",
+    "doseKind": "oldDose",
+    "tablets": [
+      [
+        2,
+        "5"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-17",
+    "kind": "step",
+    "block": 11,
+    "dayInBlock": 2,
+    "dayInStep": 47,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-18",
+    "kind": "step",
+    "block": 11,
+    "dayInBlock": 3,
+    "dayInStep": 48,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-19",
+    "kind": "step",
+    "block": 11,
+    "dayInBlock": 4,
+    "dayInStep": 49,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-20",
+    "kind": "step",
+    "block": 11,
+    "dayInBlock": 5,
+    "dayInStep": 50,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-21",
+    "kind": "step",
+    "block": 11,
+    "dayInBlock": 6,
+    "dayInStep": 51,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  },
+  {
+    "date": "2026-05-22",
+    "kind": "step",
+    "block": 11,
+    "dayInBlock": 7,
+    "dayInStep": 52,
+    "mg": "9",
+    "doseKind": "newDose",
+    "tablets": [
+      [
+        1,
+        "5"
+      ],
+      [
+        4,
+        "1"
+      ]
+    ]
+  }
+]

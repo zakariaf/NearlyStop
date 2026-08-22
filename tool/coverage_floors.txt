@@ -16,3 +16,15 @@
 # Owed by EPIC-05: lib/data/taper_repository.dart and the drift migration
 #
 # Seeded empty on purpose — none of those files exist yet.
+
+# EPIC-04 — the domain engine. A bug in any of these three is a patient taking
+# the wrong number of tablets on a Tuesday, which is the definition of
+# unrecoverable in SPEC §10.
+lib/core/dsns/schedule_generator.dart 100
+lib/core/dsns/step_size.dart 100
+# 99 rather than 100 for exactly one line: the interpolated MESSAGE of the
+# `composition.totalMg == target` assert. That tripwire must never fire, so its
+# message can never be evaluated; building the string eagerly to satisfy a
+# round number would allocate on every dose in a hot path. Every other line is
+# covered — if this drops below 99, a real branch went untested.
+lib/core/dsns/tablet_composer.dart 99
