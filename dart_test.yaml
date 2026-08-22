@@ -1,0 +1,9 @@
+# Declared so `flutter test --exclude-tags golden` is a known tag rather than a
+# typo the runner silently ignores.
+tags:
+  golden:
+    # Reference PNGs authored on one host. CI excludes them: cross-OS
+    # rasterisation differs, and a gate that goes red for the host instead of
+    # the code is a gate that gets switched off. EPIC-14 owns the pinned-runner
+    # golden sweep; until then these are a local, human-reviewed check.
+    skip: false

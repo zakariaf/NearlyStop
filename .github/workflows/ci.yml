@@ -67,6 +67,7 @@ jobs:
       - run: bash tool/check_bans_selftest.sh
       - run: bash tool/check_core_purity_selftest.sh
       - run: bash tool/coverage_floor_selftest.sh
+      - run: bash tool/check_raw_values_selftest.sh
 
       # Contract: whitespace is not a review topic.
       - run: dart format --output=none --set-exit-if-changed .
@@ -98,7 +99,17 @@ jobs:
 
       # Contract: randomized ordering is free detection of inter-test state
       # leakage. Coverage is collected in the SAME run — never a second pass.
-      - run: flutter test --coverage --test-randomize-ordering-seed random --reporter expanded
+      #
+      # `--exclude-tags golden` is deliberate, and it is an ADMITTED GAP rather
+      # than a covered one: the reference PNGs were authored on macOS,
+      # cross-OS rasterisation differs, and a gate that goes red for the host
+      # instead of the code is a gate that gets switched off. **Nothing in CI
+      # verifies those two PNGs.** EPIC-14 owns the pinned-runner golden sweep;
+      # until then they are a local, human-reviewed check.
+      #
+      # `@Tags` is a LIBRARY-level annotation, so the claims the goldens
+      # illustrate live in their own untagged files — which DO run here.
+      - run: flutter test --coverage --test-randomize-ordering-seed random --exclude-tags golden --reporter expanded
 
       # Contract: a calendar date is a calendar date in every timezone. Dart
       # cannot change the process's local zone in-process, so the only way to

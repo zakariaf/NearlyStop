@@ -44,3 +44,22 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true # gen-l10n; EPIC-03 adds l10n.yaml and the ARB files
+
+  # Bundled, never fetched. google_fonts is refused by policy and by
+  # tool/check_bans.sh: it ships an HTTP path in an app whose store listing
+  # claims none. Both faces are single VARIABLE TTFs, so the weight axis is
+  # reached through TextStyle.fontVariations rather than by declaring one asset
+  # per weight — see lib/theme/daybreak_type.dart.
+  fonts:
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-VariableFont_wght.ttf
+    - family: Vazirmatn
+      fonts:
+        - asset: assets/fonts/Vazirmatn-VariableFont_wght.ttf
+
+  # The OFL text ships too, and bootstrap() registers it: an unregistered OFL
+  # font makes the app's own licenses page a lie.
+  assets:
+    - assets/fonts/OFL-Nunito.txt
+    - assets/fonts/OFL-Vazirmatn.txt

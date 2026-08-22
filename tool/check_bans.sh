@@ -113,6 +113,13 @@ add_rule lib code - \
   'Icons\.arrow_(back|forward)\b' \
   "use Icons.adaptive.arrow_back / arrow_forward — the fixed glyph does not mirror in RTL"
 
+# A FontVariation on an axis the shipped faces do not expose is a SILENT no-op:
+# both bundled TTFs carry `wght` only, so `opsz` or `ital` changes nothing and
+# the defect is invisible in a golden.
+add_rule lib code - \
+  "FontVariation\\([[:space:]]*'(opsz|ital|slnt|wdth)'" \
+  "both bundled faces expose the wght axis only — any other FontVariation no-ops silently"
+
 # Suppressions are line-scoped with a reason. A file-scoped ignore on a rule we
 # deliberately promoted to error leaves every later edit in that file
 # unprotected — exactly the leak the promotion exists to catch.
@@ -168,7 +175,49 @@ for scope in lib test; do
   scan_scope "$scope"
 done
 
+# ------------------------------------------------- delegated rule groups
+# EPIC-02's design-value gates. They live in their own files because their
+# patterns are a different KIND of rule — an aesthetic value rather than a
+# source-graph property — but they are reached only from here, so there is one
+# entry point and one exit code. Their output is captured and replayed with the
+# rest, so a raw hex and a hardcoded padding in the same run are reported
+# together rather than the first one masking the second.
+delegated=()
+run_delegated() {
+  local script="$1" reason="$2" output
+  output="$(bash "$tool_dir/$script" 2>&1)"
+  if [ $? -ne 0 ]; then
+    delegated+=("$reason"$'\n'"$output")
+  fi
+}
+
+run_delegated check_raw_values.sh \
+  "design values belong in lib/theme/ — read a token slot, or add one (with its contrast-budget row and its test in the same commit)"
+
+# The lockfile half of the bundled-fonts promise. The IMPORT half is rule group
+# 1 above; a second script re-greping the same import URI with a different
+# matcher is exactly the drift this file's header warns about, so
+# check_font_bundling.sh is gone and its one unique rule is a row above.
+if grep -qE '^  google_fonts:' pubspec.lock; then
+  offenders+=("pubspec.lock: google_fonts is in the resolved dependency tree, and it fetches a font over the network at runtime")
+fi
+
 # ------------------------------------------------------------------- verdict
+if [ "${#delegated[@]}" -ne 0 ]; then
+  for d in "${delegated[@]}"; do
+    echo "$d"
+    echo
+  done
+fi
+
+if [ "${#offenders[@]}" -ne 0 ] || [ "${#delegated[@]}" -ne 0 ]; then
+  if [ "${#offenders[@]}" -eq 0 ]; then
+    echo "check_bans: ${#delegated[@]} delegated gate(s) failed."
+    echo "Each of these is a promise the app makes that a passing test cannot see."
+    exit 1
+  fi
+fi
+
 if [ "${#offenders[@]}" -ne 0 ]; then
   echo "check_bans: ${#offenders[@]} violation(s)."
   echo

@@ -155,8 +155,8 @@ typedef _WalkedDay = ({LocalDate date, int patternIndex, bool isHoldDay});
 /// Walks a step's dates, inserting hold days, up to (exclusive) [stop].
 ///
 /// **The single definition of a step's realised shape.** The generator maps it
-/// to `DayPlan`s and `stepStatusFor` counts it, so the schedule and the
-/// "Start next step" button can never disagree about when a step ends.
+/// to `DayPlan`s and `stepStatusFor` counts it, so the schedule and the "Start
+/// next step" button can never disagree about when a step ends.
 ///
 /// Holds are consumed **at every date the walk emits, including a date that is
 /// itself a hold day** — a second hold anchored to an inserted day used to be
