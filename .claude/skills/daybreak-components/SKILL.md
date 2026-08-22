@@ -20,7 +20,7 @@ NearlyStop's UI is a small closed set of recipes: **if a screen needs a thing, i
 
 `daybreak-tokens` owns the slots and their values; `design-system-structure` owns *how* a token system is structured and the no-raw-values gate. **This skill owns what the app assembles out of them.** No component below may contain a hex, a raw radius, a raw duration, or a `fontSize` — every one is a slot read.
 
-Slot names used throughout: `DaybreakColors.of(context)` (surfaces/ink/brand/semantic/tints/lines/states/gradients), `DaybreakElevation.of(context)` (`shadow1…shadow3`, `shadowGlow`), `DaybreakRadii.of(context)`, `DaybreakSpacing.of(context)` (`s1…s9`), `DaybreakMotion.of(context)`. Text styles come from `Theme.of(context).textTheme` as mapped by `daybreak-bilingual-type`.
+Slot names used throughout: `DaybreakColors.of(context)` (surfaces/ink/brand/semantic/tints/lines/states/gradients), `DaybreakElevation.of(context)` (`level1…level3`, `glow`), `DaybreakShapes.of(context)`, `DaybreakShapes.of(context)` (radii + spacing `s1…s9`), `DaybreakMotion.of(context)`. Text styles come from `Theme.of(context).textTheme` as mapped by `daybreak-bilingual-type`.
 
 Worked examples: `examples/dose_hero_card.dart` (gradient card + arc painter + scale degradation), `examples/day_state_row.dart` (all four states with their shape signals).
 
@@ -47,13 +47,13 @@ The Today screen's whole reason to exist: one gradient card, one number, one act
 ```dart
 final c = DaybreakColors.of(context);
 final e = DaybreakElevation.of(context);
-final r = DaybreakRadii.of(context);
+final sh = DaybreakShapes.of(context);
 
 DecoratedBox(
   decoration: BoxDecoration(
     gradient: c.sunrise,                 // slot, not a LinearGradient literal
-    borderRadius: BorderRadius.all(r.xl),
-    boxShadow: e.shadowGlow,             // warm-tinted glow, the only place it is used
+    borderRadius: BorderRadius.all(sh.radiusXl),
+    boxShadow: e.glow,             // warm-tinted glow, the only place it is used
   ),
   child: …, // ink is c.onPrimary throughout — verified against BOTH gradient stops
 )
@@ -62,7 +62,7 @@ DecoratedBox(
 | Part | Slot | Notes |
 |---|---|---|
 | Card fill | `c.sunrise` | The **only** component allowed the sunrise gradient. One per screen. |
-| Card shadow | `e.shadowGlow` | Reserved for this card; every other surface uses `shadow1…3`. |
+| Card shadow | `e.glow` | Reserved for this card; every other surface uses `level1…3`. |
 | Numeral | `textTheme.displayLarge` + `w800` + `tabularFigures` | `c.onPrimary`. Never shrinks. |
 | Unit (`mg`) | `textTheme.titleLarge` + `w600` | Baseline-aligned, `c.onPrimary` at reduced opacity **only if** still ≥ 4.5:1. |
 | Day caption | `textTheme.bodyLarge` | e.g. "Day 43 · high day". Wraps to two lines, never truncates. |
@@ -82,7 +82,7 @@ Four states, four **shapes**. The shape is a `CustomPaint` marker of a fixed 28 
 | today | ring + filled core (target) | `Icons.circle` | `l10n.dayStateToday` | `c.stateToday` |
 | upcoming | dashed circle, faint | *(none)* | `l10n.dayStateUpcoming` | `c.inkFaint` |
 
-`today` also carries **position and weight**: it is the row the Schedule scrolls to, its label is `w800`, and it sits on `c.surfaceRaised` with `e.shadow1` while every other row is flat on `c.surface`. A row whose dose differs from the previous day adds the `newDose` marker (`c.stateNewDose` + an "up/down" glyph + the word) — a dose change is exactly the moment this population makes mistakes. Full four-state widget and painter: `examples/day_state_row.dart`.
+`today` also carries **position and weight**: it is the row the Schedule scrolls to, its label is `w800`, and it sits on `c.surfaceRaised` with `e.level1` while every other row is flat on `c.surface`. A row whose dose differs from the previous day adds the `newDose` marker (`c.stateNewDose` + an "up/down" glyph + the word) — a dose change is exactly the moment this population makes mistakes. Full four-state widget and painter: `examples/day_state_row.dart`.
 
 ## Block header
 
@@ -94,7 +94,7 @@ class BlockHeader extends StatelessWidget {
 }
 ```
 
-Pinned as a `SliverPersistentHeader` above its days. Fill `c.surfaceSunken`, hairline `c.border` on the bottom edge only, radius `r.md` on the top corners, title `textTheme.titleLarge` `w800`, summary `textTheme.label` in `c.inkMuted`. Completed blocks tint their fill `c.successTint` **and** prefix a check glyph **and** append the word — never the tint alone.
+Pinned as a `SliverPersistentHeader` above its days. Fill `c.surfaceSunken`, hairline `c.border` on the bottom edge only, radius `sh.radiusMd` on the top corners, title `textTheme.titleLarge` `w800`, summary `textTheme.label` in `c.inkMuted`. Completed blocks tint their fill `c.successTint` **and** prefix a check glyph **and** append the word — never the tint alone.
 
 **Never a month grid.** No `GridView` of 7 columns, no `table_calendar`, no `CalendarDatePicker` on Schedule. The taper is a list of blocks; a calendar cell forces a dose into a square with no room for the state shape, the label, or 200% text — and it teaches the wrong mental model. Date *entry* (start date in Plan) may use a platform date picker; date *browsing* may not.
 
@@ -102,10 +102,10 @@ Pinned as a `SliverPersistentHeader` above its days. Fill `c.surfaceSunken`, hai
 
 | Variant | Fill | Ink | Border | Min height |
 |---|---|---|---|---|
-| Primary pill | `c.sunrise` gradient, `r.pill` | `c.onPrimary` | none | 56 (Taken: **88**) |
-| Secondary | `c.primaryTint`, `r.pill` | `c.primaryDeep` | `c.border` | 56 |
+| Primary pill | `c.sunrise` gradient, `sh.radiusPill` | `c.onPrimary` | none | 56 (Taken: **88**) |
+| Secondary | `c.primaryTint`, `sh.radiusPill` | `c.primaryDeep` | `c.border` | 56 |
 | Tertiary | transparent | `c.primaryDeep` | none | 48 |
-| Destructive | `c.dangerTint`, `r.pill` | `c.danger` | `c.dangerFill` 1px | 56 |
+| Destructive | `c.dangerTint`, `sh.radiusPill` | `c.danger` | `c.dangerFill` 1px | 56 |
 
 Every variant: `Semantics(button: true, label: …)`, `HitTestBehavior.opaque`, single tap, no long-press-only path. Pressed state is a scale-to-0.98 over `motion.fast` **plus** `HapticFeedback.selectionClick()` — so the confirmation survives reduced motion, where the scale collapses to zero. Destructive actions (delete plan, reset history) always route through a confirm sheet; `ui-states-and-feedback` owns the confirm/undo contract.
 
@@ -113,12 +113,12 @@ The **Taken** action is deliberately outside this ladder's floor: 88 logical px 
 
 ## The rest of the set
 
-- **Chip (tablet strength).** `r.pill`, min 44×44, `c.surfaceRaised` fill / `c.border`. Selected = `c.primaryTint` fill **+ 2px `c.borderStrong` ring + a check glyph + `w800`**. Chips wrap (`Wrap`), never scroll horizontally — a horizontal strip hides options at 200%.
-- **Segmented control (method picker).** A `Row` of equal segments on `c.surfaceSunken`, `r.md`. The selected segment is a raised `c.surface` tile with `e.shadow1` and `w800` ink; unselected is `c.inkMuted` at `w600`. Ship it as a `Semantics(inMutuallyExclusiveGroup: true, selected: …)` group. Above 1.5× text scale it reflows to a vertical radio list — an equal-width `Row` of Persian method names cannot survive otherwise.
+- **Chip (tablet strength).** `sh.radiusPill`, min 44×44, `c.surfaceRaised` fill / `c.border`. Selected = `c.primaryTint` fill **+ 2px `c.borderStrong` ring + a check glyph + `w800`**. Chips wrap (`Wrap`), never scroll horizontally — a horizontal strip hides options at 200%.
+- **Segmented control (method picker).** A `Row` of equal segments on `c.surfaceSunken`, `sh.radiusMd`. The selected segment is a raised `c.surface` tile with `e.level1` and `w800` ink; unselected is `c.inkMuted` at `w600`. Ship it as a `Semantics(inMutuallyExclusiveGroup: true, selected: …)` group. Above 1.5× text scale it reflows to a vertical radio list — an equal-width `Row` of Persian method names cannot survive otherwise.
 - **Tab bar (5 destinations).** `c.surface` with a top hairline `c.border`. Active = filled icon variant + `w800` label + a 3px `c.primary` indicator; inactive = outlined icon + `w600` + `c.inkMuted`. Labels are **always** visible (never icon-only, never `NavigationDestinationLabelBehavior.onlyShowSelected`) — an unlabelled icon strip is unusable for this audience. `adaptive-layout` owns the swap to a `NavigationRail` on wide screens.
-- **Banner (backfill prompt).** "You haven't marked the last 3 days." `c.warningTint` fill, `r.lg`, 1px `c.warningFill` border, a warning glyph, body in `c.ink` (never `c.warning` — the semantic ink is for the glyph and border, the text stays high-contrast), and two tertiary actions. `liveRegion: true`. It is never a `SnackBar`: this prompt must survive a scroll and a backgrounding.
-- **Stat block (Progress).** `c.surfaceRaised`, `r.lg`, `e.shadow1`. Numeral `textTheme.headlineLarge` `w800` tabular; overline label `w600` with the `+.06em` tracking slot — **and no `toUpperCase()`**, which is meaningless in Persian (`daybreak-bilingual-type` owns the letterform rules). Every stat block states its unit in words, never a bare number.
-- **Modal sheet (disclaimer).** `c.surface`, `r.xl` on the top corners only, scrim `c.overlay`, drag handle `c.border`. The Welcome disclaimer is `isDismissible: false` + `enableDrag: false` and its primary action stays disabled until the scroll controller reaches the end — the medical disclaimer is a gate, not a decoration.
+- **Banner (backfill prompt).** "You haven't marked the last 3 days." `c.warningTint` fill, `sh.radiusLg`, 1px `c.warningFill` border, a warning glyph, body in `c.ink` (never `c.warning` — the semantic ink is for the glyph and border, the text stays high-contrast), and two tertiary actions. `liveRegion: true`. It is never a `SnackBar`: this prompt must survive a scroll and a backgrounding.
+- **Stat block (Progress).** `c.surfaceRaised`, `sh.radiusLg`, `e.level1`. Numeral `textTheme.headlineLarge` `w800` tabular; overline label `w600` with the `+.06em` tracking slot — **and no `toUpperCase()`**, which is meaningless in Persian (`daybreak-bilingual-type` owns the letterform rules). Every stat block states its unit in words, never a bare number.
+- **Modal sheet (disclaimer).** `c.surface`, `sh.radiusXl` on the top corners only, scrim `c.overlay`, drag handle `c.border`. The Welcome disclaimer is `isDismissible: false` + `enableDrag: false` and its primary action stays disabled until the scroll controller reaches the end — the medical disclaimer is a gate, not a decoration.
 - **Empty state.** Centred: a decorative illustration under `ExcludeSemantics`, a `titleLarge` heading, one `bodyLarge` sentence in `c.inkMuted`, and exactly one primary action. Warm and encouraging wording — "Your plan starts here", never "No data".
 
 ## Composition

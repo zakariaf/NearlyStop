@@ -55,8 +55,7 @@ class DoseHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = DaybreakColors.of(context);
     final e = DaybreakElevation.of(context);
-    final r = DaybreakRadii.of(context);
-    final s = DaybreakSpacing.of(context);
+    final sh = DaybreakShapes.of(context);
     final l10n = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
 
@@ -82,11 +81,11 @@ class DoseHeroCard extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         gradient: c.sunrise, // slot — the ONLY component allowed this gradient
-        borderRadius: BorderRadius.all(r.xl),
-        boxShadow: e.shadowGlow, // warm-tinted; never a black shadow
+        borderRadius: BorderRadius.all(sh.radiusXl),
+        boxShadow: e.glow, // warm-tinted; never a black shadow
       ),
       child: Padding(
-        padding: EdgeInsetsDirectional.all(s.s6),
+        padding: EdgeInsetsDirectional.all(sh.s6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -129,11 +128,11 @@ class DoseHeroCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.baseline,
                             textBaseline: TextBaseline.alphabetic,
                             mainAxisSize: MainAxisSize.min,
-                            children: [amount, SizedBox(width: s.s2), unit],
+                            children: [amount, SizedBox(width: sh.s2), unit],
                           ),
                       ],
                     ),
-                    SizedBox(height: s.s3),
+                    SizedBox(height: sh.s3),
                     Text(
                       dayCaption,
                       style: text.bodyLarge!.copyWith(color: c.onPrimary),
@@ -143,7 +142,7 @@ class DoseHeroCard extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: s.s6),
+            SizedBox(height: sh.s6),
             TakenButton(isTaken: isTaken, onPressed: onTaken),
           ],
         ),
@@ -165,7 +164,7 @@ class TakenButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = DaybreakColors.of(context);
-    final r = DaybreakRadii.of(context);
+    final sh = DaybreakShapes.of(context);
     final motion = DaybreakMotion.of(context);
     final l10n = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
@@ -192,7 +191,7 @@ class TakenButton extends StatelessWidget {
           width: double.infinity,
           decoration: BoxDecoration(
             color: isTaken ? c.successTint : c.surface,
-            borderRadius: BorderRadius.all(r.pill),
+            borderRadius: BorderRadius.all(sh.radiusPill),
             border: Border.all(color: isTaken ? c.successFill : c.border),
           ),
           child: Row(

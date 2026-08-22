@@ -97,8 +97,7 @@ class DayStateRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = DaybreakColors.of(context);
     final e = DaybreakElevation.of(context);
-    final r = DaybreakRadii.of(context);
-    final s = DaybreakSpacing.of(context);
+    final sh = DaybreakShapes.of(context);
     final l10n = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
 
@@ -116,16 +115,16 @@ class DayStateRow extends StatelessWidget {
         onTap: onTap,
         child: Container(
           constraints: const BoxConstraints(minHeight: _rowMinHeight),
-          margin: EdgeInsetsDirectional.symmetric(vertical: s.s1),
+          margin: EdgeInsetsDirectional.symmetric(vertical: sh.s1),
           padding: EdgeInsetsDirectional.symmetric(
-            horizontal: s.s4,
-            vertical: s.s3,
+            horizontal: sh.s4,
+            vertical: sh.s3,
           ),
           decoration: BoxDecoration(
             // Today is raised; every other row is flat. Elevation is signal 4.
             color: isToday ? c.surfaceRaised : c.surface,
-            borderRadius: BorderRadius.all(r.md),
-            boxShadow: isToday ? e.shadow1 : e.shadow0,
+            borderRadius: BorderRadius.all(sh.radiusMd),
+            boxShadow: isToday ? e.level1 : e.level0,
             border: isToday ? Border.all(color: tint, width: 2) : null,
           ),
           child: ExcludeSemantics(
@@ -133,7 +132,7 @@ class DayStateRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 DayStateMarker(state: state, color: tint),
-                SizedBox(width: s.s4),
+                SizedBox(width: sh.s4),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,22 +176,21 @@ class NewDoseTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = DaybreakColors.of(context);
-    final r = DaybreakRadii.of(context);
-    final s = DaybreakSpacing.of(context);
+    final sh = DaybreakShapes.of(context);
     final text = Theme.of(context).textTheme;
 
     return Container(
-      padding: EdgeInsetsDirectional.symmetric(horizontal: s.s3, vertical: s.s1),
+      padding: EdgeInsetsDirectional.symmetric(horizontal: sh.s3, vertical: sh.s1),
       decoration: BoxDecoration(
         color: c.warningTint,
-        borderRadius: BorderRadius.all(r.pill),
+        borderRadius: BorderRadius.all(sh.radiusPill),
         border: Border.all(color: c.warningFill),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.trending_down, size: 16, color: c.stateNewDose),
-          SizedBox(width: s.s1),
+          SizedBox(width: sh.s1),
           // Ink stays c.ink, not c.warning: the semantic colour is for the glyph and
           // the border; the text keeps its high-contrast pair.
           Text(
