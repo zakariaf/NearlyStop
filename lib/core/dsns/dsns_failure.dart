@@ -43,6 +43,13 @@ final class UnachievableDose extends DomainFailure {
 
   @override
   String get code => 'dsns.unachievable_dose';
+
+  @override
+  List<Object?> get props => <Object?>[
+    target,
+    strengths,
+    allowHalves,
+  ];
 }
 
 /// The plan holds no tablet strengths, so nothing can be composed at all.
@@ -67,6 +74,12 @@ final class TargetAboveStart extends DomainFailure {
 
   @override
   String get code => 'dsns.target_above_start';
+
+  @override
+  List<Object?> get props => <Object?>[
+    start,
+    target,
+  ];
 }
 
 /// A step size of zero or less was supplied, which would never reach the
@@ -80,6 +93,11 @@ final class NonPositiveStep extends DomainFailure {
 
   @override
   String get code => 'dsns.non_positive_step';
+
+  @override
+  List<Object?> get props => <Object?>[
+    step,
+  ];
 }
 
 /// The dose is outside the range the composition solver will search.
@@ -95,6 +113,11 @@ final class DoseOutOfRange extends DomainFailure {
 
   @override
   String get code => 'dsns.dose_out_of_range';
+
+  @override
+  List<Object?> get props => <Object?>[
+    dose,
+  ];
 }
 
 /// A step froze a pattern version this build does not know how to render.
@@ -110,6 +133,11 @@ final class UnknownPatternVersion extends DomainFailure {
 
   @override
   String get code => 'dsns.unknown_pattern_version';
+
+  @override
+  List<Object?> get props => <Object?>[
+    version,
+  ];
 }
 
 /// Generation was asked for dates before the plan begins.
@@ -122,6 +150,11 @@ final class PlanNotStarted extends DomainFailure {
 
   @override
   String get code => 'dsns.plan_not_started';
+
+  @override
+  List<Object?> get props => <Object?>[
+    startDate,
+  ];
 }
 
 /// The stored method needs a parameter the plan does not carry.
@@ -138,4 +171,9 @@ final class MissingMethodParameter extends DomainFailure {
 
   @override
   String get code => 'dsns.missing_method_parameter';
+
+  @override
+  List<Object?> get props => <Object?>[
+    method,
+  ];
 }

@@ -111,6 +111,22 @@ void main() {
     });
   });
 
+  test('adherence never reports more taken days than planned ones', () {
+    // Two logs for one date, and a log for a date the schedule does not cover.
+    // "taken 351 of 350 days" is rendered verbatim to a frightened patient.
+    const start = LocalDate(2026, 4, 1);
+    final days = generated(steps: <StepFacts>[fixtureStep]);
+    final logs = <DoseLogFacts>[
+      log(start, 10, taken: true),
+      log(start, 10, taken: true),
+      log(const LocalDate(2020, 1, 1), 10, taken: true),
+    ];
+    final result = adherence(logs, days, start);
+    expect(result.takenCount, 1);
+    expect(result.plannedCount, 1);
+    expect(result.takenCount, lessThanOrEqualTo(result.plannedCount));
+  });
+
   test(
     'a flare preserves the cumulative total, because it only appends facts',
     () {
@@ -146,10 +162,12 @@ void main() {
           ),
         ],
       );
-      final byHand = days.fold(0, (sum, d) => sum + d.dose.hundredths);
+      // The oracle is INDEPENDENT: a DSNS step is 26 days at the old dose and
+      // 26 at the new, so the total is arithmetic the function never performs.
+      // Re-deriving days.fold(...) here would assert nothing beyond `+`.
       expect(
         plannedCumulativeMg(days).hundredths,
-        byHand,
+        26 * fromHundredths + 26 * toHundredths,
         reason: 'seed=$seed from=$fromHundredths to=$toHundredths',
       );
     }

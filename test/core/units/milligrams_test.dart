@@ -43,6 +43,23 @@ void main() {
       expect(Milligrams.parse('.5'), Ok<Milligrams, UnitFailure>(mg(50)));
     });
 
+    test('never throws, however long the digit run', () {
+      // This is the Plan screen's dose field. A user holding a key must get a
+      // typed failure, not a FormatException out of int.parse.
+      for (final input in [
+        '99999999999999999999',
+        '9999999',
+        '99999999999999999999.99',
+      ]) {
+        expect(
+          Milligrams.parse(input),
+          isA<Err<Milligrams, UnitFailure>>(),
+          reason: 'accepted or threw on $input',
+        );
+      }
+      expect(Milligrams.parse('999999'), isA<Ok<Milligrams, UnitFailure>>());
+    });
+
     test('rejects everything that is not a plain two-decimal number', () {
       for (final input in ['9.005', '', '-1', '9,5', 'abc', '9.', '1e3']) {
         expect(

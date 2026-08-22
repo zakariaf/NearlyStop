@@ -48,9 +48,17 @@ final class TabletCount {
 @immutable
 final class TabletComposition {
   /// Creates a composition of whole tablets plus at most one half.
-  const TabletComposition({required this.counts, required this.half});
+  ///
+  /// [counts] is copied into an unmodifiable list. `_CompositionCache` hands
+  /// the SAME instance to all 52 days of a step, so one `sort` or `clear` in a
+  /// presentation layer would silently rewrite the number of tablets the
+  /// patient counts out — on every day carrying that dose.
+  TabletComposition({
+    required List<TabletCount> counts,
+    required this.half,
+  }) : counts = List<TabletCount>.unmodifiable(counts);
 
-  /// Whole tablets, **largest strength first**.
+  /// Whole tablets, **largest strength first**. Unmodifiable.
   final List<TabletCount> counts;
 
   /// The one optional half tablet, or `null`.
@@ -131,9 +139,9 @@ Result<TabletComposition, DomainFailure> composeTablets({
   // largest strength among equal-cost options just by trying it first.
   final coins = <int>{for (final s in strengths) s.mg.hundredths}.toList()
     ..sort((a, b) => b.compareTo(a));
-  final flatStrengths = <Milligrams>[
+  final flatStrengths = List<Milligrams>.unmodifiable(<Milligrams>[
     for (final c in coins) Milligrams.fromHundredths(c),
-  ];
+  ]);
 
   final table = _MinTabletTable(coins, target.hundredths);
 

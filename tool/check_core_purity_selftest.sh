@@ -14,10 +14,12 @@ notif_scratch=lib/core/notifications/_purity_scratch.dart
 dsns_scratch=lib/core/dsns/_purity_scratch.dart
 failures=0
 
+near=lib/core/drift_shaped/_purity_near_miss.dart
+
 cleanup() {
   [ -f "$clock_backup" ] && mv "$clock_backup" "$clock"
-  rm -f "$notif_scratch" "$dsns_scratch"
-  rmdir lib/core/notifications lib/core/dsns 2>/dev/null
+  rm -f "$notif_scratch" "$dsns_scratch" "$near"
+  rmdir lib/core/notifications lib/core/dsns lib/core/drift_shaped 2>/dev/null
   return 0
 }
 trap cleanup EXIT
@@ -97,7 +99,6 @@ rmdir lib/core/notifications lib/core/dsns 2>/dev/null
 
 echo "case 12b: near-misses the walker must NOT report"
 mkdir -p lib/core/drift_shaped
-near=lib/core/drift_shaped/_purity_near_miss.dart
 cat >"$near" <<'DART'
 /// Scratch. Mentions package:flutter_lints and package:drift in prose only.
 ///

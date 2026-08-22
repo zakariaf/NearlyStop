@@ -28,6 +28,11 @@ final class InvalidDoseFormat extends UnitFailure {
 
   @override
   String get code => 'unit.invalid_dose_format';
+
+  @override
+  List<Object?> get props => <Object?>[
+    input,
+  ];
 }
 
 /// The input carried more than two decimal places.
@@ -44,6 +49,11 @@ final class DoseTooPrecise extends UnitFailure {
 
   @override
   String get code => 'unit.dose_too_precise';
+
+  @override
+  List<Object?> get props => <Object?>[
+    input,
+  ];
 }
 
 /// The input was negative. A dose below zero is not a quantity anyone can take.
@@ -56,6 +66,11 @@ final class NegativeDose extends UnitFailure {
 
   @override
   String get code => 'unit.negative_dose';
+
+  @override
+  List<Object?> get props => <Object?>[
+    input,
+  ];
 }
 
 /// A dose with an odd number of hundredths cannot be halved exactly.
@@ -71,4 +86,9 @@ final class DoseNotHalvable extends UnitFailure {
 
   @override
   String get code => 'unit.dose_not_halvable';
+
+  @override
+  List<Object?> get props => <Object?>[
+    hundredths,
+  ];
 }

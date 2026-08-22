@@ -26,15 +26,22 @@ final class Milligrams implements Comparable<Milligrams> {
   /// Hundredths of a milligram. 950 is 9.5 mg; 25 is 0.25 mg.
   final int hundredths;
 
-  static final RegExp _decimal = RegExp(r'^(\d*)(?:\.(\d{1,2}))?$');
+  /// At most six whole digits: 999999 mg is already three orders of magnitude
+  /// above the highest realistic starting dose, and an unbounded digit run is
+  /// what makes `int.parse` throw instead of returning a failure.
+  static final RegExp _decimal = RegExp(r'^(\d{0,6})(?:\.(\d{1,2}))?$');
   static final RegExp _tooPrecise = RegExp(r'^\d*\.\d{3,}$');
 
   /// Parses canonical ASCII decimal text such as `'9'`, `'9.5'`, `'.5'`.
   ///
   /// Returns [InvalidDoseFormat] for anything that is not a plain decimal
-  /// (`''`, `'abc'`, `'9,5'`, `'9.'`), [DoseTooPrecise] for more than two
-  /// decimal places, and [NegativeDose] for a leading minus. **Never rounds** —
-  /// `'9.005'` is a failure, not 9.00 or 9.01.
+  /// (`''`, `'abc'`, `'9,5'`, `'9.'`, or more than six whole digits),
+  /// [DoseTooPrecise] for more than two decimal places, and [NegativeDose] for
+  /// a leading minus. **Never rounds** — `'9.005'` is a failure, not 9.00 or
+  /// 9.01.
+  ///
+  /// **Total: it never throws.** This is the Plan screen's dose field, so a
+  /// user holding a key must produce a typed failure, not a crash.
   ///
   /// The caller must have normalized digits and separators to ASCII first
   /// (`i18n-rtl-l10n`'s `normalizeToAscii`); this function does not know about

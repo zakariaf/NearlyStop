@@ -51,17 +51,18 @@ Milligrams cumulativeTakenMg(List<DoseLogFacts> logs) {
 }
 
 /// Total milligrams the schedule plans across [days].
+///
+/// The conservation invariant this function has to satisfy — parts sum to the
+/// whole — is asserted by `cumulative_test.dart` against an **independent**
+/// oracle (26 x fromDose + 26 x toDose for a DSNS step). It is deliberately not
+/// an in-function `assert`: the only cheap thing such an assert could compare
+/// against is the same reduction over the same list, which holds for any
+/// implementation including one that skipped a day.
 Milligrams plannedCumulativeMg(List<DayPlan> days) {
   var hundredths = 0;
   for (final day in days) {
     hundredths += day.dose.hundredths;
   }
-  // Conservation tripwire: parts sum to the whole. Free in release, and it
-  // catches the bug the moment it happens rather than in a printed report.
-  assert(
-    hundredths == days.fold<int>(0, (sum, d) => sum + d.dose.hundredths),
-    'plannedCumulativeMg lost a day',
-  );
   return Milligrams.fromHundredths(hundredths);
 }
 
@@ -74,18 +75,27 @@ int daysOnSteroids(LocalDate start, LocalDate today) =>
 /// [Adherence.plannedCount] counts only days with `date <= today`. An
 /// unqualified count includes the future and reads "taken 341 of 780 days" on
 /// day 350 of a two-year taper, which is not a true sentence about anything.
+///
+/// [Adherence.takenCount] counts **distinct dates that the schedule actually
+/// plans**. Two logs for one date — a double write across a restore — or a log
+/// for a date a flare truncated out of the schedule would otherwise produce
+/// "taken 351 of 350 days", rendered verbatim to a frightened patient every
+/// morning.
 Adherence adherence(
   List<DoseLogFacts> logs,
   List<DayPlan> days,
   LocalDate today,
 ) {
-  var taken = 0;
-  for (final entry in logs) {
-    if (entry.taken && entry.date <= today) taken++;
-  }
-  var planned = 0;
-  for (final day in days) {
-    if (day.date <= today) planned++;
-  }
-  return Adherence(takenCount: taken, plannedCount: planned);
+  final plannedDates = <LocalDate>{
+    for (final day in days)
+      if (day.date <= today) day.date,
+  };
+  final takenDates = <LocalDate>{
+    for (final entry in logs)
+      if (entry.taken && plannedDates.contains(entry.date)) entry.date,
+  };
+  return Adherence(
+    takenCount: takenDates.length,
+    plannedCount: plannedDates.length,
+  );
 }

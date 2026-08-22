@@ -366,6 +366,173 @@ void main() {
     );
   });
 
+  group('`until` is the right bound, even when a next step exists', () {
+    // Taking only the next step's start here ran generation months past the
+    // requested bound AND replaced the truncated step's remaining alternating
+    // pattern with flat steady-state days at the lower dose.
+    final steps = <StepFacts>[
+      fixtureStep,
+      const StepFacts(
+        id: 2,
+        index: 1,
+        fromDose: Milligrams.fromHundredths(900),
+        toDose: Milligrams.fromHundredths(850),
+        startDate: LocalDate(2026, 8, 1),
+        status: StepStatus.pending,
+        patternVersion: 1,
+      ),
+    ];
+
+    test('stops exactly at `until`', () {
+      final days = generated(steps: steps, until: const LocalDate(2026, 4, 10));
+      expect(days, hasLength(10));
+      expect(days.last.date, const LocalDate(2026, 4, 10));
+    });
+
+    test('does not turn the running step into steady state', () {
+      final days = generated(steps: steps, until: const LocalDate(2026, 6, 1));
+      expect(days.where((d) => d.kind == DayKind.steadyState), isNotEmpty);
+      // Days 1..52 of the running step keep their alternating pattern.
+      final stepDays = days.where((d) => d.kind == DayKind.step).toList();
+      expect(stepDays, hasLength(52));
+      expect(
+        stepDays.where((d) => d.doseKind == DoseKind.oldDose),
+        hasLength(26),
+      );
+      expect(days.last.date, const LocalDate(2026, 6, 1));
+    });
+  });
+
+  group('holds chain, and only where the step actually reaches', () {
+    test('a hold anchored to an inserted hold day is applied, not dropped', () {
+      final days = generated(
+        steps: <StepFacts>[fixtureStep],
+        holds: const <HoldEvent>[
+          HoldEvent(stepId: 1, fromDate: LocalDate(2026, 4, 10), extraDays: 3),
+          HoldEvent(stepId: 1, fromDate: LocalDate(2026, 4, 11), extraDays: 2),
+        ],
+      );
+      expect(days, hasLength(57));
+      expect(days.where((d) => d.isHoldDay), hasLength(5));
+    });
+
+    test('`until` can cut into a run of hold days', () {
+      final days = generated(
+        steps: <StepFacts>[fixtureStep],
+        holds: const <HoldEvent>[
+          HoldEvent(stepId: 1, fromDate: LocalDate(2026, 4, 10), extraDays: 3),
+        ],
+        until: const LocalDate(2026, 4, 11),
+      );
+      expect(days, hasLength(11));
+      expect(days.last.date, const LocalDate(2026, 4, 11));
+      expect(days.last.isHoldDay, isTrue);
+      expect(days.last.dayInStep, 10);
+    });
+
+    test('a hold outside the step contributes nothing', () {
+      final days = generated(
+        steps: <StepFacts>[fixtureStep],
+        holds: const <HoldEvent>[
+          HoldEvent(stepId: 1, fromDate: LocalDate(2027, 1, 1), extraDays: 3),
+        ],
+      );
+      expect(days, hasLength(52));
+    });
+
+    test('a negative extraDays contributes nothing', () {
+      final days = generated(
+        steps: <StepFacts>[fixtureStep],
+        holds: const <HoldEvent>[
+          HoldEvent(stepId: 1, fromDate: LocalDate(2026, 4, 10), extraDays: -5),
+        ],
+      );
+      expect(days, hasLength(52));
+    });
+  });
+
+  group("the first step must open on the plan's first day", () {
+    // CONTRACTS.md §5 promises no holes, and that promise rests entirely on
+    // this. savePlan inserts Step 0 on plan.startDate in the same transaction.
+    StepFacts stepFrom(LocalDate date) => StepFacts(
+      id: 1,
+      index: 0,
+      fromDose: mg(10),
+      toDose: mg(9),
+      startDate: date,
+      status: StepStatus.active,
+      patternVersion: 1,
+    );
+
+    test('a step starting BEFORE the plan is refused', () {
+      final result = generateSchedule(
+        plan: fixturePlan,
+        steps: <StepFacts>[stepFrom(const LocalDate(2026, 1, 1))],
+        flares: const <FlareEvent>[],
+        holds: const <HoldEvent>[],
+      );
+      expect(failureOf(result), isA<PlanNotStarted>());
+    });
+
+    test('a step starting AFTER the plan is refused', () {
+      final result = generateSchedule(
+        plan: fixturePlan,
+        steps: <StepFacts>[stepFrom(const LocalDate(2026, 5, 1))],
+        flares: const <FlareEvent>[],
+        holds: const <HoldEvent>[],
+      );
+      expect(failureOf(result), isA<PlanNotStarted>());
+    });
+  });
+
+  test("a flare on a step's first day truncates that step to zero days", () {
+    // This is the shape flare handling produces. The earlier step contributes
+    // nothing because it was never lived, and the schedule opens on the flare's
+    // step — deliberate, and pinned here so it cannot change by accident.
+    final days = generated(
+      steps: <StepFacts>[
+        const StepFacts(
+          id: 1,
+          index: 0,
+          fromDose: Milligrams.fromHundredths(1000),
+          toDose: Milligrams.fromHundredths(900),
+          startDate: LocalDate(2026, 4, 1),
+          status: StepStatus.abandoned,
+          patternVersion: 1,
+        ),
+        const StepFacts(
+          id: 2,
+          index: 1,
+          fromDose: Milligrams.fromHundredths(1000),
+          toDose: Milligrams.fromHundredths(950),
+          startDate: LocalDate(2026, 4, 1),
+          status: StepStatus.active,
+          patternVersion: 1,
+        ),
+      ],
+    );
+    expect(days.where((d) => d.stepIndex == 0), isEmpty);
+    expect(days.first.stepIndex, 1);
+    expect(days, hasLength(52));
+  });
+
+  test('isNewDose is false on every steady-state day', () {
+    // The new-dose/old-dose distinction only exists inside a step. Lighting the
+    // marker on every day of a completed taper destroys the one signal this
+    // audience most needs to trust.
+    final days = generated(
+      steps: <StepFacts>[fixtureStep],
+      until: const LocalDate(2026, 5, 30),
+    );
+    final steady = days.where((d) => d.kind == DayKind.steadyState);
+    expect(steady, isNotEmpty);
+    for (final day in steady) {
+      expect(day.doseKind, DoseKind.newDose);
+      expect(day.isNewDose, isFalse, reason: '${day.date}');
+    }
+    expect(days.first.isNewDose, isTrue);
+  });
+
   test('an unknown frozen pattern version refuses, never guesses', () {
     // Step.patternVersion exists so a corrected block table cannot rewrite what
     // a patient already lived. A version this build does not know is a typed

@@ -91,12 +91,20 @@ final class DayPlan {
   /// Whether this day was inserted by a `HoldEvent`.
   final bool isHoldDay;
 
-  /// Whether today is a new-dose day.
+  /// Whether today is a **new-dose day inside a step**.
   ///
   /// A flag, never a `DayState` member (CONTRACTS.md §1): a day is routinely
   /// both `today` and a new-dose day. Presentation reads this for the
   /// `stateNewDose` slot.
-  bool get isNewDose => doseKind == DoseKind.newDose;
+  ///
+  /// False on every steady-state day, and that is the point. New-dose versus
+  /// old-dose is a distinction that only exists inside a step's alternating
+  /// calendar (`SPEC.md` §4.1). A steady-state day genuinely carries the step's
+  /// new dose — [doseKind] says so — but once the alternation is over there is
+  /// no "other" dose to mark it against, and lighting the marker on every day
+  /// of a completed taper would destroy the one signal this audience most needs
+  /// to trust.
+  bool get isNewDose => kind == DayKind.step && doseKind == DoseKind.newDose;
 
   @override
   bool operator ==(Object other) =>
@@ -110,7 +118,7 @@ final class DayPlan {
       other.dose == dose &&
       other.doseKind == doseKind &&
       other.isHoldDay == isHoldDay &&
-      _sameComposition(composition, other.composition);
+      other.composition == composition;
 
   @override
   int get hashCode => Object.hash(
@@ -124,28 +132,6 @@ final class DayPlan {
     doseKind,
     isHoldDay,
   );
-
-  /// Compares two composition outcomes structurally.
-  ///
-  /// A `Failure` carries no value equality on purpose — you switch on it, you
-  /// never compare instances — so two unreachable doses are equal when they
-  /// failed the same way.
-  static bool _sameComposition(
-    Result<TabletComposition, DomainFailure> a,
-    Result<TabletComposition, DomainFailure> b,
-  ) => switch ((a, b)) {
-    (
-      Ok<TabletComposition, DomainFailure>(:final value),
-      Ok<TabletComposition, DomainFailure>(value: final other),
-    ) =>
-      value == other,
-    (
-      Err<TabletComposition, DomainFailure>(:final failure),
-      Err<TabletComposition, DomainFailure>(failure: final other),
-    ) =>
-      failure.code == other.code,
-    _ => false,
-  };
 
   @override
   String toString() =>

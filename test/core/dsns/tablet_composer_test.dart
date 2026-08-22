@@ -282,6 +282,21 @@ void main() {
     });
   });
 
+  test('the counts list cannot be mutated by a caller', () {
+    // _CompositionCache hands the SAME instance to all 52 days of a step, so
+    // one sort or clear would rewrite the number of tablets the patient counts
+    // out on every day carrying that dose.
+    final c = composed(9, [5, 1], allowHalves: true);
+    expect(c.counts.clear, throwsUnsupportedError);
+    expect(() => c.counts.add(TabletCount(mg(1), 1)), throwsUnsupportedError);
+  });
+
+  test('the refusal payload cannot be mutated either', () {
+    final failure =
+        refused(6.5, [5, 1], allowHalves: false) as UnachievableDose;
+    expect(failure.strengths.clear, throwsUnsupportedError);
+  });
+
   group('value semantics', () {
     test('a TabletCount equates and hashes on strength and count', () {
       expect(TabletCount(mg(5), 2), TabletCount(mg(5), 2));

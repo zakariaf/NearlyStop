@@ -130,27 +130,60 @@ void main() {
       expect(nextDose(mg(0.5), mg(1), mg(0)), Milligrams.zero);
       expect(nextDose(mg(9), mg(0.5), mg(8.5)), mg(8.5));
     });
+
+    test('never returns a negative dose, even for a negative target', () {
+      // Milligrams permits negative hundredths by design and nothing
+      // constrains targetDose, so a sign-flipped restore must not produce a
+      // step to a dose below zero.
+      expect(nextDose(mg(1), mg(5), mg(-2)), Milligrams.zero);
+    });
   });
 
   group('percentageStepSize', () {
+    Milligrams sized(num from, int percent) {
+      final result = percentageStepSize(
+        mg(from),
+        percent,
+        held([5, 1]),
+        allowHalves: true,
+      );
+      expect(result, isA<Ok<Milligrams, DomainFailure>>());
+      return (result as Ok<Milligrams, DomainFailure>).value;
+    }
+
     test('rounds a percentage down to an achievable increment', () {
       // 10% of 20mg is 2mg, which [5, 1] + halves makes exactly.
-      expect(
-        percentageStepSize(mg(20), 10, held([5, 1]), allowHalves: true),
-        mg(2),
-      );
+      expect(sized(20, 10), mg(2));
       // 10% of 9mg is 0.9mg; the largest achievable increment below it is 0.5.
-      expect(
-        percentageStepSize(mg(9), 10, held([5, 1]), allowHalves: true),
-        mg(0.5),
-      );
+      expect(sized(9, 10), mg(0.5));
     });
 
     test('falls back to the smallest achievable increment when none fits', () {
-      expect(
-        percentageStepSize(mg(2), 10, held([5, 1]), allowHalves: true),
-        mg(0.5),
-      );
+      expect(sized(2, 10), mg(0.5));
+    });
+
+    test('a percentage of zero or less is a refusal, never a step', () {
+      // The fallback exists for "10% permits no achievable step". Letting it
+      // fire for an input that means DO NOT STEP hands the patient a taper
+      // nobody chose.
+      for (final percent in <int>[0, -10]) {
+        final result = percentageStepSize(
+          mg(10),
+          percent,
+          held([5, 1]),
+          allowHalves: true,
+        );
+        expect(
+          result,
+          isA<Err<Milligrams, DomainFailure>>(),
+          reason: 'percent=$percent',
+        );
+        expect(
+          (result as Err<Milligrams, DomainFailure>).failure,
+          isA<NonPositiveStep>(),
+          reason: 'percent=$percent',
+        );
+      }
     });
   });
 

@@ -41,6 +41,35 @@ void main() {
     ];
 
     expect(all.map(tag).toSet(), hasLength(all.length));
+    // Value equality, so `Result`'s own value equality means something.
+    // Without it every `expect(result, Err(...))` silently never matches and a
+    // Notifier holding an Err re-notifies on every rebuild.
+    expect(
+      const TargetAboveStart(oneMg, oneMg),
+      const TargetAboveStart(oneMg, oneMg),
+    );
+    expect(
+      const TargetAboveStart(oneMg, oneMg).hashCode,
+      const TargetAboveStart(oneMg, oneMg).hashCode,
+    );
+    expect(
+      const UnachievableDose(oneMg, <Milligrams>[oneMg], allowHalves: false),
+      const UnachievableDose(oneMg, <Milligrams>[oneMg], allowHalves: false),
+    );
+    expect(
+      const UnachievableDose(oneMg, <Milligrams>[oneMg], allowHalves: false) ==
+          const UnachievableDose(
+            oneMg,
+            <Milligrams>[oneMg],
+            allowHalves: true,
+          ),
+      isFalse,
+    );
+    // Different subtypes with the same payload are never equal.
+    expect(
+      const DoseOutOfRange(oneMg) == const NonPositiveStep(oneMg),
+      isFalse,
+    );
     expect(all.map((f) => f.code).toSet(), hasLength(all.length));
     for (final failure in all) {
       expect(

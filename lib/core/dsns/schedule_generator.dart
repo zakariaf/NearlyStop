@@ -77,12 +77,28 @@ Result<List<DayPlan>, DomainFailure> generateSchedule({
       return byDate != 0 ? byDate : a.index.compareTo(b.index);
     });
 
+  // CONTRACTS.md §5 promises exactly one DayPlan for every date in range, and
+  // that promise rests entirely on the first step opening on the plan's first
+  // day. An earlier first step emits days before the plan exists; a later one
+  // leaves a hole the Schedule screen renders as a gap. Both are refusals, not
+  // best-effort renders.
+  if (ordered.first.startDate != plan.startDate) {
+    return Err(PlanNotStarted(plan.startDate));
+  }
+
   final composer = _CompositionCache(plan);
   final days = <DayPlan>[];
 
   for (var i = 0; i < ordered.length; i++) {
     final step = ordered[i];
+    // The step's exclusive end: the EARLIER of the next step's start and one
+    // day past `until`. Taking only `nextStart` here let generation run months
+    // past the requested right bound AND replaced the truncated step's
+    // remaining alternating pattern with flat steady-state days at the lower
+    // dose — a caller bounding at a past date was told to take the new dose
+    // every day for weeks it should have alternated.
     final nextStart = i + 1 < ordered.length ? ordered[i + 1].startDate : null;
+    final stop = _earliest(nextStart, until?.addDays(1));
 
     final shape = _shapeFor(plan, step);
     switch (shape) {
@@ -95,18 +111,16 @@ Result<List<DayPlan>, DomainFailure> generateSchedule({
           pattern: pattern,
           extraByDate: _extraDaysByDate(holds, step.id),
           composer: composer,
-          nextStart: nextStart,
-          until: until,
+          stop: stop,
         );
+        // A null `stop` means "the end of the last step, and no further",
+        // which is the contract the golden vector pins.
         _emitSteadyState(
           into: days,
           step: step,
           composer: composer,
           from: after,
-          // Up to the next step, or up to `until` for the last one. A null
-          // boundary means "stop at the end of the last step", which is the
-          // contract the golden vector pins.
-          boundary: nextStart ?? until?.addDays(1),
+          boundary: stop,
         );
     }
   }
@@ -135,6 +149,43 @@ DomainFailure? _validate(TaperPlanFacts plan, LocalDate? until) {
   };
 }
 
+/// One position the step's date walk lands on.
+typedef _WalkedDay = ({LocalDate date, int patternIndex, bool isHoldDay});
+
+/// Walks a step's dates, inserting hold days, up to (exclusive) [stop].
+///
+/// **The single definition of a step's realised shape.** The generator maps it
+/// to `DayPlan`s and `stepStatusFor` counts it, so the schedule and the
+/// "Start next step" button can never disagree about when a step ends.
+///
+/// Holds are consumed **at every date the walk emits, including a date that is
+/// itself a hold day** — a second hold anchored to an inserted day used to be
+/// silently dropped, so the patient lived fewer days than their status said. A
+/// hold with a non-positive `extraDays`, or one anchored to a date this step
+/// never reaches, contributes nothing to either side.
+List<_WalkedDay> _walkStep({
+  required LocalDate startDate,
+  required int patternLength,
+  required Map<LocalDate, int> extraByDate,
+  LocalDate? stop,
+}) {
+  final walked = <_WalkedDay>[];
+  var date = startDate;
+  for (var index = 0; index < patternLength; index++) {
+    if (stop != null && date >= stop) return walked;
+    walked.add((date: date, patternIndex: index, isHoldDay: false));
+    var pending = extraByDate[date] ?? 0;
+    date = date.addDays(1);
+    while (pending > 0) {
+      if (stop != null && date >= stop) return walked;
+      walked.add((date: date, patternIndex: index, isHoldDay: true));
+      pending = pending - 1 + (extraByDate[date] ?? 0);
+      date = date.addDays(1);
+    }
+  }
+  return walked;
+}
+
 /// Appends one step's days and returns the first date it did not use.
 LocalDate _emitStepDays({
   required List<DayPlan> into,
@@ -142,42 +193,34 @@ LocalDate _emitStepDays({
   required List<_ShapeDay> pattern,
   required Map<LocalDate, int> extraByDate,
   required _CompositionCache composer,
-  required LocalDate? nextStart,
-  required LocalDate? until,
+  required LocalDate? stop,
 }) {
-  var date = step.startDate;
-  var emitted = 0;
-
-  DayPlan asDay(_ShapeDay day, LocalDate on, {required bool isHoldDay}) =>
+  final walked = _walkStep(
+    startDate: step.startDate,
+    patternLength: pattern.length,
+    extraByDate: extraByDate,
+    stop: stop,
+  );
+  for (final position in walked) {
+    final day = pattern[position.patternIndex];
+    into.add(
       DayPlan(
-        date: on,
+        date: position.date,
         stepIndex: step.index,
         kind: DayKind.step,
         blockIndex: day.blockIndex,
         dayInBlock: day.dayInBlock,
         // A hold day repeats the host day's position: it is the same day of
         // the step, lived twice.
-        dayInStep: emitted,
+        dayInStep: position.patternIndex + 1,
         dose: day.dose,
         doseKind: day.doseKind,
         composition: composer.of(day.dose),
-        isHoldDay: isHoldDay,
-      );
-
-  while (emitted < pattern.length) {
-    if (_pastBound(date, nextStart, until)) break;
-    final day = pattern[emitted];
-    emitted++;
-    into.add(asDay(day, date, isHoldDay: false));
-    final extra = extraByDate[date] ?? 0;
-    date = date.addDays(1);
-    for (var held = 0; held < extra; held++) {
-      if (_pastBound(date, nextStart, until)) break;
-      into.add(asDay(day, date, isHoldDay: true));
-      date = date.addDays(1);
-    }
+        isHoldDay: position.isHoldDay,
+      ),
+    );
   }
-  return date;
+  return walked.isEmpty ? step.startDate : walked.last.date.addDays(1);
 }
 
 /// Fills `[from, boundary)` with steady-state days at the step's new dose.
@@ -223,23 +266,39 @@ void _emitSteadyState({
 /// methods.
 StepStatus stepStatusFor(
   StepFacts step,
-  List<HoldEvent> holdsForStep,
+  List<HoldEvent> holds,
   LocalDate today, {
-  int nominalLength = dsnsStepDays,
+  required int nominalLength,
 }) {
   if (step.status == StepStatus.abandoned) return StepStatus.abandoned;
-  final extra = holdsForStep
-      .where((h) => h.stepId == step.id)
-      .fold(0, (sum, h) => sum + h.extraDays);
-  if (today >= step.startDate.addDays(nominalLength + extra)) {
-    return StepStatus.completed;
-  }
-  if (today >= step.startDate) return StepStatus.active;
-  return StepStatus.pending;
+  if (today < step.startDate) return StepStatus.pending;
+  final realised = _walkStep(
+    startDate: step.startDate,
+    patternLength: nominalLength,
+    extraByDate: _extraDaysByDate(holds, step.id),
+  ).length;
+  return today >= step.startDate.addDays(realised)
+      ? StepStatus.completed
+      : StepStatus.active;
 }
 
-bool _pastBound(LocalDate date, LocalDate? nextStart, LocalDate? until) =>
-    (nextStart != null && date >= nextStart) || (until != null && date > until);
+/// The nominal length of one step under [plan]: 52 for DSNS, the plan's hold
+/// period otherwise.
+///
+/// Exists so a caller cannot default [stepStatusFor]'s `nominalLength` to 52 on
+/// a `percentage` plan that runs 14 days — which would leave "Start next step"
+/// disabled for 38 days after the schedule had already reached steady state.
+int nominalStepLength(TaperPlanFacts plan) => switch (plan.method) {
+  TaperMethod.dsns => dsnsStepDays,
+  TaperMethod.percentage || TaperMethod.fixedMg => plan.holdPeriodDays,
+};
+
+/// The earlier of two optional bounds, or whichever one is present.
+LocalDate? _earliest(LocalDate? a, LocalDate? b) {
+  if (a == null) return b;
+  if (b == null) return a;
+  return a < b ? a : b;
+}
 
 Map<LocalDate, int> _extraDaysByDate(List<HoldEvent> holds, int stepId) {
   final byDate = <LocalDate, int>{};

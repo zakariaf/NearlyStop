@@ -109,33 +109,44 @@ Result<StepSuggestion, DomainFailure> suggestStep({
   );
 }
 
-/// The dose after taking [step] off [from], clamped at [target].
+/// The dose after taking [step] off [from], clamped at [target] and at zero.
 ///
 /// `SPEC.md` §7 — a step larger than the remaining gap clamps to the target,
-/// and a step is never generated to a negative dose.
+/// and a step is never generated to a negative dose. The zero clamp is not
+/// belt-and-braces: [Milligrams] permits negative hundredths by design, nothing
+/// constrains `TaperPlanFacts.targetDose` to be positive, and a sign-flipped
+/// target restored from an export would otherwise produce a negative dose that
+/// reaches the composer as an obscure `DoseOutOfRange`.
 Milligrams nextDose(Milligrams from, Milligrams step, Milligrams target) {
+  final floor = target < Milligrams.zero ? Milligrams.zero : target;
   final reduced = from - step;
-  return reduced < target ? target : reduced;
+  return reduced < floor ? floor : reduced;
 }
 
 /// The step size a `percentage` plan uses: [percent]% of [fromDose], rounded
 /// **down** to the largest achievable increment.
 ///
 /// Falls back to the smallest achievable increment when nothing fits, for the
-/// same reason [suggestStep] does. Returns zero only when nothing at all is
-/// composable, which the caller has already ruled out by holding a strength
-/// below the dose.
-Milligrams percentageStepSize(
+/// same reason [suggestStep] does.
+///
+/// A [percent] of zero or less is [NonPositiveStep], never a step. Without the
+/// guard the fallback fires for an input that means *do not step* and the
+/// patient gets a taper they never chose — `TaperPlanFacts.percentage` is a
+/// plain `int?` with no range invariant, so a mis-typed Plan screen or a
+/// restored export can supply one.
+Result<Milligrams, DomainFailure> percentageStepSize(
   Milligrams fromDose,
   int percent,
   List<TabletStrength> strengths, {
   required bool allowHalves,
 }) {
+  if (percent <= 0) return const Err(NonPositiveStep(Milligrams.zero));
+  if (strengths.isEmpty) return const Err(NoStrengthsHeld());
   final ceiling = fromDose.hundredths * percent ~/ 100;
   final value =
       largestAchievableAtMost(ceiling, strengths, allowHalves: allowHalves) ??
       _smallestAchievable(strengths, allowHalves: allowHalves);
-  return Milligrams.fromHundredths(value);
+  return Ok(Milligrams.fromHundredths(value));
 }
 
 /// The smallest increment the held strengths can make: the smallest tablet, or
