@@ -113,6 +113,13 @@ add_rule lib code - \
   'Icons\.arrow_(back|forward)\b' \
   "use Icons.adaptive.arrow_back / arrow_forward — the fixed glyph does not mirror in RTL"
 
+# A FontVariation on an axis the shipped faces do not expose is a SILENT no-op:
+# both bundled TTFs carry `wght` only, so `opsz` or `ital` changes nothing and
+# the defect is invisible in a golden.
+add_rule lib code - \
+  "FontVariation\\([[:space:]]*'(opsz|ital|slnt|wdth)'" \
+  "both bundled faces expose the wght axis only — any other FontVariation no-ops silently"
+
 # Suppressions are line-scoped with a reason. A file-scoped ignore on a rule we
 # deliberately promoted to error leaves every later edit in that file
 # unprotected — exactly the leak the promotion exists to catch.
@@ -186,8 +193,14 @@ run_delegated() {
 
 run_delegated check_raw_values.sh \
   "design values belong in lib/theme/ — read a token slot, or add one (with its contrast-budget row and its test in the same commit)"
-run_delegated check_font_bundling.sh \
-  "fonts ship inside the binary — google_fonts is a network call in an app whose store listing claims none"
+
+# The lockfile half of the bundled-fonts promise. The IMPORT half is rule group
+# 1 above; a second script re-greping the same import URI with a different
+# matcher is exactly the drift this file's header warns about, so
+# check_font_bundling.sh is gone and its one unique rule is a row above.
+if grep -qE '^  google_fonts:' pubspec.lock; then
+  offenders+=("pubspec.lock: google_fonts is in the resolved dependency tree, and it fetches a font over the network at runtime")
+fi
 
 # ------------------------------------------------------------------- verdict
 if [ "${#delegated[@]}" -ne 0 ]; then

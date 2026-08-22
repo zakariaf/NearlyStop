@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/theme/gradients.dart';
+import 'package:nearlystop/theme/primitives.dart';
 
 void main() {
   test('begin and end are AlignmentDirectional, and they MIRROR', () {
@@ -39,6 +40,33 @@ void main() {
     expect(DaybreakGradients.sunriseDark.colors, hasLength(4));
     expect(DaybreakGradients.washLight.colors, hasLength(2));
     expect(DaybreakGradients.washDark.colors, hasLength(2));
+  });
+
+  test('the worst stop is DERIVED, and it is stop 0 in both sunrises', () {
+    // Naming an index was the bug: stop 1 is the coral, but stop 0 is darker in
+    // both gradients, so a hard-coded index measured an easier ground than the
+    // one that ships.
+    const onPrimary = Primitives.clay11;
+    expect(
+      DaybreakGradients.worstStopFor(
+        onPrimary,
+        DaybreakGradients.sunriseLight,
+      ),
+      DaybreakGradients.sunriseLight.colors.first,
+    );
+    expect(
+      DaybreakGradients.worstStopFor(onPrimary, DaybreakGradients.sunriseDark),
+      DaybreakGradients.sunriseDark.colors.first,
+    );
+    // It is a property of the PAIR: a light foreground's worst stop is the
+    // lightest end, not the darkest.
+    expect(
+      DaybreakGradients.worstStopFor(
+        const Color(0xFFFFFFFF),
+        DaybreakGradients.sunriseLight,
+      ),
+      DaybreakGradients.sunriseLight.colors.last,
+    );
   });
 
   test('the wash is vertical, so it has nothing to mirror', () {

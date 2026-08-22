@@ -64,11 +64,8 @@ class DaybreakMotion extends ThemeExtension<DaybreakMotion> {
   @override
   DaybreakMotion lerp(covariant DaybreakMotion? other, double t) {
     if (other == null) return this;
-    // Short-circuit the endpoints. Beyond saving an allocation on the two
-    // most common values of t, it is what makes `lerp(a, b, 0) == a`
-    // exact: LinearGradient.lerp MERGES two different stop lists, so a
-    // gradient interpolated to t = 0 carries the union of both and is
-    // not `a`.
+    // Short-circuit the endpoints. lerpDuration is already exact at t = 0 and
+    // 1, so this only skips an allocation — the curves snap either way.
     if (t <= 0) return this;
     if (t >= 1) return other;
     return DaybreakMotion(

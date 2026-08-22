@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_script.dart';
+import 'package:nearlystop/theme/daybreak_type.dart';
 
 /// App-specific type roles.
 @immutable
@@ -62,11 +63,9 @@ class DaybreakTypography extends ThemeExtension<DaybreakTypography> {
   @override
   DaybreakTypography lerp(covariant DaybreakTypography? other, double t) {
     if (other == null) return this;
-    // Short-circuit the endpoints. Beyond saving an allocation on the two
-    // most common values of t, it is what makes `lerp(a, b, 0) == a`
-    // exact: LinearGradient.lerp MERGES two different stop lists, so a
-    // gradient interpolated to t = 0 carries the union of both and is
-    // not `a`.
+    // Short-circuit the endpoints, which is what makes `lerp(a, b, 0) == a`
+    // exact here: TextStyle.lerp returns a fresh style whose null-vs-set fields
+    // do not always survive a round trip at t = 0.
     if (t <= 0) return this;
     if (t >= 1) return other;
     return DaybreakTypography(
@@ -104,17 +103,24 @@ DaybreakTypography daybreakTypography({
   required TextTheme text,
   required DaybreakScript script,
   required DaybreakColors colors,
-  bool boldText = false,
 }) {
   const tabular = <FontFeature>[FontFeature.tabularFigures()];
   final isPerso = script == DaybreakScript.perso;
+  // The overline is caption two steps up the ladder — w600 -> w800 normally,
+  // w700 -> w900 under boldText. DERIVED from the caption slot rather than
+  // taken as a second argument: a `boldText` flag that could disagree with the
+  // TextTheme it decorates is redundant state, and the way it desyncs is that
+  // the overline goes bold while every other slot stays normal.
+  final overlineWeight = boldTextStep(
+    boldTextStep(text.labelSmall!.fontWeight ?? FontWeight.w400),
+  );
 
   return DaybreakTypography(
     doseNumeral: text.displayLarge!.copyWith(fontFeatures: tabular),
     overline: text.labelSmall!.copyWith(
-      fontWeight: boldText ? FontWeight.w900 : FontWeight.w800,
+      fontWeight: overlineWeight,
       fontVariations: <FontVariation>[
-        FontVariation('wght', boldText ? 900 : 800),
+        FontVariation('wght', overlineWeight.value.toDouble()),
       ],
       // +0.06em at 14. Latin only: positive tracking snaps Perso-Arabic joins.
       letterSpacing: isPerso ? 0 : 0.06 * 14,

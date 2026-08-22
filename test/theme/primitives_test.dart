@@ -120,14 +120,23 @@ void main() {
   });
 
   test('no two primitives in one hue family share an L*', () {
-    final byFamily = <String, List<String>>{};
-    for (final name in pool.keys) {
+    // Compare the MEASURED lightness, not the names — names are Map keys and
+    // unique by construction, so comparing them asserts nothing at all.
+    final byFamily = <String, Map<int, String>>{};
+    for (final MapEntry(key: name, value: color) in pool.entries) {
       final family = RegExp('^([a-z]+)').firstMatch(name)!.group(1)!;
-      byFamily.putIfAbsent(family, () => <String>[]).add(name);
+      final measured = lStar(color).round();
+      final seen = byFamily.putIfAbsent(family, () => <int, String>{});
+      expect(
+        seen[measured],
+        isNull,
+        reason:
+            '$name and ${seen[measured]} both measure L*=$measured — '
+            'two tones a reader cannot tell apart from their names',
+      );
+      seen[measured] = name;
     }
-    for (final MapEntry(key: family, value: names) in byFamily.entries) {
-      expect(names.toSet(), hasLength(names.length), reason: family);
-    }
+    expect(byFamily.keys, isNotEmpty);
   });
 
   test('clay56 feeds BOTH borderStrong and stateMissed, deliberately', () {

@@ -94,9 +94,14 @@ class DaybreakColors extends ThemeExtension<DaybreakColors> {
   /// The warm secondary accent.
   final Color secondary;
 
-  /// The **only** foreground allowed on [primary] and on the [sunrise] gradient
-  /// — 6.04:1 at the gradient's worst stop, where white measures 2.76:1 and
-  /// fails.
+  /// The **only** foreground allowed on [primary] and on the [sunrise]
+  /// gradient. 6.04:1 on the flat coral fill; 5.47:1 at the gradient's worst
+  /// stop, which is its darkest END and not the coral. White fails at both.
+  ///
+  /// The gradient carries decoration only. 7:1 is unreachable there with any
+  /// foreground — pure black reaches 6.88:1 — so the high-contrast palette does
+  /// not raise that row, and the number a patient reads sits on an opaque
+  /// [surface] chip at 13.6:1 instead.
   ///
   /// Deliberately different from `ColorScheme.onPrimary`, which sits on
   /// `ColorScheme.primary` (= [primaryDeep]) instead. Two roles, two grounds,
@@ -264,11 +269,9 @@ class DaybreakColors extends ThemeExtension<DaybreakColors> {
   @override
   DaybreakColors lerp(covariant DaybreakColors? other, double t) {
     if (other == null) return this;
-    // Short-circuit the endpoints. Beyond saving an allocation on the two
-    // most common values of t, it is what makes `lerp(a, b, 0) == a`
-    // exact: LinearGradient.lerp MERGES two different stop lists, so a
-    // gradient interpolated to t = 0 carries the union of both and is
-    // not `a`.
+    // Short-circuit the endpoints, which is what makes `lerp(a, b, 0) == a`
+    // exact here: LinearGradient.lerp MERGES two different stop lists, so a
+    // gradient interpolated to t = 0 carries the union of both and is not `a`.
     if (t <= 0) return this;
     if (t >= 1) return other;
     return DaybreakColors(
@@ -459,6 +462,9 @@ final DaybreakColors lightHighContrastDaybreakColors = lightDaybreakColors
       primaryDeep: Primitives.coral33,
       onPrimary: Primitives.clay04,
       success: Primitives.moss34,
+      // The base fill measures 4.21:1 on surface, below high contrast's 4.5
+      // floor for a state mark. Reuses the tone stateTaken uses, at 4.55:1.
+      successFill: Primitives.moss50,
       warning: Primitives.amber34,
       danger: Primitives.rose32,
       border: Primitives.clay50,
@@ -471,22 +477,26 @@ final DaybreakColors lightHighContrastDaybreakColors = lightDaybreakColors
 /// The dark high-contrast palette — the same derivation on a dark ground, where
 /// the lift comes from raising the foregrounds rather than pushing `bg` to
 /// `#000000`.
-final DaybreakColors darkHighContrastDaybreakColors = darkDaybreakColors
-    .copyWith(
-      inkMuted: darkDaybreakColors.ink,
-      inkFaint: Primitives.clay73,
-      // The dark sunrise's worst stop is `coral66`, one step darker than the
-      // light one, so the base `clay11` measures 6.49:1 there and misses the
-      // 7:1 floor. Reuses the light high-contrast tone rather than minting a
-      // sixteenth primitive: 7.53:1 on that stop, 8.38:1 on the coral fill.
-      onPrimary: Primitives.clay04,
-      primaryDeep: Primitives.coral76,
-      success: Primitives.moss79,
-      danger: Primitives.rose75,
-      border: Primitives.plum58,
-      borderStrong: Primitives.plum58,
-      stateMissed: Primitives.plum58,
-    );
+final DaybreakColors
+darkHighContrastDaybreakColors = darkDaybreakColors.copyWith(
+  inkMuted: darkDaybreakColors.ink,
+  inkFaint: Primitives.clay73,
+  // The dark sunrise's worst stop is `coral66`, one step darker than the
+  // light one, so the base `clay11` measures 6.49:1 there and misses the
+  // 7:1 floor. Reuses the light high-contrast tone rather than minting a
+  // sixteenth primitive: 7.53:1 on that stop, 8.38:1 on the coral fill.
+  onPrimary: Primitives.clay04,
+  primaryDeep: Primitives.coral76,
+  success: Primitives.moss79,
+  danger: Primitives.rose75,
+  // The base dark fill measures 4.49:1 on surface — one hundredth under the
+  // 4.5 floor. Reuses the dark `danger` tone at 6.68:1 rather than minting a
+  // primitive whose rounded L* would collide with rose58's.
+  dangerFill: Primitives.rose70,
+  border: Primitives.plum58,
+  borderStrong: Primitives.plum58,
+  stateMissed: Primitives.plum58,
+);
 
 /// Selects one of the four palettes.
 DaybreakColors daybreakColorsFor(

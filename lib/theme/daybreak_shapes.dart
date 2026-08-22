@@ -49,6 +49,12 @@ class DaybreakShapes extends ThemeExtension<DaybreakShapes> {
   /// The focus ring's stroke width. Drawn in `primaryDeep`, never `primary`.
   final double focusRingWidth;
 
+  // The spacing ramp is FIXED across every theme, which is why these are
+  // getters and not fields: `daybreakShapes` is one const instance attached to
+  // all four ThemeDatas, so there is nothing for `copyWith`, `lerp` or equality
+  // to vary. A density or compact-mode variant would make them fields; until
+  // one exists, nine lerped constants would be ceremony.
+
   /// 4 logical pixels.
   double get s1 => 4;
 
@@ -104,8 +110,17 @@ class DaybreakShapes extends ThemeExtension<DaybreakShapes> {
   );
 
   /// Chips, the active tab pill and the "new dose day" badge.
-  StadiumBorder pillShape({BorderSide side = BorderSide.none}) =>
-      StadiumBorder(side: side);
+  ///
+  /// Reads [radiusPill] rather than returning a `StadiumBorder`. At 999 a
+  /// rounded rectangle clamps to half its height, so the two are visually
+  /// identical — but a `StadiumBorder` never touches the token, which left
+  /// `radiusPill` required in the constructor, threaded through `copyWith`,
+  /// `lerp` and equality, pinned by a test, and reaching no pixel.
+  RoundedRectangleBorder pillShape({BorderSide side = BorderSide.none}) =>
+      RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(radiusPill),
+        side: side,
+      );
 
   @override
   DaybreakShapes copyWith({
@@ -133,11 +148,9 @@ class DaybreakShapes extends ThemeExtension<DaybreakShapes> {
   @override
   DaybreakShapes lerp(covariant DaybreakShapes? other, double t) {
     if (other == null) return this;
-    // Short-circuit the endpoints. Beyond saving an allocation on the two
-    // most common values of t, it is what makes `lerp(a, b, 0) == a`
-    // exact: LinearGradient.lerp MERGES two different stop lists, so a
-    // gradient interpolated to t = 0 carries the union of both and is
-    // not `a`.
+    // Short-circuit the endpoints. lerpDouble is already exact at t = 0 and 1,
+    // so this is purely to skip eight allocations on the two most common
+    // values of t.
     if (t <= 0) return this;
     if (t >= 1) return other;
     return DaybreakShapes(

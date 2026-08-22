@@ -33,7 +33,7 @@ GEN_RE='\.g\.dart$|\.freezed\.dart$|\.gr\.dart$'
 # Banned raw-value patterns in feature/shared UI code. `Colors.`/`Curves.` are
 # anchored with a non-identifier lookbehind so custom reads like `AppColors.of`
 # or `MyCurves.foo` do not trip the gate.
-PATTERNS='Color\(0x|Color\.fromARGB\(|Color\.fromRGBO\(|(^|[^A-Za-z0-9_])Colors\.|(^|[^A-Za-z0-9_])Curves\.|Duration\(milliseconds:|Duration\(seconds:|BorderRadius\.circular\([0-9]|Radius\.circular\([0-9]|fontSize:[[:space:]]*[0-9]|fontFamily:[[:space:]]*.[A-Za-z]|ColorScheme\.fromSeed\(|package:dynamic_color/'
+PATTERNS='Color\(0x|Color\.fromARGB\(|Color\.fromRGBO\(|(^|[^A-Za-z0-9_])Colors\.|(^|[^A-Za-z0-9_])Curves\.|Duration\(milliseconds:|Duration\(seconds:|BorderRadius\.circular\([0-9]|Radius\.circular\([0-9]|fontSize:[[:space:]]*[0-9]|fontFamily:[[:space:]]*.[A-Za-z]|ColorScheme\.fromSeed\('
 
 # Legitimate exceptions. Neutralized (stripped) BEFORE the ban scan — not used to
 # drop the whole line — so a banned value elsewhere on the same line still fails
@@ -42,7 +42,10 @@ ALLOW_STRIP='s/Colors\.transparent//g; s/Duration\.zero//g'
 
 fail=0
 while IFS= read -r -d '' f; do
-  case "$f" in */theme/*) continue ;; esac
+  # `lib/theme/`, NOT `*/theme/*`: a feature-local `lib/features/x/theme/`
+  # folder is a natural name, and the wildcard would disarm the whole gate for
+  # every file inside it.
+  case "$f" in lib/theme/*) continue ;; esac
   if printf '%s\n' "$f" | grep -qE "$GEN_RE"; then continue; fi
 
   # Comments are stripped first — this file's own rule list contains every

@@ -43,9 +43,12 @@ abstract final class DaybreakGradients {
     0.743,
   );
 
-  /// The light theme's sunrise. Only `DaybreakColors.onPrimary` may sit on it:
-  /// 6.04:1 at the coral stop (the worst), 9.71:1 at the amber end. White
-  /// measures 2.76:1 and fails.
+  /// The light theme's sunrise. Only `DaybreakColors.onPrimary` may sit on it,
+  /// and only as decoration: 5.47:1 at stop 0 — the darkest, and therefore the
+  /// worst — rising to 10.62:1 at the amber end. White measures 2.35:1 there
+  /// and fails. **7:1 is unreachable on this ground with any foreground**
+  /// (pure black reaches 6.88:1), which is why the number a patient reads sits
+  /// on an opaque `surface` chip at 13.6:1 rather than on the gradient.
   static const LinearGradient sunriseLight = LinearGradient(
     begin: sunriseBegin,
     end: sunriseEnd,
@@ -88,11 +91,35 @@ abstract final class DaybreakGradients {
     colors: <Color>[Color(0xFF3B2B31), Primitives.plum15],
   );
 
-  /// The sunrise's **worst stop** for a foreground contrast measurement.
+  /// The stop of [gradient] that gives [foreground] its **lowest** contrast.
   ///
-  /// A ratio against a gradient is only meaningful at its worst stop; for both
-  /// sunrises that is the coral end. Exposed so the contrast budget measures
-  /// the same colour the design measured, rather than a stop chosen by eye.
-  static Color worstSunriseStop({required bool isDark}) =>
-      isDark ? Primitives.coral66 : Primitives.coral64;
+  /// A ratio against a gradient is only meaningful at its worst stop, and the
+  /// worst stop is a property of the pair, not a named index. Naming one was
+  /// the bug: the previous version returned stop 1 while stop 0 is darker in
+  /// both sunrises, so the contrast budget measured an easier ground than the
+  /// one that ships.
+  ///
+  /// Uses WCAG 2.1 relative luminance — the same formula
+  /// `Color.computeLuminance` implements — so this agrees with the contrast
+  /// oracle in the tests by construction.
+  static Color worstStopFor(Color foreground, LinearGradient gradient) {
+    final foregroundLuminance = foreground.computeLuminance();
+    var worst = gradient.colors.first;
+    var lowest = double.infinity;
+    for (final stop in gradient.colors) {
+      final stopLuminance = stop.computeLuminance();
+      final hi = foregroundLuminance > stopLuminance
+          ? foregroundLuminance
+          : stopLuminance;
+      final lo = foregroundLuminance > stopLuminance
+          ? stopLuminance
+          : foregroundLuminance;
+      final ratio = (hi + 0.05) / (lo + 0.05);
+      if (ratio < lowest) {
+        lowest = ratio;
+        worst = stop;
+      }
+    }
+    return worst;
+  }
 }

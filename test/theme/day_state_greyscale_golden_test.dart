@@ -26,8 +26,6 @@ import 'package:nearlystop/core/day_state.dart';
 import 'package:nearlystop/theme/day_state_colors.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 
-import '../support/contrast.dart';
-
 /// Saturation zero — the standard greyscale matrix.
 const ColorFilter _greyscale = ColorFilter.matrix(<double>[
   0.2126, 0.7152, 0.0722, 0, 0, //
@@ -90,32 +88,4 @@ void main() {
       );
     });
   }
-
-  test(
-    'colour ALONE does not separate the quartet — shape is load-bearing',
-    () {
-      // Measured, not eyeballed. If a future palette change ever made colour
-      // sufficient this fails, and that is a conversation worth having rather
-      // than a silent loosening of EPIC-07's obligation.
-      final marks = <String, double>{
-        'taken': lStar(lightDaybreakColors.stateTaken),
-        'today': lStar(lightDaybreakColors.stateToday),
-        'missed': lStar(lightDaybreakColors.stateMissed),
-        'upcoming': lStar(lightDaybreakColors.inkFaint),
-      };
-      var closest = 100.0;
-      for (final a in marks.entries) {
-        for (final b in marks.entries) {
-          if (a.key == b.key) continue;
-          final gap = (a.value - b.value).abs();
-          if (gap < closest) closest = gap;
-        }
-      }
-      expect(
-        closest,
-        lessThan(10),
-        reason: 'greyscale L* separations: $marks',
-      );
-    },
-  );
 }

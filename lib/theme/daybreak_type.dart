@@ -39,7 +39,8 @@ const String persoFontFamily = 'Vazirmatn';
 /// The largest `wght` both shipped faces support.
 ///
 /// Nunito's axis is 200–1000 and Vazirmatn's is 100–900, so 900 is the common
-/// ceiling. The `boldText` ladder clamps here rather than letting Flutter
+/// ceiling. [boldTextStep] is what enforces it — its top arm returns
+/// [FontWeight.w900] rather than stepping past it, so Flutter is never asked to
 /// synthesise faux bold, which smears Perso-Arabic joins.
 const double maxSupportedWeight = 900;
 
@@ -80,7 +81,6 @@ TextStyle _project(
 }) {
   var weight = style.fontWeight ?? FontWeight.w400;
   if (boldText) weight = boldTextStep(weight);
-  final clamped = weight.value > maxSupportedWeight ? FontWeight.w900 : weight;
 
   final isPerso = script == DaybreakScript.perso;
   final spacing = isPerso ? 0.0 : style.letterSpacing;
@@ -90,12 +90,20 @@ TextStyle _project(
   final size = isPerso ? (persoFontSize ?? style.fontSize) : style.fontSize;
 
   return style.copyWith(
+    // The family is set on EVERY style, not left to ThemeData to fold in.
+    // ThemeData folds it into `textTheme` only — a style handed straight to a
+    // component theme (a button's textStyle, a NavigationBar's label) keeps a
+    // null family and renders in the platform default face. In fa/ckb that is a
+    // system Perso-Arabic face or tofu, on every screen, silently breaking the
+    // bundled-and-licensed promise.
+    fontFamily: fontFamilyFor(script),
+    fontFamilyFallback: fontFamilyFallbackFor(script),
     fontSize: size,
     height: height,
     letterSpacing: spacing,
-    fontWeight: clamped,
+    fontWeight: weight,
     fontVariations: <FontVariation>[
-      FontVariation('wght', clamped.value.toDouble()),
+      FontVariation('wght', weight.value.toDouble()),
     ],
   );
 }

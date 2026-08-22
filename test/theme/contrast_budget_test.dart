@@ -47,6 +47,16 @@ const List<BudgetRow> budget = <BudgetRow>[
   ('danger on tintDanger', _danger, _tintDanger, _text),
   ('danger on surface', _danger, _surface, _text),
   ('borderStrong on surface', _borderStrong, _surface, _mark),
+  // The two *Fill slots that are legitimately marks in their own right. The
+  // third, warningFill, is a decorative fill in the light theme and is asserted
+  // NEGATIVELY in the carve-out group below, exactly like `primary`.
+  ('successFill on surface', _successFill, _surface, _mark),
+  ('dangerFill on surface', _dangerFill, _surface, _mark),
+  // There is deliberately no `onPrimary on successFill` / `on dangerFill` row:
+  // nothing in the design puts text on those two. They are MARKS — a dot, a
+  // bar — measured against `surface` above. `warningFill` is the one fill that
+  // is a text ground, and it is asserted in the carve-out group below because
+  // in light it is decorative on its own.
   ('stateTaken on surface', _stateTaken, _surface, _mark),
   ('stateToday on surface', _stateToday, _surface, _mark),
   ('stateMissed on surface', _stateMissed, _surface, _mark),
@@ -69,6 +79,8 @@ Color _tintPrimary(DaybreakColors c) => c.tintPrimary;
 Color _tintSuccess(DaybreakColors c) => c.tintSuccess;
 Color _tintWarning(DaybreakColors c) => c.tintWarning;
 Color _tintDanger(DaybreakColors c) => c.tintDanger;
+Color _successFill(DaybreakColors c) => c.successFill;
+Color _dangerFill(DaybreakColors c) => c.dangerFill;
 Color _borderStrong(DaybreakColors c) => c.borderStrong;
 Color _stateTaken(DaybreakColors c) => c.stateTaken;
 Color _stateToday(DaybreakColors c) => c.stateToday;
@@ -110,7 +122,6 @@ void main() {
 
   for (final (label, brightness, isHighContrast) in palettes) {
     final colors = daybreakColorsFor(brightness, highContrast: isHighContrast);
-    final isDark = brightness == Brightness.dark;
     group('budget — $label', () {
       for (final (name, fg, bg, baseFloor) in budget) {
         final floor = isHighContrast
@@ -137,13 +148,27 @@ void main() {
       });
 
       test('onPrimary on the sunrise gradient WORST stop', () {
-        // A ratio against a gradient is only meaningful at its worst stop.
+        // A ratio against a gradient is only meaningful at its worst stop, and
+        // which stop that is depends on the foreground — so it is DERIVED, not
+        // a named index. Naming one was the bug: stop 0 is the darkest in both
+        // sunrises, and measuring stop 1 reported an easier ground than ships.
+        //
+        // The floor here stays 4.5 EVEN IN HIGH CONTRAST, and that is a stated
+        // exception rather than an oversight: against the darkest sunrise stop
+        // even pure black reaches only 6.88:1 (light) and 6.21:1 (dark), so 7:1
+        // is unreachable on this ground with any foreground. The gradient
+        // carries decoration only — daybreak-tokens rule 9 — and the number
+        // that matters sits on an opaque `surface` chip at 13.6:1. If a future
+        // palette raises this floor, the gradient's stops have to change first,
+        // in the design source.
+        final worst = DaybreakGradients.worstStopFor(
+          colors.onPrimary,
+          colors.sunrise,
+        );
         expect(
-          contrastRatio(
-            colors.onPrimary,
-            DaybreakGradients.worstSunriseStop(isDark: isDark),
-          ),
-          greaterThanOrEqualTo(isHighContrast ? _hcText : _text),
+          contrastRatio(colors.onPrimary, worst),
+          greaterThanOrEqualTo(_text),
+          reason: 'worst stop $worst in $label',
         );
       });
     });
@@ -180,14 +205,54 @@ void main() {
     test(
       'white on the sunrise worst stop FAILS, which is why it is banned',
       () {
+        const white = Color(0xFFFFFFFF);
         expect(
           contrastRatio(
-            const Color(0xFFFFFFFF),
-            DaybreakGradients.worstSunriseStop(isDark: false),
+            white,
+            DaybreakGradients.worstStopFor(
+              white,
+              DaybreakGradients.sunriseLight,
+            ),
           ),
           lessThan(3),
         );
       },
     );
+
+    test('7:1 on the sunrise is UNREACHABLE, so the exception is real', () {
+      // Pinned so nobody raises the high-contrast gradient floor without
+      // changing the gradient's stops in the design source first.
+      const black = Color(0xFF000000);
+      for (final gradient in <LinearGradient>[
+        DaybreakGradients.sunriseLight,
+        DaybreakGradients.sunriseDark,
+      ]) {
+        final worst = DaybreakGradients.worstStopFor(black, gradient);
+        expect(contrastRatio(black, worst), lessThan(7));
+        expect(contrastRatio(black, worst), greaterThanOrEqualTo(4.5));
+      }
+    });
+
+    test('warningFill is a FILL in light, never a mark on its own', () {
+      // amber80 measures 1.72:1 on white — invisible to the eye this palette
+      // exists for. The same carve-out as `primary`: a background that carries
+      // meaning only with `onPrimary` on it (9.71:1). In DARK it clears 7.17:1
+      // and is covered by the budget rows above.
+      expect(
+        contrastRatio(
+          lightDaybreakColors.warningFill,
+          lightDaybreakColors.surface,
+        ),
+        lessThan(3),
+      );
+      expect(lightDaybreakColors.secondary, lightDaybreakColors.warningFill);
+      expect(
+        contrastRatio(
+          lightDaybreakColors.onPrimary,
+          lightDaybreakColors.warningFill,
+        ),
+        greaterThanOrEqualTo(4.5),
+      );
+    });
   });
 }

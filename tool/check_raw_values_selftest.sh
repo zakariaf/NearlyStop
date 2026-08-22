@@ -113,18 +113,16 @@ plant "$scratch" "import 'package:flutter/material.dart';
 const Curve scratchCurve = Curves.easeOut;"
 expect_gate 1 "Curves.easeOut in lib/features/ is flagged"
 
-echo "case 8: fromSeed and dynamic_color are gated, not merely promised"
+echo "case 8: fromSeed is gated, not merely promised"
 plant "$scratch" "import 'package:flutter/material.dart';
 
 /// Scratch.
 final ColorScheme scratchScheme = ColorScheme.fromSeed(seedColor: Colors.red);"
 expect_gate 1 "ColorScheme.fromSeed( is flagged" "fromSeed"
-plant "$scratch" "import 'package:dynamic_color/dynamic_color.dart';
-
-/// Scratch.
-void scratch() {}"
-expect_gate 1 "a dynamic_color import is flagged"
 rm -f "$scratch"
+# `package:dynamic_color/` is banned by tool/check_bans.sh's network/telemetry
+# rule group, not here. One rule, one implementation — the arm for it lives in
+# check_bans_selftest.sh.
 
 echo "case 9: every needle inside a stripped comment, and the gate's own source"
 plant "$scratch" "/// Scratch.

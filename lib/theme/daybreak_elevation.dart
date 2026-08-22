@@ -75,11 +75,9 @@ class DaybreakElevation extends ThemeExtension<DaybreakElevation> {
   @override
   DaybreakElevation lerp(covariant DaybreakElevation? other, double t) {
     if (other == null) return this;
-    // Short-circuit the endpoints. Beyond saving an allocation on the two
-    // most common values of t, it is what makes `lerp(a, b, 0) == a`
-    // exact: LinearGradient.lerp MERGES two different stop lists, so a
-    // gradient interpolated to t = 0 carries the union of both and is
-    // not `a`.
+    // Short-circuit the endpoints, which is what makes `lerp(a, b, 0) == a`
+    // exact here: BoxShadow.lerpList always returns FRESH inner lists, and this
+    // type's equality compares those lists element by element.
     if (t <= 0) return this;
     if (t >= 1) return other;
     return DaybreakElevation(

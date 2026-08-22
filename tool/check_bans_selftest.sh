@@ -70,6 +70,29 @@ DART
 expect_flagged "planted package:http import is named by path and reason" \
   "$scratch" "zero network calls"
 
+echo "case 2b: dynamic_color and a no-op FontVariation axis"
+cat >"$scratch" <<'DART'
+import 'package:dynamic_color/dynamic_color.dart';
+
+/// Scratch.
+void scratch() {}
+DART
+expect_flagged "a dynamic_color import is flagged" "$scratch" "zero network calls"
+cat >"$scratch" <<'DART'
+import 'package:flutter/material.dart';
+
+/// Scratch: neither bundled face exposes an optical-size axis.
+const List<FontVariation> scratch = <FontVariation>[FontVariation('opsz', 14)];
+DART
+expect_flagged "FontVariation('opsz') is flagged" "$scratch" "wght axis only"
+cat >"$scratch" <<'DART'
+import 'package:flutter/material.dart';
+
+/// Scratch.
+const List<FontVariation> scratch = <FontVariation>[FontVariation('wght', 800)];
+DART
+expect_clean "FontVariation('wght') passes — it is how the ladder reaches the face"
+
 echo "case 3: hardcoded left/right padding"
 cat >"$scratch" <<'DART'
 import 'package:flutter/widgets.dart';

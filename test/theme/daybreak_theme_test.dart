@@ -178,11 +178,72 @@ void main() {
       );
       expect(style.fixedSize?.resolve(<WidgetState>{}), isNull, reason: name);
     }
-    expect(
-      theme.navigationBarTheme.height,
-      greaterThanOrEqualTo(48),
-    );
+    // The tab bar deliberately states NO height: Flutter's default (80)
+    // already clears the floor and leaves room a 15px label needs at the 1.3x
+    // NavigationBar clamps to, and the German destination names are the app's
+    // longest strings. A pinned height is the same clipping risk the buttons
+    // refuse two assertions above.
+    expect(theme.navigationBarTheme.height, isNull);
   });
+
+  test('EVERY component-theme style carries the bundled family', () {
+    // ThemeData folds fontFamily into `textTheme` ONLY. A style handed straight
+    // to a component theme keeps a null family and renders in the platform
+    // default face — in fa/ckb a system Perso-Arabic face or tofu, on every
+    // screen, silently breaking the bundled-and-licensed promise.
+    for (final (script, family, fallback) in <(DaybreakScript, String, String)>[
+      (DaybreakScript.latin, 'Nunito', 'Vazirmatn'),
+      (DaybreakScript.perso, 'Vazirmatn', 'Nunito'),
+    ]) {
+      final theme = buildDaybreakTheme(Brightness.light, script);
+      final styles = <String, TextStyle?>{
+        'filled': theme.filledButtonTheme.style!.textStyle!.resolve(
+          <WidgetState>{},
+        ),
+        'outlined': theme.outlinedButtonTheme.style!.textStyle!.resolve(
+          <WidgetState>{},
+        ),
+        'text': theme.textButtonTheme.style!.textStyle!.resolve(
+          <WidgetState>{},
+        ),
+        'navigationBar': theme.navigationBarTheme.labelTextStyle!.resolve(
+          <WidgetState>{},
+        ),
+        'inputLabel': theme.inputDecorationTheme.labelStyle,
+        'doseNumeral': theme.extension<DaybreakTypography>()!.doseNumeral,
+        'overline': theme.extension<DaybreakTypography>()!.overline,
+        'dayStateChip': theme.extension<DaybreakTypography>()!.dayStateChip,
+      };
+      for (final MapEntry(key: name, value: style) in styles.entries) {
+        expect(style?.fontFamily, family, reason: '$script $name family');
+        expect(
+          style?.fontFamilyFallback,
+          <String>[fallback],
+          reason: '$script $name fallback',
+        );
+      }
+    }
+  });
+
+  test(
+    'surfaceTint is STATED, so no coral wash reaches an elevated surface',
+    () {
+      for (final (brightness, script, highContrast) in matrix) {
+        final theme = buildDaybreakTheme(
+          brightness,
+          script,
+          highContrast: highContrast,
+        );
+        final colors = theme.extension<DaybreakColors>()!;
+        expect(theme.colorScheme.surfaceTint, colors.surface);
+        expect(
+          theme.colorScheme.surfaceTint,
+          isNot(theme.colorScheme.primary),
+          reason: 'left unset it defaults to primary',
+        );
+      }
+    },
+  );
 
   test('boldText reaches the theme', () {
     final normal = buildDaybreakTheme(Brightness.light, DaybreakScript.latin);

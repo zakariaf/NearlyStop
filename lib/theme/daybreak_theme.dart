@@ -69,7 +69,6 @@ ThemeData buildDaybreakTheme(
     text: text,
     script: script,
     colors: colors,
-    boldText: boldText,
   );
 
   final buttonStyle = _buttonStyle(text);
@@ -96,7 +95,11 @@ ThemeData buildDaybreakTheme(
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: colors.surface,
       indicatorColor: colors.tintPrimary,
-      height: minimumTapTarget + daybreakShapes.s5,
+      // No `height:` on purpose. Pinning one is the same mistake the button
+      // style refuses two fields above: Flutter's default (80) already clears
+      // the 48dp floor and leaves the room a 15px label needs at the 1.3x
+      // NavigationBar clamps to — and the five German destination names are the
+      // longest strings in the app.
       labelTextStyle: WidgetStatePropertyAll<TextStyle?>(text.labelMedium),
     ),
     switchTheme: SwitchThemeData(

@@ -69,6 +69,12 @@ ColorScheme daybreakColorScheme(
     onSurfaceVariant: colors.inkMuted,
     outline: colors.borderStrong,
     outlineVariant: colors.border,
+    // STATED, not defaulted. Left unset it falls back to `primary`, and
+    // Material blends it into every Dialog, BottomSheet, Menu, AppBar and any
+    // `Material(elevation: > 0)` ground — an unmeasured coral wash over
+    // surfaces no contrast row covers. Daybreak lifts with its own warm shadow
+    // stack at `elevation: 0`, so the tint is the surface itself: a no-op.
+    surfaceTint: colors.surface,
     scrim: colors.overlay,
     shadow: isDark ? Primitives.plum01 : Primitives.clay42,
     inverseSurface: colors.ink,

@@ -231,8 +231,13 @@ void main() {
       );
     });
 
-    test('pillShape is a stadium', () {
-      expect(daybreakShapes.pillShape(), isA<StadiumBorder>());
+    test('pillShape reads radiusPill (999), so the token is not dead', () {
+      // At 999 a rounded rectangle clamps to half its height, so this IS a
+      // stadium — but it reaches the token, which a StadiumBorder never did.
+      expect(
+        daybreakShapes.pillShape().borderRadius,
+        BorderRadius.circular(999),
+      );
     });
   });
 }
