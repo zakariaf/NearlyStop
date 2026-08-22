@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="light" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Almanac — NearlyStop screens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ALMANAC — design tokens
+   Every colour / space / radius / type value lives here.
+   Dark theme overrides TOKENS ONLY.
+   ============================================================ */
+:root{
+  /* — colour: light (aged paper + garden) — */
+  --bg:#FAF5EA;
+  --surface:#FFFDF7;
+  --surface-raised:#F5EEDF;
+  --surface-sunk:#F2EADA;
+  --ink:#2E3A31;
+  --ink-muted:#5F6F62;
+  --ink-soft:#7A8A7C;
+  --ink-inverse:#FFFDF7;
+  --primary:#4F7D5C;
+  --primary-ink:#3F6A4B;
+  --primary-soft:#E7EFE4;
+  --on-primary:#FFFDF7;
+  --secondary:#C9743F;
+  --secondary-ink:#A2542A;
+  --secondary-soft:#F7E9DE;
+  --accent:#D9A441;
+  --accent-ink:#7E6019;
+  --accent-soft:#FBF0D6;
+  --success:#4F7D5C;
+  --success-ink:#3F6A4B;
+  --warning:#D9A441;
+  --warning-ink:#7E6019;
+  --danger:#B4553F;
+  --danger-ink:#9C4630;
+  --danger-soft:#F6E2DB;
+  --border:#E2D8C3;
+  --border-strong:#8C7F63;
+  --overlay:rgba(46,58,49,.46);
+  /* state */
+  --state-taken:#3F6A4B;      --state-taken-bg:#E7EFE4;
+  --state-missed:#566659;     --state-missed-bg:#F2EADA;
+  --state-today:#7E6019;      --state-today-bg:#FBF0D6;
+  --state-newdose:#A2542A;    --state-newdose-bg:#F7E9DE;
+  /* paper grain */
+  --grain:rgba(140,127,99,.10);
+  --bezel:#3A362C;
+  --bezel-2:#211F19;
+
+  /* — type — */
+  --font-display:'Fraunces','Lora',Georgia,'Times New Roman',serif;
+  --font-ui:'Source Sans 3','Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif;
+  --fs-hero:78px;   --lh-hero:0.95;
+  --fs-display:56px;--lh-display:1.02;
+  --fs-title:30px;  --lh-title:1.18;
+  --fs-heading:23px;--lh-heading:1.30;
+  --fs-body-lg:20px;--lh-body-lg:1.50;
+  --fs-body:17px;   --lh-body:1.55;
+  --fs-label:16px;  --lh-label:1.35;
+  --fs-caption:15px;--lh-caption:1.40;
+  --fs-nav:14px;    /* tab-bar labels only — always paired with a 25px icon */
+  --fs-micro:13px;  /* chart axis labels and legends only */
+  --ls-tight:-.02em; --ls-caps:.10em;
+
+  /* — space (4/8 scale) — */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px;
+  --sp-6:24px; --sp-8:32px; --sp-10:40px; --sp-12:48px; --sp-16:64px;
+
+  /* — radii — */
+  --r-xs:4px; --r-sm:6px; --r-md:10px; --r-lg:12px; --r-xl:20px; --r-full:999px;
+
+  /* — elevation (almost flat: paper tint + 1px rules do the work) — */
+  --shadow-0:none;
+  --shadow-1:0 1px 2px rgba(46,58,49,.06), 0 2px 10px rgba(46,58,49,.05);
+  --shadow-lift:0 10px 34px rgba(26,33,28,.20);
+
+  /* — motion — */
+  --dur-fast:120ms; --dur-base:220ms; --dur-slow:420ms;
+  --ease-standard:cubic-bezier(.2,.6,.2,1);
+  --ease-exit:cubic-bezier(.4,0,1,1);
+
+  --ps:1; /* phone scale */
+}
+[data-theme="dark"]{
+  --bg:#1A211C;
+  --surface:#232B25;
+  --surface-raised:#2C352E;
+  --surface-sunk:#151B17;
+  --ink:#EDE6D6;
+  --ink-muted:#A8B3A5;
+  --ink-soft:#8B968A;
+  --ink-inverse:#16211A;
+  --primary:#7FB08C;
+  --primary-ink:#93C29F;
+  --primary-soft:#26332A;
+  --on-primary:#16211A;
+  --secondary:#E0925F;
+  --secondary-ink:#E8A87C;
+  --secondary-soft:#33261D;
+  --accent:#E8C06B;
+  --accent-ink:#EFCF8B;
+  --accent-soft:#332E20;
+  --success:#7FB08C;
+  --success-ink:#93C29F;
+  --warning:#E8C06B;
+  --warning-ink:#EFCF8B;
+  --danger:#E08A72;
+  --danger-ink:#E8A08A;
+  --danger-soft:#35231E;
+  --border:#38423A;
+  --border-strong:#6B7A6D;
+  --overlay:rgba(10,14,11,.62);
+  --state-taken:#93C29F;    --state-taken-bg:#26332A;
+  --state-missed:#A8B3A5;   --state-missed-bg:#2C352E;
+  --state-today:#EFCF8B;    --state-today-bg:#332E20;
+  --state-newdose:#E8A87C;  --state-newdose-bg:#33261D;
+  --grain:rgba(237,230,214,.05);
+  --bezel:#0E120F;
+  --bezel-2:#050706;
+  --shadow-1:0 1px 2px rgba(0,0,0,.30), 0 2px 10px rgba(0,0,0,.24);
+  --shadow-lift:0 10px 34px rgba(0,0,0,.55);
+}
+/* Persian face + line-height lift */
+[data-lang="fa"]{
+  --font-display:'Vazirmatn','Segoe UI',Tahoma,sans-serif;
+  --font-ui:'Vazirmatn','Segoe UI',Tahoma,sans-serif;
+  --lh-title:1.34; --lh-heading:1.45; --lh-body-lg:1.70;
+  --lh-body:1.75;  --lh-label:1.55;   --lh-caption:1.60;
+  --ls-tight:0; --ls-caps:0;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background-color:var(--bg);
+  background-image:radial-gradient(circle at 1px 1px,var(--grain) 1px,transparent 0);
+  background-size:24px 24px;
+  color:var(--ink);
+  font-family:var(--font-ui);
+  font-size:var(--fs-body);
+  line-height:var(--lh-body);
+  overflow-x:hidden;
+  transition:background-color var(--dur-base) var(--ease-standard),color var(--dur-base) var(--ease-standard);
+}
+[data-lang="en"] .fa{display:none !important}
+[data-lang="fa"] .en{display:none !important}
+svg{display:block}
+.ic{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.ic-20{width:20px;height:20px}
+.ic-18{width:18px;height:18px}
+.ic-26{width:26px;height:26px}
+.ic-56{width:56px;height:56px;stroke-width:1.4}
+/* directional icons mirror in RTL; clock / pill / check / calendar do not */
+[dir="rtl"] .ic-dir{transform:scaleX(-1)}
+
+/* ============================================================
+   PAGE CHROME
+   ============================================================ */
+.bar{
+  position:sticky; top:0; z-index:50;
+  background:color-mix(in srgb,var(--surface) 92%,transparent);
+  backdrop-filter:blur(10px);
+  border-block-end:1px solid var(--border-strong);
+  padding:var(--sp-3) var(--sp-5);
+  display:flex; flex-wrap:wrap; gap:var(--sp-4);
+  align-items:center; justify-content:space-between;
+}
+.brand{display:flex;align-items:center;gap:var(--sp-3);min-width:0}
+.brand .mark{
+  width:38px;height:38px;flex:none;border-radius:var(--r-md);
+  background:var(--primary-soft);color:var(--primary-ink);
+  display:grid;place-items:center;border:1px solid var(--border-strong);
+}
+.brand b{font-family:var(--font-display);font-weight:600;font-size:21px;letter-spacing:var(--ls-tight);display:block;line-height:1.1}
+.brand small{display:block;font-size:var(--fs-caption);color:var(--ink-muted);line-height:1.2}
+.seg{
+  display:inline-flex;border:1px solid var(--border-strong);border-radius:var(--r-md);
+  overflow:hidden;background:var(--surface-raised);
+}
+.seg button{
+  font-family:var(--font-ui);font-size:var(--fs-label);font-weight:600;
+  min-height:44px;min-width:60px;padding:0 var(--sp-4);
+  background:transparent;color:var(--ink-muted);border:0;cursor:pointer;
+  display:inline-flex;align-items:center;gap:var(--sp-2);
+  transition:background var(--dur-fast) var(--ease-standard),color var(--dur-fast) var(--ease-standard);
+}
+.seg button + button{border-inline-start:1px solid var(--border-strong)}
+.seg button[aria-pressed="true"]{background:var(--primary);color:var(--on-primary)}
+.seg button:hover[aria-pressed="false"]{background:var(--surface-sunk);color:var(--ink)}
+.seg button:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.ctrls{display:flex;gap:var(--sp-3);flex-wrap:wrap}
+
+.intro{max-width:74ch;margin:var(--sp-10) auto var(--sp-8);padding:0 var(--sp-5)}
+.intro h1{
+  font-family:var(--font-display);font-weight:600;
+  font-size:clamp(30px,5vw,48px);line-height:1.08;letter-spacing:var(--ls-tight);
+  margin:0 0 var(--sp-3);
+}
+.intro .kicker{
+  font-size:var(--fs-caption);font-weight:700;letter-spacing:var(--ls-caps);
+  text-transform:uppercase;color:var(--secondary-ink);margin:0 0 var(--sp-2);
+}
+[data-lang="fa"] .intro .kicker{text-transform:none}
+.intro p{margin:0 0 var(--sp-3);font-size:var(--fs-body-lg);line-height:var(--lh-body-lg);color:var(--ink-muted)}
+.sprig{display:block;margin:var(--sp-5) 0;color:var(--primary);opacity:.85}
+
+.stage{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,calc(412px * var(--ps)));
+  justify-content:center;
+  gap:var(--sp-12) var(--sp-8);
+  padding:0 var(--sp-5) var(--sp-16);
+}
+@media (max-width:900px){:root{--ps:.92}}
+@media (max-width:470px){:root{--ps:.80}}
+@media (max-width:400px){:root{--ps:.70}}
+@media (max-width:350px){:root{--ps:.60}}
+.cell{display:flex;flex-direction:column;align-items:center;gap:var(--sp-4)}
+.slotwrap{width:calc(412px * var(--ps));height:calc(866px * var(--ps))}
+.slot{width:412px;height:866px;transform:scale(var(--ps));transform-origin:top left}
+.cap{text-align:center;max-width:calc(412px * var(--ps))}
+.cap b{
+  font-family:var(--font-display);font-size:var(--fs-heading);font-weight:600;
+  letter-spacing:var(--ls-tight);display:block;line-height:1.2;
+}
+.cap span{display:block;font-size:var(--fs-caption);color:var(--ink-muted)}
+.capnum{
+  display:inline-grid;place-items:center;width:28px;height:28px;border-radius:var(--r-full);
+  background:var(--accent-soft);color:var(--accent-ink);border:1px solid var(--border-strong);
+  font-size:var(--fs-caption);font-weight:700;margin-inline-end:var(--sp-2);vertical-align:2px;
+}
+
+/* ============================================================
+   PHONE
+   ============================================================ */
+.phone{
+  width:412px;height:866px;border-radius:50px;padding:11px;
+  background:linear-gradient(160deg,var(--bezel),var(--bezel-2));
+  box-shadow:var(--shadow-lift);
+}
+.app{
+  width:390px;height:844px;border-radius:40px;overflow:hidden;
+  background-color:var(--bg);
+  background-image:radial-gradient(circle at 1px 1px,var(--grain) 1px,transparent 0);
+  background-size:24px 24px;
+  display:flex;flex-direction:column;position:relative;
+  font-size:var(--fs-body);line-height:var(--lh-body);color:var(--ink);
+}
+/* status bar */
+.sbar{
+  height:52px;flex:none;display:flex;align-items:center;justify-content:space-between;
+  padding:0 30px 0 32px;font-size:var(--fs-label);font-weight:700;color:var(--ink);
+  padding-block-start:8px;
+}
+.sbar .sigs{display:flex;align-items:center;gap:6px}
+.home-ind{
+  flex:none;height:26px;display:grid;place-items:center;
+}
+.home-ind i{display:block;width:134px;height:5px;border-radius:var(--r-full);background:var(--ink);opacity:.32}
+/* screen body */
+.scr{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.scr-pad{padding:0 var(--sp-5)}
+.scr-scroll{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+
+/* app header */
+.ahead{padding:var(--sp-2) var(--sp-5) var(--sp-3)}
+.eyebrow{
+  font-size:var(--fs-caption);font-weight:700;letter-spacing:var(--ls-caps);
+  text-transform:uppercase;color:var(--secondary-ink);display:flex;align-items:center;gap:var(--sp-2);
+}
+[data-lang="fa"] .eyebrow{text-transform:none;letter-spacing:0}
+.eyebrow .rule{flex:1;height:1px;background:var(--border-strong);opacity:.55}
+.ttl{
+  font-family:var(--font-display);font-weight:600;font-size:var(--fs-title);
+  line-height:var(--lh-title);letter-spacing:var(--ls-tight);margin:var(--sp-2) 0 0;
+}
+.sub{font-size:var(--fs-caption);color:var(--ink-muted);margin:2px 0 0}
+
+/* card */
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:var(--sp-5);
+}
+.card-raised{background:var(--surface-raised)}
+.card-shadow{box-shadow:var(--shadow-1)}
+
+/* badges & chips */
+.badge{
+  display:inline-flex;align-items:center;gap:var(--sp-2);
+  padding:6px var(--sp-3);border-radius:var(--r-sm);
+  font-size:var(--fs-caption);font-weight:700;line-height:1.25;
+  border:1px solid currentColor;
+}
+.badge-newdose{color:var(--state-newdose);background:var(--state-newdose-bg)}
+.badge-today{color:var(--state-today);background:var(--state-today-bg)}
+.badge-current{color:var(--primary-ink);background:var(--primary-soft)}
+.chip{
+  display:inline-flex;align-items:center;gap:var(--sp-2);min-height:44px;
+  padding:0 var(--sp-4);border-radius:var(--r-sm);
+  border:1px solid var(--border-strong);background:var(--surface-raised);
+  font-size:var(--fs-body);font-weight:600;color:var(--ink);
+}
+.chip-on{background:var(--primary-soft);color:var(--primary-ink);border-color:var(--primary)}
+
+/* buttons */
+.btn{
+  font-family:var(--font-ui);font-size:var(--fs-body-lg);font-weight:700;
+  min-height:44px;padding:0 var(--sp-5);border-radius:var(--r-md);
+  display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-3);
+  border:1px solid transparent;cursor:pointer;text-decoration:none;
+  transition:background var(--dur-fast) var(--ease-standard),transform var(--dur-fast) var(--ease-standard);
+}
+.btn-primary{background:var(--primary);color:var(--on-primary);border-color:var(--primary-ink)}
+.btn-lg{min-height:64px;font-size:22px;width:100%}
+.btn-secondary{background:var(--surface);color:var(--primary-ink);border-color:var(--border-strong)}
+.btn-tertiary{background:transparent;color:var(--primary-ink);border-color:transparent;font-size:var(--fs-body)}
+.btn-ghost{
+  background:var(--surface);color:var(--ink);border-color:var(--border-strong);
+  font-size:var(--fs-body);font-weight:600;min-height:48px;padding:0 var(--sp-3);flex:1;
+}
+
+/* dose hero */
+.dose{display:flex;align-items:baseline;gap:var(--sp-2);color:var(--primary-ink)}
+.dose .n{
+  font-family:var(--font-display);font-weight:600;font-size:var(--fs-hero);
+  line-height:var(--lh-hero);letter-spacing:var(--ls-tight);
+}
+.dose .u{font-family:var(--font-display);font-weight:600;font-size:30px;line-height:1}
+[data-lang="fa"] .dose .u{font-size:24px}
+.tablets{
+  display:flex;align-items:center;gap:var(--sp-2);color:var(--ink-muted);
+  font-size:var(--fs-body-lg);line-height:1.3;
+}
+.hr{height:1px;background:var(--border);border:0;margin:var(--sp-4) 0}
+.hr-strong{background:var(--border-strong);opacity:.5}
+
+/* context line */
+.ctx{
+  font-size:var(--fs-caption);color:var(--ink-muted);
+  display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-2);
+}
+.ticks{display:flex;gap:3px;align-items:center}
+.ticks i{display:block;width:6px;height:12px;border-radius:2px;background:var(--border-strong);opacity:.4}
+.ticks i.on{background:var(--primary);opacity:1}
+.ticks i.now{background:var(--accent);opacity:1;height:16px}
+
+/* banner */
+.banner{
+  display:flex;gap:var(--sp-3);align-items:flex-start;
+  background:var(--state-today-bg);border:1px solid var(--state-today);
+  border-radius:var(--r-lg);padding:var(--sp-4);
+}
+.banner .txt{flex:1;min-width:0;font-size:var(--fs-body);color:var(--ink);line-height:1.4}
+.banner .ic{color:var(--state-today);flex:none;margin-block-start:2px}
+.linkbtn{
+  background:transparent;border:0;padding:0;margin-block-start:var(--sp-2);
+  color:var(--state-today);font-family:var(--font-ui);font-size:var(--fs-body);font-weight:700;
+  text-decoration:underline;text-underline-offset:3px;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;
+}
+
+/* tab bar */
+.tabs{
+  flex:none;display:flex;border-block-start:1px solid var(--border-strong);
+  background:var(--surface);padding-block-start:var(--sp-1);
+}
+.tab{
+  flex:1;min-height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:var(--ink-muted);font-size:var(--fs-nav);font-weight:600;line-height:1.2;position:relative;
+  padding:var(--sp-1) 2px;
+}
+.tab .ic{width:25px;height:25px}
+.tab[aria-current="page"]{color:var(--primary-ink);font-weight:700}
+.tab[aria-current="page"]::before{
+  content:"";position:absolute;inset-block-start:-5px;inset-inline-start:50%;transform:translateX(-50%);
+  width:26px;height:3px;border-radius:var(--r-full);background:var(--primary);
+}
+[dir="rtl"] .tab[aria-current="page"]::before{transform:translateX(50%)}
+
+/* schedule */
+.blockhead{padding:var(--sp-4) var(--sp-5) var(--sp-2)}
+.blockhead .lbl{
+  font-size:var(--fs-caption);font-weight:700;letter-spacing:var(--ls-caps);text-transform:uppercase;
+  color:var(--secondary-ink);display:flex;align-items:center;gap:var(--sp-2);
+}
+[data-lang="fa"] .blockhead .lbl{text-transform:none;letter-spacing:0}
+.blockhead .lbl .rule{flex:1;height:1px;background:var(--border-strong);opacity:.5}
+.blockhead .desc{
+  font-family:var(--font-display);font-size:18px;font-weight:600;line-height:1.3;
+  color:var(--ink);margin-block-start:var(--sp-1);
+}
+[data-lang="fa"] .blockhead .desc{font-size:17px;line-height:1.6}
+.blockhead.now{
+  background:var(--accent-soft);border-block:1px solid var(--border);
+  border-inline-start:4px solid var(--accent);margin-block-start:var(--sp-2);
+}
+.row{
+  display:flex;align-items:center;gap:var(--sp-3);
+  padding:var(--sp-3) var(--sp-5);min-height:56px;
+  border-block-end:1px solid var(--border);
+}
+.row .mark{flex:none;width:26px;display:grid;place-items:center}
+.row .mid{flex:1;min-width:0}
+.row .day{font-size:var(--fs-body);font-weight:700;color:var(--ink);line-height:1.25}
+.row .meta{font-size:var(--fs-caption);color:var(--ink-muted);line-height:1.3;display:flex;gap:var(--sp-2);align-items:center;flex-wrap:wrap}
+.row .amt{
+  font-family:var(--font-display);font-size:21px;font-weight:600;color:var(--ink);
+  letter-spacing:var(--ls-tight);white-space:nowrap;
+}
+[data-lang="fa"] .row .amt{font-size:18px}
+.row-taken .mark{color:var(--state-taken)}
+.row-taken .amt{color:var(--ink-muted)}
+.row-missed .mark{color:var(--state-missed)}
+.row-missed .amt{color:var(--ink-muted)}
+.row-up .mark{color:var(--ink-soft)}
+.row-today{
+  background:var(--state-today-bg);border-inline-start:4px solid var(--accent);
+  padding-inline-start:calc(var(--sp-5) - 4px);
+}
+.row-today .amt{color:var(--primary-ink);font-size:26px}
+.row-today .mark{color:var(--state-today)}
+.statelab{font-weight:700}
+.st-taken{color:var(--state-taken)}
+.st-missed{color:var(--state-missed)}
+.st-up{color:var(--ink-muted)}
+
+/* progress */
+.stat{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:var(--sp-4);
+}
+.stat .n{
+  font-family:var(--font-display);font-weight:600;font-size:38px;line-height:1.05;
+  letter-spacing:var(--ls-tight);color:var(--primary-ink);
+}
+[data-lang="fa"] .stat .n{font-size:34px}
+.stat .l{font-size:var(--fs-caption);color:var(--ink-muted);line-height:1.35;margin-block-start:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3)}
+.chartwrap{display:flex;gap:var(--sp-2);align-items:stretch}
+.yaxis{
+  display:flex;flex-direction:column;justify-content:space-between;
+  font-size:var(--fs-micro);color:var(--ink-muted);font-weight:600;text-align:end;flex:none;width:30px;
+  padding-block:2px 20px;
+}
+.plot{flex:1;min-width:0}
+[dir="rtl"] .plotsvg{transform:scaleX(-1)}
+.xaxis{display:flex;justify-content:space-between;font-size:var(--fs-micro);color:var(--ink-muted);margin-block-start:var(--sp-1);padding-inline-start:38px}
+.encourage{
+  font-family:var(--font-display);font-style:italic;font-size:20px;line-height:1.4;
+  color:var(--primary-ink);
+}
+[data-lang="fa"] .encourage{font-style:normal;font-weight:600;font-size:18px;line-height:1.7}
+
+/* plan / settings rows */
+.lrow{
+  display:flex;align-items:center;gap:var(--sp-3);min-height:56px;
+  padding:var(--sp-3) 0;border-block-end:1px solid var(--border);
+}
+.lrow:last-child{border-block-end:0}
+.lrow .ic{color:var(--ink-muted);flex:none}
+.lrow .t{flex:1;min-width:0}
+.lrow .t b{display:block;font-size:var(--fs-body);font-weight:600;color:var(--ink);line-height:1.3}
+.lrow .t span{display:block;font-size:var(--fs-caption);color:var(--ink-muted);line-height:1.3}
+.lrow .v{font-size:var(--fs-body);font-weight:700;color:var(--primary-ink);white-space:nowrap}
+.sec-lbl{
+  font-size:var(--fs-caption);font-weight:700;letter-spacing:var(--ls-caps);text-transform:uppercase;
+  color:var(--secondary-ink);margin:var(--sp-5) 0 var(--sp-2);display:flex;align-items:center;gap:var(--sp-2);
+}
+[data-lang="fa"] .sec-lbl{text-transform:none;letter-spacing:0}
+.sec-lbl .rule{flex:1;height:1px;background:var(--border-strong);opacity:.5}
+.sw{
+  flex:none;width:60px;height:34px;border-radius:var(--r-full);position:relative;
+  background:var(--primary);border:1px solid var(--primary-ink);
+}
+.sw i{
+  position:absolute;inset-block-start:3px;inset-inline-end:3px;width:26px;height:26px;
+  border-radius:var(--r-full);background:var(--on-primary);display:grid;place-items:center;color:var(--primary-ink);
+}
+.sw-off{background:var(--surface-sunk);border-color:var(--border-strong)}
+.sw-off i{inset-inline-start:3px;inset-inline-end:auto;background:var(--surface);color:var(--ink-muted)}
+.sw-wrap{display:flex;align-items:center;gap:var(--sp-2)}
+.sw-lab{font-size:var(--fs-caption);font-weight:700;color:var(--ink-muted)}
+.slider{position:relative;height:44px;display:flex;align-items:center;margin-block-start:var(--sp-2)}
+.slider .track{height:8px;border-radius:var(--r-full);background:var(--surface-sunk);border:1px solid var(--border-strong);width:100%}
+.slider .fill{position:absolute;inset-inline-start:0;height:8px;width:68%;border-radius:var(--r-full);background:var(--primary)}
+.slider .knob{
+  position:absolute;inset-inline-start:calc(68% - 15px);width:30px;height:30px;border-radius:var(--r-full);
+  background:var(--surface);border:2px solid var(--primary-ink);box-shadow:var(--shadow-1);
+}
+.slider-ends{display:flex;justify-content:space-between;font-size:var(--fs-micro);color:var(--ink-muted);margin-block-start:2px}
+.opt{
+  display:flex;align-items:center;gap:var(--sp-3);min-height:56px;padding:var(--sp-3) var(--sp-4);
+  border:1px solid var(--border-strong);border-radius:var(--r-md);background:var(--surface);
+}
+.opt + .opt{margin-block-start:var(--sp-2)}
+.opt-on{background:var(--primary-soft);border-color:var(--primary);border-width:2px}
+.opt .radio{
+  flex:none;width:26px;height:26px;border-radius:var(--r-full);
+  border:2px solid var(--border-strong);display:grid;place-items:center;color:var(--on-primary);
+}
+.opt-on .radio{background:var(--primary);border-color:var(--primary-ink)}
+.opt .name{flex:1;font-size:var(--fs-body);font-weight:600}
+.opt-on .name{color:var(--primary-ink);font-weight:700}
+.dashcard{
+  border:1.5px dashed var(--secondary);background:var(--secondary-soft);
+  border-radius:var(--r-lg);padding:var(--sp-4);
+}
+.foot{font-size:var(--fs-caption);color:var(--ink-muted);line-height:1.5;text-align:center}
+
+/* modal */
+.scrim{position:absolute;inset:0;background:var(--overlay);display:flex;align-items:flex-end;border-radius:40px}
+.sheet{
+  width:100%;background:var(--surface);border-start-start-radius:var(--r-xl);border-start-end-radius:var(--r-xl);
+  border-block-start:1px solid var(--border-strong);padding:var(--sp-6) var(--sp-5) var(--sp-5);
+  box-shadow:var(--shadow-lift);
+}
+.sheet .grab{width:44px;height:5px;border-radius:var(--r-full);background:var(--border-strong);opacity:.5;margin:0 auto var(--sp-5)}
+.seedring{
+  width:96px;height:96px;border-radius:var(--r-full);background:var(--primary-soft);
+  border:1px solid var(--primary);display:grid;place-items:center;color:var(--primary-ink);
+  margin:0 auto var(--sp-5);
+}
+.dim{filter:saturate(.7)}
+.stack-3{display:flex;flex-direction:column;gap:var(--sp-3)}
+.stack-4{display:flex;flex-direction:column;gap:var(--sp-4)}
+.stack-5{display:flex;flex-direction:column;gap:var(--sp-5)}
+.mt-auto{margin-block-start:auto}
+.rowbtns{display:flex;gap:var(--sp-2)}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms !important;transition-duration:.001ms !important}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== ICON SPRITE ===================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+<defs>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.4l5 5.1L19.8 6.2"/></symbol>
+  <symbol id="i-tick-hand" viewBox="0 0 24 24"><path d="M3.9 12.5c1.9 1 3.5 2.7 4.8 4.8C11.7 12 15.3 8.1 20 5.6" stroke-width="2.3"/></symbol>
+  <symbol id="i-square" viewBox="0 0 24 24"><rect x="4.6" y="4.6" width="14.8" height="14.8" rx="3.4"/></symbol>
+  <symbol id="i-dot-dash" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.4" stroke-dasharray="2.4 3.6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 6.9V12l3.4 2.1"/></symbol>
+  <symbol id="i-pill" viewBox="0 0 24 24"><rect x="1.8" y="8.4" width="20.4" height="7.2" rx="3.6" transform="rotate(-40 12 12)"/><path d="M9.2 7.2l5.6 5.6" transform="rotate(-40 12 12)"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.4" y="5.2" width="17.2" height="15.4" rx="2.6"/><path d="M3.4 10h17.2M8.2 3.4v3.6M15.8 3.4v3.6"/><path d="M7.6 14h2M11 14h2M14.4 14h2M7.6 17.4h2M11 17.4h2"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3.6 20.4h17"/><path d="M4 6.6h3.6V10h3.5v3.4h3.5v3.4h5.6"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1"/><path d="M18.9 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-1.7-.3 1.5 1.5 0 0 0-.9 1.4v.2a1.9 1.9 0 1 1-3.8 0v-.1a1.5 1.5 0 0 0-1-1.4 1.5 1.5 0 0 0-1.7.3l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0 .3-1.7 1.5 1.5 0 0 0-1.4-.9h-.2a1.9 1.9 0 1 1 0-3.8h.1a1.5 1.5 0 0 0 1.4-1 1.5 1.5 0 0 0-.3-1.7l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 1 1 3.8 0v.1a1.5 1.5 0 0 0 .9 1.4 1.5 1.5 0 0 0 1.7-.3l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0-.3 1.7v.1a1.5 1.5 0 0 0 1.4.9h.2a1.9 1.9 0 1 1 0 3.8h-.1a1.5 1.5 0 0 0-1.4.9z"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M13.6 3.6H6.6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6.8"/><path d="M8.4 9.6h5M8.4 13.4h6.6M8.4 17.2h4"/><path d="M17.1 3l3.9 3.9-2 2-3.9-3.9z"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4.4l9.1 15.2H2.9z"/><path d="M12 10v4.2"/><circle cx="12" cy="17.2" r=".95" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.6v11.2"/><path d="M7.4 10.4L12 15l4.6-4.6"/><path d="M4.4 19.4h15.2"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15.2V4"/><path d="M7.4 8.6L12 4l4.6 4.6"/><path d="M4.4 19.4h15.2"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9.4 4.8L16.6 12l-7.2 7.2"/></symbol>
+  <symbol id="i-sprout" viewBox="0 0 24 24"><path d="M12 21v-7.6"/><path d="M12 13.4c0-3.5 2.8-6.4 6.4-6.4 0 3.5-2.9 6.4-6.4 6.4z"/><path d="M12 16.6c-3 0-5.3-2.4-5.3-5.3 3 0 5.3 2.4 5.3 5.3z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.4v2.3M12 19.3v2.3M4.5 4.5l1.7 1.7M17.8 17.8l1.7 1.7M2.4 12h2.3M19.3 12h2.3M4.5 19.5l1.7-1.7M17.8 6.2l1.7-1.7"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6.6" y="4.6" width="4" height="14.8" rx="1.6"/><rect x="13.4" y="4.6" width="4" height="14.8" rx="1.6"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 21.2c3.6 0 6.1-2.4 6.1-5.7 0-4-3.7-6-4.5-10.6-2 1.6-3.1 3.5-3.1 5.5 0 1-.6 1.8-1.4 1.8-.7 0-1.2-.5-1.4-1.3-1.1 1.5-2 3.2-2 4.7 0 3.3 2.6 5.6 6.3 5.6z"/></symbol>
+  <symbol id="i-packet" viewBox="0 0 24 24"><rect x="4.2" y="3.4" width="15.6" height="17.2" rx="2.2"/><path d="M4.2 8.2h15.6"/><path d="M12 18v-2.9c0-1.5 1.2-2.7 2.7-2.7h.6v.6c0 1.5-1.2 2.7-2.7 2.7H12z"/><path d="M12 18v-2c0-1.2-1-2.2-2.2-2.2h-.5v.5c0 1.2 1 2.2 2.2 2.2H12z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.2v13.6M5.2 12h13.6"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20.4 3.6C10.2 4.2 4.4 8.6 4.4 15.2c0 2 .8 3.6 1.2 4.3M6 18c2.8-6.4 7.4-9.8 13.4-11.4"/></symbol>
+  <symbol id="i-battery" viewBox="0 0 28 14"><rect x="0.9" y="0.9" width="22.4" height="12.2" rx="3.6" stroke-width="1.3"/><path d="M25.4 5v4a2.6 2.6 0 0 0 0-4z" fill="currentColor" stroke="none" opacity=".55"/><rect x="3" y="3" width="15.6" height="8" rx="2" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-wifi" viewBox="0 0 20 14"><path d="M1.4 4.4a13 13 0 0 1 17.2 0M4.6 7.7a8.4 8.4 0 0 1 10.8 0" stroke-width="1.5"/><circle cx="10" cy="11.4" r="1.3" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-signal" viewBox="0 0 20 14"><rect x="0.6" y="9" width="3.2" height="4.4" rx="1" fill="currentColor" stroke="none"/><rect x="5.4" y="6.4" width="3.2" height="7" rx="1" fill="currentColor" stroke="none"/><rect x="10.2" y="3.6" width="3.2" height="9.8" rx="1" fill="currentColor" stroke="none"/><rect x="15" y="0.8" width="3.2" height="12.6" rx="1" fill="currentColor" stroke="none"/></symbol>
+</defs>
+</svg>
+
+<!-- ===================== CONTROL BAR ===================== -->
+<header class="bar">
+  <div class="brand">
+    <span class="mark"><svg class="ic" aria-hidden="true"><use href="#i-sprout"/></svg></span>
+    <span>
+      <b>Almanac</b>
+      <small><span class="en">NearlyStop · six screens · design direction 1 of 3</span><span class="fa">NearlyStop · شش صفحه · جهت طراحی ۱ از ۳</span></small>
+    </span>
+  </div>
+  <div class="ctrls">
+    <div class="seg" role="group" aria-label="Theme">
+      <button type="button" id="tl" aria-pressed="true" onclick="setTheme('light')">
+        <svg class="ic ic-20" aria-hidden="true"><use href="#i-sun"/></svg>
+        <span class="en">Light</span><span class="fa">روشن</span>
+      </button>
+      <button type="button" id="td" aria-pressed="false" onclick="setTheme('dark')">
+        <svg class="ic ic-20" aria-hidden="true"><use href="#i-leaf"/></svg>
+        <span class="en">Dark</span><span class="fa">تیره</span>
+      </button>
+    </div>
+    <div class="seg" role="group" aria-label="Language">
+      <button type="button" id="le" aria-pressed="true" onclick="setLang('en')">English</button>
+      <button type="button" id="lf" aria-pressed="false" onclick="setLang('fa')">فارسی</button>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== INTRO ===================== -->
+<section class="intro">
+  <p class="kicker"><span class="en">Design direction — Almanac</span><span class="fa">جهت طراحی — آلماناک</span></p>
+  <h1><span class="en">You are tending something slowly, and it is growing.</span><span class="fa">شما آهسته از چیزی مراقبت می‌کنید و آن در حال رشد است.</span></h1>
+  <p>
+    <span class="en"><b>Almanac</b> dresses the taper as a gardener's year-book: warm paper, a serif hand for the numbers that matter, hairline rules instead of shadows, and seed-packet section labels that teach the block pattern instead of hiding it in a calendar grid. Nothing here looks like a hospital — the days get ticked off by hand, the dose line grows down like a vine, and on day 400 the page still feels like somewhere pleasant to arrive.</span>
+    <span class="fa"><b>آلماناک</b> دورهٔ کاهش دارو را مانند سالنامهٔ یک باغبان نشان می‌دهد: کاغذ گرم، حروف سریف برای عددهایی که اهمیت دارند، خطوط مویی به جای سایه، و عنوان‌های بخش شبیه پاکت بذر که الگوی مرحله‌ها را آموزش می‌دهند نه اینکه در جدول تقویم پنهانشان کنند. هیچ چیز اینجا شبیه بیمارستان نیست — روزها با دست علامت می‌خورند، خط دوز مانند یک ساقه رو به پایین رشد می‌کند، و در روز ۴۰۰ هنوز رسیدن به این صفحه دلپذیر است.</span>
+  </p>
+  <svg class="sprig" width="240" height="18" viewBox="0 0 240 18" fill="none" aria-hidden="true">
+    <path d="M2 9h84" stroke="currentColor" stroke-width="1"/>
+    <path d="M154 9h84" stroke="currentColor" stroke-width="1"/>
+    <path d="M120 3.2c-4.6 0-8.4 3.2-8.4 5.8 4.6 0 8.4-3.2 8.4-5.8zM120 3.2c4.6 0 8.4 3.2 8.4 5.8-4.6 0-8.4-3.2-8.4-5.8z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+    <path d="M120 9v5.6M96 9h14M130 9h14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>
+</section>
+
+<!-- ===================== SCREENS ===================== -->
+<main class="stage">
+
+<!-- ---------- 1. WELCOME ---------- -->
+<div class="cell">
+  <div class="slotwrap"><div class="slot">
+  <div class="phone"><div class="app">
+    <div class="sbar dim">
+      <span><span class="en">9:41</span><span class="fa">۹:۴۱</span></span>
+      <span class="sigs"><svg class="ic" style="width:19px;height:13px" aria-hidden="true"><use href="#i-signal"/></svg><svg class="ic" style="width:19px;height:13px" aria-hidden="true"><use href="#i-wifi"/></svg><svg class="ic" style="width:27px;height:13px" aria-hidden="true"><use href="#i-battery"/></svg></span>
+    </div>
+    <div class="scr dim" aria-hidden="true">
+      <div class="ahead">
+        <div class="eyebrow"><svg class="ic ic-18" aria-hidden="true"><use href="#i-sun"/></svg><span class="en">Today</span><span class="fa">امروز</span><i class="rule"></i></div>
+        <h2 class="ttl"><span class="en">Wednesday 16 April</span><span class="fa">چهارشنبه ۲۷ فروردین</span></h2>
+      </div>
+      <div class="scr-pad">
+        <div class="card">
+          <div class="dose"><span class="n"><span class="en">9</span><span class="fa">۹</span></span><span class="u"><span class="en">mg</span><span class="fa">میلی‌گرم</span></span></div>
+          <div class="tablets" style="margin-top:10px"><svg class="ic ic-20" aria-hidden="true"><use href="#i-pill"/></svg><span class="en">1 × 5mg &nbsp;·&nbsp; 4 × 1mg</span><span class="fa">۱ عدد ۵ میلی‌گرمی · ۴ عدد ۱ میلی‌گرمی</span></div>
+          <hr class="hr">
+          <div class="btn btn-primary btn-lg"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span class="en">Taken</span><span class="fa">مصرف شد</span></div>
+        </div>
+      </div>
+      <div class="mt-auto"></div>
+      <nav class="tabs">
+        <span class="tab" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg><span class="en">Today</span><span class="fa">امروز</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg><span class="en">Schedule</span><span class="fa">برنامه</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg><span class="en">Progress</span><span class="fa">پیشرفت</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-packet"/></svg><span class="en">Plan</span><span class="fa">طرح</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg><span class="en">Settings</span><span class="fa">تنظیمات</span></span>
+      </nav>
+      <div class="home-ind"><i></i></div>
+    </div>
+
+    <div class="scrim" role="dialog" aria-modal="true" aria-labelledby="w-t">
+      <div class="sheet">
+        <div class="grab"></div>
+        <div class="seedring"><svg class="ic ic-56" aria-hidden="true"><use href="#i-sprout"/></svg></div>
+        <h2 id="w-t" class="ttl" style="text-align:center;margin-top:0">
+          <span class="en">Welcome to NearlyStop</span><span class="fa">به NearlyStop خوش آمدید</span>
+        </h2>
+        <p style="margin:16px 0 0;color:var(--ink-muted);font-size:var(--fs-body);line-height:var(--lh-body);text-align:start">
+          <span class="en">NearlyStop arranges the plan you and your doctor agreed. It does not give medical advice. Always follow your doctor's instructions.</span>
+          <span class="fa">NearlyStop فقط طرحی را که شما و پزشکتان توافق کرده‌اید مرتب می‌کند و توصیهٔ پزشکی نیست. همیشه از دستور پزشک خود پیروی کنید.</span>
+        </p>
+        <hr class="hr hr-strong" style="margin:20px 0">
+        <div class="btn btn-primary btn-lg"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span class="en">I understand</span><span class="fa">متوجه شدم</span></div>
+        <div class="home-ind" style="margin-top:12px"><i></i></div>
+      </div>
+    </div>
+  </div></div>
+  </div></div>
+  <div class="cap"><b><span class="capnum">1</span><span class="en">Welcome / disclaimer</span><span class="fa">خوش‌آمد / سلب مسئولیت</span></b>
+  <span><span class="en">First run — a bottom sheet, not a wall of legalese</span><span class="fa">اولین اجرا — یک برگهٔ پایینی، نه دیوار متن حقوقی</span></span></div>
+</div>
+
+<!-- ---------- 2. TODAY ---------- -->
+<div class="cell">
+  <div class="slotwrap"><div class="slot">
+  <div class="phone"><div class="app">
+    <div class="sbar">
+      <span><span class="en">9:41</span><span class="fa">۹:۴۱</span></span>
+      <span class="sigs"><svg class="ic" style="width:19px;height:13px" aria-hidden="true"><use href="#i-signal"/></svg><svg class="ic" style="width:19px;height:13px" aria-hidden="true"><use href="#i-wifi"/></svg><svg class="ic" style="width:27px;height:13px" aria-hidden="true"><use href="#i-battery"/></svg></span>
+    </div>
+    <div class="scr">
+      <div class="ahead">
+        <div class="eyebrow"><svg class="ic ic-18" aria-hidden="true"><use href="#i-sun"/></svg><span class="en">Today</span><span class="fa">امروز</span><i class="rule"></i></div>
+        <h2 class="ttl"><span class="en">Wednesday 16 April</span><span class="fa">چهارشنبه ۲۷ فروردین</span></h2>
+      </div>
+      <div class="scr-pad stack-4" style="flex:1;min-height:0">
+        <div>
+          <span class="badge badge-newdose"><svg class="ic ic-18" aria-hidden="true"><use href="#i-sprout"/></svg><span class="en">New dose day</span><span class="fa">روز دوز جدید</span></span>
+        </div>
+
+        <div class="card card-shadow">
+          <div style="font-size:var(--fs-caption);font-weight:700;letter-spacing:var(--ls-caps);text-transform:none;color:var(--ink-muted)">
+            <span class="en">TAKE TODAY</span><span class="fa">امروز مصرف کنید</span>
+          </div>
+          <div class="dose" style="margin-top:6px">
+            <span class="n"><span class="en">9</span><span class="fa">۹</span></span>
+            <span class="u"><span class="en">mg</span><span class="fa">میلی‌گرم</span></span>
+          </div>
+          <div class="tablets" style="margin-top:10px">
+            <svg class="ic ic-20" aria-hidden="true"><use href="#i-pill"/></svg>
+            <span class="en">1 × 5mg &nbsp;·&nbsp; 4 × 1mg</span><span class="fa">۱ عدد ۵ میلی‌گرمی · ۴ عدد ۱ میلی‌گرمی</span>
+          </div>
+          <hr class="hr">
+          <button class="btn btn-primary btn-lg" type="button">
+            <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
+            <span class="en">Taken</span><span class="fa">مصرف شد</span>
+          </button>
+        </div>
+
+        <div class="ctx">
+          <span class="ticks" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="now"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="en">Step 3 of 15 · 10mg → 9mg · Day 14 of 52</span>
+          <span class="fa">گام ۳ از ۱۵ · ۱۰ به ۹ میلی‌گرم · روز ۱۴ از ۵۲</span>
+        </div>
+
+        <div class="banner">
+          <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>
+          <div class="txt">
+            <span class="en">Yesterday wasn't ticked — mark it now?</span>
+            <span class="fa">دیروز ثبت نشده — الان علامت بزنید؟</span>
+            <button class="linkbtn" type="button"><span class="en">Mark Tuesday as taken</span><span class="fa">سه‌شنبه را ثبت کن</span></button>
+          </div>
+        </div>
+
+        <div class="rowbtns mt-auto" style="margin-bottom:16px">
+          <button class="btn btn-ghost" type="button"><svg class="ic ic-20" aria-hidden="true"><use href="#i-note"/></svg><span class="en">Add note</span><span class="fa">یادداشت</span></button>
+          <button class="btn btn-ghost" type="button"><svg class="ic ic-20" aria-hidden="true"><use href="#i-pause"/></svg><span class="en">Hold</span><span class="fa">توقف موقت</span></button>
+          <button class="btn btn-ghost" type="button"><svg class="ic ic-20" aria-hidden="true"><use href="#i-flame"/></svg><span class="en">Flare</span><span class="fa">عود</span></button>
+        </div>
+      </div>
+      <nav class="tabs">
+        <span class="tab" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg><span class="en">Today</span><span class="fa">امروز</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg><span class="en">Schedule</span><span class="fa">برنامه</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg><span class="en">Progress</span><span class="fa">پیشرفت</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-packet"/></svg><span class="en">Plan</span><span class="fa">طرح</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg><span class="en">Settings</span><span class="fa">تنظیمات</span></span>
+      </nav>
+      <div class="home-ind"><i></i></div>
+    </div>
+  </div></div>
+  </div></div>
+  <div class="cap"><b><span class="capnum">2</span><span class="en">Today</span><span class="fa">امروز</span></b>
+  <span><span class="en">Opened ~780 times — one number, one button</span><span class="fa">حدود ۷۸۰ بار باز می‌شود — یک عدد، یک دکمه</span></span></div>
+</div>
+
+<!-- ---------- 3. SCHEDULE ---------- -->
+<div class="cell">
+  <div class="slotwrap"><div class="slot">
+  <div class="phone"><div class="app">
+    <div class="sbar">
+      <span><span class="en">9:41</span><span class="fa">۹:۴۱</span></span>
+      <span class="sigs"><svg class="ic" style="width:19px;height:13px" aria-hidden="true"><use href="#i-signal"/></svg><svg class="ic" style="width:19px;height:13px" aria-hidden="true"><use href="#i-wifi"/></svg><svg class="ic" style="width:27px;height:13px" aria-hidden="true"><use href="#i-battery"/></svg></span>
+    </div>
+    <div class="scr">
+      <div class="ahead" style="padding-bottom:8px">
+        <div class="eyebrow"><svg class="ic ic-18" aria-hidden="true"><use href="#i-calendar"/></svg><span class="en">Schedule</span><span class="fa">برنامه</span><i class="rule"></i></div>
+        <h2 class="ttl" style="font-size:26px"><span class="en">Your blocks</span><span class="fa">مرحله‌های شما</span></h2>
+      </div>
+      <div class="scr-scroll">
+
+        <!-- Block 2 tail -->
+        <div class="blockhead">
+          <div class="lbl">
+            <svg class="ic ic-18" aria-hidden="true"><use href="#i-packet"/></svg>
+            <span class="en">Block 2 of 11</span><span class="fa">مرحله ۲ از ۱۱</span>
+            <i class="rule"></i>
+          </div>
+          <div class="desc"><span class="en">One day at 9mg, then 5 days at 10mg</span><span class="fa">یک روز ۹ میلی‌گرم، سپس ۵ روز ۱۰ میلی‌گرم</span></div>
+        </div>
+        <div class="row row-taken">
+          <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-tick-hand"/></svg></span>
+          <span class="mid">
+            <span class="day"><span class="en">Mon 14 Apr</span><span class="fa">دوشنبه ۲۵ فروردین</span></span>
+            <span class="meta"><span class="statelab st-taken"><span class="en">Taken</span><span class="fa">ثبت شد</span></span></span>
+          </span>
+          <span class="amt"><span class="en">10mg</span><span class="fa">۱۰</span></span>
+        </div>
+        <div class="row row-missed">
+          <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-square"/></svg></span>
+          <span class="mid">
+            <span class="day"><span class="en">Tue 15 Apr</span><span class="fa">سه‌شنبه ۲۶ فروردین</span></span>
+            <span class="meta"><span class="statelab st-missed"><span class="en">Not ticked</span><span class="fa">ثبت نشده</span></span></span>
+          </span>
+          <span class="amt"><span class="en">10mg</span><span class="fa">۱۰</span></span>
+        </div>
+
+        <!-- Block 3 current -->
+        <div class="blockhead now">
+          <div class="lbl">
+            <svg class="ic ic-18" aria-hidden="true"><use href="#i-packet"/></svg>
+            <span class="en">Block 3 of 11</span><span class="fa">مرحله ۳ از ۱۱</span>
+            <i class="rule"></i>
+            <span class="badge badge-current" style="padding:3px 8px"><span class="en">Now</span><span class="fa">اکنون</span></span>
+          </div>
+          <div class="desc"><span class="en">One day at 9mg, then 4 days at 10mg</span><span class="fa">یک روز ۹ میلی‌گرم، سپس ۴ روز ۱۰ میلی‌گرم</span></div>
+        </div>
+        <div class="row row-today">
+          <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-sprout"/></svg></span>
+          <span class="mid">
+            <span class="day"><span class="en">Wed 16 Apr</span><span class="fa">چهارشنبه ۲۷ فروردین</span></span>
+            <span class="meta">
+              <span class="badge badge-today" style="padding:2px 7px;font-size:var(--fs-micro)"><span class="en">Today</span><span class="fa">امروز</span></span>
+              <span class="en">1×5mg, 4×1mg</span><span class="fa">۱×۵ و ۴×۱</span>
+            </span>
+          </span>
+          <span class="amt"><span class="en">9mg</span><span class="fa">۹</span></span>
+        </div>
+        <div class="row row-up">
+          <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-dot-dash"/></svg></span>
+          <span class="mid">
+            <span class="day"><span class="en">Thu 17 Apr</span><span class="fa">پنج‌شنبه ۲۸ فروردین</span></span>
+            <span class="meta"><span class="statelab st-up"><span class="en">Upcoming</span><span class="fa">پیش‌رو</span></span> · <span class="en">2×5mg</span><span class="fa">۲×۵</span></span>
+          </span>
+          <span class="amt"><span class="en">10mg</span><span class="fa">۱۰</span></span>
+        </div>
+        <div class="row row-up">
+          <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-dot-dash"/></svg></span>
+          <span class="mid">
+            <span class="day"><span class="en">Fri 18 Apr</span><span class="fa">جمعه ۲۹ فروردین</span></span>
+            <span class="meta"><span class="statelab st-up"><span class="en">Upcoming</span><span class="fa">پیش‌رو</span></span> · <span class="en">2×5mg</span><span class="fa">۲×۵</span></span>
+          </span>
+          <span class="amt"><span class="en">10mg</span><span class="fa">۱۰</span></span>
+        </div>
+        <div class="row row-up">
+          <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-dot-dash"/></svg></span>
+          <span class="mid">
+            <span class="day"><span class="en">Sat 19 Apr</span><span class="fa">شنبه ۳۰ فروردین</span></span>
+            <span class="meta"><span class="statelab st-up"><span class="en">Upcoming</span><span class="fa">پیش‌رو</span></span> · <span class="en">2×5mg</span><span class="fa">۲×۵</span></span>
+          </span>
+          <span class="amt"><span class="en">10mg</span><span class="fa">۱۰</span></span>
+        </div>
+        <div class="row row-up">
+          <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-dot-dash"/></svg></span>
+          <span class="mid">
+            <span class="day"><span class="en">Sun 20 Apr</span><span class="fa">یکشنبه ۳۱ فروردین</span></span>
+            <span class="meta"><span class="statelab st-up"><span class="en">Upcoming</span><span class="fa">پیش‌رو</span></span> · <span class="en">2×5mg</span><span class="fa">۲×۵</span></span>
+          </span>
+          <span class="amt"><span class="en">10mg</span><span class="fa">۱۰</span></span>
+        </div>
+
+        <!-- Block 4 head -->
+        <div class="blockhead" style="opacity:.9">
+          <div class="lbl">
+            <svg class="ic ic-18" aria-hidden="true"><use href="#i-packet"/></svg>
+            <span class="en">Block 4 of 11</span><span class="fa">مرحله ۴ از ۱۱</span>
+            <i class="rule"></i>
+          </div>
+          <div class="desc"><span class="en">One day at 9mg, then 3 days at 10mg</span><span class="fa">یک روز ۹ میلی‌گرم، سپس ۳ روز ۱۰ میلی‌گرم</span></div>
+        </div>
+      </div>
+      <nav class="tabs">
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg><span class="en">Today</span><span class="fa">امروز</span></span>
+        <span class="tab" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg><span class="en">Schedule</span><span class="fa">برنامه</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg><span class="en">Progress</span><span class="fa">پیشرفت</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-packet"/></svg><span class="en">Plan</span><span class="fa">طرح</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg><span class="en">Settings</span><span class="fa">تنظیمات</span></span>
+      </nav>
+      <div class="home-ind"><i></i></div>
+    </div>
+  </div></div>
+  </div></div>
+  <div class="cap"><b><span class="capnum">3</span><span class="en">Schedule</span><span class="fa">برنامه</span></b>
+  <span><span class="en">Blocks, not a month grid — the grouping is the teaching</span><span class="fa">مرحله‌ها، نه جدول ماهانه — گروه‌بندی همان آموزش است</span></span></div>
+</div>
+
+<!-- ---------- 4. PROGRESS ---------- -->
+<div class="cell">
+  <div class="slotwrap"><div class="slot">
+  <div class="phone"><div class="app">
+    <div class="sbar">
+      <span><span class="en">9:41</span><span class="fa">۹:۴۱</span></span>
+      <span class="sigs"><svg class="ic" style="width:19px;height:13px" aria-hidden="true"><use href="#i-signal"/></svg><svg class="ic" style="width:19px;height:13px" aria-hidden="true"><use href="#i-wifi"/></svg><svg class="ic" style="width:27px;height:13px" aria-hidden="true"><use href="#i-battery"/></svg></span>
+    </div>
+    <div class="scr">
+      <div class="ahead" style="padding-bottom:8px">
+        <div class="eyebrow"><svg class="ic ic-18" aria-hidden="true"><use href="#i-chart"/></svg><span class="en">Progress</span><span class="fa">پیشرفت</span><i class="rule"></i></div>
+        <h2 class="ttl" style="font-size:26px"><span class="en">How far you've come</span><span class="fa">تا کجا آمده‌اید</span></h2>
+        <p class="sub"><span class="en">Started 12 September 2024 at 15mg</span><span class="fa">شروع: ۲۲ شهریور ۱۴۰۳ با ۱۵ میلی‌گرم</span></p>
+      </div>
+      <div class="scr-pad stack-3" style="flex:1;min-height:0">
+
+        <div class="card" style="padding:16px 14px 12px">
+          <div class="chartwrap">
+            <div class="yaxis" aria-hidden="true">
+              <span><span class="en">15</span><span class="fa">۱۵</span></span>
+              <span><span class="en">13</span><span class="fa">۱۳</span></span>
+              <span><span class="en">11</span><span class="fa">۱۱</span></span>
+              <span><span class="en">9</span><span class="fa">۹</span></span>
+            </div>
+            <div class="plot">
+              <svg class="plotsvg" viewBox="0 0 264 158" width="100%" height="150" role="img" aria-label="Dose descending from 15mg to 9mg over 581 days, with two flare markers">
+                <g stroke="var(--border)" stroke-width="1">
+                  <path d="M2 14h260M2 54h260M2 94h260M2 134h260"/>
+                </g>
+                <!-- the vine: staircase down -->
+                <path d="M4 14H30V34H60V54H92V74H128V94H168V114H214V134H258"
+                      fill="none" stroke="var(--primary)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- leaves at each step down -->
+                <g fill="var(--primary)" opacity=".9">
+                  <path d="M30 24c0-4 3.4-7.2 7.6-7.2 0 4-3.4 7.2-7.6 7.2z"/>
+                  <path d="M60 44c0-4-3.4-7.2-7.6-7.2 0 4 3.4 7.2 7.6 7.2z"/>
+                  <path d="M92 64c0-4 3.4-7.2 7.6-7.2 0 4-3.4 7.2-7.6 7.2z"/>
+                  <path d="M128 84c0-4-3.4-7.2-7.6-7.2 0 4 3.4 7.2 7.6 7.2z"/>
+                  <path d="M168 104c0-4 3.4-7.2 7.6-7.2 0 4-3.4 7.2-7.6 7.2z"/>
+                  <path d="M214 124c0-4-3.4-7.2-7.6-7.2 0 4 3.4 7.2 7.6 7.2z"/>
+                </g>
+                <!-- flare markers -->
+                <g>
+                  <circle cx="106" cy="74" r="7" fill="var(--surface)" stroke="var(--secondary)" stroke-width="2.4"/>
+                  <path d="M106 70.6c1.4 1.7 2.6 2.6 2.6 4.2a2.6 2.6 0 0 1-5.2 0c0-1.6 1.2-2.5 2.6-4.2z" fill="var(--secondary)"/>
+                  <circle cx="190" cy="114" r="7" fill="var(--surface)" stroke="var(--secondary)" stroke-width="2.4"/>
+                  <path d="M190 110.6c1.4 1.7 2.6 2.6 2.6 4.2a2.6 2.6 0 0 1-5.2 0c0-1.6 1.2-2.5 2.6-4.2z" fill="var(--secondary)"/>
+                </g>
+                <!-- today marker -->
+                <circle cx="258" cy="134" r="6.5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2.5"/>
+                <path d="M258 141v12" stroke="var(--primary)" stroke-width="2.2" stroke-dasharray="3 4" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+          <div class="xaxis">
+            <span><span class="en">Sep 2024</span><span class="fa">شهریور ۱۴۰۳</span></span>
+            <span><span class="en">Apr 2026</span><span class="fa">فروردین ۱۴۰۵</span></span>
+          </div>
+          <hr class="hr" style="margin:10px 0 8px">
+          <div style="display:flex;gap:14px;font-size:var(--fs-micro);color:var(--ink-muted);flex-wrap:wrap">
+            <span style="display:inline-flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="6" fill="none" stroke="var(--secondary)" stroke-width="2"/></svg><span class="en">Flare</span><span class="fa">عود</span></span>
+            <span style="display:inline-flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="6" fill="var(--accent)"/></svg><span class="en">Today</span><span class="fa">امروز</span></span>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="stat">
+            <div class="n"><span class="en">581</span><span class="fa">۵۸۱</span></div>
+            <div class="l"><span class="en">days on prednisolone</span><span class="fa">روز مصرف پردنیزولون</span></div>
+          </div>
+          <div class="stat">
+            <div class="n"><span class="en">6,842</span><span class="fa">۶٬۸۴۲</span></div>
+            <div class="l"><span class="en">mg taken in total</span><span class="fa">میلی‌گرم مجموع</span></div>
+          </div>
+        </div>
+
+        <div class="stat">
+          <div style="display:flex;align-items:center;gap:12px">
+            <svg class="ic ic-26" style="color:var(--state-taken);flex:none" aria-hidden="true"><use href="#i-tick-hand"/></svg>
+            <div>
+              <div style="font-family:var(--font-display);font-size:24px;font-weight:600;color:var(--primary-ink);line-height:1.15">
+                <span class="en">574 of 581 days</span><span class="fa">۵۷۴ از ۵۸۱ روز</span>
+              </div>
+              <div class="l"><span class="en">ticked off so far — the gaps are fine</span><span class="fa">تا اینجا ثبت شده — جاهای خالی اشکالی ندارد</span></div>
+            </div>
+          </div>
+        </div>
+
+        <p class="encourage" style="margin:2px 0 0">
+          <span class="en">You are 6mg lower than when you started.</span>
+          <span class="fa">شما ۶ میلی‌گرم پایین‌تر از شروع هستید.</span>
+        </p>
+
+        <button class="btn btn-secondary" type="button" style="width:100%;min-height:56px;margin-bottom:14px">
+          <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>
+          <span class="en">Export for my doctor</span><span class="fa">خروجی برای پزشک</span>
+        </button>
+      </div>
+      <nav class="tabs">
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg><span class="en">Today</span><span class="fa">امروز</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg><span class="en">Schedule</span><span class="fa">برنامه</span></span>
+        <span class="tab" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg><span class="en">Progress</span><span class="fa">پیشرفت</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-packet"/></svg><span class="en">Plan</span><span class="fa">طرح</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg><span class="en">Settings</span><span class="fa">تنظیمات</span></span>
+      </nav>
+      <div class="home-ind"><i></i></div>
+    </div>
+  </div></div>
+  </div></div>
+  <div class="cap"><b><span class="capnum">4</span><span class="en">Progress</span><span class="fa">پیشرفت</span></b>
+  <span><span class="en">The staircase drawn as a vine growing downward</span><span class="fa">پلکان مانند ساقه‌ای رو به پایین</span></span></div>
+</div>
+
+<!-- ---------- 5. PLAN ---------- -->
+<div class="cell">
+  <div class="slotwrap"><div class="slot">
+  <div class="phone"><div class="app">
+    <div class="sbar">
+      <span><span class="en">9:41</span><span class="fa">۹:۴۱</span></span>
+      <span class="sigs"><svg class="ic" style="width:19px;height:13px" aria-hidden="true"><use href="#i-signal"/></svg><svg class="ic" style="width:19px;height:13px" aria-hidden="true"><use href="#i-wifi"/></svg><svg class="ic" style="width:27px;height:13px" aria-hidden="true"><use href="#i-battery"/></svg></span>
+    </div>
+    <div class="scr">
+      <div class="ahead" style="padding-bottom:8px">
+        <div class="eyebrow"><svg class="ic ic-18" aria-hidden="true"><use href="#i-packet"/></svg><span class="en">Plan</span><span class="fa">طرح</span><i class="rule"></i></div>
+        <h2 class="ttl" style="font-size:26px"><span class="en">Your taper plan</span><span class="fa">طرح کاهش شما</span></h2>
+      </div>
+      <div class="scr-pad" style="flex:1;min-height:0">
+
+        <div class="card" style="padding:4px 16px">
+          <div class="lrow">
+            <svg class="ic" aria-hidden="true"><use href="#i-pill"/></svg>
+            <span class="t"><b><span class="en">Drug</span><span class="fa">دارو</span></b></span>
+            <span class="v"><span class="en">Prednisolone</span><span class="fa">پردنیزولون</span></span>
+          </div>
+          <div class="lrow">
+            <svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg>
+            <span class="t"><b><span class="en">Current dose</span><span class="fa">دوز فعلی</span></b></span>
+            <span class="v"><span class="en">10mg</span><span class="fa">۱۰ میلی‌گرم</span></span>
+          </div>
+          <div class="lrow">
+            <svg class="ic" aria-hidden="true"><use href="#i-sprout"/></svg>
+            <span class="t"><b><span class="en">Target</span><span class="fa">هدف</span></b></span>
+            <span class="v"><span class="en">0mg</span><span class="fa">۰ میلی‌گرم</span></span>
+          </div>
+        </div>
+
+        <div class="sec-lbl"><span class="en">Tablets you hold</span><span class="fa">قرص‌هایی که دارید</span><i class="rule"></i></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span class="chip chip-on"><svg class="ic ic-18" aria-hidden="true"><use href="#i-check"/></svg><span class="en">5mg</span><span class="fa">۵ میلی‌گرم</span></span>
+          <span class="chip chip-on"><svg class="ic ic-18" aria-hidden="true"><use href="#i-check"/></svg><span class="en">1mg</span><span class="fa">۱ میلی‌گرم</span></span>
+          <span class="chip"><svg class="ic ic-18" aria-hidden="true"><use href="#i-plus"/></svg><span class="en">Add</span><span class="fa">افزودن</span></span>
+        </div>
+        <div class="lrow" style="border-bottom:0">
+          <span class="t"><b><span class="en">I can split tablets</span><span class="fa">می‌توانم قرص را نصف کنم</span></b></span>
+          <span class="sw-wrap">
+            <span class="sw-lab"><span class="en">On</span><span class="fa">روشن</span></span>
+            <span class="sw" role="img" aria-label="On"><i><svg class="ic ic-18" aria-hidden="true"><use href="#i-check"/></svg></i></span>
+          </span>
+        </div>
+
+        <div class="sec-lbl"><span class="en">Method</span><span class="fa">روش</span><i class="rule"></i></div>
+        <div class="opt opt-on">
+          <span class="radio"><svg class="ic ic-18" aria-hidden="true"><use href="#i-check"/></svg></span>
+          <span class="name"><span class="en">Dead Slow and Nearly Stop</span><span class="fa">آهسته و تقریباً متوقف</span></span>
+        </div>
+        <div class="opt"><span class="radio"></span><span class="name"><span class="en">Percentage</span><span class="fa">درصدی</span></span></div>
+        <div class="opt"><span class="radio"></span><span class="name"><span class="en">Fixed mg</span><span class="fa">مقدار ثابت</span></span></div>
+
+        <div class="sec-lbl"><span class="en">Next step</span><span class="fa">گام بعدی</span><i class="rule"></i></div>
+        <div class="dashcard">
+          <div style="font-family:var(--font-display);font-size:24px;font-weight:600;color:var(--secondary-ink);line-height:1.2">
+            <span class="en">9mg → 8mg · suggested step 1mg</span>
+            <span class="fa">۹ به ۸ میلی‌گرم · گام پیشنهادی ۱ میلی‌گرم</span>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px;align-items:flex-start">
+            <svg class="ic ic-20" style="color:var(--secondary-ink);flex:none;margin-top:2px" aria-hidden="true"><use href="#i-alert"/></svg>
+            <p style="margin:0;font-size:var(--fs-caption);color:var(--ink);line-height:1.45">
+              <span class="en">10% of 9mg is 0.9mg — your doctor's instruction wins.</span>
+              <span class="fa">۱۰٪ از ۹ میلی‌گرم برابر ۰٫۹ است — دستور پزشک شما ارجح است.</span>
+            </p>
+          </div>
+        </div>
+      </div>
+      <nav class="tabs">
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg><span class="en">Today</span><span class="fa">امروز</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg><span class="en">Schedule</span><span class="fa">برنامه</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg><span class="en">Progress</span><span class="fa">پیشرفت</span></span>
+        <span class="tab" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-packet"/></svg><span class="en">Plan</span><span class="fa">طرح</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg><span class="en">Settings</span><span class="fa">تنظیمات</span></span>
+      </nav>
+      <div class="home-ind"><i></i></div>
+    </div>
+  </div></div>
+  </div></div>
+  <div class="cap"><b><span class="capnum">5</span><span class="en">Plan</span><span class="fa">طرح</span></b>
+  <span><span class="en">Honest arithmetic, and the doctor always outranks the app</span><span class="fa">حساب صادقانه، و پزشک همیشه بر برنامه ارجح است</span></span></div>
+</div>
+
+<!-- ---------- 6. SETTINGS ---------- -->
+<div class="cell">
+  <div class="slotwrap"><div class="slot">
+  <div class="phone"><div class="app">
+    <div class="sbar">
+      <span><span class="en">9:41</span><span class="fa">۹:۴۱</span></span>
+      <span class="sigs"><svg class="ic" style="width:19px;height:13px" aria-hidden="true"><use href="#i-signal"/></svg><svg class="ic" style="width:19px;height:13px" aria-hidden="true"><use href="#i-wifi"/></svg><svg class="ic" style="width:27px;height:13px" aria-hidden="true"><use href="#i-battery"/></svg></span>
+    </div>
+    <div class="scr">
+      <div class="ahead" style="padding-bottom:8px">
+        <div class="eyebrow"><svg class="ic ic-18" aria-hidden="true"><use href="#i-gear"/></svg><span class="en">Settings</span><span class="fa">تنظیمات</span><i class="rule"></i></div>
+        <h2 class="ttl" style="font-size:26px"><span class="en">Settings</span><span class="fa">تنظیمات</span></h2>
+      </div>
+      <div class="scr-pad" style="flex:1;min-height:0;display:flex;flex-direction:column">
+
+        <div class="card" style="padding:4px 16px">
+          <div class="lrow">
+            <svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>
+            <span class="t">
+              <b><span class="en">Daily reminder</span><span class="fa">یادآور روزانه</span></b>
+              <span><span class="en">8:00 am</span><span class="fa">۸:۰۰ صبح</span></span>
+            </span>
+            <span class="sw-wrap">
+              <span class="sw-lab"><span class="en">On</span><span class="fa">روشن</span></span>
+              <span class="sw" role="img" aria-label="On"><i><svg class="ic ic-18" aria-hidden="true"><use href="#i-check"/></svg></i></span>
+            </span>
+          </div>
+          <div class="lrow" style="align-items:flex-start;flex-direction:column;gap:0">
+            <div style="display:flex;align-items:center;gap:12px;width:100%">
+              <svg class="ic" style="color:var(--ink-muted);flex:none" aria-hidden="true"><use href="#i-note"/></svg>
+              <span class="t"><b><span class="en">Text size</span><span class="fa">اندازه متن</span></b></span>
+              <span class="v"><span class="en">Large</span><span class="fa">بزرگ</span></span>
+            </div>
+            <div style="width:100%;padding-inline-start:36px">
+              <div class="slider"><span class="track"></span><span class="fill"></span><span class="knob"></span></div>
+              <div class="slider-ends"><span style="font-size:var(--fs-micro)"><span class="en">A</span><span class="fa">الف</span></span><span style="font-size:19px"><span class="en">A</span><span class="fa">الف</span></span></div>
+            </div>
+          </div>
+          <div class="lrow">
+            <svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg>
+            <span class="t"><b><span class="en">High contrast</span><span class="fa">کنتراست بالا</span></b></span>
+            <span class="sw-wrap">
+              <span class="sw-lab"><span class="en">Off</span><span class="fa">خاموش</span></span>
+              <span class="sw sw-off" role="img" aria-label="Off"><i></i></span>
+            </span>
+          </div>
+        </div>
+
+        <div class="sec-lbl"><span class="en">Backup</span><span class="fa">پشتیبان</span><i class="rule"></i></div>
+        <div class="card" style="padding:4px 16px">
+          <div class="lrow">
+            <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>
+            <span class="t"><b><span class="en">Export data</span><span class="fa">خروجی گرفتن</span></b></span>
+            <svg class="ic ic-20 ic-dir" style="color:var(--ink-muted)" aria-hidden="true"><use href="#i-chevron"/></svg>
+          </div>
+          <div class="lrow">
+            <svg class="ic" aria-hidden="true"><use href="#i-upload"/></svg>
+            <span class="t"><b><span class="en">Import data</span><span class="fa">بازیابی</span></b></span>
+            <svg class="ic ic-20 ic-dir" style="color:var(--ink-muted)" aria-hidden="true"><use href="#i-chevron"/></svg>
+          </div>
+        </div>
+
+        <div class="sec-lbl"><span class="en">About</span><span class="fa">درباره</span><i class="rule"></i></div>
+        <div class="card" style="padding:4px 16px">
+          <div class="lrow">
+            <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>
+            <span class="t"><b><span class="en">Read the disclaimer again</span><span class="fa">خواندن دوبارهٔ سلب مسئولیت</span></b></span>
+            <svg class="ic ic-20 ic-dir" style="color:var(--ink-muted)" aria-hidden="true"><use href="#i-chevron"/></svg>
+          </div>
+        </div>
+
+        <div class="mt-auto" style="padding:20px 4px 16px">
+          <svg width="100%" height="14" viewBox="0 0 300 14" fill="none" aria-hidden="true" style="color:var(--border-strong);opacity:.6;margin-bottom:10px">
+            <path d="M4 7h120M176 7h120" stroke="currentColor" stroke-width="1"/>
+            <path d="M150 3c-3.6 0-6.6 2.5-6.6 4.6 3.6 0 6.6-2.5 6.6-4.6zM150 3c3.6 0 6.6 2.5 6.6 4.6-3.6 0-6.6-2.5-6.6-4.6z" stroke="currentColor" stroke-width="1"/>
+            <path d="M150 7.6V12M130 7h12M158 7h12" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+          </svg>
+          <p class="foot" style="margin:0">
+            <span class="en">Everything stays on this phone. No account, no internet.</span>
+            <span class="fa">همه چیز روی همین گوشی می‌ماند. بدون حساب کاربری، بدون اینترنت.</span>
+          </p>
+        </div>
+      </div>
+      <nav class="tabs">
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg><span class="en">Today</span><span class="fa">امروز</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg><span class="en">Schedule</span><span class="fa">برنامه</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg><span class="en">Progress</span><span class="fa">پیشرفت</span></span>
+        <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-packet"/></svg><span class="en">Plan</span><span class="fa">طرح</span></span>
+        <span class="tab" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg><span class="en">Settings</span><span class="fa">تنظیمات</span></span>
+      </nav>
+      <div class="home-ind"><i></i></div>
+    </div>
+  </div></div>
+  </div></div>
+  <div class="cap"><b><span class="capnum">6</span><span class="en">Settings</span><span class="fa">تنظیمات</span></b>
+  <span><span class="en">Offline by design — stated plainly at the foot</span><span class="fa">آفلاین از پایه — به‌روشنی در پانویس</span></span></div>
+</div>
+
+</main>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  window.setTheme=function(t){
+    root.setAttribute('data-theme',t);
+    document.getElementById('tl').setAttribute('aria-pressed',String(t==='light'));
+    document.getElementById('td').setAttribute('aria-pressed',String(t==='dark'));
+    try{localStorage.setItem('almanac-theme',t);}catch(e){}
+  };
+  window.setLang=function(l){
+    root.setAttribute('data-lang',l);
+    root.setAttribute('lang',l==='fa'?'fa':'en');
+    root.setAttribute('dir',l==='fa'?'rtl':'ltr');
+    document.getElementById('le').setAttribute('aria-pressed',String(l==='en'));
+    document.getElementById('lf').setAttribute('aria-pressed',String(l==='fa'));
+    try{localStorage.setItem('almanac-lang',l);}catch(e){}
+  };
+  var t='light',l='en';
+  try{t=localStorage.getItem('almanac-theme')||'light';l=localStorage.getItem('almanac-lang')||'en';}catch(e){}
+  setTheme(t==='dark'?'dark':'light');
+  setLang(l==='fa'?'fa':'en');
+})();
+</script>
+</body>
+</html>

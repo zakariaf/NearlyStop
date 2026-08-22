@@ -1,0 +1,1171 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daybreak — NearlyStop screens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Vazirmatn:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================================
+   DAYBREAK — design tokens
+   Every colour, space, radius, shadow and type value lives here.
+   The dark theme overrides ONLY tokens; no component rule is theme-aware.
+   ========================================================================== */
+:root{
+  /* --- surfaces --- */
+  --bg:#FFF9F2;
+  --surface:#FFFFFF;
+  --surface-raised:#FFF4E9;
+  --surface-sunken:#FCEFE2;
+
+  /* --- ink --- */
+  --ink:#3B2A25;
+  --ink-muted:#755B50;
+  --ink-faint:#A08A80;
+
+  /* --- brand --- */
+  --primary:#F97350;
+  --primary-deep:#B0402A;
+  --secondary:#FFB84D;
+  --on-primary:#2A1A16;
+
+  /* --- semantic --- */
+  --success:#1F7A55;   --success-fill:#3FA97B;
+  --warning:#8A5A00;   --warning-fill:#FFB84D;
+  --danger:#A8352B;    --danger-fill:#E05A4F;
+
+  /* --- tints (chip / banner grounds) --- */
+  --tint-primary:#FFE7DE;
+  --tint-success:#DFF3E8;
+  --tint-warning:#FFEFD2;
+  --tint-danger:#FCE4E1;
+
+  /* --- lines --- */
+  --border:#F0DDCD;          /* decorative hairline */
+  --border-strong:#A67D68;   /* interactive boundary, 3.49:1 on bg */
+  --overlay:rgba(59,42,37,.55);
+
+  /* --- state colours --- */
+  --state-taken:#2E8B63;   /* 4.21:1 on surface — boundary passes AA non-text */
+  --state-missed:#A67D68;  /* 3.65:1 on surface */
+  --state-today:#E2542F;   /* 3.79:1 on surface */
+  --state-newdose:#8A5A00;
+
+  /* --- signature gradients --- */
+  --grad-sunrise:linear-gradient(138deg,#F9633F 0%,#F97350 32%,#FF9A4D 68%,#FFC46A 100%);
+  --grad-wash:linear-gradient(180deg,#FFF7EE 0%,#FFFFFF 100%);
+
+  /* --- elevation: warm, diffuse, multi-layer. Never pure black. --- */
+  --shadow-0:none;
+  --shadow-1:0 1px 2px rgba(140,84,56,.07), 0 2px 8px rgba(140,84,56,.06);
+  --shadow-2:0 2px 4px rgba(140,84,56,.07), 0 10px 24px rgba(140,84,56,.10);
+  --shadow-3:0 6px 12px rgba(140,84,56,.09), 0 22px 48px rgba(140,84,56,.14);
+  --shadow-glow:0 8px 18px rgba(249,115,80,.22), 0 20px 44px rgba(249,115,80,.20);
+  --device-shell:#2A1E22;
+
+  /* --- radii: nothing sharp anywhere --- */
+  --r-xs:8px; --r-sm:12px; --r-md:16px; --r-lg:24px; --r-xl:32px; --r-pill:999px;
+
+  /* --- spacing (4 / 8 based) --- */
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px;
+  --s-6:24px; --s-7:32px; --s-8:40px; --s-9:48px;
+
+  /* --- type --- */
+  --font-latin:"Nunito","Avenir Next","Segoe UI",system-ui,-apple-system,sans-serif;
+  --font-fa:"Vazirmatn","Nunito","Segoe UI",Tahoma,system-ui,sans-serif;
+  --fs-display:72px; --fs-title:34px; --fs-heading:24px;
+  --fs-body-lg:20px; --fs-body:17px; --fs-label:15px; --fs-caption:14px;
+  --lh-tight:1.05; --lh-snug:1.25; --lh-body:1.6;
+  --lh-fa-bump:.14;
+
+  /* --- motion --- */
+  --dur-fast:120ms; --dur-base:220ms; --dur-slow:420ms;
+  --ease-out:cubic-bezier(.22,.85,.34,1);
+}
+:root[data-theme="dark"]{
+  --bg:#241A20;
+  --surface:#2E2229;
+  --surface-raised:#38292F;
+  --surface-sunken:#1D1418;
+
+  --ink:#F9EBE2;
+  --ink-muted:#C9AEA2;
+  --ink-faint:#9A8078;
+
+  --primary:#FF8A66;
+  --primary-deep:#FF8A66;
+  --secondary:#FFC470;
+  --on-primary:#2A1A16;
+
+  --success:#6FD3A4;  --success-fill:#4FBF8B;
+  --warning:#FFC470;  --warning-fill:#E7A54A;
+  --danger:#FF8A80;   --danger-fill:#E0655A;
+
+  --tint-primary:#3E2A26;
+  --tint-success:#25382F;
+  --tint-warning:#3A2E1E;
+  --tint-danger:#3E2624;
+
+  --border:#45333A;
+  --border-strong:#9A7A82;
+  --overlay:rgba(16,9,13,.66);
+
+  --state-taken:#4FBF8B;
+  --state-missed:#9A7A82;
+  --state-today:#FF8A66;
+  --state-newdose:#FFC470;
+
+  --grad-sunrise:linear-gradient(138deg,#E8613F 0%,#FF7A52 34%,#FF9E52 70%,#FFC470 100%);
+  --grad-wash:linear-gradient(180deg,#3B2B31 0%,#2E2229 100%);
+
+  --shadow-1:0 1px 2px rgba(8,4,6,.45), 0 2px 8px rgba(8,4,6,.35);
+  --shadow-2:0 2px 4px rgba(8,4,6,.45), 0 10px 24px rgba(8,4,6,.45);
+  --shadow-3:0 6px 12px rgba(8,4,6,.5), 0 22px 48px rgba(8,4,6,.55);
+  --shadow-glow:0 8px 18px rgba(255,122,82,.24), 0 20px 44px rgba(255,122,82,.18);
+  --device-shell:#120C0F;
+}
+
+/* ==========================================================================
+   page shell
+   ========================================================================== */
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{
+  margin:0;
+  background:
+    radial-gradient(1100px 520px at 12% -8%, rgba(255,184,77,.20), transparent 62%),
+    radial-gradient(900px 460px at 92% 2%, rgba(249,115,80,.16), transparent 60%),
+    var(--bg);
+  color:var(--ink);
+  font-family:var(--font-latin);
+  font-size:var(--fs-body);
+  line-height:var(--lh-body);
+  -webkit-font-smoothing:antialiased;
+  transition:background-color var(--dur-slow) var(--ease-out), color var(--dur-base) var(--ease-out);
+}
+html[lang="fa"] body{font-family:var(--font-fa); line-height:calc(var(--lh-body) + var(--lh-fa-bump));}
+html[lang="fa"] .num{font-feature-settings:"ss01";}
+
+.wrap{max-width:1360px;margin-inline:auto;padding:0 var(--s-6) var(--s-9)}
+
+/* --- sticky control bar --- */
+.topbar{
+  position:sticky; top:0; z-index:50;
+  background:color-mix(in srgb, var(--bg) 84%, transparent);
+  backdrop-filter:blur(14px) saturate(1.2);
+  border-bottom:1px solid var(--border);
+}
+.topbar-in{
+  max-width:1360px;margin-inline:auto;padding:var(--s-3) var(--s-6);
+  display:flex;align-items:center;gap:var(--s-4);flex-wrap:wrap;
+}
+.brandmark{display:flex;align-items:center;gap:var(--s-3);margin-inline-end:auto}
+.brandmark .sunbadge{
+  width:44px;height:44px;border-radius:var(--r-pill);
+  background:var(--grad-sunrise);box-shadow:var(--shadow-glow);
+  display:grid;place-items:center;color:var(--on-primary);flex:0 0 auto;
+}
+.brandmark b{font-size:var(--fs-body-lg);font-weight:800;letter-spacing:-.01em;display:block;line-height:1.2}
+.brandmark span{font-size:var(--fs-caption);color:var(--ink-muted);font-weight:600}
+
+.seg{
+  display:inline-flex;background:var(--surface-raised);
+  border:1px solid var(--border);border-radius:var(--r-pill);padding:4px;gap:4px;
+  box-shadow:var(--shadow-1);
+}
+.seg button{
+  font:inherit;font-size:var(--fs-label);font-weight:700;
+  min-height:44px;min-width:64px;padding:0 var(--s-4);
+  border:0;border-radius:var(--r-pill);background:transparent;color:var(--ink-muted);
+  cursor:pointer;display:inline-flex;align-items:center;gap:var(--s-2);
+  transition:background var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out);
+}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-1)}
+.seg button:focus-visible{outline:3px solid var(--primary-deep);outline-offset:2px}
+
+/* --- intro --- */
+.intro{padding:var(--s-8) 0 var(--s-6);max-width:74ch}
+.intro h1{
+  font-size:clamp(34px,5vw,54px);line-height:1.06;letter-spacing:-.025em;
+  font-weight:800;margin:0 0 var(--s-3);
+}
+.intro h1 .glow{
+  background:var(--grad-sunrise);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.intro p{font-size:var(--fs-body-lg);color:var(--ink-muted);margin:0 0 var(--s-3)}
+.intro .meta{font-size:var(--fs-label);color:var(--ink-faint);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+html[lang="fa"] .intro .meta{text-transform:none;letter-spacing:0}
+
+/* --- phone grid --- */
+.grid{
+  display:grid;gap:var(--s-9) var(--s-7);
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  justify-items:center;
+}
+:root{--phone-scale:1}
+@media (max-width:470px){ :root{--phone-scale:.72} }
+@media (min-width:471px) and (max-width:560px){ :root{--phone-scale:.86} }
+
+figure.screen{margin:0;display:flex;flex-direction:column;align-items:center;gap:var(--s-4);width:100%}
+figcaption{
+  display:flex;align-items:center;gap:var(--s-3);
+  font-size:var(--fs-label);font-weight:800;color:var(--ink);
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-pill);padding:8px 18px 8px 8px;box-shadow:var(--shadow-1);
+}
+html[dir="rtl"] figcaption{padding:8px 8px 8px 18px}
+figcaption .n{
+  width:30px;height:30px;border-radius:var(--r-pill);background:var(--grad-sunrise);
+  color:var(--on-primary);display:grid;place-items:center;font-weight:800;font-size:var(--fs-caption);
+  flex:0 0 auto;
+}
+.slot{height:calc(866px * var(--phone-scale));display:flex;justify-content:center;width:100%}
+
+/* ==========================================================================
+   PHONE CHROME
+   ========================================================================== */
+.phone{
+  width:390px;height:844px;flex:0 0 auto;position:relative;
+  border-radius:46px;background:var(--bg);overflow:hidden;
+  transform:scale(var(--phone-scale));transform-origin:top center;
+  box-shadow:0 0 0 11px var(--device-shell), 0 0 0 12px rgba(0,0,0,.22), var(--shadow-3);
+  font-size:var(--fs-body);
+}
+.statusbar{
+  height:54px;padding:0 30px;display:flex;align-items:flex-end;padding-bottom:6px;
+  justify-content:space-between;font-size:var(--fs-label);font-weight:800;color:var(--ink);
+  position:relative;z-index:5;
+}
+.statusbar .sysicons{display:flex;align-items:center;gap:6px;color:var(--ink)}
+.notch{
+  position:absolute;inset-inline:0;top:8px;margin-inline:auto;width:112px;height:30px;
+  background:var(--device-shell);border-radius:var(--r-pill);z-index:6;
+}
+.homebar{
+  position:absolute;bottom:9px;inset-inline:0;margin-inline:auto;width:140px;height:5px;
+  border-radius:var(--r-pill);background:var(--ink);opacity:.32;z-index:10;
+}
+.screenbody{
+  position:absolute;inset-block:54px 96px;inset-inline:0;
+  overflow-y:auto;overflow-x:hidden;padding:var(--s-2) var(--s-5) var(--s-6);
+  scrollbar-width:thin;
+}
+.screenbody.noscroll{overflow:hidden}
+.screenbody::-webkit-scrollbar{width:5px}
+.screenbody::-webkit-scrollbar-thumb{background:var(--border);border-radius:var(--r-pill)}
+
+/* --- tab bar --- */
+.tabbar{
+  position:absolute;bottom:0;inset-inline:0;height:96px;padding:10px 8px 26px;
+  display:flex;align-items:flex-start;justify-content:space-around;
+  background:color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter:blur(18px);
+  border-top:1px solid var(--border);z-index:6;
+}
+.tab{
+  flex:1 1 0;min-width:44px;min-height:52px;border-radius:var(--r-md);
+  display:flex;flex-direction:column;align-items:center;gap:3px;justify-content:center;
+  color:var(--ink-muted);text-decoration:none;
+}
+.tab .tl{font-size:12px;font-weight:700;letter-spacing:.01em}
+.tab[aria-current="page"]{color:var(--primary-deep)}
+.tab[aria-current="page"] .tico{
+  background:var(--tint-primary);border-radius:var(--r-pill);
+}
+.tico{width:52px;height:30px;display:grid;place-items:center}
+
+/* ==========================================================================
+   IN-APP COMPONENTS
+   ========================================================================== */
+.appbar{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);padding:var(--s-2) 0 var(--s-4)}
+.appbar h2{margin:0;font-size:var(--fs-title);font-weight:800;letter-spacing:-.02em;line-height:var(--lh-snug)}
+.datestamp{font-size:var(--fs-body);font-weight:700;color:var(--ink-muted)}
+
+.iconbtn{
+  width:44px;height:44px;border-radius:var(--r-pill);border:1px solid var(--border);
+  background:var(--surface);color:var(--ink);display:grid;place-items:center;
+  box-shadow:var(--shadow-1);flex:0 0 auto;
+}
+
+/* --- hero dose card (signature move 1) --- */
+.hero{
+  position:relative;overflow:hidden;border-radius:var(--r-lg);
+  background:var(--grad-sunrise);color:var(--on-primary);
+  padding:var(--s-5) var(--s-5) var(--s-5);
+  box-shadow:var(--shadow-glow);
+}
+.hero .arc{position:absolute;inset-inline-end:-70px;top:-90px;opacity:.5;pointer-events:none}
+html[dir="rtl"] .hero .arc{transform:scaleX(-1)}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);position:relative}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;min-height:34px;padding:0 14px;
+  border-radius:var(--r-pill);font-size:var(--fs-caption);font-weight:800;
+  background:rgba(255,249,242,.92);color:var(--on-primary);
+  box-shadow:0 2px 6px rgba(120,60,30,.18);
+}
+.hero .dose{
+  position:relative;font-size:var(--fs-display);font-weight:800;letter-spacing:-.045em;
+  line-height:var(--lh-tight);margin:var(--s-4) 0 2px;display:flex;align-items:baseline;gap:8px;
+}
+.hero .dose .unit{font-size:28px;font-weight:700;letter-spacing:-.01em}
+html[lang="fa"] .hero .dose{font-size:58px;letter-spacing:0}
+html[lang="fa"] .hero .dose .unit{font-size:24px}
+.hero .tablets{
+  position:relative;font-size:var(--fs-body);font-weight:700;
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,249,242,.55);border-radius:var(--r-pill);padding:6px 14px;margin-top:var(--s-2);
+}
+
+.btn{
+  font:inherit;font-weight:800;font-size:var(--fs-body-lg);
+  min-height:56px;border-radius:var(--r-pill);border:0;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  padding:0 var(--s-6);width:100%;
+  transition:transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+.btn-onhero{background:var(--surface);color:var(--ink);box-shadow:0 4px 10px rgba(120,60,30,.22);margin-top:var(--s-5)}
+.btn-primary{background:var(--grad-sunrise);color:var(--on-primary);box-shadow:var(--shadow-glow)}
+.btn-secondary{background:var(--surface);color:var(--ink);border:2px solid var(--border-strong);box-shadow:var(--shadow-1)}
+.btn:active{transform:translateY(1px) scale(.995)}
+
+.contextline{
+  display:flex;flex-wrap:wrap;align-items:center;gap:6px var(--s-2);
+  font-size:var(--fs-body);color:var(--ink-muted);font-weight:600;
+  padding:var(--s-4) var(--s-1) var(--s-2);line-height:1.5;
+}
+.contextline .sep{color:var(--ink-faint)}
+.contextline .arrow{display:inline-flex;align-items:center;gap:4px}
+
+/* --- banner (backfill prompt) --- */
+.banner{
+  display:flex;align-items:center;gap:var(--s-3);width:100%;text-align:start;
+  background:var(--tint-warning);color:var(--ink);
+  border:1px solid color-mix(in srgb, var(--warning) 34%, transparent);
+  border-radius:var(--r-lg);padding:var(--s-4);min-height:64px;
+  font:inherit;font-size:var(--fs-body);font-weight:700;cursor:pointer;
+  box-shadow:var(--shadow-1);
+}
+.banner .bicon{
+  width:40px;height:40px;flex:0 0 auto;border-radius:var(--r-pill);
+  background:var(--surface);color:var(--warning);display:grid;place-items:center;
+  border:2px solid color-mix(in srgb, var(--warning) 45%, transparent);
+}
+.banner .bchev{margin-inline-start:auto;color:var(--ink-muted);flex:0 0 auto}
+
+/* --- quiet secondary actions --- */
+.quietrow{display:flex;gap:var(--s-2);margin-top:var(--s-4)}
+.quiet{
+  flex:1 1 0;min-height:52px;border-radius:var(--r-md);
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--ink-muted);font:inherit;font-size:var(--fs-label);font-weight:700;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  cursor:pointer;box-shadow:var(--shadow-1);
+}
+.quiet svg{color:var(--ink-faint)}
+
+/* --- cards --- */
+.card{
+  background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border);
+  box-shadow:var(--shadow-1);padding:var(--s-5);
+}
+.card.raised{background:var(--grad-wash);box-shadow:var(--shadow-2)}
+.card h3{
+  margin:0 0 var(--s-3);font-size:var(--fs-caption);font-weight:800;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--ink-muted);
+}
+html[lang="fa"] .card h3{letter-spacing:0;text-transform:none;font-size:var(--fs-label)}
+
+/* --- schedule --- */
+.blockhead{
+  display:flex;gap:var(--s-3);align-items:flex-start;
+  background:var(--surface-raised);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:var(--s-4);margin:var(--s-5) 0 var(--s-3);
+  box-shadow:var(--shadow-1);
+}
+.blockhead.current{
+  background:var(--tint-primary);
+  border-color:color-mix(in srgb, var(--primary) 40%, transparent);
+}
+.blockhead .bh-ico{
+  width:36px;height:36px;border-radius:var(--r-sm);flex:0 0 auto;
+  display:grid;place-items:center;background:var(--surface);color:var(--primary-deep);
+  border:1px solid var(--border);
+}
+.blockhead .bh-txt{font-size:var(--fs-label);font-weight:700;line-height:1.45;color:var(--ink)}
+.blockhead .bh-txt b{display:block;font-size:var(--fs-body);font-weight:800;margin-bottom:2px}
+
+.srow{
+  display:flex;align-items:center;gap:var(--s-3);
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:var(--s-3) var(--s-4);margin-bottom:var(--s-2);min-height:64px;
+}
+.srow .mark{width:26px;height:26px;flex:0 0 auto;display:grid;place-items:center;border-radius:var(--r-pill)}
+.srow .m-taken{background:var(--state-taken);color:#FFF9F2}
+.srow .m-missed{border:3px solid var(--state-missed);background:transparent}
+.srow .m-upcoming{border:2px dashed var(--border-strong);background:transparent}
+.srow .m-today{background:var(--grad-sunrise);color:var(--on-primary);box-shadow:var(--shadow-glow)}
+.srow .sday{font-size:var(--fs-body);font-weight:800;display:block;line-height:1.3}
+.srow .stab{font-size:var(--fs-caption);color:var(--ink-muted);font-weight:600;display:block}
+.srow .send{margin-inline-start:auto;text-align:end;flex:0 0 auto}
+.srow .sdose{font-size:var(--fs-body-lg);font-weight:800;display:block;line-height:1.25}
+.srow .sstate{
+  font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-muted);display:inline-flex;align-items:center;gap:4px;
+}
+html[lang="fa"] .srow .sstate{letter-spacing:0;text-transform:none;font-size:var(--fs-caption)}
+.srow.today{
+  border:2px solid var(--state-today);background:var(--surface);
+  box-shadow:var(--shadow-2);padding:var(--s-4);
+}
+.srow.today .sstate{color:var(--primary-deep)}
+.srow.taken .sstate{color:var(--success)}
+.srow.missed{border-style:dashed;border-color:var(--border-strong)}
+.srow.missed .sstate{color:var(--danger)}
+
+/* --- progress --- */
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-3);margin-top:var(--s-4)}
+.stat{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:var(--s-4);box-shadow:var(--shadow-1);
+}
+.stat.wide{grid-column:1/-1}
+.stat .sv{font-size:var(--fs-title);font-weight:800;letter-spacing:-.02em;line-height:1.1;display:block}
+.stat .sv .u{font-size:var(--fs-body);font-weight:700;letter-spacing:0}
+.stat .sl{font-size:var(--fs-label);color:var(--ink-muted);font-weight:600;display:block;margin-top:4px;line-height:1.4}
+.encourage{
+  display:flex;align-items:center;gap:var(--s-3);margin-top:var(--s-4);
+  background:var(--tint-success);border:1px solid color-mix(in srgb, var(--success) 32%, transparent);
+  border-radius:var(--r-lg);padding:var(--s-4);font-size:var(--fs-body);font-weight:700;line-height:1.5;
+}
+.encourage .eico{color:var(--success);flex:0 0 auto}
+
+/* --- plan / settings rows --- */
+.rowitem{
+  display:flex;align-items:center;gap:var(--s-3);min-height:64px;
+  padding:var(--s-3) 0;border-bottom:1px solid var(--border);
+}
+.rowitem:last-child{border-bottom:0}
+.rowitem .rl{font-size:var(--fs-body);font-weight:700;line-height:1.4}
+.rowitem .rs{font-size:var(--fs-label);color:var(--ink-muted);font-weight:600;display:block;margin-top:2px}
+.rowitem .rv{margin-inline-start:auto;font-size:var(--fs-body);font-weight:800;color:var(--ink-muted);display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.rowicon{
+  width:40px;height:40px;flex:0 0 auto;border-radius:var(--r-sm);display:grid;place-items:center;
+  background:var(--surface-raised);color:var(--primary-deep);border:1px solid var(--border);
+}
+.chips{display:flex;gap:var(--s-2);flex-wrap:wrap;margin-top:var(--s-2)}
+.chip{
+  min-height:44px;display:inline-flex;align-items:center;gap:8px;padding:0 var(--s-4);
+  border-radius:var(--r-pill);font-size:var(--fs-label);font-weight:800;
+  background:var(--surface-raised);border:1px solid var(--border-strong);color:var(--ink);
+}
+.chip.on{background:var(--tint-primary);border-color:var(--primary-deep);color:var(--primary-deep)}
+
+.switch{
+  width:64px;height:38px;border-radius:var(--r-pill);flex:0 0 auto;position:relative;
+  background:var(--surface-sunken);border:2px solid var(--border-strong);
+  display:flex;align-items:center;padding:2px;
+}
+.switch .knob{
+  width:30px;height:30px;border-radius:var(--r-pill);background:var(--surface);
+  box-shadow:var(--shadow-1);display:grid;place-items:center;color:var(--ink-muted);
+  transition:transform var(--dur-base) var(--ease-out);
+}
+.switch.on{background:var(--grad-sunrise);border-color:transparent}
+.switch.on .knob{transform:translateX(26px);color:var(--primary-deep)}
+html[dir="rtl"] .switch.on .knob{transform:translateX(-26px)}
+
+.segctl{
+  display:flex;gap:4px;background:var(--surface-sunken);border:1px solid var(--border);
+  border-radius:var(--r-pill);padding:5px;margin-top:var(--s-2);
+}
+.segctl .so{
+  flex:1 1 0;min-height:44px;border-radius:var(--r-pill);display:grid;place-items:center;
+  font-size:var(--fs-label);font-weight:800;color:var(--ink-muted);text-align:center;padding:0 6px;
+}
+.segctl .so.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-1)}
+
+.slider{display:flex;align-items:center;gap:var(--s-3);margin-top:var(--s-3)}
+.slider .track{
+  flex:1 1 auto;height:10px;border-radius:var(--r-pill);background:var(--surface-sunken);
+  border:1px solid var(--border);position:relative;
+}
+.slider .fill{position:absolute;inset-block:0;inset-inline-start:0;width:66%;border-radius:var(--r-pill);background:var(--grad-sunrise)}
+.slider .knob{
+  position:absolute;inset-inline-start:66%;top:50%;transform:translate(-50%,-50%);
+  width:32px;height:32px;border-radius:var(--r-pill);background:var(--surface);
+  border:2px solid var(--state-today);box-shadow:var(--shadow-2);
+}
+html[dir="rtl"] .slider .knob{transform:translate(50%,-50%)}
+.slider .a{font-size:var(--fs-caption);font-weight:800;color:var(--ink-muted)}
+.slider .b{font-size:var(--fs-body-lg);font-weight:800;color:var(--ink-muted)}
+
+.footnote{
+  margin-top:var(--s-5);text-align:center;font-size:var(--fs-label);
+  color:var(--ink-muted);font-weight:700;line-height:1.55;
+  display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
+}
+
+/* --- welcome modal --- */
+.dim{position:absolute;inset:0;background:var(--overlay);z-index:8;backdrop-filter:blur(2px)}
+.sheet{
+  position:absolute;inset-inline:10px;bottom:10px;z-index:9;
+  background:var(--surface);border-radius:var(--r-xl);padding:var(--s-6) var(--s-5) var(--s-5);
+  box-shadow:var(--shadow-3);text-align:center;
+}
+.sheet .grip{width:52px;height:5px;border-radius:var(--r-pill);background:var(--border);margin:0 auto var(--s-5)}
+.sheet .seal{
+  width:92px;height:92px;border-radius:var(--r-pill);margin:0 auto var(--s-4);
+  background:var(--grad-sunrise);display:grid;place-items:center;color:var(--on-primary);
+  box-shadow:var(--shadow-glow);
+}
+.sheet h3{margin:0 0 var(--s-3);font-size:29px;font-weight:800;letter-spacing:-.02em;line-height:var(--lh-snug);text-transform:none}
+.sheet p{margin:0 0 var(--s-6);font-size:var(--fs-body);color:var(--ink-muted);line-height:1.65;font-weight:600}
+
+/* utility */
+.ic{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ic16{width:16px;height:16px}
+.ic18{width:18px;height:18px}
+.ic20{width:20px;height:20px}
+.ic28{width:28px;height:28px}
+.ic40{width:40px;height:40px}
+html[dir="rtl"] .mirror{transform:scaleX(-1)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:1ms!important}}
+</style>
+</head>
+<body>
+
+<!-- ===== icon sprite: all icons hand-drawn inline SVG ===== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.6l5 5L19.5 6.5"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.4V12l3.1 2"/></symbol>
+    <symbol id="i-pill" viewBox="0 0 24 24"><rect x="2.6" y="8.2" width="18.8" height="7.6" rx="3.8"/><path d="M12 8.2v7.6"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="4"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6.5h11M9 12h11M9 17.5h11"/><circle cx="4.6" cy="6.5" r="1.5"/><circle cx="4.6" cy="12" r="1.5"/><circle cx="4.6" cy="17.5" r="1.5"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3.5 20h17"/><path d="M6 20v-5M11 20V9M16 20v-8"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24"><path d="M19 12.5V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6.5"/><path d="M16.4 3.9l3.7 3.7L13 14.7l-4.3.6.6-4.3z"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.6v5"/><circle cx="12" cy="16.2" r="1.15" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.6v11"/><path d="M7.8 10.6L12 14.8l4.2-4.2"/><path d="M4.5 17.5v1.4a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-1.4"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4"/><path d="M7.8 8.2L12 4l4.2 4.2"/><path d="M4.5 17.5v1.4a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-1.4"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9.5 5.5l7 6.5-7 6.5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><path d="M2.6 19h18.8"/><path d="M5.6 19a6.4 6.4 0 0 1 12.8 0"/><path d="M12 4.2v2.3M4.6 7.3l1.7 1.6M19.4 7.3l-1.7 1.6"/></symbol>
+    <symbol id="i-sunrise" viewBox="0 0 24 24"><path d="M2.6 20h18.8"/><path d="M6.4 20a5.6 5.6 0 0 1 11.2 0"/><path d="M12 2.6v4.2M12 2.6L9.4 5.4M12 2.6l2.6 2.8"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><rect x="7" y="5" width="3.6" height="14" rx="1.8"/><rect x="13.4" y="5" width="3.6" height="14" rx="1.8"/></symbol>
+    <symbol id="i-flare" viewBox="0 0 24 24"><path d="M2.8 12h3.6l2.4-6 4 13 2.6-7h5.8"/></symbol>
+    <symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/></symbol>
+    <symbol id="i-arrowright" viewBox="0 0 24 24"><path d="M4.5 12h15"/><path d="M13.6 6.2L19.4 12l-5.8 5.8"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.4" width="15" height="10.2" rx="3.2"/><path d="M8.2 10.4V7.8a3.8 3.8 0 0 1 7.6 0v2.6"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="3.4"/></symbol>
+    <symbol id="i-battery" viewBox="0 0 28 14"><rect x="1" y="1" width="22" height="12" rx="4"/><rect x="3.4" y="3.4" width="14" height="7.2" rx="2.2" fill="currentColor" stroke="none"/><path d="M25.4 5.2v3.6"/></symbol>
+    <symbol id="i-signal" viewBox="0 0 20 14"><rect x="0" y="9.5" width="3.2" height="4.5" rx="1.2" fill="currentColor" stroke="none"/><rect x="5.6" y="6.5" width="3.2" height="7.5" rx="1.2" fill="currentColor" stroke="none"/><rect x="11.2" y="3.5" width="3.2" height="10.5" rx="1.2" fill="currentColor" stroke="none"/><rect x="16.8" y=".5" width="3.2" height="13.5" rx="1.2" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 20 14"><path d="M1.4 4.6a13 13 0 0 1 17.2 0"/><path d="M4.6 8a8.4 8.4 0 0 1 10.8 0"/><circle cx="10" cy="11.6" r="1.4" fill="currentColor" stroke="none"/></symbol>
+  </defs>
+</svg>
+
+<!-- ===================== STICKY CONTROL BAR ===================== -->
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brandmark">
+      <span class="sunbadge"><svg class="ic" aria-hidden="true"><use href="#i-sunrise"/></svg></span>
+      <span>
+        <b data-en="Daybreak" data-fa="سپیده‌دم">Daybreak</b>
+        <span data-en="Design system for NearlyStop" data-fa="سیستم طراحی برای NearlyStop">Design system for NearlyStop</span>
+      </span>
+    </div>
+
+    <div class="seg" role="group" aria-label="Theme">
+      <button type="button" id="btn-light" aria-pressed="true" onclick="setTheme('light')">
+        <svg class="ic ic20" aria-hidden="true"><use href="#i-sun"/></svg>
+        <span data-en="Light" data-fa="روشن">Light</span>
+      </button>
+      <button type="button" id="btn-dark" aria-pressed="false" onclick="setTheme('dark')">
+        <svg class="ic ic20" aria-hidden="true"><use href="#i-clock"/></svg>
+        <span data-en="Dark" data-fa="تاریک">Dark</span>
+      </button>
+    </div>
+
+    <div class="seg" role="group" aria-label="Language">
+      <button type="button" id="btn-en" aria-pressed="true" onclick="setLang('en')">English</button>
+      <button type="button" id="btn-fa" aria-pressed="false" onclick="setLang('fa')">فارسی</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="intro">
+    <p class="meta" data-en="NearlyStop · six screens · 390 × 844" data-fa="NearlyStop · شش صفحه · ۳۹۰ × ۸۴۴">NearlyStop · six screens · 390 × 844</p>
+    <h1><span class="glow" data-en="Daybreak" data-fa="سپیده‌دم">Daybreak</span></h1>
+    <p data-en="Daybreak treats every dose as one more step toward the morning you are heading for: a warm cream ground, coral-to-amber sunrise gradients, soft diffuse shadows and large friendly radii, so the app feels like light coming up over the horizon rather than a medical chart. The taper is taught by grouping days into blocks — never a seven-column calendar — and progress is drawn as a rising arc, so on day 400 the screen still gives a reason to keep going."
+       data-fa="سپیده‌دم هر دوز را یک گام دیگر به سوی صبحی می‌داند که به آن می‌رسید: زمینهٔ کرم گرم، گرادیان‌های مرجانی تا کهربایی، سایه‌های نرم و گوشه‌های بزرگ و مهربان، تا برنامه مثل طلوع آفتاب حس شود، نه مثل یک پروندهٔ پزشکی. کاهش دارو با گروه‌بندی روزها در «مرحله‌ها» آموزش داده می‌شود — هرگز با تقویم هفت‌ستونی — و پیشرفت به شکل کمانی رو به بالا کشیده می‌شود، تا در روز چهارصدم هم صفحه دلیلی برای ادامه دادن بدهد.">
+       Daybreak treats every dose as one more step toward the morning you are heading for: a warm cream ground, coral-to-amber sunrise gradients, soft diffuse shadows and large friendly radii, so the app feels like light coming up over the horizon rather than a medical chart. The taper is taught by grouping days into blocks — never a seven-column calendar — and progress is drawn as a rising arc, so on day 400 the screen still gives a reason to keep going.</p>
+  </section>
+
+  <div class="grid">
+
+    <!-- ============ 1 · WELCOME / DISCLAIMER ============ -->
+    <figure class="screen">
+      <figcaption><span class="n num">1</span><span data-en="Welcome / disclaimer" data-fa="خوش‌آمد / سلب مسئولیت">Welcome / disclaimer</span></figcaption>
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="statusbar">
+            <span class="num" data-en="8:04" data-fa="۸:۰۴">8:04</span>
+            <span class="sysicons">
+              <svg class="ic" style="width:20px;height:14px" viewBox="0 0 20 14" aria-hidden="true"><use href="#i-signal"/></svg>
+              <svg class="ic" style="width:20px;height:14px;stroke-width:1.6" viewBox="0 0 20 14" aria-hidden="true"><use href="#i-wifi"/></svg>
+              <svg class="ic" style="width:28px;height:14px;stroke-width:1.4" viewBox="0 0 28 14" aria-hidden="true"><use href="#i-battery"/></svg>
+            </span>
+          </div>
+
+          <div class="screenbody noscroll" aria-hidden="true">
+            <div class="appbar">
+              <div>
+                <div class="datestamp" data-en="Wednesday 16 April" data-fa="چهارشنبه ۲۷ فروردین">Wednesday 16 April</div>
+                <h2 data-en="Today" data-fa="امروز">Today</h2>
+              </div>
+              <span class="iconbtn"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg></span>
+            </div>
+            <div class="hero">
+              <svg class="arc" width="240" height="240" viewBox="0 0 240 240" aria-hidden="true">
+                <g fill="none" stroke="#FFF7EE" stroke-width="2">
+                  <circle cx="120" cy="120" r="46" opacity=".85"/><circle cx="120" cy="120" r="70" opacity=".6"/>
+                  <circle cx="120" cy="120" r="94" opacity=".4"/><circle cx="120" cy="120" r="118" opacity=".25"/>
+                </g>
+              </svg>
+              <div class="hero-top">
+                <span class="badge"><svg class="ic ic18" aria-hidden="true"><use href="#i-sunrise"/></svg><span data-en="New dose day" data-fa="روز دوز جدید">New dose day</span></span>
+              </div>
+              <div class="dose"><span class="num" data-en="9" data-fa="۹">9</span><span class="unit" data-en="mg" data-fa="میلی‌گرم">mg</span></div>
+              <div class="tablets"><svg class="ic ic18" aria-hidden="true"><use href="#i-pill"/></svg><span data-en="1 × 5mg · 4 × 1mg" data-fa="۱ عدد ۵ میلی‌گرمی · ۴ عدد ۱ میلی‌گرمی">1 × 5mg · 4 × 1mg</span></div>
+              <div class="btn btn-onhero"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-en="Taken" data-fa="مصرف شد">Taken</span></div>
+            </div>
+          </div>
+
+          <nav class="tabbar" aria-hidden="true">
+            <span class="tab" aria-current="page"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg></span><span class="tl" data-en="Today" data-fa="امروز">Today</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg></span><span class="tl" data-en="Schedule" data-fa="برنامه">Schedule</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></span><span class="tl" data-en="Progress" data-fa="پیشرفت">Progress</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-pill"/></svg></span><span class="tl" data-en="Plan" data-fa="طرح">Plan</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg></span><span class="tl" data-en="Settings" data-fa="تنظیمات">Settings</span></span>
+          </nav>
+
+          <div class="dim"></div>
+          <div class="sheet" role="dialog" aria-label="Welcome">
+            <div class="grip"></div>
+            <div class="seal"><svg class="ic ic40" aria-hidden="true"><use href="#i-sunrise"/></svg></div>
+            <h3 data-en="Welcome to NearlyStop" data-fa="به NearlyStop خوش آمدید">Welcome to NearlyStop</h3>
+            <p data-en="NearlyStop arranges the plan you and your doctor agreed. It does not give medical advice. Always follow your doctor’s instructions."
+               data-fa="NearlyStop فقط طرحی را که شما و پزشکتان توافق کرده‌اید مرتب می‌کند و توصیهٔ پزشکی نیست. همیشه از دستور پزشک خود پیروی کنید.">NearlyStop arranges the plan you and your doctor agreed. It does not give medical advice. Always follow your doctor’s instructions.</p>
+            <button class="btn btn-primary"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-en="I understand" data-fa="متوجه شدم">I understand</span></button>
+          </div>
+          <div class="homebar"></div>
+        </div>
+      </div>
+    </figure>
+
+    <!-- ============ 2 · TODAY ============ -->
+    <figure class="screen">
+      <figcaption><span class="n num">2</span><span data-en="Today (home)" data-fa="امروز (خانه)">Today (home)</span></figcaption>
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="statusbar">
+            <span class="num" data-en="8:04" data-fa="۸:۰۴">8:04</span>
+            <span class="sysicons">
+              <svg class="ic" style="width:20px;height:14px" viewBox="0 0 20 14" aria-hidden="true"><use href="#i-signal"/></svg>
+              <svg class="ic" style="width:20px;height:14px;stroke-width:1.6" viewBox="0 0 20 14" aria-hidden="true"><use href="#i-wifi"/></svg>
+              <svg class="ic" style="width:28px;height:14px;stroke-width:1.4" viewBox="0 0 28 14" aria-hidden="true"><use href="#i-battery"/></svg>
+            </span>
+          </div>
+
+          <div class="screenbody">
+            <div class="appbar">
+              <div>
+                <div class="datestamp" data-en="Wednesday 16 April" data-fa="چهارشنبه ۲۷ فروردین">Wednesday 16 April</div>
+                <h2 data-en="Today" data-fa="امروز">Today</h2>
+              </div>
+              <span class="iconbtn"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg></span>
+            </div>
+
+            <!-- HERO -->
+            <div class="hero">
+              <svg class="arc" width="240" height="240" viewBox="0 0 240 240" aria-hidden="true">
+                <g fill="none" stroke="#FFF7EE" stroke-width="2">
+                  <circle cx="120" cy="120" r="46" opacity=".85"/><circle cx="120" cy="120" r="70" opacity=".6"/>
+                  <circle cx="120" cy="120" r="94" opacity=".4"/><circle cx="120" cy="120" r="118" opacity=".25"/>
+                </g>
+              </svg>
+              <div class="hero-top">
+                <span class="badge"><svg class="ic ic18" aria-hidden="true"><use href="#i-sunrise"/></svg><span data-en="New dose day" data-fa="روز دوز جدید">New dose day</span></span>
+              </div>
+              <div class="dose"><span class="num" data-en="9" data-fa="۹">9</span><span class="unit" data-en="mg" data-fa="میلی‌گرم">mg</span></div>
+              <div class="tablets"><svg class="ic ic18" aria-hidden="true"><use href="#i-pill"/></svg><span data-en="1 × 5mg · 4 × 1mg" data-fa="۱ عدد ۵ میلی‌گرمی · ۴ عدد ۱ میلی‌گرمی">1 × 5mg · 4 × 1mg</span></div>
+              <button class="btn btn-onhero"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-en="Taken" data-fa="مصرف شد">Taken</span></button>
+            </div>
+
+            <!-- quiet context -->
+            <div class="contextline">
+              <span data-en="Step 3 of 15" data-fa="گام ۳ از ۱۵">Step 3 of 15</span>
+              <span class="sep">·</span>
+              <span class="arrow"><span data-en="10mg" data-fa="۱۰">10mg</span><svg class="ic ic16 mirror" aria-hidden="true"><use href="#i-arrowright"/></svg><span data-en="9mg" data-fa="۹ میلی‌گرم">9mg</span></span>
+              <span class="sep">·</span>
+              <span data-en="Day 14 of 52" data-fa="روز ۱۴ از ۵۲">Day 14 of 52</span>
+            </div>
+
+            <!-- backfill prompt -->
+            <button class="banner">
+              <span class="bicon"><svg class="ic ic20" aria-hidden="true"><use href="#i-alert"/></svg></span>
+              <span data-en="Yesterday wasn’t ticked — mark it now?" data-fa="دیروز ثبت نشده — الان علامت بزنید؟">Yesterday wasn’t ticked — mark it now?</span>
+              <span class="bchev"><svg class="ic ic20 mirror" aria-hidden="true"><use href="#i-chevron"/></svg></span>
+            </button>
+
+            <!-- subordinate actions -->
+            <div class="quietrow">
+              <button class="quiet"><svg class="ic ic20" aria-hidden="true"><use href="#i-note"/></svg><span data-en="Add note" data-fa="یادداشت">Add note</span></button>
+              <button class="quiet"><svg class="ic ic20" aria-hidden="true"><use href="#i-pause"/></svg><span data-en="Hold" data-fa="توقف موقت">Hold</span></button>
+              <button class="quiet"><svg class="ic ic20" aria-hidden="true"><use href="#i-flare"/></svg><span data-en="Flare" data-fa="عود">Flare</span></button>
+            </div>
+          </div>
+
+          <nav class="tabbar">
+            <span class="tab" aria-current="page"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg></span><span class="tl" data-en="Today" data-fa="امروز">Today</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg></span><span class="tl" data-en="Schedule" data-fa="برنامه">Schedule</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></span><span class="tl" data-en="Progress" data-fa="پیشرفت">Progress</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-pill"/></svg></span><span class="tl" data-en="Plan" data-fa="طرح">Plan</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg></span><span class="tl" data-en="Settings" data-fa="تنظیمات">Settings</span></span>
+          </nav>
+          <div class="homebar"></div>
+        </div>
+      </div>
+    </figure>
+
+    <!-- ============ 3 · SCHEDULE ============ -->
+    <figure class="screen">
+      <figcaption><span class="n num">3</span><span data-en="Schedule (blocks, not a calendar)" data-fa="برنامه (مرحله‌ای، نه تقویمی)">Schedule (blocks, not a calendar)</span></figcaption>
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="statusbar">
+            <span class="num" data-en="8:04" data-fa="۸:۰۴">8:04</span>
+            <span class="sysicons">
+              <svg class="ic" style="width:20px;height:14px" viewBox="0 0 20 14" aria-hidden="true"><use href="#i-signal"/></svg>
+              <svg class="ic" style="width:20px;height:14px;stroke-width:1.6" viewBox="0 0 20 14" aria-hidden="true"><use href="#i-wifi"/></svg>
+              <svg class="ic" style="width:28px;height:14px;stroke-width:1.4" viewBox="0 0 28 14" aria-hidden="true"><use href="#i-battery"/></svg>
+            </span>
+          </div>
+
+          <div class="screenbody">
+            <div class="appbar"><h2 data-en="Schedule" data-fa="برنامه">Schedule</h2>
+              <span class="iconbtn"><svg class="ic mirror" aria-hidden="true"><use href="#i-chevron"/></svg></span>
+            </div>
+
+            <!-- block 2 tail -->
+            <div class="blockhead">
+              <span class="bh-ico"><svg class="ic ic20" aria-hidden="true"><use href="#i-calendar"/></svg></span>
+              <span class="bh-txt">
+                <b data-en="Block 2 of 11" data-fa="مرحله ۲ از ۱۱">Block 2 of 11</b>
+                <span data-en="one day at 9mg, then 5 days at 10mg" data-fa="یک روز ۹ میلی‌گرم، سپس ۵ روز ۱۰ میلی‌گرم">one day at 9mg, then 5 days at 10mg</span>
+              </span>
+            </div>
+
+            <div class="srow taken">
+              <span class="mark m-taken"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg></span>
+              <span>
+                <span class="sday" data-en="Mon 14 Apr" data-fa="دوشنبه ۲۵ فروردین">Mon 14 Apr</span>
+                <span class="stab" data-en="2 × 5mg" data-fa="۲ عدد ۵ میلی‌گرمی">2 × 5mg</span>
+              </span>
+              <span class="send">
+                <span class="sdose" data-en="10mg" data-fa="۱۰ میلی‌گرم">10mg</span>
+                <span class="sstate"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg><span data-en="Taken" data-fa="مصرف شد">Taken</span></span>
+              </span>
+            </div>
+
+            <div class="srow missed">
+              <span class="mark m-missed"></span>
+              <span>
+                <span class="sday" data-en="Tue 15 Apr" data-fa="سه‌شنبه ۲۶ فروردین">Tue 15 Apr</span>
+                <span class="stab" data-en="2 × 5mg" data-fa="۲ عدد ۵ میلی‌گرمی">2 × 5mg</span>
+              </span>
+              <span class="send">
+                <span class="sdose" data-en="10mg" data-fa="۱۰ میلی‌گرم">10mg</span>
+                <span class="sstate"><svg class="ic ic16" aria-hidden="true"><use href="#i-circle"/></svg><span data-en="Not ticked" data-fa="ثبت نشده">Not ticked</span></span>
+              </span>
+            </div>
+
+            <!-- block 3 · current -->
+            <div class="blockhead current">
+              <span class="bh-ico"><svg class="ic ic20" aria-hidden="true"><use href="#i-sunrise"/></svg></span>
+              <span class="bh-txt">
+                <b data-en="Block 3 of 11" data-fa="مرحله ۳ از ۱۱">Block 3 of 11</b>
+                <span data-en="one day at 9mg, then 4 days at 10mg" data-fa="یک روز ۹ میلی‌گرم، سپس ۴ روز ۱۰ میلی‌گرم">one day at 9mg, then 4 days at 10mg</span>
+              </span>
+            </div>
+
+            <div class="srow today">
+              <span class="mark m-today"><svg class="ic ic16" aria-hidden="true"><use href="#i-sunrise"/></svg></span>
+              <span>
+                <span class="sday" data-en="Wed 16 Apr" data-fa="چهارشنبه ۲۷ فروردین">Wed 16 Apr</span>
+                <span class="stab" data-en="1 × 5mg, 4 × 1mg" data-fa="۱ عدد ۵ میلی‌گرمی، ۴ عدد ۱ میلی‌گرمی">1 × 5mg, 4 × 1mg</span>
+              </span>
+              <span class="send">
+                <span class="sdose" data-en="9mg" data-fa="۹ میلی‌گرم">9mg</span>
+                <span class="sstate"><svg class="ic ic16" aria-hidden="true"><use href="#i-sun"/></svg><span data-en="Today" data-fa="امروز">Today</span></span>
+              </span>
+            </div>
+
+            <div class="srow upcoming">
+              <span class="mark m-upcoming"></span>
+              <span><span class="sday" data-en="Thu 17 Apr" data-fa="پنج‌شنبه ۲۸ فروردین">Thu 17 Apr</span>
+              <span class="stab" data-en="2 × 5mg" data-fa="۲ عدد ۵ میلی‌گرمی">2 × 5mg</span></span>
+              <span class="send"><span class="sdose" data-en="10mg" data-fa="۱۰ میلی‌گرم">10mg</span>
+              <span class="sstate"><svg class="ic ic16" aria-hidden="true"><use href="#i-clock"/></svg><span data-en="Upcoming" data-fa="پیش‌رو">Upcoming</span></span></span>
+            </div>
+            <div class="srow upcoming">
+              <span class="mark m-upcoming"></span>
+              <span><span class="sday" data-en="Fri 18 Apr" data-fa="جمعه ۲۹ فروردین">Fri 18 Apr</span>
+              <span class="stab" data-en="2 × 5mg" data-fa="۲ عدد ۵ میلی‌گرمی">2 × 5mg</span></span>
+              <span class="send"><span class="sdose" data-en="10mg" data-fa="۱۰ میلی‌گرم">10mg</span>
+              <span class="sstate"><svg class="ic ic16" aria-hidden="true"><use href="#i-clock"/></svg><span data-en="Upcoming" data-fa="پیش‌رو">Upcoming</span></span></span>
+            </div>
+            <div class="srow upcoming">
+              <span class="mark m-upcoming"></span>
+              <span><span class="sday" data-en="Sat 19 Apr" data-fa="شنبه ۳۰ فروردین">Sat 19 Apr</span>
+              <span class="stab" data-en="2 × 5mg" data-fa="۲ عدد ۵ میلی‌گرمی">2 × 5mg</span></span>
+              <span class="send"><span class="sdose" data-en="10mg" data-fa="۱۰ میلی‌گرم">10mg</span>
+              <span class="sstate"><svg class="ic ic16" aria-hidden="true"><use href="#i-clock"/></svg><span data-en="Upcoming" data-fa="پیش‌رو">Upcoming</span></span></span>
+            </div>
+            <div class="srow upcoming">
+              <span class="mark m-upcoming"></span>
+              <span><span class="sday" data-en="Sun 20 Apr" data-fa="یکشنبه ۳۱ فروردین">Sun 20 Apr</span>
+              <span class="stab" data-en="2 × 5mg" data-fa="۲ عدد ۵ میلی‌گرمی">2 × 5mg</span></span>
+              <span class="send"><span class="sdose" data-en="10mg" data-fa="۱۰ میلی‌گرم">10mg</span>
+              <span class="sstate"><svg class="ic ic16" aria-hidden="true"><use href="#i-clock"/></svg><span data-en="Upcoming" data-fa="پیش‌رو">Upcoming</span></span></span>
+            </div>
+
+            <!-- block 4 -->
+            <div class="blockhead">
+              <span class="bh-ico"><svg class="ic ic20" aria-hidden="true"><use href="#i-calendar"/></svg></span>
+              <span class="bh-txt">
+                <b data-en="Block 4 of 11" data-fa="مرحله ۴ از ۱۱">Block 4 of 11</b>
+                <span data-en="one day at 9mg, then 3 days at 10mg" data-fa="یک روز ۹ میلی‌گرم، سپس ۳ روز ۱۰ میلی‌گرم">one day at 9mg, then 3 days at 10mg</span>
+              </span>
+            </div>
+          </div>
+
+          <nav class="tabbar">
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg></span><span class="tl" data-en="Today" data-fa="امروز">Today</span></span>
+            <span class="tab" aria-current="page"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg></span><span class="tl" data-en="Schedule" data-fa="برنامه">Schedule</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></span><span class="tl" data-en="Progress" data-fa="پیشرفت">Progress</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-pill"/></svg></span><span class="tl" data-en="Plan" data-fa="طرح">Plan</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg></span><span class="tl" data-en="Settings" data-fa="تنظیمات">Settings</span></span>
+          </nav>
+          <div class="homebar"></div>
+        </div>
+      </div>
+    </figure>
+
+    <!-- ============ 4 · PROGRESS ============ -->
+    <figure class="screen">
+      <figcaption><span class="n num">4</span><span data-en="Progress" data-fa="پیشرفت">Progress</span></figcaption>
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="statusbar">
+            <span class="num" data-en="8:04" data-fa="۸:۰۴">8:04</span>
+            <span class="sysicons">
+              <svg class="ic" style="width:20px;height:14px" viewBox="0 0 20 14" aria-hidden="true"><use href="#i-signal"/></svg>
+              <svg class="ic" style="width:20px;height:14px;stroke-width:1.6" viewBox="0 0 20 14" aria-hidden="true"><use href="#i-wifi"/></svg>
+              <svg class="ic" style="width:28px;height:14px;stroke-width:1.4" viewBox="0 0 28 14" aria-hidden="true"><use href="#i-battery"/></svg>
+            </span>
+          </div>
+
+          <div class="screenbody">
+            <div class="appbar"><h2 data-en="Progress" data-fa="پیشرفت">Progress</h2></div>
+
+            <div class="card raised" style="padding:var(--s-4)">
+              <h3 data-en="Your dose over time" data-fa="دوز شما در طول زمان">Your dose over time</h3>
+              <!-- staircase: one series, descending 15mg → 9mg. Direct labels, no legend needed. -->
+              <div style="overflow-x:auto">
+              <svg viewBox="0 0 320 176" width="100%" height="176" role="img" style="min-width:280px"
+                   aria-label="Step chart: dose falls from 15mg in September 2024 to 9mg in April 2026, with two flare marks along the way.">
+                <g stroke="var(--border)" stroke-width="1">
+                  <line x1="30" y1="14" x2="312" y2="14"/><line x1="30" y1="52" x2="312" y2="52"/>
+                  <line x1="30" y1="90" x2="312" y2="90"/><line x1="30" y1="128" x2="312" y2="128"/>
+                </g>
+                <g fill="var(--ink-muted)" font-size="11" font-weight="700" font-family="inherit">
+                  <text class="axl" x="4" y="18" data-en="15mg" data-fa="۱۵">15mg</text>
+                  <text class="axl" x="4" y="94" data-en="12mg" data-fa="۱۲">12mg</text>
+                  <text class="axl" x="4" y="132" data-en="9mg" data-fa="۹">9mg</text>
+                </g>
+                <defs>
+                  <linearGradient id="stairfill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--primary)" stop-opacity=".30"/>
+                    <stop offset="100%" stop-color="var(--secondary)" stop-opacity=".04"/>
+                  </linearGradient>
+                  <linearGradient id="stairline" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stop-color="var(--primary)"/><stop offset="100%" stop-color="var(--secondary)"/>
+                  </linearGradient>
+                </defs>
+                <path d="M30 14 H72 V27 H108 V40 H144 V52 H180 V65 H212 V78 H244 V90 H272 V103 H292 V116 H312 V150 H30 Z" fill="url(#stairfill)"/>
+                <path d="M30 14 H72 V27 H108 V40 H144 V52 H180 V65 H212 V78 H244 V90 H272 V103 H292 V116 H312"
+                      fill="none" stroke="url(#stairline)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+                <!-- flare markers: shape + label, never colour alone -->
+                <g>
+                  <circle cx="144" cy="46" r="9" fill="var(--surface)" stroke="var(--danger)" stroke-width="2.5"/>
+                  <path d="M139.6 46h2.2l1.5-3.6 2.4 7.8 1.6-4.2h3.1" fill="none" stroke="var(--danger)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="244" cy="84" r="9" fill="var(--surface)" stroke="var(--danger)" stroke-width="2.5"/>
+                  <path d="M239.6 84h2.2l1.5-3.6 2.4 7.8 1.6-4.2h3.1" fill="none" stroke="var(--danger)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </g>
+                <circle cx="312" cy="116" r="6" fill="var(--surface)" stroke="var(--state-today)" stroke-width="3"/>
+                <g fill="var(--ink)" font-size="11" font-weight="800" font-family="inherit">
+                  <text class="axl" x="34" y="167" data-en="Sep 2024" data-fa="شهریور ۱۴۰۳">Sep 2024</text>
+                  <text class="axl" x="264" y="167" data-en="Apr 2026" data-fa="فروردین ۱۴۰۵">Apr 2026</text>
+                </g>
+              </svg>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:var(--fs-label);font-weight:700;color:var(--ink-muted);margin-top:var(--s-2)">
+                <svg class="ic ic16" style="color:var(--danger)" aria-hidden="true"><use href="#i-flare"/></svg>
+                <span data-en="2 flares recorded" data-fa="۲ عود ثبت شده">2 flares recorded</span>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:8px;font-size:var(--fs-body);font-weight:700;color:var(--ink-muted);padding:var(--s-4) var(--s-1) 0">
+              <svg class="ic ic20" style="color:var(--primary-deep)" aria-hidden="true"><use href="#i-sunrise"/></svg>
+              <span data-en="Started 12 September 2024 at 15mg" data-fa="شروع: ۲۲ شهریور ۱۴۰۳ با ۱۵ میلی‌گرم">Started 12 September 2024 at 15mg</span>
+            </div>
+
+            <div class="statgrid">
+              <div class="stat">
+                <span class="sv num" data-en="581" data-fa="۵۸۱">581</span>
+                <span class="sl" data-en="days on prednisolone" data-fa="روز مصرف پردنیزولون">days on prednisolone</span>
+              </div>
+              <div class="stat">
+                <span class="sv num"><span data-en="6,842" data-fa="۶٬۸۴۲">6,842</span><span class="u" data-en=" mg" data-fa=" میلی‌گرم"> mg</span></span>
+                <span class="sl" data-en="taken in total" data-fa="در مجموع مصرف شده">taken in total</span>
+              </div>
+              <div class="stat wide">
+                <span class="sv num" data-en="574 of 581" data-fa="۵۷۴ از ۵۸۱">574 of 581</span>
+                <span class="sl" data-en="days ticked so far — a few gaps change nothing" data-fa="روز تا اینجا ثبت شده — چند روز جا افتاده اهمیتی ندارد">days ticked so far — a few gaps change nothing</span>
+              </div>
+            </div>
+
+            <div class="encourage">
+              <span class="eico"><svg class="ic ic28" aria-hidden="true"><use href="#i-sun"/></svg></span>
+              <span data-en="You are 6mg lower than when you started." data-fa="شما ۶ میلی‌گرم پایین‌تر از شروع هستید.">You are 6mg lower than when you started.</span>
+            </div>
+
+            <button class="btn btn-secondary" style="margin-top:var(--s-4)">
+              <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>
+              <span data-en="Export for my doctor" data-fa="خروجی برای پزشک">Export for my doctor</span>
+            </button>
+          </div>
+
+          <nav class="tabbar">
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg></span><span class="tl" data-en="Today" data-fa="امروز">Today</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg></span><span class="tl" data-en="Schedule" data-fa="برنامه">Schedule</span></span>
+            <span class="tab" aria-current="page"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></span><span class="tl" data-en="Progress" data-fa="پیشرفت">Progress</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-pill"/></svg></span><span class="tl" data-en="Plan" data-fa="طرح">Plan</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg></span><span class="tl" data-en="Settings" data-fa="تنظیمات">Settings</span></span>
+          </nav>
+          <div class="homebar"></div>
+        </div>
+      </div>
+    </figure>
+
+    <!-- ============ 5 · PLAN ============ -->
+    <figure class="screen">
+      <figcaption><span class="n num">5</span><span data-en="Plan" data-fa="طرح">Plan</span></figcaption>
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="statusbar">
+            <span class="num" data-en="8:04" data-fa="۸:۰۴">8:04</span>
+            <span class="sysicons">
+              <svg class="ic" style="width:20px;height:14px" viewBox="0 0 20 14" aria-hidden="true"><use href="#i-signal"/></svg>
+              <svg class="ic" style="width:20px;height:14px;stroke-width:1.6" viewBox="0 0 20 14" aria-hidden="true"><use href="#i-wifi"/></svg>
+              <svg class="ic" style="width:28px;height:14px;stroke-width:1.4" viewBox="0 0 28 14" aria-hidden="true"><use href="#i-battery"/></svg>
+            </span>
+          </div>
+
+          <div class="screenbody">
+            <div class="appbar"><h2 data-en="Plan" data-fa="طرح">Plan</h2></div>
+
+            <div class="card">
+              <div class="rowitem">
+                <span class="rowicon"><svg class="ic ic20" aria-hidden="true"><use href="#i-pill"/></svg></span>
+                <span><span class="rl" data-en="Prednisolone" data-fa="پردنیزولون">Prednisolone</span>
+                <span class="rs" data-en="Medicine" data-fa="دارو">Medicine</span></span>
+              </div>
+              <div class="rowitem">
+                <span class="rowicon"><svg class="ic ic20" aria-hidden="true"><use href="#i-sun"/></svg></span>
+                <span><span class="rl" data-en="Current dose" data-fa="دوز فعلی">Current dose</span></span>
+                <span class="rv num" data-en="10mg" data-fa="۱۰ میلی‌گرم">10mg</span>
+              </div>
+              <div class="rowitem">
+                <span class="rowicon"><svg class="ic ic20" aria-hidden="true"><use href="#i-target"/></svg></span>
+                <span><span class="rl" data-en="Target" data-fa="هدف">Target</span></span>
+                <span class="rv num" data-en="0mg" data-fa="۰ میلی‌گرم">0mg</span>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top:var(--s-4)">
+              <h3 data-en="Tablet strengths held" data-fa="قرص‌های موجود">Tablet strengths held</h3>
+              <div class="chips">
+                <span class="chip on"><svg class="ic ic18" aria-hidden="true"><use href="#i-pill"/></svg><span class="num" data-en="5mg" data-fa="۵ میلی‌گرم">5mg</span></span>
+                <span class="chip on"><svg class="ic ic18" aria-hidden="true"><use href="#i-pill"/></svg><span class="num" data-en="1mg" data-fa="۱ میلی‌گرم">1mg</span></span>
+              </div>
+              <div class="rowitem" style="border-bottom:0;padding-bottom:0">
+                <span><span class="rl" data-en="I can split tablets" data-fa="می‌توانم قرص را نصف کنم">I can split tablets</span>
+                <span class="rs" data-en="On" data-fa="روشن">On</span></span>
+                <span class="rv"><span class="switch on"><span class="knob"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg></span></span></span>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top:var(--s-4)">
+              <h3 data-en="Method" data-fa="روش">Method</h3>
+              <div class="segctl">
+                <span class="so on" data-en="Dead Slow and Nearly Stop" data-fa="آهسته و تقریباً متوقف">Dead Slow and Nearly Stop</span>
+                <span class="so" data-en="Percentage" data-fa="درصدی">Percentage</span>
+                <span class="so" data-en="Fixed mg" data-fa="مقدار ثابت">Fixed mg</span>
+              </div>
+            </div>
+
+            <div class="card raised" style="margin-top:var(--s-4);border-color:color-mix(in srgb, var(--primary) 34%, transparent)">
+              <h3 data-en="Next step" data-fa="گام بعدی">Next step</h3>
+              <div style="display:flex;align-items:baseline;gap:8px;font-size:29px;font-weight:800;letter-spacing:-.02em">
+                <span class="num" data-en="9mg" data-fa="۹">9mg</span>
+                <svg class="ic ic20 mirror" style="color:var(--primary-deep)" aria-hidden="true"><use href="#i-arrowright"/></svg>
+                <span class="num" data-en="8mg" data-fa="۸ میلی‌گرم">8mg</span>
+              </div>
+              <div style="font-size:var(--fs-body);font-weight:700;color:var(--ink-muted);margin-top:6px" data-en="suggested step 1mg" data-fa="گام پیشنهادی ۱ میلی‌گرم">suggested step 1mg</div>
+              <div class="banner" style="margin-top:var(--s-4);cursor:default">
+                <span class="bicon"><svg class="ic ic20" aria-hidden="true"><use href="#i-alert"/></svg></span>
+                <span style="font-size:var(--fs-label);font-weight:700;line-height:1.5" data-en="10% of 9mg is 0.9mg — your doctor’s instruction wins" data-fa="۱۰٪ از ۹ میلی‌گرم برابر ۰٫۹ است — دستور پزشک شما ارجح است">10% of 9mg is 0.9mg — your doctor’s instruction wins</span>
+              </div>
+            </div>
+          </div>
+
+          <nav class="tabbar">
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg></span><span class="tl" data-en="Today" data-fa="امروز">Today</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg></span><span class="tl" data-en="Schedule" data-fa="برنامه">Schedule</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></span><span class="tl" data-en="Progress" data-fa="پیشرفت">Progress</span></span>
+            <span class="tab" aria-current="page"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-pill"/></svg></span><span class="tl" data-en="Plan" data-fa="طرح">Plan</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg></span><span class="tl" data-en="Settings" data-fa="تنظیمات">Settings</span></span>
+          </nav>
+          <div class="homebar"></div>
+        </div>
+      </div>
+    </figure>
+
+    <!-- ============ 6 · SETTINGS ============ -->
+    <figure class="screen">
+      <figcaption><span class="n num">6</span><span data-en="Settings" data-fa="تنظیمات">Settings</span></figcaption>
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="statusbar">
+            <span class="num" data-en="8:04" data-fa="۸:۰۴">8:04</span>
+            <span class="sysicons">
+              <svg class="ic" style="width:20px;height:14px" viewBox="0 0 20 14" aria-hidden="true"><use href="#i-signal"/></svg>
+              <svg class="ic" style="width:20px;height:14px;stroke-width:1.6" viewBox="0 0 20 14" aria-hidden="true"><use href="#i-wifi"/></svg>
+              <svg class="ic" style="width:28px;height:14px;stroke-width:1.4" viewBox="0 0 28 14" aria-hidden="true"><use href="#i-battery"/></svg>
+            </span>
+          </div>
+
+          <div class="screenbody">
+            <div class="appbar"><h2 data-en="Settings" data-fa="تنظیمات">Settings</h2></div>
+
+            <div class="card">
+              <div class="rowitem">
+                <span class="rowicon"><svg class="ic ic20" aria-hidden="true"><use href="#i-clock"/></svg></span>
+                <span><span class="rl" data-en="Daily reminder" data-fa="یادآور روزانه">Daily reminder</span>
+                <span class="rs num" data-en="On · 8:00 am" data-fa="روشن · ۸:۰۰ صبح">On · 8:00 am</span></span>
+                <span class="rv"><span class="switch on"><span class="knob"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg></span></span></span>
+              </div>
+              <div class="rowitem" style="flex-wrap:wrap">
+                <span class="rowicon"><svg class="ic ic20" aria-hidden="true"><use href="#i-note"/></svg></span>
+                <span><span class="rl" data-en="Text size" data-fa="اندازه متن">Text size</span></span>
+                <span class="rv" data-en="Large" data-fa="بزرگ">Large</span>
+                <span class="slider" style="flex-basis:100%">
+                  <span class="a">A</span>
+                  <span class="track"><span class="fill"></span><span class="knob"></span></span>
+                  <span class="b">A</span>
+                </span>
+              </div>
+              <div class="rowitem">
+                <span class="rowicon"><svg class="ic ic20" aria-hidden="true"><use href="#i-circle"/></svg></span>
+                <span><span class="rl" data-en="High contrast" data-fa="کنتراست بالا">High contrast</span>
+                <span class="rs" data-en="Off" data-fa="خاموش">Off</span></span>
+                <span class="rv"><span class="switch"><span class="knob"></span></span></span>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top:var(--s-4)">
+              <h3 data-en="Backup" data-fa="پشتیبان">Backup</h3>
+              <div style="display:flex;gap:var(--s-2)">
+                <button class="btn btn-secondary" style="font-size:var(--fs-label);min-height:52px;padding:0 var(--s-3)">
+                  <svg class="ic ic20" aria-hidden="true"><use href="#i-download"/></svg>
+                  <span data-en="Export data" data-fa="خروجی گرفتن">Export data</span>
+                </button>
+                <button class="btn btn-secondary" style="font-size:var(--fs-label);min-height:52px;padding:0 var(--s-3)">
+                  <svg class="ic ic20" aria-hidden="true"><use href="#i-upload"/></svg>
+                  <span data-en="Import data" data-fa="بازیابی">Import data</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top:var(--s-4)">
+              <div class="rowitem" style="padding:0">
+                <span class="rowicon"><svg class="ic ic20" aria-hidden="true"><use href="#i-alert"/></svg></span>
+                <span><span class="rl" data-en="Read the disclaimer again" data-fa="خواندن دوبارهٔ سلب مسئولیت">Read the disclaimer again</span></span>
+                <span class="rv"><svg class="ic mirror" aria-hidden="true"><use href="#i-chevron"/></svg></span>
+              </div>
+            </div>
+
+            <p class="footnote">
+              <svg class="ic ic20" style="color:var(--success)" aria-hidden="true"><use href="#i-lock"/></svg>
+              <span data-en="Everything stays on this phone. No account, no internet." data-fa="همه چیز روی همین گوشی می‌ماند. بدون حساب کاربری، بدون اینترنت.">Everything stays on this phone. No account, no internet.</span>
+            </p>
+          </div>
+
+          <nav class="tabbar">
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg></span><span class="tl" data-en="Today" data-fa="امروز">Today</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg></span><span class="tl" data-en="Schedule" data-fa="برنامه">Schedule</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></span><span class="tl" data-en="Progress" data-fa="پیشرفت">Progress</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-pill"/></svg></span><span class="tl" data-en="Plan" data-fa="طرح">Plan</span></span>
+            <span class="tab" aria-current="page"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg></span><span class="tl" data-en="Settings" data-fa="تنظیمات">Settings</span></span>
+          </nav>
+          <div class="homebar"></div>
+        </div>
+      </div>
+    </figure>
+
+  </div>
+</main>
+
+<script>
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('btn-light').setAttribute('aria-pressed', t==='light');
+  document.getElementById('btn-dark').setAttribute('aria-pressed', t==='dark');
+}
+function setLang(l){
+  var fa = l === 'fa';
+  document.documentElement.lang = l;
+  document.documentElement.dir = fa ? 'rtl' : 'ltr';
+  document.getElementById('btn-en').setAttribute('aria-pressed', !fa);
+  document.getElementById('btn-fa').setAttribute('aria-pressed', fa);
+  document.querySelectorAll('[data-en]').forEach(function(el){
+    el.textContent = fa ? el.getAttribute('data-fa') : el.getAttribute('data-en');
+  });
+}
+setTheme('light'); setLang('en');
+</script>
+</body>
+</html>

@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="light" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Almanac — design system</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ALMANAC — TOKENS
+   Light is the base. Dark overrides TOKENS ONLY (no component
+   rule is ever re-written for dark).
+   .theme-light / .theme-dark repeat the same sets so this page
+   can show both themes side by side.
+   ============================================================ */
+:root,.theme-light{
+  --bg:#FAF5EA;
+  --surface:#FFFDF7;
+  --surface-raised:#F5EEDF;
+  --surface-sunk:#F2EADA;
+  --ink:#2E3A31;
+  --ink-muted:#5F6F62;
+  --ink-soft:#7A8A7C;
+  --ink-inverse:#FFFDF7;
+  --primary:#4F7D5C;
+  --primary-hover:#446B4F;
+  --primary-pressed:#3A5C44;
+  --primary-ink:#3F6A4B;
+  --primary-soft:#E7EFE4;
+  --on-primary:#FFFDF7;
+  --secondary:#C9743F;
+  --secondary-ink:#A2542A;
+  --secondary-soft:#F7E9DE;
+  --accent:#D9A441;
+  --accent-ink:#7E6019;
+  --accent-soft:#FBF0D6;
+  --success:#4F7D5C;
+  --success-ink:#3F6A4B;
+  --warning:#D9A441;
+  --warning-ink:#7E6019;
+  --danger:#B4553F;
+  --danger-hover:#9C4630;
+  --danger-ink:#9C4630;
+  --danger-soft:#F6E2DB;
+  --on-danger:#FFFDF7;
+  --border:#E2D8C3;
+  --border-strong:#8C7F63;
+  --focus:#7E6019;
+  --overlay:rgba(46,58,49,.46);
+  --state-taken:#3F6A4B;      --state-taken-bg:#E7EFE4;
+  --state-missed:#566659;     --state-missed-bg:#F2EADA;
+  --state-today:#7E6019;      --state-today-bg:#FBF0D6;
+  --state-newdose:#A2542A;    --state-newdose-bg:#F7E9DE;
+  --grain:rgba(140,127,99,.10);
+
+  --font-display:'Fraunces','Lora',Georgia,'Times New Roman',serif;
+  --font-ui:'Source Sans 3','Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif;
+  --font-fa:'Vazirmatn','Segoe UI',Tahoma,sans-serif;
+  --font-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+  --fs-hero:78px;   --lh-hero:0.95;
+  --fs-display:56px;--lh-display:1.02;
+  --fs-title:30px;  --lh-title:1.18;
+  --fs-heading:23px;--lh-heading:1.30;
+  --fs-body-lg:20px;--lh-body-lg:1.50;
+  --fs-body:17px;   --lh-body:1.55;
+  --fs-label:16px;  --lh-label:1.35;
+  --fs-caption:15px;--lh-caption:1.40;
+  --fs-nav:14px;    --fs-micro:13px;
+  --ls-tight:-.02em; --ls-caps:.10em;
+
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px;
+  --sp-6:24px; --sp-8:32px; --sp-10:40px; --sp-12:48px; --sp-16:64px;
+
+  --r-xs:4px; --r-sm:6px; --r-md:10px; --r-lg:12px; --r-xl:20px; --r-full:999px;
+
+  --shadow-0:none;
+  --shadow-1:0 1px 2px rgba(46,58,49,.06), 0 2px 10px rgba(46,58,49,.05);
+  --shadow-lift:0 10px 34px rgba(26,33,28,.20);
+
+  --dur-fast:120ms; --dur-base:220ms; --dur-slow:420ms;
+  --ease-standard:cubic-bezier(.2,.6,.2,1);
+  --ease-exit:cubic-bezier(.4,0,1,1);
+  --ease-enter:cubic-bezier(0,0,.2,1);
+
+  --tap-min:44px;
+}
+[data-theme="dark"],.theme-dark{
+  --bg:#1A211C;
+  --surface:#232B25;
+  --surface-raised:#2C352E;
+  --surface-sunk:#151B17;
+  --ink:#EDE6D6;
+  --ink-muted:#A8B3A5;
+  --ink-soft:#8B968A;
+  --ink-inverse:#16211A;
+  --primary:#7FB08C;
+  --primary-hover:#93C29F;
+  --primary-pressed:#A6D0B1;
+  --primary-ink:#93C29F;
+  --primary-soft:#26332A;
+  --on-primary:#16211A;
+  --secondary:#E0925F;
+  --secondary-ink:#E8A87C;
+  --secondary-soft:#33261D;
+  --accent:#E8C06B;
+  --accent-ink:#EFCF8B;
+  --accent-soft:#332E20;
+  --success:#7FB08C;
+  --success-ink:#93C29F;
+  --warning:#E8C06B;
+  --warning-ink:#EFCF8B;
+  --danger:#E08A72;
+  --danger-hover:#E8A08A;
+  --danger-ink:#E8A08A;
+  --danger-soft:#35231E;
+  --on-danger:#16211A;
+  --border:#38423A;
+  --border-strong:#6B7A6D;
+  --focus:#E8C06B;
+  --overlay:rgba(10,14,11,.62);
+  --state-taken:#93C29F;    --state-taken-bg:#26332A;
+  --state-missed:#A8B3A5;   --state-missed-bg:#2C352E;
+  --state-today:#EFCF8B;    --state-today-bg:#332E20;
+  --state-newdose:#E8A87C;  --state-newdose-bg:#33261D;
+  --grain:rgba(237,230,214,.05);
+  --shadow-1:0 1px 2px rgba(0,0,0,.30), 0 2px 10px rgba(0,0,0,.24);
+  --shadow-lift:0 10px 34px rgba(0,0,0,.55);
+}
+[data-lang="fa"]{
+  --font-display:'Vazirmatn','Segoe UI',Tahoma,sans-serif;
+  --font-ui:'Vazirmatn','Segoe UI',Tahoma,sans-serif;
+  --lh-title:1.34; --lh-heading:1.45; --lh-body-lg:1.70;
+  --lh-body:1.75;  --lh-label:1.55;   --lh-caption:1.60;
+  --ls-tight:0; --ls-caps:0;
+}
+/* text-scaling demo: tokens re-declared with the multiplier baked in */
+.tscale-130{
+  --fs-hero:101px; --fs-display:73px; --fs-title:39px; --fs-heading:30px;
+  --fs-body-lg:26px; --fs-body:22px; --fs-label:21px; --fs-caption:20px;
+}
+.tscale-200{
+  --fs-hero:156px; --fs-display:112px; --fs-title:60px; --fs-heading:46px;
+  --fs-body-lg:40px; --fs-body:34px; --fs-label:32px; --fs-caption:30px;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  background-color:var(--bg);
+  background-image:radial-gradient(circle at 1px 1px,var(--grain) 1px,transparent 0);
+  background-size:24px 24px;
+  color:var(--ink);
+  font-family:var(--font-ui);
+  font-size:var(--fs-body);
+  line-height:var(--lh-body);
+  overflow-x:hidden;
+}
+[data-lang="en"] .fa{display:none !important}
+[data-lang="fa"] .en{display:none !important}
+svg{display:block}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:var(--r-xs)}
+.ic{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.ic-18{width:18px;height:18px}.ic-20{width:20px;height:20px}.ic-26{width:26px;height:26px}
+.ic-32{width:32px;height:32px}.ic-56{width:56px;height:56px;stroke-width:1.4}
+[dir="rtl"] .ic-dir{transform:scaleX(-1)}
+
+/* ---------- page chrome ---------- */
+.bar{
+  position:sticky;top:0;z-index:60;
+  background:color-mix(in srgb,var(--surface) 92%,transparent);
+  backdrop-filter:blur(10px);
+  border-block-end:1px solid var(--border-strong);
+  padding:var(--sp-3) var(--sp-5);
+  display:flex;flex-wrap:wrap;gap:var(--sp-4);align-items:center;justify-content:space-between;
+}
+.brand{display:flex;align-items:center;gap:var(--sp-3);min-width:0}
+.brand .mark{
+  width:38px;height:38px;flex:none;border-radius:var(--r-md);background:var(--primary-soft);
+  color:var(--primary-ink);display:grid;place-items:center;border:1px solid var(--border-strong);
+}
+.brand b{font-family:var(--font-display);font-weight:600;font-size:21px;letter-spacing:var(--ls-tight);display:block;line-height:1.1}
+.brand small{display:block;font-size:var(--fs-caption);color:var(--ink-muted);line-height:1.2}
+.ctrls{display:flex;gap:var(--sp-3);flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--border-strong);border-radius:var(--r-md);overflow:hidden;background:var(--surface-raised)}
+.seg button{
+  font-family:var(--font-ui);font-size:var(--fs-label);font-weight:600;
+  min-height:44px;min-width:60px;padding:0 var(--sp-4);background:transparent;color:var(--ink-muted);
+  border:0;cursor:pointer;display:inline-flex;align-items:center;gap:var(--sp-2);
+  transition:background var(--dur-fast) var(--ease-standard),color var(--dur-fast) var(--ease-standard);
+}
+.seg button + button{border-inline-start:1px solid var(--border-strong)}
+.seg button[aria-pressed="true"]{background:var(--primary);color:var(--on-primary)}
+.seg button[aria-pressed="false"]:hover{background:var(--surface-sunk);color:var(--ink)}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 var(--sp-5)}
+.hero{padding:var(--sp-12) 0 var(--sp-8)}
+.kicker{
+  font-size:var(--fs-caption);font-weight:700;letter-spacing:var(--ls-caps);text-transform:uppercase;
+  color:var(--secondary-ink);margin:0 0 var(--sp-2);
+}
+[data-lang="fa"] .kicker{text-transform:none;letter-spacing:0}
+.hero h1{
+  font-family:var(--font-display);font-weight:600;font-size:clamp(38px,6.4vw,68px);
+  line-height:1.04;letter-spacing:var(--ls-tight);margin:0 0 var(--sp-4);max-width:20ch;
+}
+.lede{font-size:var(--fs-body-lg);line-height:var(--lh-body-lg);color:var(--ink-muted);max-width:70ch;margin:0 0 var(--sp-4)}
+.toc{display:flex;flex-wrap:wrap;gap:var(--sp-2);padding-block:var(--sp-4) var(--sp-8)}
+.toc a{
+  display:inline-flex;align-items:center;min-height:44px;padding:0 var(--sp-4);
+  border:1px solid var(--border-strong);border-radius:var(--r-sm);background:var(--surface);
+  color:var(--ink);text-decoration:none;font-size:var(--fs-caption);font-weight:600;
+}
+.toc a:hover{background:var(--primary-soft);color:var(--primary-ink);border-color:var(--primary)}
+.toc a i{font-family:var(--font-mono);color:var(--secondary-ink);margin-inline-end:var(--sp-2);font-style:normal}
+
+section.sec{padding-block:var(--sp-10) var(--sp-8);border-block-start:1px solid var(--border)}
+.sechead{display:flex;align-items:baseline;gap:var(--sp-3);flex-wrap:wrap;margin-bottom:var(--sp-2)}
+.secnum{font-family:var(--font-mono);font-size:var(--fs-caption);color:var(--secondary-ink);font-weight:700}
+.sec h2{
+  font-family:var(--font-display);font-weight:600;font-size:clamp(28px,4vw,42px);
+  line-height:1.1;letter-spacing:var(--ls-tight);margin:0;
+}
+.sec .note{color:var(--ink-muted);max-width:72ch;margin:var(--sp-2) 0 var(--sp-6)}
+h3.sub{
+  font-family:var(--font-display);font-size:var(--fs-heading);font-weight:600;
+  letter-spacing:var(--ls-tight);margin:var(--sp-8) 0 var(--sp-3);
+}
+h4.sub2{
+  font-size:var(--fs-caption);font-weight:700;letter-spacing:var(--ls-caps);text-transform:uppercase;
+  color:var(--secondary-ink);margin:var(--sp-6) 0 var(--sp-3);display:flex;align-items:center;gap:var(--sp-3);
+}
+[data-lang="fa"] h4.sub2{text-transform:none;letter-spacing:0}
+h4.sub2 i{flex:1;height:1px;background:var(--border-strong);opacity:.5;font-style:normal}
+
+.tok{font-family:var(--font-mono);font-size:var(--fs-micro);color:var(--secondary-ink);font-weight:600;word-break:break-all}
+.val{font-family:var(--font-mono);font-size:var(--fs-micro);color:var(--ink-muted);word-break:break-all}
+.pass{color:var(--state-taken);font-weight:700;white-space:nowrap}
+.fail{color:var(--danger-ink);font-weight:700;white-space:nowrap}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.t{border-collapse:collapse;width:100%;min-width:640px;font-size:var(--fs-caption)}
+table.t th,table.t td{text-align:start;padding:10px 12px;border-block-end:1px solid var(--border);vertical-align:middle}
+table.t th{
+  font-size:var(--fs-micro);text-transform:uppercase;letter-spacing:var(--ls-caps);
+  color:var(--secondary-ink);font-weight:700;border-block-end:1px solid var(--border-strong);
+}
+[data-lang="fa"] table.t th{text-transform:none;letter-spacing:0}
+table.t tbody tr:hover{background:var(--surface-raised)}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--sp-5)}
+.panel-sunk{background:var(--surface-sunk)}
+.themepanel{
+  background-color:var(--bg);
+  background-image:radial-gradient(circle at 1px 1px,var(--grain) 1px,transparent 0);
+  background-size:24px 24px;
+  color:var(--ink);border:1px solid var(--border-strong);border-radius:var(--r-lg);padding:var(--sp-5);
+}
+.themepanel > h5{
+  margin:0 0 var(--sp-4);font-family:var(--font-display);font-size:var(--fs-heading);
+  font-weight:600;letter-spacing:var(--ls-tight);
+}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:var(--sp-5)}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:var(--sp-4)}
+.grid-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:var(--sp-3)}
+
+/* swatches */
+.sw-card{border:1px solid var(--border-strong);border-radius:var(--r-md);overflow:hidden;background:var(--surface)}
+.sw-chip{height:64px;border-block-end:1px solid var(--border-strong)}
+.sw-meta{padding:var(--sp-3)}
+.sw-meta b{display:block;font-family:var(--font-mono);font-size:var(--fs-micro);color:var(--ink);word-break:break-all}
+.sw-meta span{display:block;font-size:var(--fs-micro);color:var(--ink-muted);line-height:1.45}
+
+/* spec pair: live example + token text beside */
+.spec{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,300px);gap:var(--sp-5);
+  align-items:center;padding:var(--sp-4) 0;border-block-end:1px solid var(--border);
+}
+@media (max-width:720px){.spec{grid-template-columns:1fr}}
+.spec-meta{font-size:var(--fs-micro);line-height:1.6}
+.spec-meta b{display:block;font-family:var(--font-mono);color:var(--secondary-ink);font-size:var(--fs-micro)}
+.spec-meta code{font-family:var(--font-mono);color:var(--ink-muted);display:block;word-break:break-all}
+
+/* ---------- component styles (identical to the app build) ---------- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--sp-5)}
+.card-shadow{box-shadow:var(--shadow-1)}
+.btn{
+  font-family:var(--font-ui);font-size:var(--fs-body-lg);font-weight:700;
+  min-height:var(--tap-min);padding:0 var(--sp-5);border-radius:var(--r-md);
+  display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-3);
+  border:1px solid transparent;cursor:pointer;text-decoration:none;
+  transition:background var(--dur-fast) var(--ease-standard),transform var(--dur-fast) var(--ease-standard);
+}
+.btn-primary{background:var(--primary);color:var(--on-primary);border-color:var(--primary-ink)}
+.btn-primary:hover,.btn-primary.is-hover{background:var(--primary-hover)}
+.btn-primary:active,.btn-primary.is-pressed{background:var(--primary-pressed);transform:translateY(1px)}
+.btn-secondary{background:var(--surface);color:var(--primary-ink);border-color:var(--border-strong)}
+.btn-secondary:hover,.btn-secondary.is-hover{background:var(--primary-soft);border-color:var(--primary)}
+.btn-secondary:active,.btn-secondary.is-pressed{background:var(--primary-soft);transform:translateY(1px)}
+.btn-tertiary{background:transparent;color:var(--primary-ink);border-color:transparent;font-size:var(--fs-body)}
+.btn-tertiary:hover,.btn-tertiary.is-hover{background:var(--primary-soft)}
+.btn-tertiary:active,.btn-tertiary.is-pressed{background:var(--primary-soft);transform:translateY(1px)}
+.btn-danger{background:var(--danger);color:var(--on-danger);border-color:var(--danger-ink)}
+.btn-danger:hover,.btn-danger.is-hover{background:var(--danger-hover)}
+.btn-danger:active,.btn-danger.is-pressed{background:var(--danger-hover);transform:translateY(1px)}
+.btn-ghost{background:var(--surface);color:var(--ink);border-color:var(--border-strong);font-size:var(--fs-body);font-weight:600;min-height:48px}
+.btn[disabled],.btn.is-disabled{opacity:.45;cursor:not-allowed;transform:none;filter:grayscale(.25)}
+.btn-lg{min-height:64px;font-size:22px;width:100%}
+.stateflag{
+  display:block;font-family:var(--font-mono);font-size:var(--fs-micro);
+  color:var(--ink-muted);margin-block-start:var(--sp-2);
+}
+.badge{
+  display:inline-flex;align-items:center;gap:var(--sp-2);padding:6px var(--sp-3);border-radius:var(--r-sm);
+  font-size:var(--fs-caption);font-weight:700;line-height:1.25;border:1px solid currentColor;
+}
+.badge-newdose{color:var(--state-newdose);background:var(--state-newdose-bg)}
+.badge-today{color:var(--state-today);background:var(--state-today-bg)}
+.badge-taken{color:var(--state-taken);background:var(--state-taken-bg)}
+.badge-missed{color:var(--state-missed);background:var(--state-missed-bg)}
+.chip{
+  display:inline-flex;align-items:center;gap:var(--sp-2);min-height:var(--tap-min);padding:0 var(--sp-4);
+  border-radius:var(--r-sm);border:1px solid var(--border-strong);background:var(--surface-raised);
+  font-size:var(--fs-body);font-weight:600;color:var(--ink);
+}
+.chip-on{background:var(--primary-soft);color:var(--primary-ink);border-color:var(--primary)}
+.dose{display:flex;align-items:baseline;gap:var(--sp-2);color:var(--primary-ink)}
+.dose .n{font-family:var(--font-display);font-weight:600;font-size:var(--fs-hero);line-height:var(--lh-hero);letter-spacing:var(--ls-tight)}
+.dose .u{font-family:var(--font-display);font-weight:600;font-size:30px;line-height:1}
+.tablets{display:flex;align-items:center;gap:var(--sp-2);color:var(--ink-muted);font-size:var(--fs-body-lg);line-height:1.3}
+.hr{height:1px;background:var(--border);border:0;margin:var(--sp-4) 0}
+.row{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-3) var(--sp-4);min-height:56px;border-block-end:1px solid var(--border);background:var(--surface)}
+.row .mark{flex:none;width:26px;display:grid;place-items:center}
+.row .mid{flex:1;min-width:0}
+.row .day{font-size:var(--fs-body);font-weight:700;color:var(--ink);line-height:1.25}
+.row .meta{font-size:var(--fs-caption);color:var(--ink-muted);line-height:1.3;display:flex;gap:var(--sp-2);align-items:center;flex-wrap:wrap}
+.row .amt{font-family:var(--font-display);font-size:21px;font-weight:600;color:var(--ink);letter-spacing:var(--ls-tight);white-space:nowrap}
+.row-taken .mark{color:var(--state-taken)}.row-taken .amt{color:var(--ink-muted)}
+.row-missed .mark{color:var(--state-missed)}.row-missed .amt{color:var(--ink-muted)}
+.row-up .mark{color:var(--ink-soft)}
+.row-today{background:var(--state-today-bg);border-inline-start:4px solid var(--accent);padding-inline-start:calc(var(--sp-4) - 4px)}
+.row-today .amt{color:var(--primary-ink);font-size:26px}
+.row-today .mark{color:var(--state-today)}
+.statelab{font-weight:700}
+.st-taken{color:var(--state-taken)}.st-missed{color:var(--state-missed)}.st-up{color:var(--ink-muted)}
+.field label{display:block;font-size:var(--fs-label);font-weight:700;margin-block-end:var(--sp-2)}
+.field input,.field select{
+  width:100%;min-height:52px;padding:0 var(--sp-4);font-family:var(--font-ui);font-size:var(--fs-body);
+  color:var(--ink);background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r-md);
+}
+.field input:focus{outline:3px solid var(--focus);outline-offset:1px;border-color:var(--primary)}
+.field .help{font-size:var(--fs-caption);color:var(--ink-muted);margin-block-start:var(--sp-2)}
+.field .err{font-size:var(--fs-caption);color:var(--danger-ink);font-weight:600;margin-block-start:var(--sp-2);display:flex;gap:6px;align-items:center}
+.field input.bad{border-color:var(--danger);border-width:2px}
+.sw{flex:none;width:60px;height:34px;border-radius:var(--r-full);position:relative;background:var(--primary);border:1px solid var(--primary-ink)}
+.sw i{position:absolute;inset-block-start:3px;inset-inline-end:3px;width:26px;height:26px;border-radius:var(--r-full);background:var(--on-primary);display:grid;place-items:center;color:var(--primary-ink)}
+.sw-off{background:var(--surface-sunk);border-color:var(--border-strong)}
+.sw-off i{inset-inline-start:3px;inset-inline-end:auto;background:var(--surface);color:var(--ink-muted)}
+.sw-wrap{display:inline-flex;align-items:center;gap:var(--sp-2)}
+.sw-lab{font-size:var(--fs-caption);font-weight:700;color:var(--ink-muted)}
+.slider{position:relative;height:var(--tap-min);display:flex;align-items:center}
+.slider .track{height:8px;border-radius:var(--r-full);background:var(--surface-sunk);border:1px solid var(--border-strong);width:100%}
+.slider .fill{position:absolute;inset-inline-start:0;height:8px;width:68%;border-radius:var(--r-full);background:var(--primary)}
+.slider .knob{position:absolute;inset-inline-start:calc(68% - 15px);width:30px;height:30px;border-radius:var(--r-full);background:var(--surface);border:2px solid var(--primary-ink);box-shadow:var(--shadow-1)}
+.segctl{display:inline-flex;border:1px solid var(--border-strong);border-radius:var(--r-md);overflow:hidden;background:var(--surface-raised)}
+.segctl span{
+  min-height:var(--tap-min);display:inline-flex;align-items:center;padding:0 var(--sp-4);
+  font-size:var(--fs-body);font-weight:600;color:var(--ink-muted);
+}
+.segctl span + span{border-inline-start:1px solid var(--border-strong)}
+.segctl span[aria-current="true"]{background:var(--primary);color:var(--on-primary);font-weight:700}
+.tabs{display:flex;border:1px solid var(--border-strong);border-radius:var(--r-lg);background:var(--surface);overflow:hidden}
+.tab{
+  flex:1;min-height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:var(--ink-muted);font-size:var(--fs-nav);font-weight:600;line-height:1.2;position:relative;padding:var(--sp-2) 2px;
+}
+.tab .ic{width:25px;height:25px}
+.tab[aria-current="page"]{color:var(--primary-ink);font-weight:700}
+.tab[aria-current="page"]::before{content:"";position:absolute;inset-block-start:0;inset-inline-start:50%;transform:translateX(-50%);width:26px;height:3px;border-radius:var(--r-full);background:var(--primary)}
+[dir="rtl"] .tab[aria-current="page"]::before{transform:translateX(50%)}
+.banner{display:flex;gap:var(--sp-3);align-items:flex-start;border-radius:var(--r-lg);padding:var(--sp-4)}
+.banner-info{background:var(--state-today-bg);border:1px solid var(--state-today)}
+.banner-info .ic{color:var(--state-today)}
+.banner-danger{background:var(--danger-soft);border:1px solid var(--danger)}
+.banner-danger .ic{color:var(--danger-ink)}
+.banner-good{background:var(--primary-soft);border:1px solid var(--primary)}
+.banner-good .ic{color:var(--primary-ink)}
+.banner .txt{flex:1;min-width:0;font-size:var(--fs-body);line-height:1.45}
+.banner .ic{flex:none;margin-block-start:2px}
+.empty{text-align:center;padding:var(--sp-8) var(--sp-5);border:1.5px dashed var(--border-strong);border-radius:var(--r-lg);background:var(--surface-raised)}
+.empty .ring{width:88px;height:88px;border-radius:var(--r-full);background:var(--primary-soft);border:1px solid var(--primary);display:grid;place-items:center;color:var(--primary-ink);margin:0 auto var(--sp-4)}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--sp-4)}
+.stat .n{font-family:var(--font-display);font-weight:600;font-size:38px;line-height:1.05;letter-spacing:var(--ls-tight);color:var(--primary-ink)}
+.stat .l{font-size:var(--fs-caption);color:var(--ink-muted);line-height:1.35;margin-block-start:2px}
+.sheetdemo{position:relative;height:300px;border:1px solid var(--border-strong);border-radius:var(--r-lg);overflow:hidden;background:var(--surface-raised)}
+.sheetdemo .scrim{position:absolute;inset:0;background:var(--overlay);display:flex;align-items:flex-end}
+.sheetdemo .sheet{width:100%;background:var(--surface);border-start-start-radius:var(--r-xl);border-start-end-radius:var(--r-xl);border-block-start:1px solid var(--border-strong);padding:var(--sp-5);box-shadow:var(--shadow-lift)}
+.sheetdemo .grab{width:44px;height:5px;border-radius:var(--r-full);background:var(--border-strong);opacity:.5;margin:0 auto var(--sp-4)}
+.blockhead{padding:var(--sp-4);background:var(--surface)}
+.blockhead .lbl{font-size:var(--fs-caption);font-weight:700;letter-spacing:var(--ls-caps);text-transform:uppercase;color:var(--secondary-ink);display:flex;align-items:center;gap:var(--sp-2)}
+[data-lang="fa"] .blockhead .lbl,.blockhead[dir="rtl"] .lbl{text-transform:none;letter-spacing:0}
+.blockhead .lbl .rule{flex:1;height:1px;background:var(--border-strong);opacity:.5}
+.blockhead .desc{font-family:var(--font-display);font-size:18px;font-weight:600;line-height:1.3;color:var(--ink);margin-block-start:var(--sp-1)}
+.blockhead.now{background:var(--accent-soft);border-inline-start:4px solid var(--accent)}
+.stack-2{display:flex;flex-direction:column;gap:var(--sp-2)}
+.stack-3{display:flex;flex-direction:column;gap:var(--sp-3)}
+.stack-4{display:flex;flex-direction:column;gap:var(--sp-4)}
+.inline-3{display:flex;flex-wrap:wrap;gap:var(--sp-3);align-items:center}
+.inline-4{display:flex;flex-wrap:wrap;gap:var(--sp-4);align-items:flex-start}
+
+/* rulers, radii, elevation demos */
+.ruler{display:flex;flex-direction:column;gap:var(--sp-2)}
+.ruler .r{display:flex;align-items:center;gap:var(--sp-4)}
+.ruler .bar{height:22px;background:var(--primary-soft);border:1px solid var(--primary);border-radius:var(--r-xs)}
+.radbox{
+  height:96px;background:var(--primary-soft);border:1px solid var(--primary);
+  display:grid;place-items:center;color:var(--primary-ink);font-family:var(--font-mono);font-size:var(--fs-micro);font-weight:700;
+}
+.elev{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--sp-5);min-height:120px}
+
+/* icon grid */
+.icgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:var(--sp-3)}
+.iccell{
+  border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface);
+  padding:var(--sp-4) var(--sp-2);display:flex;flex-direction:column;align-items:center;gap:var(--sp-2);text-align:center;
+}
+.iccell .nm{font-family:var(--font-mono);font-size:11px;color:var(--ink-muted);word-break:break-all}
+
+/* motion demo */
+.mdemo{display:flex;flex-direction:column;gap:var(--sp-3)}
+.mtrack{height:34px;background:var(--surface-sunk);border:1px solid var(--border-strong);border-radius:var(--r-sm);position:relative;overflow:hidden}
+.mball{position:absolute;inset-block-start:4px;inset-inline-start:4px;width:24px;height:24px;border-radius:var(--r-full);background:var(--primary)}
+.run .mball{animation:slide var(--d) var(--e) both}
+@keyframes slide{from{transform:translateX(0)}to{transform:translateX(calc(100% * 0 + var(--dist)))}}
+.tickdemo{width:96px;height:96px;border-radius:var(--r-full);background:var(--primary-soft);border:1px solid var(--primary);display:grid;place-items:center;color:var(--primary-ink)}
+.tickdemo path{stroke-dasharray:34;stroke-dashoffset:34}
+.run .tickdemo path{animation:draw var(--dur-slow) var(--ease-standard) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.riseDemo{opacity:0;transform:translateY(12px)}
+.run .riseDemo{animation:rise var(--dur-base) var(--ease-enter) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+
+/* rtl side-by-side */
+.rtlpair{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--sp-5)}
+.rtlpair > div{border:1px solid var(--border-strong);border-radius:var(--r-lg);overflow:hidden;background:var(--surface)}
+.rtlpair h5{margin:0;padding:var(--sp-3) var(--sp-4);font-family:var(--font-mono);font-size:var(--fs-micro);color:var(--secondary-ink);background:var(--surface-raised);border-block-end:1px solid var(--border-strong)}
+
+/* tap target */
+.tapdemo{display:flex;flex-wrap:wrap;gap:var(--sp-5);align-items:flex-end}
+.tapbox{
+  width:44px;height:44px;border:2px dashed var(--primary);border-radius:var(--r-sm);
+  display:grid;place-items:center;color:var(--primary-ink);background:var(--primary-soft);
+}
+.tapbox-bad{width:32px;height:32px;border-color:var(--danger);background:var(--danger-soft);color:var(--danger-ink)}
+
+.footer{padding:var(--sp-10) 0 var(--sp-16);color:var(--ink-muted);font-size:var(--fs-caption)}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== ICON SPRITE ===================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+<defs>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.4l5 5.1L19.8 6.2"/></symbol>
+  <symbol id="i-tick-hand" viewBox="0 0 24 24"><path d="M3.9 12.5c1.9 1 3.5 2.7 4.8 4.8C11.7 12 15.3 8.1 20 5.6" stroke-width="2.3"/></symbol>
+  <symbol id="i-square" viewBox="0 0 24 24"><rect x="4.6" y="4.6" width="14.8" height="14.8" rx="3.4"/></symbol>
+  <symbol id="i-dot-dash" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.4" stroke-dasharray="2.4 3.6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 6.9V12l3.4 2.1"/></symbol>
+  <symbol id="i-pill" viewBox="0 0 24 24"><rect x="1.8" y="8.4" width="20.4" height="7.2" rx="3.6" transform="rotate(-40 12 12)"/><path d="M9.2 7.2l5.6 5.6" transform="rotate(-40 12 12)"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.4" y="5.2" width="17.2" height="15.4" rx="2.6"/><path d="M3.4 10h17.2M8.2 3.4v3.6M15.8 3.4v3.6"/><path d="M7.6 14h2M11 14h2M14.4 14h2M7.6 17.4h2M11 17.4h2"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3.6 20.4h17"/><path d="M4 6.6h3.6V10h3.5v3.4h3.5v3.4h5.6"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1"/><path d="M18.9 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-1.7-.3 1.5 1.5 0 0 0-.9 1.4v.2a1.9 1.9 0 1 1-3.8 0v-.1a1.5 1.5 0 0 0-1-1.4 1.5 1.5 0 0 0-1.7.3l-.1.1a1.9 1.9 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0 .3-1.7 1.5 1.5 0 0 0-1.4-.9h-.2a1.9 1.9 0 1 1 0-3.8h.1a1.5 1.5 0 0 0 1.4-1 1.5 1.5 0 0 0-.3-1.7l-.1-.1a1.9 1.9 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.9 1.9 0 1 1 3.8 0v.1a1.5 1.5 0 0 0 .9 1.4 1.5 1.5 0 0 0 1.7-.3l.1-.1a1.9 1.9 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0-.3 1.7v.1a1.5 1.5 0 0 0 1.4.9h.2a1.9 1.9 0 1 1 0 3.8h-.1a1.5 1.5 0 0 0-1.4.9z"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M13.6 3.6H6.6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6.8"/><path d="M8.4 9.6h5M8.4 13.4h6.6M8.4 17.2h4"/><path d="M17.1 3l3.9 3.9-2 2-3.9-3.9z"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4.4l9.1 15.2H2.9z"/><path d="M12 10v4.2"/><circle cx="12" cy="17.2" r=".95" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.6v11.2"/><path d="M7.4 10.4L12 15l4.6-4.6"/><path d="M4.4 19.4h15.2"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15.2V4"/><path d="M7.4 8.6L12 4l4.6 4.6"/><path d="M4.4 19.4h15.2"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9.4 4.8L16.6 12l-7.2 7.2"/></symbol>
+  <symbol id="i-sprout" viewBox="0 0 24 24"><path d="M12 21v-7.6"/><path d="M12 13.4c0-3.5 2.8-6.4 6.4-6.4 0 3.5-2.9 6.4-6.4 6.4z"/><path d="M12 16.6c-3 0-5.3-2.4-5.3-5.3 3 0 5.3 2.4 5.3 5.3z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.4v2.3M12 19.3v2.3M4.5 4.5l1.7 1.7M17.8 17.8l1.7 1.7M2.4 12h2.3M19.3 12h2.3M4.5 19.5l1.7-1.7M17.8 6.2l1.7-1.7"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6.6" y="4.6" width="4" height="14.8" rx="1.6"/><rect x="13.4" y="4.6" width="4" height="14.8" rx="1.6"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 21.2c3.6 0 6.1-2.4 6.1-5.7 0-4-3.7-6-4.5-10.6-2 1.6-3.1 3.5-3.1 5.5 0 1-.6 1.8-1.4 1.8-.7 0-1.2-.5-1.4-1.3-1.1 1.5-2 3.2-2 4.7 0 3.3 2.6 5.6 6.3 5.6z"/></symbol>
+  <symbol id="i-packet" viewBox="0 0 24 24"><rect x="4.2" y="3.4" width="15.6" height="17.2" rx="2.2"/><path d="M4.2 8.2h15.6"/><path d="M12 18v-2.9c0-1.5 1.2-2.7 2.7-2.7h.6v.6c0 1.5-1.2 2.7-2.7 2.7H12z"/><path d="M12 18v-2c0-1.2-1-2.2-2.2-2.2h-.5v.5c0 1.2 1 2.2 2.2 2.2H12z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.2v13.6M5.2 12h13.6"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20.4 3.6C10.2 4.2 4.4 8.6 4.4 15.2c0 2 .8 3.6 1.2 4.3M6 18c2.8-6.4 7.4-9.8 13.4-11.4"/></symbol>
+  <symbol id="i-arrow-back" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></symbol>
+</defs>
+</svg>
+
+<!-- ===================== CONTROL BAR ===================== -->
+<header class="bar">
+  <div class="brand">
+    <span class="mark"><svg class="ic" aria-hidden="true"><use href="#i-sprout"/></svg></span>
+    <span>
+      <b>Almanac</b>
+      <small><span class="en">NearlyStop · design system specification</span><span class="fa">NearlyStop · مشخصات سیستم طراحی</span></small>
+    </span>
+  </div>
+  <div class="ctrls">
+    <div class="seg" role="group" aria-label="Theme">
+      <button type="button" id="tl" aria-pressed="true" onclick="setTheme('light')"><svg class="ic ic-20" aria-hidden="true"><use href="#i-sun"/></svg><span class="en">Light</span><span class="fa">روشن</span></button>
+      <button type="button" id="td" aria-pressed="false" onclick="setTheme('dark')"><svg class="ic ic-20" aria-hidden="true"><use href="#i-leaf"/></svg><span class="en">Dark</span><span class="fa">تیره</span></button>
+    </div>
+    <div class="seg" role="group" aria-label="Language">
+      <button type="button" id="le" aria-pressed="true" onclick="setLang('en')">English</button>
+      <button type="button" id="lf" aria-pressed="false" onclick="setLang('fa')">فارسی</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ===================== HERO ===================== -->
+<div class="hero">
+  <p class="kicker"><span class="en">Design system · direction 1 of 3</span><span class="fa">سیستم طراحی · جهت ۱ از ۳</span></p>
+  <h1><span class="en">Almanac</span><span class="fa">آلماناک</span></h1>
+  <p class="lede">
+    <span class="en">A gardener's year-book for a two-year taper. Warm paper instead of hospital white, a serif hand for the numbers that carry meaning, hairline rules and paper tint instead of drop shadows, and seed-packet section labels that teach the block pattern rather than hiding it inside a calendar grid.</span>
+    <span class="fa">سالنامهٔ یک باغبان برای دو سال کاهش دارو. کاغذ گرم به‌جای سفیدی بیمارستان، حروف سریف برای عددهایی که معنا دارند، خطوط مویی و رنگ کاغذ به‌جای سایه، و برچسب‌های بخش شبیه پاکت بذر که الگوی مرحله‌ها را آموزش می‌دهند.</span>
+  </p>
+</div>
+<nav class="toc" aria-label="Sections">
+  <a href="#s1"><i>01</i><span class="en">The idea</span><span class="fa">ایده</span></a>
+  <a href="#s2"><i>02</i><span class="en">Colour</span><span class="fa">رنگ</span></a>
+  <a href="#s3"><i>03</i><span class="en">Typography</span><span class="fa">تایپوگرافی</span></a>
+  <a href="#s4"><i>04</i><span class="en">Spacing</span><span class="fa">فاصله</span></a>
+  <a href="#s5"><i>05</i><span class="en">Radii</span><span class="fa">گردی گوشه</span></a>
+  <a href="#s6"><i>06</i><span class="en">Elevation</span><span class="fa">ارتفاع</span></a>
+  <a href="#s7"><i>07</i><span class="en">Components</span><span class="fa">اجزا</span></a>
+  <a href="#s8"><i>08</i><span class="en">Icons</span><span class="fa">آیکون‌ها</span></a>
+  <a href="#s9"><i>09</i><span class="en">Motion</span><span class="fa">حرکت</span></a>
+  <a href="#s10"><i>10</i><span class="en">RTL rules</span><span class="fa">قواعد راست‌چین</span></a>
+  <a href="#s11"><i>11</i><span class="en">Accessibility</span><span class="fa">دسترس‌پذیری</span></a>
+</nav>
+
+<!-- ===================== 1 IDEA ===================== -->
+<section class="sec" id="s1">
+  <div class="sechead"><span class="secnum">01</span><h2><span class="en">The idea</span><span class="fa">ایده</span></h2></div>
+  <p class="note">
+    <span class="en">The person opening this app is 72, has polymyalgia rheumatica, and will open it about 780 mornings in a row. Almanac answers that with the mood of a garden year-book: you are tending something slowly, and it is growing. Everything follows from that one sentence — the paper ground, the ticked-by-hand marks, the vine that grows downward on the Progress chart, and the refusal to use a single clinical blue.</span>
+    <span class="fa">کسی که این برنامه را باز می‌کند ۷۲ ساله است، پلی‌میالژیا روماتیکا دارد و حدود ۷۸۰ صبح پیاپی آن را باز خواهد کرد. آلماناک با حال‌وهوای سالنامهٔ باغ پاسخ می‌دهد: شما آهسته از چیزی مراقبت می‌کنید و آن رشد می‌کند. همه چیز از همین یک جمله می‌آید — زمینهٔ کاغذی، علامت‌های دست‌نویس، ساقه‌ای که در نمودار پیشرفت رو به پایین رشد می‌کند، و پرهیز از هر آبی بیمارستانی.</span>
+  </p>
+  <div class="grid-3">
+    <div class="panel">
+      <h4 class="sub2" style="margin-top:0"><span class="en">Colour philosophy</span><span class="fa">فلسفهٔ رنگ</span><i></i></h4>
+      <p style="margin:0;font-size:var(--fs-caption);color:var(--ink-muted)">
+        <span class="en">Aged paper and garden. Light theme is a warm cream ground with garden green, terracotta and honey. Dark theme is a forest evening under a lamp — mossy, warm, never black. Both themes share one neutral family so the app feels like the same room at a different hour.</span>
+        <span class="fa">کاغذ کهنه و باغ. تم روشن زمینهٔ کرم گرم با سبز باغ، تراکوتا و عسلی است. تم تیره غروب جنگل زیر نور چراغ است — خزه‌ای، گرم، هرگز سیاه. هر دو تم یک خانوادهٔ خنثی دارند تا برنامه مثل همان اتاق در ساعتی دیگر حس شود.</span>
+      </p>
+    </div>
+    <div class="panel">
+      <h4 class="sub2" style="margin-top:0"><span class="en">Shape &amp; elevation</span><span class="fa">فرم و ارتفاع</span><i></i></h4>
+      <p style="margin:0;font-size:var(--fs-caption);color:var(--ink-muted)">
+        <span class="en">Modest radii — 12px cards, 10px buttons, 6px chips. Depth comes from paper tint, 1px rules and generous whitespace. Exactly one subtle shadow level exists, plus a lift used only for the modal sheet.</span>
+        <span class="fa">گردی گوشهٔ ملایم — کارت ۱۲، دکمه ۱۰، چیپ ۶ پیکسل. عمق از رنگ کاغذ، خطوط یک‌پیکسلی و فضای خالی می‌آید. تنها یک سطح سایهٔ ملایم وجود دارد، به‌علاوهٔ یک سایهٔ بلند فقط برای برگهٔ مودال.</span>
+      </p>
+    </div>
+    <div class="panel">
+      <h4 class="sub2" style="margin-top:0"><span class="en">Typographic voice</span><span class="fa">صدای تایپوگرافی</span><i></i></h4>
+      <p style="margin:0;font-size:var(--fs-caption);color:var(--ink-muted)">
+        <span class="en">Fraunces (warm serif) carries dates, headings and every dose number. Source Sans 3 carries body and UI. Vazirmatn carries all Persian. The serif is the system's signature: the number 9mg should look like it was set, not rendered.</span>
+        <span class="fa">فرانسس (سریف گرم) تاریخ‌ها، عنوان‌ها و همهٔ اعداد دوز را حمل می‌کند. سورس‌سنس ۳ متن و رابط را. وزیرمتن همهٔ فارسی را. سریف امضای این سیستم است.</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 2 COLOUR ===================== -->
+<section class="sec" id="s2">
+  <div class="sechead"><span class="secnum">02</span><h2><span class="en">Colour</span><span class="fa">رنگ</span></h2></div>
+  <p class="note">
+    <span class="en">Two themes, one vocabulary. The dark theme redefines nothing but token values — every component rule is written once. Dark surfaces are tinted toward the palette&#39;s own green so the night mode reads as a lamplit room, not a void. Contrast ratios below are measured against the WCAG 2.1 formula; body text targets 4.5:1, large text and UI boundaries target 3:1.</span>
+    <span class="fa">دو تم، یک واژگان. تم تیره فقط مقدار توکن‌ها را بازتعریف می‌کند و هیچ قاعدهٔ اجزایی دوباره نوشته نمی‌شود. سطوح تیره به سمت سبز پالت متمایل‌اند تا شب مثل اتاقی با چراغ دیده شود، نه خلأ. نسبت‌های کنتراست با فرمول WCAG 2.1 اندازه‌گیری شده‌اند؛ متن ۴٫۵:۱ و متن درشت و مرزها ۳:۱.</span>
+  </p>
+
+  <div class="grid-2">
+    <div class="themepanel theme-light">
+      <h5><span class="en">Light — aged paper</span><span class="fa">روشن — کاغذ کهنه</span></h5>
+      <div class="grid-4">
+
+<div class="sw-card"><div class="sw-chip" style="background:#FAF5EA"></div><div class="sw-meta"><b>--bg</b><span class="val">#FAF5EA</span><span><span class="en">Page ground — aged paper / forest evening</span><span class="fa">زمینهٔ صفحه — کاغذ کهنه / غروب جنگل</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#FFFDF7"></div><div class="sw-meta"><b>--surface</b><span class="val">#FFFDF7</span><span><span class="en">Cards, sheets, tab bar</span><span class="fa">کارت‌ها، برگه‌ها، نوار تب</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#F5EEDF"></div><div class="sw-meta"><b>--surface-raised</b><span class="val">#F5EEDF</span><span><span class="en">Secondary panels, chips, hover fill</span><span class="fa">پنل‌های ثانویه، چیپ‌ها، حالت اشاره</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#F2EADA"></div><div class="sw-meta"><b>--surface-sunk</b><span class="val">#F2EADA</span><span><span class="en">Slider tracks, inset wells</span><span class="fa">مسیر اسلایدر، فرورفتگی‌ها</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#2E3A31"></div><div class="sw-meta"><b>--ink</b><span class="val">#2E3A31</span><span><span class="en">Primary text</span><span class="fa">متن اصلی</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#5F6F62"></div><div class="sw-meta"><b>--ink-muted</b><span class="val">#5F6F62</span><span><span class="en">Secondary text — AA at any size</span><span class="fa">متن ثانویه — AA در هر اندازه</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#7A8A7C"></div><div class="sw-meta"><b>--ink-soft</b><span class="val">#7A8A7C</span><span><span class="en">Large text and decoration only</span><span class="fa">فقط متن درشت و تزیین</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#FFFDF7"></div><div class="sw-meta"><b>--ink-inverse</b><span class="val">#FFFDF7</span><span><span class="en">Text on filled dark/light blocks</span><span class="fa">متن روی بلوک‌های پر</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#4F7D5C"></div><div class="sw-meta"><b>--primary</b><span class="val">#4F7D5C</span><span><span class="en">Garden green — primary fill</span><span class="fa">سبز باغ — پرکنندهٔ اصلی</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#446B4F"></div><div class="sw-meta"><b>--primary-hover</b><span class="val">#446B4F</span><span><span class="en">Primary hover</span><span class="fa">اشارهٔ اصلی</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#3A5C44"></div><div class="sw-meta"><b>--primary-pressed</b><span class="val">#3A5C44</span><span><span class="en">Primary pressed</span><span class="fa">فشردهٔ اصلی</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#3F6A4B"></div><div class="sw-meta"><b>--primary-ink</b><span class="val">#3F6A4B</span><span><span class="en">Green used as text on paper</span><span class="fa">سبز به‌عنوان متن روی کاغذ</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#E7EFE4"></div><div class="sw-meta"><b>--primary-soft</b><span class="val">#E7EFE4</span><span><span class="en">Green tint fill</span><span class="fa">پرکنندهٔ سبز کم‌رنگ</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#FFFDF7"></div><div class="sw-meta"><b>--on-primary</b><span class="val">#FFFDF7</span><span><span class="en">Text/icon on --primary</span><span class="fa">متن و آیکون روی رنگ اصلی</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#C9743F"></div><div class="sw-meta"><b>--secondary</b><span class="val">#C9743F</span><span><span class="en">Terracotta — section labels, flares</span><span class="fa">تراکوتا — برچسب بخش، عود</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#A2542A"></div><div class="sw-meta"><b>--secondary-ink</b><span class="val">#A2542A</span><span><span class="en">Terracotta as text</span><span class="fa">تراکوتا به‌عنوان متن</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#F7E9DE"></div><div class="sw-meta"><b>--secondary-soft</b><span class="val">#F7E9DE</span><span><span class="en">Terracotta tint fill</span><span class="fa">پرکنندهٔ تراکوتای کم‌رنگ</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#D9A441"></div><div class="sw-meta"><b>--accent</b><span class="val">#D9A441</span><span><span class="en">Honey — today marker, rules</span><span class="fa">عسلی — نشانهٔ امروز</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#7E6019"></div><div class="sw-meta"><b>--accent-ink</b><span class="val">#7E6019</span><span><span class="en">Honey as text</span><span class="fa">عسلی به‌عنوان متن</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#FBF0D6"></div><div class="sw-meta"><b>--accent-soft</b><span class="val">#FBF0D6</span><span><span class="en">Honey tint fill</span><span class="fa">پرکنندهٔ عسلی کم‌رنگ</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#4F7D5C"></div><div class="sw-meta"><b>--success</b><span class="val">#4F7D5C</span><span><span class="en">Success fill (= primary)</span><span class="fa">موفقیت (همان اصلی)</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#3F6A4B"></div><div class="sw-meta"><b>--success-ink</b><span class="val">#3F6A4B</span><span><span class="en">Success text</span><span class="fa">متن موفقیت</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#D9A441"></div><div class="sw-meta"><b>--warning</b><span class="val">#D9A441</span><span><span class="en">Warning fill (= accent)</span><span class="fa">هشدار (همان عسلی)</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#7E6019"></div><div class="sw-meta"><b>--warning-ink</b><span class="val">#7E6019</span><span><span class="en">Warning text</span><span class="fa">متن هشدار</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#B4553F"></div><div class="sw-meta"><b>--danger</b><span class="val">#B4553F</span><span><span class="en">Destructive fill</span><span class="fa">پرکنندهٔ مخرب</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#9C4630"></div><div class="sw-meta"><b>--danger-ink</b><span class="val">#9C4630</span><span><span class="en">Destructive text</span><span class="fa">متن مخرب</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#F6E2DB"></div><div class="sw-meta"><b>--danger-soft</b><span class="val">#F6E2DB</span><span><span class="en">Destructive tint fill</span><span class="fa">پرکنندهٔ مخرب کم‌رنگ</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#FFFDF7"></div><div class="sw-meta"><b>--on-danger</b><span class="val">#FFFDF7</span><span><span class="en">Text on --danger</span><span class="fa">متن روی رنگ مخرب</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#E2D8C3"></div><div class="sw-meta"><b>--border</b><span class="val">#E2D8C3</span><span><span class="en">Hairline rules — decorative only</span><span class="fa">خطوط مویی — فقط تزیینی</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#8C7F63"></div><div class="sw-meta"><b>--border-strong</b><span class="val">#8C7F63</span><span><span class="en">Interactive boundaries — meets 3:1</span><span class="fa">مرز عناصر تعاملی — ۳:۱</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#7E6019"></div><div class="sw-meta"><b>--focus</b><span class="val">#7E6019</span><span><span class="en">Focus ring, 3px</span><span class="fa">حلقهٔ فوکوس، ۳ پیکسل</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:rgba(46,58,49,.46)"></div><div class="sw-meta"><b>--overlay</b><span class="val">rgba(46,58,49,.46)</span><span><span class="en">Modal scrim</span><span class="fa">پردهٔ مودال</span></span></div></div>
+      </div>
+      <h4 class="sub2"><span class="en">State colours</span><span class="fa">رنگ‌های وضعیت</span><i></i></h4>
+      <div class="grid-4">
+
+<div class="sw-card"><div class="sw-chip" style="background:#3F6A4B"></div><div class="sw-meta"><b>--state-taken</b><span class="val">#3F6A4B</span><span><span class="en">Taken — paired with hand tick + word</span><span class="fa">ثبت‌شده — همراه تیک دستی و کلمه</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#E7EFE4"></div><div class="sw-meta"><b>--state-taken-bg</b><span class="val">#E7EFE4</span><span><span class="en">Taken row fill</span><span class="fa">پس‌زمینهٔ ردیف ثبت‌شده</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#566659"></div><div class="sw-meta"><b>--state-missed</b><span class="val">#566659</span><span><span class="en">Not ticked — paired with open square</span><span class="fa">ثبت‌نشده — همراه مربع باز</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#F2EADA"></div><div class="sw-meta"><b>--state-missed-bg</b><span class="val">#F2EADA</span><span><span class="en">Not-ticked row fill</span><span class="fa">پس‌زمینهٔ ردیف ثبت‌نشده</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#7E6019"></div><div class="sw-meta"><b>--state-today</b><span class="val">#7E6019</span><span><span class="en">Today — paired with 4px rule + chip</span><span class="fa">امروز — همراه خط ۴ پیکسلی و چیپ</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#FBF0D6"></div><div class="sw-meta"><b>--state-today-bg</b><span class="val">#FBF0D6</span><span><span class="en">Today row fill</span><span class="fa">پس‌زمینهٔ ردیف امروز</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#A2542A"></div><div class="sw-meta"><b>--state-newdose</b><span class="val">#A2542A</span><span><span class="en">New-dose day — paired with sprout icon</span><span class="fa">روز دوز جدید — همراه آیکون جوانه</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#F7E9DE"></div><div class="sw-meta"><b>--state-newdose-bg</b><span class="val">#F7E9DE</span><span><span class="en">New-dose badge fill</span><span class="fa">پس‌زمینهٔ نشان دوز جدید</span></span></div></div>
+      </div>
+    </div>
+
+    <div class="themepanel theme-dark">
+      <h5><span class="en">Dark — forest evening</span><span class="fa">تیره — غروب جنگل</span></h5>
+      <div class="grid-4">
+
+<div class="sw-card"><div class="sw-chip" style="background:#1A211C"></div><div class="sw-meta"><b>--bg</b><span class="val">#1A211C</span><span><span class="en">Page ground — aged paper / forest evening</span><span class="fa">زمینهٔ صفحه — کاغذ کهنه / غروب جنگل</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#232B25"></div><div class="sw-meta"><b>--surface</b><span class="val">#232B25</span><span><span class="en">Cards, sheets, tab bar</span><span class="fa">کارت‌ها، برگه‌ها، نوار تب</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#2C352E"></div><div class="sw-meta"><b>--surface-raised</b><span class="val">#2C352E</span><span><span class="en">Secondary panels, chips, hover fill</span><span class="fa">پنل‌های ثانویه، چیپ‌ها، حالت اشاره</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#151B17"></div><div class="sw-meta"><b>--surface-sunk</b><span class="val">#151B17</span><span><span class="en">Slider tracks, inset wells</span><span class="fa">مسیر اسلایدر، فرورفتگی‌ها</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#EDE6D6"></div><div class="sw-meta"><b>--ink</b><span class="val">#EDE6D6</span><span><span class="en">Primary text</span><span class="fa">متن اصلی</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#A8B3A5"></div><div class="sw-meta"><b>--ink-muted</b><span class="val">#A8B3A5</span><span><span class="en">Secondary text — AA at any size</span><span class="fa">متن ثانویه — AA در هر اندازه</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#8B968A"></div><div class="sw-meta"><b>--ink-soft</b><span class="val">#8B968A</span><span><span class="en">Large text and decoration only</span><span class="fa">فقط متن درشت و تزیین</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#16211A"></div><div class="sw-meta"><b>--ink-inverse</b><span class="val">#16211A</span><span><span class="en">Text on filled dark/light blocks</span><span class="fa">متن روی بلوک‌های پر</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#7FB08C"></div><div class="sw-meta"><b>--primary</b><span class="val">#7FB08C</span><span><span class="en">Garden green — primary fill</span><span class="fa">سبز باغ — پرکنندهٔ اصلی</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#93C29F"></div><div class="sw-meta"><b>--primary-hover</b><span class="val">#93C29F</span><span><span class="en">Primary hover</span><span class="fa">اشارهٔ اصلی</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#A6D0B1"></div><div class="sw-meta"><b>--primary-pressed</b><span class="val">#A6D0B1</span><span><span class="en">Primary pressed</span><span class="fa">فشردهٔ اصلی</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#93C29F"></div><div class="sw-meta"><b>--primary-ink</b><span class="val">#93C29F</span><span><span class="en">Green used as text on paper</span><span class="fa">سبز به‌عنوان متن روی کاغذ</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#26332A"></div><div class="sw-meta"><b>--primary-soft</b><span class="val">#26332A</span><span><span class="en">Green tint fill</span><span class="fa">پرکنندهٔ سبز کم‌رنگ</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#16211A"></div><div class="sw-meta"><b>--on-primary</b><span class="val">#16211A</span><span><span class="en">Text/icon on --primary</span><span class="fa">متن و آیکون روی رنگ اصلی</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#E0925F"></div><div class="sw-meta"><b>--secondary</b><span class="val">#E0925F</span><span><span class="en">Terracotta — section labels, flares</span><span class="fa">تراکوتا — برچسب بخش، عود</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#E8A87C"></div><div class="sw-meta"><b>--secondary-ink</b><span class="val">#E8A87C</span><span><span class="en">Terracotta as text</span><span class="fa">تراکوتا به‌عنوان متن</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#33261D"></div><div class="sw-meta"><b>--secondary-soft</b><span class="val">#33261D</span><span><span class="en">Terracotta tint fill</span><span class="fa">پرکنندهٔ تراکوتای کم‌رنگ</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#E8C06B"></div><div class="sw-meta"><b>--accent</b><span class="val">#E8C06B</span><span><span class="en">Honey — today marker, rules</span><span class="fa">عسلی — نشانهٔ امروز</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#EFCF8B"></div><div class="sw-meta"><b>--accent-ink</b><span class="val">#EFCF8B</span><span><span class="en">Honey as text</span><span class="fa">عسلی به‌عنوان متن</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#332E20"></div><div class="sw-meta"><b>--accent-soft</b><span class="val">#332E20</span><span><span class="en">Honey tint fill</span><span class="fa">پرکنندهٔ عسلی کم‌رنگ</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#7FB08C"></div><div class="sw-meta"><b>--success</b><span class="val">#7FB08C</span><span><span class="en">Success fill (= primary)</span><span class="fa">موفقیت (همان اصلی)</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#93C29F"></div><div class="sw-meta"><b>--success-ink</b><span class="val">#93C29F</span><span><span class="en">Success text</span><span class="fa">متن موفقیت</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#E8C06B"></div><div class="sw-meta"><b>--warning</b><span class="val">#E8C06B</span><span><span class="en">Warning fill (= accent)</span><span class="fa">هشدار (همان عسلی)</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#EFCF8B"></div><div class="sw-meta"><b>--warning-ink</b><span class="val">#EFCF8B</span><span><span class="en">Warning text</span><span class="fa">متن هشدار</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#E08A72"></div><div class="sw-meta"><b>--danger</b><span class="val">#E08A72</span><span><span class="en">Destructive fill</span><span class="fa">پرکنندهٔ مخرب</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#E8A08A"></div><div class="sw-meta"><b>--danger-ink</b><span class="val">#E8A08A</span><span><span class="en">Destructive text</span><span class="fa">متن مخرب</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#35231E"></div><div class="sw-meta"><b>--danger-soft</b><span class="val">#35231E</span><span><span class="en">Destructive tint fill</span><span class="fa">پرکنندهٔ مخرب کم‌رنگ</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#16211A"></div><div class="sw-meta"><b>--on-danger</b><span class="val">#16211A</span><span><span class="en">Text on --danger</span><span class="fa">متن روی رنگ مخرب</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#38423A"></div><div class="sw-meta"><b>--border</b><span class="val">#38423A</span><span><span class="en">Hairline rules — decorative only</span><span class="fa">خطوط مویی — فقط تزیینی</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#6B7A6D"></div><div class="sw-meta"><b>--border-strong</b><span class="val">#6B7A6D</span><span><span class="en">Interactive boundaries — meets 3:1</span><span class="fa">مرز عناصر تعاملی — ۳:۱</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#E8C06B"></div><div class="sw-meta"><b>--focus</b><span class="val">#E8C06B</span><span><span class="en">Focus ring, 3px</span><span class="fa">حلقهٔ فوکوس، ۳ پیکسل</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:rgba(10,14,11,.62)"></div><div class="sw-meta"><b>--overlay</b><span class="val">rgba(10,14,11,.62)</span><span><span class="en">Modal scrim</span><span class="fa">پردهٔ مودال</span></span></div></div>
+      </div>
+      <h4 class="sub2"><span class="en">State colours</span><span class="fa">رنگ‌های وضعیت</span><i></i></h4>
+      <div class="grid-4">
+
+<div class="sw-card"><div class="sw-chip" style="background:#93C29F"></div><div class="sw-meta"><b>--state-taken</b><span class="val">#93C29F</span><span><span class="en">Taken — paired with hand tick + word</span><span class="fa">ثبت‌شده — همراه تیک دستی و کلمه</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#26332A"></div><div class="sw-meta"><b>--state-taken-bg</b><span class="val">#26332A</span><span><span class="en">Taken row fill</span><span class="fa">پس‌زمینهٔ ردیف ثبت‌شده</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#A8B3A5"></div><div class="sw-meta"><b>--state-missed</b><span class="val">#A8B3A5</span><span><span class="en">Not ticked — paired with open square</span><span class="fa">ثبت‌نشده — همراه مربع باز</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#2C352E"></div><div class="sw-meta"><b>--state-missed-bg</b><span class="val">#2C352E</span><span><span class="en">Not-ticked row fill</span><span class="fa">پس‌زمینهٔ ردیف ثبت‌نشده</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#EFCF8B"></div><div class="sw-meta"><b>--state-today</b><span class="val">#EFCF8B</span><span><span class="en">Today — paired with 4px rule + chip</span><span class="fa">امروز — همراه خط ۴ پیکسلی و چیپ</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#332E20"></div><div class="sw-meta"><b>--state-today-bg</b><span class="val">#332E20</span><span><span class="en">Today row fill</span><span class="fa">پس‌زمینهٔ ردیف امروز</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#E8A87C"></div><div class="sw-meta"><b>--state-newdose</b><span class="val">#E8A87C</span><span><span class="en">New-dose day — paired with sprout icon</span><span class="fa">روز دوز جدید — همراه آیکون جوانه</span></span></div></div>
+<div class="sw-card"><div class="sw-chip" style="background:#33261D"></div><div class="sw-meta"><b>--state-newdose-bg</b><span class="val">#33261D</span><span><span class="en">New-dose badge fill</span><span class="fa">پس‌زمینهٔ نشان دوز جدید</span></span></div></div>
+      </div>
+    </div>
+  </div>
+
+<h3 class="sub"><span class="en">Measured contrast — light theme</span><span class="fa">کنتراست اندازه‌گیری‌شده — تم روشن</span></h3>
+<div class="scroll-x"><table class="t"><thead><tr>
+<th><span class="en">Foreground</span><span class="fa">پیش‌زمینه</span></th>
+<th><span class="en">Background</span><span class="fa">پس‌زمینه</span></th>
+<th><span class="en">Measured</span><span class="fa">اندازه‌گیری</span></th>
+<th><span class="en">Required</span><span class="fa">لازم</span></th>
+<th><span class="en">Result</span><span class="fa">نتیجه</span></th></tr></thead><tbody>
+<tr><td class="tok">--ink</td><td class="tok">--bg</td><td><b>10.9:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--ink</td><td class="tok">--surface</td><td><b>11.7:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--ink</td><td class="tok">--surface-raised</td><td><b>10.3:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--ink-muted</td><td class="tok">--bg</td><td><b>4.9:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+<tr><td class="tok">--ink-muted</td><td class="tok">--surface</td><td><b>5.3:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+<tr><td class="tok">--ink-soft</td><td class="tok">--bg</td><td><b>3.4:1</b></td><td class="val">3:1 (large only)</td><td class="pass">&#10003; AA Large</td></tr>
+<tr><td class="tok">--primary-ink</td><td class="tok">--bg</td><td><b>5.7:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+<tr><td class="tok">--on-primary</td><td class="tok">--primary</td><td><b>4.7:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+<tr><td class="tok">--secondary-ink</td><td class="tok">--bg</td><td><b>5.0:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+<tr><td class="tok">--accent-ink</td><td class="tok">--bg</td><td><b>5.4:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+<tr><td class="tok">--accent-ink</td><td class="tok">--accent-soft</td><td><b>5.2:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+<tr><td class="tok">--danger-ink</td><td class="tok">--bg</td><td><b>5.8:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+<tr><td class="tok">--on-danger</td><td class="tok">--danger</td><td><b>4.8:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+<tr><td class="tok">--state-taken</td><td class="tok">--state-taken-bg</td><td><b>5.3:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+<tr><td class="tok">--state-missed</td><td class="tok">--state-missed-bg</td><td><b>5.1:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+<tr><td class="tok">--state-today</td><td class="tok">--state-today-bg</td><td><b>5.2:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+<tr><td class="tok">--state-newdose</td><td class="tok">--state-newdose-bg</td><td><b>4.6:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+<tr><td class="tok">--border-strong</td><td class="tok">--bg</td><td><b>3.6:1</b></td><td class="val">3:1 (UI)</td><td class="pass">&#10003; AA</td></tr>
+<tr><td class="tok">--border</td><td class="tok">--bg</td><td><b>1.3:1</b></td><td class="val">decorative</td><td class="val">decorative rule only</td></tr>
+</tbody></table></div>
+<h3 class="sub"><span class="en">Measured contrast — dark theme</span><span class="fa">کنتراست اندازه‌گیری‌شده — تم تیره</span></h3>
+<div class="scroll-x"><table class="t"><thead><tr>
+<th><span class="en">Foreground</span><span class="fa">پیش‌زمینه</span></th>
+<th><span class="en">Background</span><span class="fa">پس‌زمینه</span></th>
+<th><span class="en">Measured</span><span class="fa">اندازه‌گیری</span></th>
+<th><span class="en">Required</span><span class="fa">لازم</span></th>
+<th><span class="en">Result</span><span class="fa">نتیجه</span></th></tr></thead><tbody>
+<tr><td class="tok">--ink</td><td class="tok">--bg</td><td><b>13.2:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--ink</td><td class="tok">--surface</td><td><b>11.7:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--ink</td><td class="tok">--surface-raised</td><td><b>10.2:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--ink-muted</td><td class="tok">--bg</td><td><b>7.5:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--ink-muted</td><td class="tok">--surface</td><td><b>6.7:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--ink-soft</td><td class="tok">--bg</td><td><b>5.3:1</b></td><td class="val">3:1 (large only)</td><td class="pass">&#10003; AA</td></tr>
+<tr><td class="tok">--primary-ink</td><td class="tok">--bg</td><td><b>6.6:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--on-primary</td><td class="tok">--primary</td><td><b>7.0:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--secondary-ink</td><td class="tok">--bg</td><td><b>6.6:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--accent-ink</td><td class="tok">--bg</td><td><b>9.5:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--accent-ink</td><td class="tok">--accent-soft</td><td><b>9.0:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--danger-ink</td><td class="tok">--bg</td><td><b>6.3:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--on-danger</td><td class="tok">--danger</td><td><b>6.6:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--state-taken</td><td class="tok">--state-taken-bg</td><td><b>6.6:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--state-missed</td><td class="tok">--state-missed-bg</td><td><b>5.8:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+<tr><td class="tok">--state-today</td><td class="tok">--state-today-bg</td><td><b>9.0:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--state-newdose</td><td class="tok">--state-newdose-bg</td><td><b>7.2:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA / AAA</td></tr>
+<tr><td class="tok">--border-strong</td><td class="tok">--bg</td><td><b>3.6:1</b></td><td class="val">3:1 (UI)</td><td class="pass">&#10003; AA</td></tr>
+<tr><td class="tok">--border</td><td class="tok">--bg</td><td><b>1.6:1</b></td><td class="val">decorative</td><td class="val">decorative rule only</td></tr>
+</tbody></table></div>
+
+  <div class="banner banner-info" style="margin-top:24px">
+    <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>
+    <div class="txt">
+      <b><span class="en">Rule: state is never carried by colour alone.</span><span class="fa">قاعده: وضعیت هرگز فقط با رنگ منتقل نمی‌شود.</span></b><br>
+      <span class="en">Taken = hand tick + the word. Not ticked = open square + the word. Today = 4px inline-start rule + chip + sun icon. New-dose day = sprout icon + the words. Remove all colour and every state is still readable.</span>
+      <span class="fa">ثبت‌شده = تیک دستی + کلمه. ثبت‌نشده = مربع باز + کلمه. امروز = خط ۴ پیکسلی + چیپ + آیکون خورشید. روز دوز جدید = آیکون جوانه + کلمه. رنگ را حذف کنید، همهٔ وضعیت‌ها هنوز خوانا هستند.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 3 TYPOGRAPHY ===================== -->
+<section class="sec" id="s3">
+  <div class="sechead"><span class="secnum">03</span><h2><span class="en">Typography</span><span class="fa">تایپوگرافی</span></h2></div>
+  <p class="note">
+    <span class="en">An editorial pairing: <b>Fraunces</b> (warm serif) for dates, headings and every dose number; <b>Source Sans 3</b> (humanist sans) for body and UI; <b>Vazirmatn</b> for all Persian, in both roles. Body copy never drops below 17px and no text anywhere is below 13px. Each specimen below is shown in English and Persian at the same size so the Persian face can be judged directly.</span>
+    <span class="fa">جفت‌سازی نشریه‌ای: <b>Fraunces</b> برای تاریخ‌ها، عنوان‌ها و همهٔ اعداد دوز؛ <b>Source Sans 3</b> برای متن و رابط؛ <b>Vazirmatn</b> برای همهٔ فارسی در هر دو نقش. متن اصلی هرگز زیر ۱۷ پیکسل نمی‌رود و هیچ متنی زیر ۱۳ پیکسل نیست.</span>
+  </p>
+
+  <div class="banner banner-good" style="margin-bottom:24px">
+    <svg class="ic" aria-hidden="true"><use href="#i-leaf"/></svg>
+    <div class="txt">
+      <b><span class="en">Persian line-height adjustment</span><span class="fa">تنظیم ارتفاع خط فارسی</span></b><br>
+      <span class="en">Vazirmatn&#39;s ascenders, descenders and diacritics need more room than the Latin faces. When <code class="val">[data-lang="fa"]</code> is set, every line-height token is raised by roughly +0.15–0.20 (body 1.55 → 1.75, heading 1.30 → 1.45, title 1.18 → 1.34) and letter-spacing tokens are reset to 0 — Persian is never letter-spaced or uppercased.</span>
+      <span class="fa">وزیرمتن به فضای بیشتری نیاز دارد. با تنظیم <code class="val">[data-lang="fa"]</code> همهٔ توکن‌های ارتفاع خط حدود ۰٫۱۵ تا ۰٫۲۰ بالا می‌روند (متن ۱٫۵۵ به ۱٫۷۵، عنوان ۱٫۳۰ به ۱٫۴۵، تیتر ۱٫۱۸ به ۱٫۳۴) و فاصلهٔ حروف صفر می‌شود — فارسی هرگز فاصله‌دار یا بزرگ‌نویسی نمی‌شود.</span>
+    </div>
+  </div>
+
+  <div class="spec">
+    <div>
+      <div dir="ltr" style="font-family:'Fraunces','Lora',Georgia,serif;font-weight:600;font-size:78px;line-height:.95;letter-spacing:-.02em;color:var(--primary-ink)">9mg</div>
+      <div dir="rtl" lang="fa" style="font-family:'Vazirmatn',Tahoma,sans-serif;font-weight:600;font-size:78px;line-height:1.12;color:var(--primary-ink)">۹</div>
+    </div>
+    <div class="spec-meta">
+      <b>--fs-hero / --lh-hero</b>
+      <code>78px · Fraunces 600 · 0.95 · -0.02em</code>
+      <code>fa: Vazirmatn 600 · 1.12</code>
+      <span class="en">Today&#39;s dose only. One per screen, ever.</span><span class="fa">فقط دوز امروز. در هر صفحه یک بار.</span>
+    </div>
+  </div>
+
+  <div class="spec">
+    <div>
+      <div dir="ltr" style="font-family:'Fraunces','Lora',Georgia,serif;font-weight:600;font-size:56px;line-height:1.02;letter-spacing:-.02em">581 days</div>
+      <div dir="rtl" lang="fa" style="font-family:'Vazirmatn',Tahoma,sans-serif;font-weight:600;font-size:56px;line-height:1.2">۵۸۱ روز</div>
+    </div>
+    <div class="spec-meta">
+      <b>--fs-display / --lh-display</b>
+      <code>56px · Fraunces 600 · 1.02 · -0.02em</code>
+      <code>fa: Vazirmatn 600 · 1.20</code>
+      <span class="en">Progress statistics, empty-state numbers.</span><span class="fa">آمار پیشرفت، اعداد حالت خالی.</span>
+    </div>
+  </div>
+
+  <div class="spec">
+    <div>
+      <div dir="ltr" style="font-family:'Fraunces','Lora',Georgia,serif;font-weight:600;font-size:30px;line-height:1.18;letter-spacing:-.02em">Wednesday 16 April</div>
+      <div dir="rtl" lang="fa" style="font-family:'Vazirmatn',Tahoma,sans-serif;font-weight:600;font-size:30px;line-height:1.34">چهارشنبه ۲۷ فروردین</div>
+    </div>
+    <div class="spec-meta">
+      <b>--fs-title / --lh-title</b>
+      <code>30px · Fraunces 600 · 1.18 · -0.02em</code>
+      <code>fa: Vazirmatn 600 · 1.34</code>
+      <span class="en">Screen titles and the date line.</span><span class="fa">عنوان صفحه و خط تاریخ.</span>
+    </div>
+  </div>
+
+  <div class="spec">
+    <div>
+      <div dir="ltr" style="font-family:'Fraunces','Lora',Georgia,serif;font-weight:600;font-size:23px;line-height:1.3;letter-spacing:-.01em">One day at 9mg, then 4 days at 10mg</div>
+      <div dir="rtl" lang="fa" style="font-family:'Vazirmatn',Tahoma,sans-serif;font-weight:600;font-size:23px;line-height:1.45">یک روز ۹ میلی‌گرم، سپس ۴ روز ۱۰ میلی‌گرم</div>
+    </div>
+    <div class="spec-meta">
+      <b>--fs-heading / --lh-heading</b>
+      <code>23px · Fraunces 600 · 1.30 · -0.01em</code>
+      <code>fa: Vazirmatn 600 · 1.45</code>
+      <span class="en">Block descriptions, card headings.</span><span class="fa">توضیح مرحله‌ها، عنوان کارت.</span>
+    </div>
+  </div>
+
+  <div class="spec">
+    <div>
+      <div dir="ltr" style="font-family:'Source Sans 3',system-ui,sans-serif;font-weight:400;font-size:20px;line-height:1.5">1 × 5mg · 4 × 1mg</div>
+      <div dir="rtl" lang="fa" style="font-family:'Vazirmatn',Tahoma,sans-serif;font-weight:400;font-size:20px;line-height:1.7">۱ عدد ۵ میلی‌گرمی · ۴ عدد ۱ میلی‌گرمی</div>
+    </div>
+    <div class="spec-meta">
+      <b>--fs-body-lg / --lh-body-lg</b>
+      <code>20px · Source Sans 3 400 · 1.50 · 0</code>
+      <code>fa: Vazirmatn 400 · 1.70</code>
+      <span class="en">Tablet breakdown, primary button labels.</span><span class="fa">تفکیک قرص‌ها، برچسب دکمهٔ اصلی.</span>
+    </div>
+  </div>
+
+  <div class="spec">
+    <div>
+      <div dir="ltr" style="font-family:'Source Sans 3',system-ui,sans-serif;font-weight:400;font-size:17px;line-height:1.55;max-width:52ch">NearlyStop arranges the plan you and your doctor agreed. It does not give medical advice. Always follow your doctor&#39;s instructions.</div>
+      <div dir="rtl" lang="fa" style="font-family:'Vazirmatn',Tahoma,sans-serif;font-weight:400;font-size:17px;line-height:1.75;max-width:52ch;margin-top:12px">NearlyStop فقط طرحی را که شما و پزشکتان توافق کرده‌اید مرتب می‌کند و توصیهٔ پزشکی نیست. همیشه از دستور پزشک خود پیروی کنید.</div>
+    </div>
+    <div class="spec-meta">
+      <b>--fs-body / --lh-body</b>
+      <code>17px · Source Sans 3 400 · 1.55 · 0</code>
+      <code>fa: Vazirmatn 400 · 1.75</code>
+      <span class="en">The floor for reading copy. Never smaller.</span><span class="fa">کف اندازهٔ متن خواندنی. هرگز کوچک‌تر.</span>
+    </div>
+  </div>
+
+  <div class="spec">
+    <div>
+      <div dir="ltr" style="font-family:'Source Sans 3',system-ui,sans-serif;font-weight:700;font-size:16px;line-height:1.35;letter-spacing:.01em">Daily reminder</div>
+      <div dir="rtl" lang="fa" style="font-family:'Vazirmatn',Tahoma,sans-serif;font-weight:700;font-size:16px;line-height:1.55">یادآور روزانه</div>
+    </div>
+    <div class="spec-meta">
+      <b>--fs-label / --lh-label</b>
+      <code>16px · Source Sans 3 700 · 1.35 · +0.01em</code>
+      <code>fa: Vazirmatn 700 · 1.55 · 0</code>
+      <span class="en">Form labels, list row titles, toggles.</span><span class="fa">برچسب فرم، عنوان ردیف، کلیدها.</span>
+    </div>
+  </div>
+
+  <div class="spec">
+    <div>
+      <div dir="ltr" style="font-family:'Source Sans 3',system-ui,sans-serif;font-weight:500;font-size:15px;line-height:1.4;color:var(--ink-muted)">Step 3 of 15 · 10mg → 9mg · Day 14 of 52</div>
+      <div dir="rtl" lang="fa" style="font-family:'Vazirmatn',Tahoma,sans-serif;font-weight:500;font-size:15px;line-height:1.6;color:var(--ink-muted)">گام ۳ از ۱۵ · ۱۰ به ۹ میلی‌گرم · روز ۱۴ از ۵۲</div>
+      <div dir="ltr" style="font-family:'Source Sans 3',system-ui,sans-serif;font-weight:700;font-size:15px;line-height:1.4;letter-spacing:.10em;text-transform:uppercase;color:var(--secondary-ink);margin-top:10px">Block 3 of 11</div>
+      <div dir="rtl" lang="fa" style="font-family:'Vazirmatn',Tahoma,sans-serif;font-weight:700;font-size:15px;line-height:1.6;color:var(--secondary-ink)">مرحله ۳ از ۱۱</div>
+    </div>
+    <div class="spec-meta">
+      <b>--fs-caption / --lh-caption</b>
+      <code>15px · Source Sans 3 500 · 1.40 · 0</code>
+      <code>almanac label variant: 700 · uppercase · +0.10em (--ls-caps)</code>
+      <code>fa: Vazirmatn 700 · 1.60 · 0 · no uppercase</code>
+      <span class="en">Context lines and seed-packet section labels.</span><span class="fa">خط‌های زمینه و برچسب‌های بخش.</span>
+    </div>
+  </div>
+
+  <div class="spec" style="border-block-end:0">
+    <div>
+      <div dir="ltr" style="font-family:'Source Sans 3',system-ui,sans-serif;font-weight:600;font-size:14px;line-height:1.2">Schedule</div>
+      <div dir="ltr" style="font-family:'Source Sans 3',system-ui,sans-serif;font-weight:500;font-size:13px;line-height:1.2;color:var(--ink-muted);margin-top:6px">Sep 2024 &nbsp; · &nbsp; 15 &nbsp; 13 &nbsp; 11 &nbsp; 9</div>
+      <div dir="rtl" lang="fa" style="font-family:'Vazirmatn',Tahoma,sans-serif;font-weight:500;font-size:13px;line-height:1.5;color:var(--ink-muted);margin-top:6px">شهریور ۱۴۰۳ · ۱۵ ۱۳ ۱۱ ۹</div>
+    </div>
+    <div class="spec-meta">
+      <b>--fs-nav 14px · --fs-micro 13px</b>
+      <code>nav: tab-bar labels only, always beside a 25px icon</code>
+      <code>micro: chart axis labels and legends only</code>
+      <span class="en">The only two sizes below the 15px floor, and neither ever carries information that is not repeated elsewhere.</span>
+      <span class="fa">تنها دو اندازهٔ زیر ۱۵ پیکسل؛ هیچ‌کدام اطلاعاتی را حمل نمی‌کنند که جای دیگری تکرار نشده باشد.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4 SPACING ===================== -->
+<section class="sec" id="s4">
+  <div class="sechead"><span class="secnum">04</span><h2><span class="en">Spacing</span><span class="fa">فاصله‌گذاری</span></h2></div>
+  <p class="note">
+    <span class="en">A 4px base with 8px steps above 16px. Almanac spends space rather than shadow: card padding is <code class="val">--sp-5</code>, screen gutters are <code class="val">--sp-5</code>, and vertical rhythm between blocks is <code class="val">--sp-4</code> or larger. Always apply through logical properties — <code class="val">padding-inline</code>, <code class="val">margin-block-end</code> — never left/right.</span>
+    <span class="fa">پایهٔ ۴ پیکسل و گام‌های ۸ پیکسلی بالای ۱۶. آلماناک به‌جای سایه، فضا خرج می‌کند: حاشیهٔ داخلی کارت <code class="val">--sp-5</code>، حاشیهٔ صفحه <code class="val">--sp-5</code> و ریتم عمودی <code class="val">--sp-4</code> یا بیشتر. همیشه با ویژگی‌های منطقی اعمال می‌شود، نه چپ و راست.</span>
+  </p>
+  <div class="panel">
+    <div class="ruler">
+      <div class="r"><span class="bar" style="width:4px"></span><span class="tok">--sp-1</span><span class="val">4px</span><span class="spec-meta"><span class="en">icon-to-text hairline gap</span><span class="fa">فاصلهٔ مویی آیکون تا متن</span></span></div>
+      <div class="r"><span class="bar" style="width:8px"></span><span class="tok">--sp-2</span><span class="val">8px</span><span class="spec-meta"><span class="en">inside chips and badges</span><span class="fa">داخل چیپ‌ها و نشان‌ها</span></span></div>
+      <div class="r"><span class="bar" style="width:12px"></span><span class="tok">--sp-3</span><span class="val">12px</span><span class="spec-meta"><span class="en">icon gap in buttons, row gaps</span><span class="fa">فاصلهٔ آیکون در دکمه‌ها</span></span></div>
+      <div class="r"><span class="bar" style="width:16px"></span><span class="tok">--sp-4</span><span class="val">16px</span><span class="spec-meta"><span class="en">stack rhythm, list row padding</span><span class="fa">ریتم پشته، حاشیهٔ ردیف</span></span></div>
+      <div class="r"><span class="bar" style="width:20px"></span><span class="tok">--sp-5</span><span class="val">20px</span><span class="spec-meta"><span class="en">card padding, screen gutter</span><span class="fa">حاشیهٔ کارت و صفحه</span></span></div>
+      <div class="r"><span class="bar" style="width:24px"></span><span class="tok">--sp-6</span><span class="val">24px</span><span class="spec-meta"><span class="en">between unrelated groups</span><span class="fa">میان گروه‌های نامرتبط</span></span></div>
+      <div class="r"><span class="bar" style="width:32px"></span><span class="tok">--sp-8</span><span class="val">32px</span><span class="spec-meta"><span class="en">section separation</span><span class="fa">جدایی بخش‌ها</span></span></div>
+      <div class="r"><span class="bar" style="width:40px"></span><span class="tok">--sp-10</span><span class="val">40px</span><span class="spec-meta"><span class="en">above a screen&#39;s primary action</span><span class="fa">بالای کنش اصلی صفحه</span></span></div>
+      <div class="r"><span class="bar" style="width:48px"></span><span class="tok">--sp-12</span><span class="val">48px</span><span class="spec-meta"><span class="en">modal top padding</span><span class="fa">حاشیهٔ بالای مودال</span></span></div>
+      <div class="r"><span class="bar" style="width:64px"></span><span class="tok">--sp-16</span><span class="val">64px</span><span class="spec-meta"><span class="en">empty-state breathing room</span><span class="fa">فضای تنفس حالت خالی</span></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 5 RADII ===================== -->
+<section class="sec" id="s5">
+  <div class="sechead"><span class="secnum">05</span><h2><span class="en">Radii</span><span class="fa">گردی گوشه‌ها</span></h2></div>
+  <p class="note">
+    <span class="en">Modest and printerly. Nothing is a pill except the switch knob and the tab indicator; the shape language stays close to a page rather than a bubble. Sheets are the one place a larger radius appears, and only on the two leading corners.</span>
+    <span class="fa">ملایم و چاپی. هیچ چیز کاملاً قرصی‌شکل نیست جز دستهٔ کلید و نشانگر تب؛ زبان فرم به صفحهٔ کاغذ نزدیک می‌ماند تا حباب. برگه‌ها تنها جایی هستند که گردی بزرگ‌تر می‌آید، آن هم فقط در دو گوشهٔ بالا.</span>
+  </p>
+  <div class="grid-4">
+    <div><div class="radbox" style="border-radius:4px">4px</div><div class="spec-meta" style="margin-top:8px"><b>--r-xs</b><span class="en">focus ring, tick marks</span><span class="fa">حلقهٔ فوکوس</span></div></div>
+    <div><div class="radbox" style="border-radius:6px">6px</div><div class="spec-meta" style="margin-top:8px"><b>--r-sm</b><span class="en">chips, badges</span><span class="fa">چیپ و نشان</span></div></div>
+    <div><div class="radbox" style="border-radius:10px">10px</div><div class="spec-meta" style="margin-top:8px"><b>--r-md</b><span class="en">buttons, inputs, segmented</span><span class="fa">دکمه، ورودی، بخش‌بندی</span></div></div>
+    <div><div class="radbox" style="border-radius:12px">12px</div><div class="spec-meta" style="margin-top:8px"><b>--r-lg</b><span class="en">cards, banners, panels</span><span class="fa">کارت، بنر، پنل</span></div></div>
+    <div><div class="radbox" style="border-start-start-radius:20px;border-start-end-radius:20px">20px</div><div class="spec-meta" style="margin-top:8px"><b>--r-xl</b><span class="en">sheets — leading corners only</span><span class="fa">برگه — فقط گوشه‌های بالا</span></div></div>
+    <div><div class="radbox" style="border-radius:999px">999px</div><div class="spec-meta" style="margin-top:8px"><b>--r-full</b><span class="en">switch knob, tab indicator</span><span class="fa">دستهٔ کلید، نشانگر تب</span></div></div>
+  </div>
+</section>
+
+<!-- ===================== 6 ELEVATION ===================== -->
+<section class="sec" id="s6">
+  <div class="sechead"><span class="secnum">06</span><h2><span class="en">Elevation</span><span class="fa">ارتفاع</span></h2></div>
+  <p class="note">
+    <span class="en">Almanac is almost flat. Depth is made of paper tint (<code class="val">--surface</code> above <code class="val">--bg</code>), a 1px <code class="val">--border</code> rule, and whitespace. There is exactly one working shadow, used sparingly on the dose card, and one lift reserved for the modal sheet — nothing else in the app may cast a shadow.</span>
+    <span class="fa">آلماناک تقریباً تخت است. عمق از رنگ کاغذ، خط یک‌پیکسلی و فضای خالی ساخته می‌شود. دقیقاً یک سایهٔ کاری وجود دارد که کم‌استفاده روی کارت دوز می‌آید و یک سایهٔ بلند فقط برای برگهٔ مودال — هیچ عنصر دیگری اجازهٔ سایه ندارد.</span>
+  </p>
+  <div class="grid-3">
+    <div>
+      <div class="elev" style="box-shadow:none">
+        <b><span class="en">Level 0 — the default</span><span class="fa">سطح ۰ — پیش‌فرض</span></b>
+        <p style="margin:8px 0 0;font-size:var(--fs-caption);color:var(--ink-muted)"><span class="en">Paper tint plus a 1px rule. Used by every card, list row, panel and banner.</span><span class="fa">رنگ کاغذ به‌علاوهٔ خط یک‌پیکسلی. برای همهٔ کارت‌ها، ردیف‌ها و بنرها.</span></p>
+      </div>
+      <div class="spec-meta" style="margin-top:8px"><b>--shadow-0</b><code>none</code></div>
+    </div>
+    <div>
+      <div class="elev" style="box-shadow:var(--shadow-1)">
+        <b><span class="en">Level 1 — the dose card</span><span class="fa">سطح ۱ — کارت دوز</span></b>
+        <p style="margin:8px 0 0;font-size:var(--fs-caption);color:var(--ink-muted)"><span class="en">Barely there. It exists only so the single most important card on Today lifts a millimetre off the page.</span><span class="fa">به‌سختی دیده می‌شود. فقط برای اینکه مهم‌ترین کارت صفحهٔ امروز یک میلی‌متر بالا بیاید.</span></p>
+      </div>
+      <div class="spec-meta" style="margin-top:8px"><b>--shadow-1</b><code>0 1px 2px rgba(46,58,49,.06), 0 2px 10px rgba(46,58,49,.05)</code><code>dark: 0 1px 2px rgba(0,0,0,.30), 0 2px 10px rgba(0,0,0,.24)</code></div>
+    </div>
+    <div>
+      <div class="elev" style="box-shadow:var(--shadow-lift)">
+        <b><span class="en">Lift — modal sheet only</span><span class="fa">بلند — فقط برگهٔ مودال</span></b>
+        <p style="margin:8px 0 0;font-size:var(--fs-caption);color:var(--ink-muted)"><span class="en">Paired with <code class="val">--overlay</code>. Never used on a card, a button or a menu.</span><span class="fa">همراه با <code class="val">--overlay</code>. هرگز روی کارت، دکمه یا منو استفاده نمی‌شود.</span></p>
+      </div>
+      <div class="spec-meta" style="margin-top:8px"><b>--shadow-lift</b><code>0 10px 34px rgba(26,33,28,.20)</code><code>dark: 0 10px 34px rgba(0,0,0,.55)</code></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 7 COMPONENTS ===================== -->
+<section class="sec" id="s7">
+  <div class="sechead"><span class="secnum">07</span><h2><span class="en">Components</span><span class="fa">اجزا</span></h2></div>
+  <p class="note">
+    <span class="en">Everything below is live: hover and press the real examples, and the labelled variants show the same states frozen for review. Every interactive element is at least 44×44px, and every state that matters is signalled by more than colour.</span>
+    <span class="fa">همهٔ نمونه‌های زیر زنده‌اند: روی نمونه‌های واقعی اشاره و کلیک کنید؛ نمونه‌های برچسب‌دار همان حالت‌ها را ثابت نشان می‌دهند. هر عنصر تعاملی دست‌کم ۴۴ در ۴۴ پیکسل است و هر حالت مهم با چیزی بیش از رنگ اعلام می‌شود.</span>
+  </p>
+
+  <h3 class="sub"><span class="en">Buttons</span><span class="fa">دکمه‌ها</span></h3>
+  <div class="panel">
+    <h4 class="sub2" style="margin-top:0"><span class="en">Primary — one per screen</span><span class="fa">اصلی — یکی در هر صفحه</span><i></i></h4>
+    <div class="inline-4">
+      <div><button class="btn btn-primary" type="button"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span class="en">Taken</span><span class="fa">مصرف شد</span></button><span class="stateflag">default (live)</span></div>
+      <div><span class="btn btn-primary is-hover"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span class="en">Taken</span><span class="fa">مصرف شد</span></span><span class="stateflag">hover · --primary-hover</span></div>
+      <div><span class="btn btn-primary is-pressed"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span class="en">Taken</span><span class="fa">مصرف شد</span></span><span class="stateflag">pressed · +1px translate</span></div>
+      <div><button class="btn btn-primary" type="button" disabled><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span class="en">Taken</span><span class="fa">مصرف شد</span></button><span class="stateflag">disabled · opacity .45</span></div>
+    </div>
+    <div style="max-width:340px;margin-top:20px">
+      <button class="btn btn-primary btn-lg" type="button"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span class="en">Taken</span><span class="fa">مصرف شد</span></button>
+      <span class="stateflag">.btn-lg · min-height 64px · font-size 22px · full width — the Today action</span>
+    </div>
+
+    <h4 class="sub2"><span class="en">Secondary</span><span class="fa">ثانویه</span><i></i></h4>
+    <div class="inline-4">
+      <div><button class="btn btn-secondary" type="button"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg><span class="en">Export for my doctor</span><span class="fa">خروجی برای پزشک</span></button><span class="stateflag">default (live)</span></div>
+      <div><span class="btn btn-secondary is-hover"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg><span class="en">Export for my doctor</span><span class="fa">خروجی برای پزشک</span></span><span class="stateflag">hover</span></div>
+      <div><span class="btn btn-secondary is-pressed"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg><span class="en">Export for my doctor</span><span class="fa">خروجی برای پزشک</span></span><span class="stateflag">pressed</span></div>
+      <div><button class="btn btn-secondary" type="button" disabled><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg><span class="en">Export for my doctor</span><span class="fa">خروجی برای پزشک</span></button><span class="stateflag">disabled</span></div>
+    </div>
+
+    <h4 class="sub2"><span class="en">Tertiary</span><span class="fa">درجه سه</span><i></i></h4>
+    <div class="inline-4">
+      <div><button class="btn btn-tertiary" type="button"><svg class="ic ic-20" aria-hidden="true"><use href="#i-note"/></svg><span class="en">Add note</span><span class="fa">یادداشت</span></button><span class="stateflag">default (live)</span></div>
+      <div><span class="btn btn-tertiary is-hover"><svg class="ic ic-20" aria-hidden="true"><use href="#i-pause"/></svg><span class="en">Hold</span><span class="fa">توقف موقت</span></span><span class="stateflag">hover</span></div>
+      <div><span class="btn btn-tertiary is-pressed"><svg class="ic ic-20" aria-hidden="true"><use href="#i-flame"/></svg><span class="en">Flare</span><span class="fa">عود</span></span><span class="stateflag">pressed</span></div>
+      <div><button class="btn btn-tertiary" type="button" disabled><svg class="ic ic-20" aria-hidden="true"><use href="#i-note"/></svg><span class="en">Add note</span><span class="fa">یادداشت</span></button><span class="stateflag">disabled</span></div>
+    </div>
+
+    <h4 class="sub2"><span class="en">Destructive</span><span class="fa">مخرب</span><i></i></h4>
+    <div class="inline-4">
+      <div><button class="btn btn-danger" type="button"><svg class="ic ic-20" aria-hidden="true"><use href="#i-alert"/></svg><span class="en">Delete this plan</span><span class="fa">حذف این طرح</span></button><span class="stateflag">default (live) · always behind a confirm</span></div>
+      <div><span class="btn btn-danger is-hover"><svg class="ic ic-20" aria-hidden="true"><use href="#i-alert"/></svg><span class="en">Delete this plan</span><span class="fa">حذف این طرح</span></span><span class="stateflag">hover</span></div>
+      <div><span class="btn btn-danger is-pressed"><svg class="ic ic-20" aria-hidden="true"><use href="#i-alert"/></svg><span class="en">Delete this plan</span><span class="fa">حذف این طرح</span></span><span class="stateflag">pressed</span></div>
+      <div><button class="btn btn-danger" type="button" disabled><svg class="ic ic-20" aria-hidden="true"><use href="#i-alert"/></svg><span class="en">Delete this plan</span><span class="fa">حذف این طرح</span></button><span class="stateflag">disabled</span></div>
+    </div>
+    <div class="spec-meta" style="margin-top:16px">
+      <b>.btn</b>
+      <code>min-height:var(--tap-min) · padding-inline:var(--sp-5) · border-radius:var(--r-md) · gap:var(--sp-3)</code>
+      <code>font: var(--fs-body-lg)/700 var(--font-ui) · transition: background var(--dur-fast) var(--ease-standard)</code>
+    </div>
+  </div>
+
+  <h3 class="sub"><span class="en">The dose card</span><span class="fa">کارت دوز</span></h3>
+  <div class="grid-2">
+    <div class="card card-shadow">
+      <div style="font-size:var(--fs-caption);font-weight:700;letter-spacing:var(--ls-caps);color:var(--ink-muted)"><span class="en">TAKE TODAY</span><span class="fa">امروز مصرف کنید</span></div>
+      <div style="margin-top:10px"><span class="badge badge-newdose"><svg class="ic ic-18" aria-hidden="true"><use href="#i-sprout"/></svg><span class="en">New dose day</span><span class="fa">روز دوز جدید</span></span></div>
+      <div class="dose" style="margin-top:10px"><span class="n"><span class="en">9</span><span class="fa">۹</span></span><span class="u"><span class="en">mg</span><span class="fa">میلی‌گرم</span></span></div>
+      <div class="tablets" style="margin-top:10px"><svg class="ic ic-20" aria-hidden="true"><use href="#i-pill"/></svg><span class="en">1 × 5mg &nbsp;·&nbsp; 4 × 1mg</span><span class="fa">۱ عدد ۵ میلی‌گرمی · ۴ عدد ۱ میلی‌گرمی</span></div>
+      <hr class="hr">
+      <button class="btn btn-primary btn-lg" type="button"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span class="en">Taken</span><span class="fa">مصرف شد</span></button>
+    </div>
+    <div class="spec-meta" style="align-self:center">
+      <b>.card.card-shadow</b>
+      <code>background:var(--surface) · border:1px solid var(--border) · border-radius:var(--r-lg) · padding:var(--sp-5) · box-shadow:var(--shadow-1)</code>
+      <code>.dose .n → var(--fs-hero) Fraunces 600, colour var(--primary-ink)</code>
+      <code>.dose .u → 30px Fraunces 600, baseline-aligned</code>
+      <span class="en" style="display:block;margin-top:10px">The only shadowed element in the product. The number is the largest thing on the phone by a wide margin; the unit rides its baseline so the pair reads as one word.</span>
+      <span class="fa" style="display:block;margin-top:10px">تنها عنصر سایه‌دار محصول. عدد با اختلاف بزرگ‌ترین چیز روی صفحه است و واحد روی خط کرسی آن می‌نشیند تا مثل یک کلمه خوانده شود.</span>
+    </div>
+  </div>
+
+  <h3 class="sub"><span class="en">List rows</span><span class="fa">ردیف‌های فهرست</span></h3>
+  <div class="grid-2">
+    <div style="border:1px solid var(--border-strong);border-radius:var(--r-lg);overflow:hidden">
+      <div class="blockhead now">
+        <div class="lbl"><svg class="ic ic-18" aria-hidden="true"><use href="#i-packet"/></svg><span class="en">Block 3 of 11</span><span class="fa">مرحله ۳ از ۱۱</span><i class="rule"></i></div>
+        <div class="desc"><span class="en">One day at 9mg, then 4 days at 10mg</span><span class="fa">یک روز ۹ میلی‌گرم، سپس ۴ روز ۱۰ میلی‌گرم</span></div>
+      </div>
+      <div class="row row-today">
+        <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-sprout"/></svg></span>
+        <span class="mid"><span class="day"><span class="en">Wed 16 Apr</span><span class="fa">چهارشنبه ۲۷ فروردین</span></span>
+        <span class="meta"><span class="badge badge-today" style="padding:2px 7px;font-size:var(--fs-micro)"><span class="en">Today</span><span class="fa">امروز</span></span><span class="en">1×5mg, 4×1mg</span><span class="fa">۱×۵ و ۴×۱</span></span></span>
+        <span class="amt"><span class="en">9mg</span><span class="fa">۹</span></span>
+      </div>
+      <div class="row row-taken">
+        <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-tick-hand"/></svg></span>
+        <span class="mid"><span class="day"><span class="en">Mon 14 Apr</span><span class="fa">دوشنبه ۲۵ فروردین</span></span>
+        <span class="meta"><span class="statelab st-taken"><span class="en">Taken</span><span class="fa">ثبت شد</span></span></span></span>
+        <span class="amt"><span class="en">10mg</span><span class="fa">۱۰</span></span>
+      </div>
+      <div class="row row-missed">
+        <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-square"/></svg></span>
+        <span class="mid"><span class="day"><span class="en">Tue 15 Apr</span><span class="fa">سه‌شنبه ۲۶ فروردین</span></span>
+        <span class="meta"><span class="statelab st-missed"><span class="en">Not ticked</span><span class="fa">ثبت نشده</span></span></span></span>
+        <span class="amt"><span class="en">10mg</span><span class="fa">۱۰</span></span>
+      </div>
+      <div class="row row-up" style="border-block-end:0">
+        <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-dot-dash"/></svg></span>
+        <span class="mid"><span class="day"><span class="en">Thu 17 Apr</span><span class="fa">پنج‌شنبه ۲۸ فروردین</span></span>
+        <span class="meta"><span class="statelab st-up"><span class="en">Upcoming</span><span class="fa">پیش‌رو</span></span> · <span class="en">2×5mg</span><span class="fa">۲×۵</span></span></span>
+        <span class="amt"><span class="en">10mg</span><span class="fa">۱۰</span></span>
+      </div>
+    </div>
+    <div class="spec-meta" style="align-self:center">
+      <b>.blockhead / .blockhead.now</b>
+      <code>seed-packet label: var(--fs-caption) 700 uppercase +0.10em, colour var(--secondary-ink), followed by a 1px botanical rule</code>
+      <code>.now → background var(--accent-soft) · border-inline-start 4px var(--accent)</code>
+      <b style="margin-top:10px">.row states</b>
+      <code>--state-today  → 4px inline-start rule + &quot;Today&quot; chip + sprout icon</code>
+      <code>--state-taken  → hand-drawn tick (#i-tick-hand) + word</code>
+      <code>--state-missed → open square (#i-square) + word</code>
+      <code>--state-upcoming → dashed circle (#i-dot-dash) + word</code>
+      <span class="en" style="display:block;margin-top:10px">Rows never rely on a fill colour to say what they are: the marker glyph and the written word both carry the state.</span>
+      <span class="fa" style="display:block;margin-top:10px">ردیف‌ها هرگز برای بیان وضعیت به رنگ تکیه نمی‌کنند؛ نماد و کلمه هر دو وضعیت را می‌گویند.</span>
+    </div>
+  </div>
+
+  <h3 class="sub"><span class="en">Chips and badges</span><span class="fa">چیپ‌ها و نشان‌ها</span></h3>
+  <div class="panel">
+    <div class="inline-3">
+      <span class="chip chip-on"><svg class="ic ic-18" aria-hidden="true"><use href="#i-check"/></svg><span class="en">5mg</span><span class="fa">۵ میلی‌گرم</span></span>
+      <span class="chip chip-on"><svg class="ic ic-18" aria-hidden="true"><use href="#i-check"/></svg><span class="en">1mg</span><span class="fa">۱ میلی‌گرم</span></span>
+      <span class="chip"><svg class="ic ic-18" aria-hidden="true"><use href="#i-plus"/></svg><span class="en">Add</span><span class="fa">افزودن</span></span>
+    </div>
+    <div class="inline-3" style="margin-top:16px">
+      <span class="badge badge-newdose"><svg class="ic ic-18" aria-hidden="true"><use href="#i-sprout"/></svg><span class="en">New dose day</span><span class="fa">روز دوز جدید</span></span>
+      <span class="badge badge-today"><svg class="ic ic-18" aria-hidden="true"><use href="#i-sun"/></svg><span class="en">Today</span><span class="fa">امروز</span></span>
+      <span class="badge badge-taken"><svg class="ic ic-18" aria-hidden="true"><use href="#i-tick-hand"/></svg><span class="en">Taken</span><span class="fa">ثبت شد</span></span>
+      <span class="badge badge-missed"><svg class="ic ic-18" aria-hidden="true"><use href="#i-square"/></svg><span class="en">Not ticked</span><span class="fa">ثبت نشده</span></span>
+    </div>
+    <div class="spec-meta" style="margin-top:16px">
+      <b>.chip</b><code>min-height:var(--tap-min) · border-radius:var(--r-sm) · 1px var(--border-strong) · selected: --primary-soft on --primary border</code>
+      <b>.badge</b><code>padding:6px var(--sp-3) · border-radius:var(--r-sm) · border:1px solid currentColor · always icon + word</code>
+    </div>
+  </div>
+
+  <h3 class="sub"><span class="en">Form inputs</span><span class="fa">ورودی‌های فرم</span></h3>
+  <div class="grid-2">
+    <div class="panel">
+      <div class="field" style="margin-bottom:20px">
+        <label for="f1"><span class="en">Starting dose</span><span class="fa">دوز شروع</span></label>
+        <input id="f1" type="text" value="15" inputmode="decimal">
+        <div class="help"><span class="en">In milligrams, as your doctor wrote it.</span><span class="fa">به میلی‌گرم، همان‌طور که پزشک نوشته است.</span></div>
+      </div>
+      <div class="field">
+        <label for="f2"><span class="en">Target dose</span><span class="fa">دوز هدف</span></label>
+        <input id="f2" type="text" value="-2" class="bad" aria-invalid="true" aria-describedby="f2e">
+        <div class="err" id="f2e"><svg class="ic ic-18" aria-hidden="true"><use href="#i-alert"/></svg><span class="en">Enter a number between 0 and 60.</span><span class="fa">عددی بین ۰ تا ۶۰ وارد کنید.</span></div>
+      </div>
+    </div>
+    <div class="spec-meta" style="align-self:center">
+      <b>.field input</b>
+      <code>min-height:52px · font-size:var(--fs-body) · border:1px solid var(--border-strong) · border-radius:var(--r-md)</code>
+      <code>:focus → outline:3px solid var(--focus); outline-offset:1px</code>
+      <code>invalid → border 2px var(--danger) + icon + written message (never red border alone)</code>
+      <span class="en" style="display:block;margin-top:10px">Labels sit above the field, never inside it as a placeholder — a placeholder disappears exactly when an older reader needs it most.</span>
+      <span class="fa" style="display:block;margin-top:10px">برچسب‌ها بالای فیلد می‌نشینند، نه به‌صورت متن راهنمای داخلی — متن داخلی درست زمانی ناپدید می‌شود که خواننده بیشتر به آن نیاز دارد.</span>
+    </div>
+  </div>
+
+  <h3 class="sub"><span class="en">Switches, sliders, segmented control</span><span class="fa">کلیدها، اسلایدر، کنترل بخش‌بندی</span></h3>
+  <div class="grid-2">
+    <div class="panel stack-4">
+      <div style="display:flex;align-items:center;gap:16px">
+        <b style="flex:1"><span class="en">I can split tablets</span><span class="fa">می‌توانم قرص را نصف کنم</span></b>
+        <span class="sw-wrap"><span class="sw-lab"><span class="en">On</span><span class="fa">روشن</span></span><span class="sw" role="img" aria-label="On"><i><svg class="ic ic-18" aria-hidden="true"><use href="#i-check"/></svg></i></span></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px">
+        <b style="flex:1"><span class="en">High contrast</span><span class="fa">کنتراست بالا</span></b>
+        <span class="sw-wrap"><span class="sw-lab"><span class="en">Off</span><span class="fa">خاموش</span></span><span class="sw sw-off" role="img" aria-label="Off"><i></i></span></span>
+      </div>
+      <hr class="hr">
+      <div>
+        <b><span class="en">Text size</span><span class="fa">اندازه متن</span></b>
+        <div class="slider"><span class="track"></span><span class="fill"></span><span class="knob"></span></div>
+        <div style="display:flex;justify-content:space-between;font-size:var(--fs-micro);color:var(--ink-muted)"><span>A</span><span style="font-size:20px">A</span></div>
+      </div>
+      <hr class="hr">
+      <div class="segctl" role="group">
+        <span aria-current="true"><span class="en">Dead Slow</span><span class="fa">آهسته</span></span>
+        <span><span class="en">Percentage</span><span class="fa">درصدی</span></span>
+        <span><span class="en">Fixed mg</span><span class="fa">ثابت</span></span>
+      </div>
+    </div>
+    <div class="spec-meta" style="align-self:center">
+      <b>.sw</b><code>60×34px track · 26px knob · on: --primary + tick glyph inside knob + written On/Off label</code>
+      <code>off: --surface-sunk + --border-strong, knob moves to inset-inline-start</code>
+      <b style="margin-top:10px">.slider</b><code>container height var(--tap-min) · 8px track · 30px knob with 2px --primary-ink ring</code>
+      <b style="margin-top:10px">.segctl</b><code>border-radius:var(--r-md) · dividers 1px --border-strong · selected: --primary / --on-primary and font-weight 700</code>
+      <span class="en" style="display:block;margin-top:10px">Every switch carries a written On/Off beside it and a tick glyph in the knob, so the state survives greyscale, low vision and colour blindness.</span>
+      <span class="fa" style="display:block;margin-top:10px">هر کلید کنارش کلمهٔ روشن/خاموش و درون دسته‌اش یک تیک دارد تا وضعیت در حالت سیاه‌وسفید و کم‌بینایی هم خوانده شود.</span>
+    </div>
+  </div>
+
+  <h3 class="sub"><span class="en">Tab bar</span><span class="fa">نوار تب</span></h3>
+  <div class="grid-2">
+    <nav class="tabs">
+      <span class="tab" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg><span class="en">Today</span><span class="fa">امروز</span></span>
+      <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg><span class="en">Schedule</span><span class="fa">برنامه</span></span>
+      <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg><span class="en">Progress</span><span class="fa">پیشرفت</span></span>
+      <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-packet"/></svg><span class="en">Plan</span><span class="fa">طرح</span></span>
+      <span class="tab"><svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg><span class="en">Settings</span><span class="fa">تنظیمات</span></span>
+    </nav>
+    <div class="spec-meta" style="align-self:center">
+      <b>.tab</b><code>min-height:60px · icon 25px · label var(--fs-nav) · active: --primary-ink + weight 700 + 3px --primary indicator</code>
+      <span class="en" style="display:block;margin-top:10px">Three signals mark the active tab — colour, weight and the indicator bar — plus <code class="val">aria-current="page"</code>. Order reverses in RTL because the tab bar is a positional list, and the indicator&#39;s translate is mirrored explicitly.</span>
+      <span class="fa" style="display:block;margin-top:10px">سه نشانه تب فعال را مشخص می‌کند: رنگ، ضخامت و نوار نشانگر، به‌علاوهٔ <code class="val">aria-current</code>. ترتیب در حالت راست‌چین برعکس می‌شود.</span>
+    </div>
+  </div>
+
+  <h3 class="sub"><span class="en">Modal sheet, banners, empty state, stat block</span><span class="fa">برگهٔ مودال، بنرها، حالت خالی، بلوک آمار</span></h3>
+  <div class="grid-2">
+    <div>
+      <div class="sheetdemo">
+        <div class="scrim">
+          <div class="sheet">
+            <div class="grab"></div>
+            <div style="font-family:var(--font-display);font-size:var(--fs-title);font-weight:600;line-height:var(--lh-title);letter-spacing:var(--ls-tight);text-align:center"><span class="en">Welcome to NearlyStop</span><span class="fa">به NearlyStop خوش آمدید</span></div>
+            <p style="margin:12px 0 16px;color:var(--ink-muted);font-size:var(--fs-caption)"><span class="en">NearlyStop arranges the plan you and your doctor agreed. It does not give medical advice.</span><span class="fa">NearlyStop فقط طرحی را که با پزشکتان توافق کرده‌اید مرتب می‌کند و توصیهٔ پزشکی نیست.</span></p>
+            <button class="btn btn-primary" type="button" style="width:100%"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span class="en">I understand</span><span class="fa">متوجه شدم</span></button>
+          </div>
+        </div>
+      </div>
+      <div class="spec-meta" style="margin-top:8px"><b>.sheet</b><code>border-start-*-radius:var(--r-xl) · box-shadow:var(--shadow-lift) · scrim:var(--overlay) · 44×5px grab handle</code></div>
+    </div>
+    <div class="stack-3">
+      <div class="banner banner-info"><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg><div class="txt"><span class="en">Yesterday wasn&#39;t ticked — mark it now?</span><span class="fa">دیروز ثبت نشده — الان علامت بزنید؟</span></div></div>
+      <div class="banner banner-good"><svg class="ic" aria-hidden="true"><use href="#i-sprout"/></svg><div class="txt"><span class="en">You are 6mg lower than when you started.</span><span class="fa">شما ۶ میلی‌گرم پایین‌تر از شروع هستید.</span></div></div>
+      <div class="banner banner-danger"><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg><div class="txt"><span class="en">This will delete your whole plan and cannot be undone.</span><span class="fa">این کار کل طرح شما را حذف می‌کند و بازگشتی ندارد.</span></div></div>
+      <div class="spec-meta"><b>.banner-info / -good / -danger</b><code>tint fill + 1px border of the same family + a leading 24px icon; text is var(--fs-body) at 1.45</code></div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:20px">
+    <div class="empty">
+      <div class="ring"><svg class="ic ic-56" aria-hidden="true"><use href="#i-packet"/></svg></div>
+      <div style="font-family:var(--font-display);font-size:var(--fs-heading);font-weight:600;letter-spacing:var(--ls-tight)"><span class="en">No plan yet</span><span class="fa">هنوز طرحی ندارید</span></div>
+      <p style="margin:8px auto 16px;max-width:40ch;color:var(--ink-muted);font-size:var(--fs-caption)"><span class="en">Add the doses your doctor gave you and Almanac will lay out the days.</span><span class="fa">دوزهایی که پزشک داده است را وارد کنید تا آلماناک روزها را بچیند.</span></p>
+      <button class="btn btn-secondary" type="button"><svg class="ic ic-20" aria-hidden="true"><use href="#i-plus"/></svg><span class="en">Start a plan</span><span class="fa">شروع یک طرح</span></button>
+    </div>
+    <div>
+      <div class="grid-3">
+        <div class="stat"><div class="n"><span class="en">581</span><span class="fa">۵۸۱</span></div><div class="l"><span class="en">days on prednisolone</span><span class="fa">روز مصرف پردنیزولون</span></div></div>
+        <div class="stat"><div class="n"><span class="en">6,842</span><span class="fa">۶٬۸۴۲</span></div><div class="l"><span class="en">mg taken in total</span><span class="fa">میلی‌گرم مجموع</span></div></div>
+      </div>
+      <div class="stat" style="margin-top:12px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <svg class="ic ic-26" style="color:var(--state-taken);flex:none" aria-hidden="true"><use href="#i-tick-hand"/></svg>
+          <div>
+            <div style="font-family:var(--font-display);font-size:24px;font-weight:600;color:var(--primary-ink);line-height:1.15"><span class="en">574 of 581 days</span><span class="fa">۵۷۴ از ۵۸۱ روز</span></div>
+            <div class="l"><span class="en">ticked off so far — the gaps are fine</span><span class="fa">تا اینجا ثبت شده — جاهای خالی اشکالی ندارد</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="spec-meta" style="margin-top:8px"><b>.stat</b><code>.n → 38px Fraunces 600, var(--primary-ink) · .l → var(--fs-caption), var(--ink-muted)</code><code class="en">Never phrased as a streak. &quot;574 of 581 days&quot;, never &quot;7 days missed&quot;.</code><code class="fa">هرگز به شکل زنجیرهٔ روزهای پیاپی نوشته نمی‌شود.</code></div>
+    </div>
+  </div>
+</section>
+
+<style>
+/* motion demo — logical-direction animation so it also runs correctly in RTL */
+@keyframes slide{from{inset-inline-start:4px}to{inset-inline-start:calc(100% - 28px)}}
+.mdemo .mtrack .mball{animation:none}
+.mdemo.run .mtrack .mball{animation:slide var(--d) var(--e) both}
+.tickdemo path{stroke-dasharray:34;stroke-dashoffset:0}
+.mdemo.run .tickdemo path{animation:draw var(--dur-slow) var(--ease-standard) both}
+@keyframes draw{from{stroke-dashoffset:34}to{stroke-dashoffset:0}}
+.riseDemo{opacity:1;transform:none}
+.mdemo.run .riseDemo{animation:rise var(--dur-base) var(--ease-enter) both}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+</style>
+
+<!-- ===================== 8 ICONOGRAPHY ===================== -->
+<section class="sec" id="s8">
+  <div class="sechead"><span class="secnum">08</span><h2><span class="en">Iconography</span><span class="fa">آیکون‌ها</span></h2></div>
+  <p class="note">
+    <span class="en">One family, drawn on a 24px grid: 1.75px stroke, round caps and joins, no fills except three deliberate solids (the alert dot, the flame, the leaves on the progress vine). Icons inherit <code class="val">currentColor</code> and are always accompanied by text in any place where they carry meaning. Sizes: 18px inside chips and badges, 20px inside tertiary buttons, 24px default, 25px in the tab bar, 26px as a list-row marker, 56px in empty states.</span>
+    <span class="fa">یک خانواده روی شبکهٔ ۲۴ پیکسلی: ضخامت ۱٫۷۵، سرها و اتصال‌های گرد، بدون پرشدگی جز سه مورد عمدی. آیکون‌ها رنگ را از <code class="val">currentColor</code> می‌گیرند و هر جا معنا حمل کنند با متن همراه‌اند. اندازه‌ها: ۱۸ در چیپ‌ها، ۲۰ در دکمه‌های درجه سه، ۲۴ پیش‌فرض، ۲۵ در نوار تب، ۲۶ نشانهٔ ردیف، ۵۶ در حالت خالی.</span>
+  </p>
+  <div class="panel">
+    <div class="icgrid">
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-check"/></svg><span class="nm">i-check</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-tick-hand"/></svg><span class="nm">i-tick-hand</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-square"/></svg><span class="nm">i-square</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-dot-dash"/></svg><span class="nm">i-dot-dash</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-clock"/></svg><span class="nm">i-clock</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-pill"/></svg><span class="nm">i-pill</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-calendar"/></svg><span class="nm">i-calendar</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-chart"/></svg><span class="nm">i-chart</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-gear"/></svg><span class="nm">i-gear</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-note"/></svg><span class="nm">i-note</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-alert"/></svg><span class="nm">i-alert</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-download"/></svg><span class="nm">i-download</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-upload"/></svg><span class="nm">i-upload</span></div>
+      <div class="iccell"><svg class="ic ic-32 ic-dir" aria-hidden="true"><use href="#i-chevron"/></svg><span class="nm">i-chevron ↔</span></div>
+      <div class="iccell"><svg class="ic ic-32 ic-dir" aria-hidden="true"><use href="#i-arrow-back"/></svg><span class="nm">i-arrow-back ↔</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-sprout"/></svg><span class="nm">i-sprout</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-sun"/></svg><span class="nm">i-sun</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-pause"/></svg><span class="nm">i-pause</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-flame"/></svg><span class="nm">i-flame</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-packet"/></svg><span class="nm">i-packet</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-plus"/></svg><span class="nm">i-plus</span></div>
+      <div class="iccell"><svg class="ic ic-32" aria-hidden="true"><use href="#i-leaf"/></svg><span class="nm">i-leaf</span></div>
+    </div>
+    <div class="spec-meta" style="margin-top:16px">
+      <b>.ic</b><code>width/height 24px · fill:none · stroke:currentColor · stroke-width:1.75 · stroke-linecap:round · stroke-linejoin:round</code>
+      <code>.ic-18 / .ic-20 / .ic-26 / .ic-32 / .ic-56 (56px drops the stroke to 1.4 so it stays optically even)</code>
+      <code>.ic-dir → [dir="rtl"] .ic-dir { transform: scaleX(-1) } — applied to chevron and back arrow only</code>
+      <span class="en" style="display:block;margin-top:10px">The hand-drawn tick is deliberately imperfect — it is the mark of an almanac being filled in by a person, and it distinguishes &quot;a day you ticked&quot; from &quot;a system confirmation&quot; (<code class="val">i-check</code>), which stays geometric.</span>
+      <span class="fa" style="display:block;margin-top:10px">تیک دست‌نویس عمداً کامل نیست — نشان سالنامه‌ای است که با دست پر می‌شود و آن را از تأیید سیستمی (<code class="val">i-check</code>) که هندسی می‌ماند جدا می‌کند.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 9 MOTION ===================== -->
+<section class="sec" id="s9">
+  <div class="sechead"><span class="secnum">09</span><h2><span class="en">Motion</span><span class="fa">حرکت</span></h2></div>
+  <p class="note">
+    <span class="en">Motion in Almanac confirms, it never entertains. Three durations, three easings, and a hard rule: nothing loops, nothing bounces, nothing moves more than about 16px. The one indulgence is the tick that draws itself when a dose is marked taken — it is the reward the user earns 780 times.</span>
+    <span class="fa">حرکت در آلماناک تأیید می‌کند، سرگرم نمی‌کند. سه مدت‌زمان، سه شتاب، و یک قاعدهٔ سخت: هیچ چیز تکرار نمی‌شود، نمی‌جهد و بیش از حدود ۱۶ پیکسل جابه‌جا نمی‌شود. تنها استثنا تیکی است که هنگام ثبت دوز کشیده می‌شود.</span>
+  </p>
+  <div class="grid-2">
+    <div class="panel">
+      <button class="btn btn-secondary" type="button" id="playbtn"><svg class="ic ic-20" aria-hidden="true"><use href="#i-sun"/></svg><span class="en">Play the motion</span><span class="fa">پخش حرکت</span></button>
+      <div class="mdemo" id="mdemo" style="margin-top:20px">
+        <div><div class="mtrack"><span class="mball" style="--d:120ms;--e:cubic-bezier(.2,.6,.2,1)"></span></div><span class="stateflag">--dur-fast 120ms · --ease-standard — button fills, chip toggles, hovers</span></div>
+        <div><div class="mtrack"><span class="mball" style="--d:220ms;--e:cubic-bezier(0,0,.2,1)"></span></div><span class="stateflag">--dur-base 220ms · --ease-enter — banners appearing, rows expanding</span></div>
+        <div><div class="mtrack"><span class="mball" style="--d:420ms;--e:cubic-bezier(.2,.6,.2,1)"></span></div><span class="stateflag">--dur-slow 420ms · --ease-standard — sheet rising, tick drawing</span></div>
+        <div class="inline-4" style="margin-top:8px;align-items:center">
+          <div class="tickdemo"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.9 12.5c1.9 1 3.5 2.7 4.8 4.8C11.7 12 15.3 8.1 20 5.6"/></svg></div>
+          <div class="banner banner-good riseDemo" style="flex:1;min-width:200px"><svg class="ic" aria-hidden="true"><use href="#i-sprout"/></svg><div class="txt"><span class="en">Marked as taken.</span><span class="fa">ثبت شد.</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="spec-meta" style="align-self:center">
+      <b>--dur-fast</b><code>120ms — state changes the finger caused</code>
+      <b>--dur-base</b><code>220ms — something arriving or leaving</code>
+      <b>--dur-slow</b><code>420ms — the sheet, and the tick drawing itself</code>
+      <b style="margin-top:10px">--ease-standard</b><code>cubic-bezier(.2,.6,.2,1)</code>
+      <b>--ease-enter</b><code>cubic-bezier(0,0,.2,1)</code>
+      <b>--ease-exit</b><code>cubic-bezier(.4,0,1,1)</code>
+      <b style="margin-top:10px"><span class="en">Reduced motion</span><span class="fa">کاهش حرکت</span></b>
+      <code>@media (prefers-reduced-motion: reduce) { *{ animation-duration:.001ms !important; transition-duration:.001ms !important } }</code>
+      <span class="en" style="display:block;margin-top:8px">Under reduced motion the tick appears complete instantly and the sheet cross-fades in place. No information is ever carried only by an animation — the tick&#39;s meaning is also in the row&#39;s written state.</span>
+      <span class="fa" style="display:block;margin-top:8px">در حالت کاهش حرکت تیک بی‌درنگ کامل ظاهر می‌شود. هیچ اطلاعاتی تنها با انیمیشن منتقل نمی‌شود.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 10 RTL ===================== -->
+<section class="sec" id="s10">
+  <div class="sechead"><span class="secnum">10</span><h2><span class="en">RTL rules</span><span class="fa">قواعد راست‌چین</span></h2></div>
+  <p class="note">
+    <span class="en">Persian is a first-class layout, not a translation layer. Every offset in this system is written with logical properties, so setting <code class="val">dir="rtl"</code> on the root mirrors the whole app with no per-component overrides. Only two things are hand-mirrored: icons that point, and the time axis of the progress chart.</span>
+    <span class="fa">فارسی یک چیدمان درجه‌یک است، نه لایهٔ ترجمه. همهٔ فاصله‌ها با ویژگی‌های منطقی نوشته شده‌اند، بنابراین تنظیم <code class="val">dir="rtl"</code> کل برنامه را بدون هیچ استثنایی آینه می‌کند. فقط دو چیز دستی آینه می‌شوند: آیکون‌های جهت‌دار و محور زمان نمودار.</span>
+  </p>
+  <div class="grid-2">
+    <div class="panel">
+      <h4 class="sub2" style="margin-top:0"><span class="en">Mirrors</span><span class="fa">آینه می‌شود</span><i></i></h4>
+      <ul style="margin:0;padding-inline-start:22px;font-size:var(--fs-caption);line-height:1.7">
+        <li><span class="en">All layout: use <code class="val">margin-inline-start</code>, <code class="val">padding-inline-end</code>, <code class="val">inset-inline-start</code>, <code class="val">border-inline-start</code>, <code class="val">text-align:start</code>. No <code class="val">left</code>/<code class="val">right</code> anywhere.</span><span class="fa">همهٔ چیدمان با ویژگی‌های منطقی؛ هیچ چپ/راستی در کد نیست.</span></li>
+        <li><span class="en">Chevrons and back arrows (<code class="val">.ic-dir</code>).</span><span class="fa">فلش‌های بازگشت و شِورون‌ها.</span></li>
+        <li><span class="en">Tab-bar order and the active-tab indicator offset.</span><span class="fa">ترتیب نوار تب و جای نشانگر تب فعال.</span></li>
+        <li><span class="en">The Progress chart&#39;s time axis: the plot group is flipped with <code class="val">scaleX(-1)</code> and the axis labels are HTML in a flex row, so they reverse on their own.</span><span class="fa">محور زمان نمودار پیشرفت: بخش رسم با <code class="val">scaleX(-1)</code> برمی‌گردد و برچسب‌ها خودشان معکوس می‌شوند.</span></li>
+        <li><span class="en">The 4px &quot;today&quot; rule and the block-header rule (<code class="val">border-inline-start</code>).</span><span class="fa">خط ۴ پیکسلی «امروز» و خط سرتیتر مرحله.</span></li>
+      </ul>
+      <h4 class="sub2"><span class="en">Never mirrors</span><span class="fa">آینه نمی‌شود</span><i></i></h4>
+      <ul style="margin:0;padding-inline-start:22px;font-size:var(--fs-caption);line-height:1.7">
+        <li><span class="en">Clock, pill, calendar, check, hand tick, sprout, sun, flame, gear, packet — objects, not directions.</span><span class="fa">ساعت، قرص، تقویم، تیک، جوانه، خورشید، شعله، چرخ‌دنده — این‌ها شیء هستند نه جهت.</span></li>
+        <li><span class="en">The switch knob&#39;s travel is logical, so &quot;on&quot; is always toward the reading end.</span><span class="fa">حرکت دستهٔ کلید منطقی است، پس «روشن» همیشه به سمت انتهای خواندن است.</span></li>
+      </ul>
+      <h4 class="sub2"><span class="en">Numerals &amp; typography</span><span class="fa">اعداد و تایپوگرافی</span><i></i></h4>
+      <ul style="margin:0;padding-inline-start:22px;font-size:var(--fs-caption);line-height:1.7">
+        <li><span class="en">Persian-Indic digits ۰۱۲۳۴۵۶۷۸۹ throughout, with the Arabic thousands separator ٬ (۶٬۸۴۲) and the decimal ٫ (۰٫۹).</span><span class="fa">ارقام فارسی در همه‌جا، با جداکنندهٔ هزارگان ٬ و اعشار ٫.</span></li>
+        <li><span class="en">Persian dates use the Jalali calendar (۲۷ فروردین ۱۴۰۵), not a transliterated Gregorian date.</span><span class="fa">تاریخ‌ها با تقویم هجری شمسی، نه ترجمهٔ تاریخ میلادی.</span></li>
+        <li><span class="en">No uppercase and no letter-spacing in Persian — <code class="val">--ls-caps</code> and <code class="val">--ls-tight</code> both reset to 0.</span><span class="fa">بدون بزرگ‌نویسی و بدون فاصلهٔ حروف در فارسی.</span></li>
+      </ul>
+    </div>
+    <div>
+      <div class="rtlpair">
+        <div>
+          <h5>dir="ltr" · en</h5>
+          <div dir="ltr" lang="en">
+            <div class="blockhead now">
+              <div class="lbl"><svg class="ic ic-18" aria-hidden="true"><use href="#i-packet"/></svg><span>BLOCK 3 OF 11</span><i class="rule"></i></div>
+              <div class="desc">One day at 9mg, then 4 days at 10mg</div>
+            </div>
+            <div class="row row-today">
+              <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-sprout"/></svg></span>
+              <span class="mid"><span class="day">Wed 16 Apr</span><span class="meta"><span class="badge badge-today" style="padding:2px 7px;font-size:var(--fs-micro)">Today</span>1×5mg, 4×1mg</span></span>
+              <span class="amt">9mg</span>
+            </div>
+            <div class="row row-taken" style="border-block-end:0">
+              <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-tick-hand"/></svg></span>
+              <span class="mid"><span class="day">Mon 14 Apr</span><span class="meta"><span class="statelab st-taken">Taken</span></span></span>
+              <span class="amt">10mg</span>
+            </div>
+            <div style="padding:12px 16px;border-block-start:1px solid var(--border)">
+              <span class="btn btn-tertiary" style="padding-inline:8px">See all blocks <svg class="ic ic-20 ic-dir" aria-hidden="true"><use href="#i-chevron"/></svg></span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h5>dir="rtl" · fa</h5>
+          <div dir="rtl" lang="fa" style="font-family:'Vazirmatn',Tahoma,sans-serif;--lh-body:1.75">
+            <div class="blockhead now">
+              <div class="lbl" style="text-transform:none;letter-spacing:0"><svg class="ic ic-18" aria-hidden="true"><use href="#i-packet"/></svg><span>مرحله ۳ از ۱۱</span><i class="rule"></i></div>
+              <div class="desc" style="font-family:'Vazirmatn',Tahoma,sans-serif;line-height:1.6">یک روز ۹ میلی‌گرم، سپس ۴ روز ۱۰ میلی‌گرم</div>
+            </div>
+            <div class="row row-today">
+              <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-sprout"/></svg></span>
+              <span class="mid"><span class="day">چهارشنبه ۲۷ فروردین</span><span class="meta"><span class="badge badge-today" style="padding:2px 7px;font-size:var(--fs-micro)">امروز</span>۱×۵ و ۴×۱</span></span>
+              <span class="amt" style="font-family:'Vazirmatn',Tahoma,sans-serif">۹</span>
+            </div>
+            <div class="row row-taken" style="border-block-end:0">
+              <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-tick-hand"/></svg></span>
+              <span class="mid"><span class="day">دوشنبه ۲۵ فروردین</span><span class="meta"><span class="statelab st-taken">ثبت شد</span></span></span>
+              <span class="amt" style="font-family:'Vazirmatn',Tahoma,sans-serif">۱۰</span>
+            </div>
+            <div style="padding:12px 16px;border-block-start:1px solid var(--border)">
+              <span class="btn btn-tertiary" style="padding-inline:8px;font-family:'Vazirmatn',Tahoma,sans-serif">دیدن همهٔ مرحله‌ها <svg class="ic ic-20 ic-dir" aria-hidden="true"><use href="#i-chevron"/></svg></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="spec-meta" style="margin-top:12px">
+        <span class="en">Identical markup, identical CSS. The 4px today rule, the marker column, the dose amount and the chevron all swap ends because every offset is logical; the sprout and the hand tick stay exactly as drawn.</span>
+        <span class="fa">نشانه‌گذاری و CSS یکسان است. خط ۴ پیکسلی، ستون نشانه، مقدار دوز و شِورون همه جابه‌جا می‌شوند چون همهٔ فاصله‌ها منطقی‌اند؛ جوانه و تیک دست‌نویس دقیقاً همان می‌مانند.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 11 ACCESSIBILITY ===================== -->
+<section class="sec" id="s11">
+  <div class="sechead"><span class="secnum">11</span><h2><span class="en">Accessibility</span><span class="fa">دسترس‌پذیری</span></h2></div>
+  <p class="note">
+    <span class="en">The reader is between 60 and 80, often reads without their glasses first thing in the morning, and may be holding the phone with one hand while holding a glass of water in the other. These are constraints, not preferences.</span>
+    <span class="fa">خوانندهٔ این برنامه بین ۶۰ تا ۸۰ سال دارد، اغلب اول صبح بدون عینک می‌خواند و ممکن است گوشی را با یک دست و لیوان آب را با دست دیگر گرفته باشد. این‌ها محدودیت‌اند، نه سلیقه.</span>
+  </p>
+
+  <h3 class="sub"><span class="en">Contrast — the pairs that carry meaning</span><span class="fa">کنتراست — جفت‌های معنادار</span></h3>
+  <div class="scroll-x">
+    <table class="t">
+      <thead><tr>
+        <th><span class="en">Pair</span><span class="fa">جفت</span></th>
+        <th><span class="en">Light</span><span class="fa">روشن</span></th>
+        <th><span class="en">Dark</span><span class="fa">تیره</span></th>
+        <th><span class="en">Required</span><span class="fa">لازم</span></th>
+        <th><span class="en">Result</span><span class="fa">نتیجه</span></th>
+      </tr></thead>
+      <tbody>
+        <tr><td class="tok">--ink on --bg</td><td><b>10.9:1</b></td><td><b>13.2:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AAA</td></tr>
+        <tr><td class="tok">--ink on --surface</td><td><b>11.7:1</b></td><td><b>11.7:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AAA</td></tr>
+        <tr><td class="tok">--ink-muted on --surface</td><td><b>5.3:1</b></td><td><b>6.7:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+        <tr><td class="tok">--primary-ink on --bg (dose number)</td><td><b>5.7:1</b></td><td><b>6.6:1</b></td><td class="val">3:1 large</td><td class="pass">&#10003; AA at body size too</td></tr>
+        <tr><td class="tok">--on-primary on --primary (button)</td><td><b>4.7:1</b></td><td><b>7.0:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+        <tr><td class="tok">--on-danger on --danger</td><td><b>4.8:1</b></td><td><b>6.6:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+        <tr><td class="tok">--state-taken on --state-taken-bg</td><td><b>5.3:1</b></td><td><b>6.6:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+        <tr><td class="tok">--state-missed on --state-missed-bg</td><td><b>5.1:1</b></td><td><b>5.8:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+        <tr><td class="tok">--state-today on --state-today-bg</td><td><b>5.2:1</b></td><td><b>9.0:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+        <tr><td class="tok">--state-newdose on --state-newdose-bg</td><td><b>4.6:1</b></td><td><b>7.2:1</b></td><td class="val">4.5:1</td><td class="pass">&#10003; AA</td></tr>
+        <tr><td class="tok">--border-strong on --bg (UI boundary)</td><td><b>3.6:1</b></td><td><b>3.6:1</b></td><td class="val">3:1</td><td class="pass">&#10003; AA</td></tr>
+        <tr><td class="tok">--ink-soft on --bg</td><td><b>3.4:1</b></td><td><b>5.3:1</b></td><td class="val">3:1 large only</td><td class="pass">&#10003; AA Large</td></tr>
+        <tr><td class="tok">--border on --bg</td><td><b>1.3:1</b></td><td><b>1.6:1</b></td><td class="val">—</td><td class="val"><span class="en">decorative hairline; never the only boundary of an interactive element</span><span class="fa">خط تزیینی؛ هرگز تنها مرز یک عنصر تعاملی نیست</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="sub"><span class="en">Tap targets — shown at true CSS size</span><span class="fa">هدف‌های لمسی — در اندازهٔ واقعی</span></h3>
+  <div class="panel">
+    <div class="tapdemo">
+      <div>
+        <div class="tapbox"><svg class="ic ic-20" aria-hidden="true"><use href="#i-check"/></svg></div>
+        <span class="stateflag">44 × 44 — the floor (--tap-min)</span>
+      </div>
+      <div>
+        <div class="tapbox" style="width:64px;height:64px"><svg class="ic ic-26" aria-hidden="true"><use href="#i-check"/></svg></div>
+        <span class="stateflag">64 tall — the Today primary button (.btn-lg)</span>
+      </div>
+      <div>
+        <div class="tapbox" style="width:78px;height:60px"><svg class="ic ic-26" aria-hidden="true"><use href="#i-sun"/></svg></div>
+        <span class="stateflag">78 × 60 — one tab-bar item</span>
+      </div>
+      <div>
+        <div class="tapbox tapbox-bad"><svg class="ic ic-18" aria-hidden="true"><use href="#i-alert"/></svg></div>
+        <span class="stateflag">32 × 32 — rejected, never ship this</span>
+      </div>
+    </div>
+    <div class="spec-meta" style="margin-top:16px">
+      <code>--tap-min: 44px — applied as min-height on every button, chip, switch, slider container, list row and tab</code>
+      <span class="en" style="display:block;margin-top:8px">Where a control looks smaller than 44px (the switch knob, the slider handle), the touch target is the padded container, not the drawn shape. Adjacent targets are separated by at least <code class="val">--sp-2</code>.</span>
+      <span class="fa" style="display:block;margin-top:8px">هرجا کنترلی کوچک‌تر از ۴۴ پیکسل دیده شود، هدف لمسی ظرف اطراف آن است نه شکل رسم‌شده. هدف‌های مجاور دست‌کم به اندازهٔ <code class="val">--sp-2</code> فاصله دارند.</span>
+    </div>
+  </div>
+
+  <h3 class="sub"><span class="en">Text scaling — the same row at 100%, 130%, 200%</span><span class="fa">بزرگ‌نمایی متن — همان ردیف در ۱۰۰٪، ۱۳۰٪ و ۲۰۰٪</span></h3>
+  <div class="grid-3" style="align-items:start">
+    <div>
+      <div style="border:1px solid var(--border-strong);border-radius:var(--r-lg);overflow:hidden">
+        <div class="row row-today" style="border-block-end:0">
+          <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-sprout"/></svg></span>
+          <span class="mid"><span class="day"><span class="en">Wed 16 Apr</span><span class="fa">چهارشنبه ۲۷ فروردین</span></span><span class="meta"><span class="badge badge-today" style="padding:2px 7px;font-size:var(--fs-micro)"><span class="en">Today</span><span class="fa">امروز</span></span></span></span>
+          <span class="amt"><span class="en">9mg</span><span class="fa">۹</span></span>
+        </div>
+      </div>
+      <div style="margin-top:12px"><button class="btn btn-primary" type="button" style="width:100%"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span class="en">Taken</span><span class="fa">مصرف شد</span></button></div>
+      <span class="stateflag">100% — --fs-body 17px</span>
+    </div>
+    <div class="tscale-130">
+      <div style="border:1px solid var(--border-strong);border-radius:var(--r-lg);overflow:hidden">
+        <div class="row row-today" style="border-block-end:0;flex-wrap:wrap">
+          <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-sprout"/></svg></span>
+          <span class="mid"><span class="day"><span class="en">Wed 16 Apr</span><span class="fa">چهارشنبه ۲۷ فروردین</span></span><span class="meta"><span class="badge badge-today" style="padding:2px 7px;font-size:var(--fs-micro)"><span class="en">Today</span><span class="fa">امروز</span></span></span></span>
+          <span class="amt"><span class="en">9mg</span><span class="fa">۹</span></span>
+        </div>
+      </div>
+      <div style="margin-top:12px"><button class="btn btn-primary" type="button" style="width:100%"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span class="en">Taken</span><span class="fa">مصرف شد</span></button></div>
+      <span class="stateflag">130% — --fs-body 22px</span>
+    </div>
+    <div class="tscale-200">
+      <div style="border:1px solid var(--border-strong);border-radius:var(--r-lg);overflow:hidden">
+        <div class="row row-today" style="border-block-end:0;flex-wrap:wrap">
+          <span class="mark"><svg class="ic ic-26" aria-hidden="true"><use href="#i-sprout"/></svg></span>
+          <span class="mid"><span class="day"><span class="en">Wed 16 Apr</span><span class="fa">چهارشنبه ۲۷ فروردین</span></span><span class="meta"><span class="badge badge-today" style="padding:2px 7px;font-size:var(--fs-micro)"><span class="en">Today</span><span class="fa">امروز</span></span></span></span>
+          <span class="amt"><span class="en">9mg</span><span class="fa">۹</span></span>
+        </div>
+      </div>
+      <div style="margin-top:12px"><button class="btn btn-primary" type="button" style="width:100%"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span class="en">Taken</span><span class="fa">مصرف شد</span></button></div>
+      <span class="stateflag">200% — --fs-body 34px</span>
+    </div>
+  </div>
+  <div class="spec-meta" style="margin-top:16px;max-width:80ch">
+    <span class="en">Every container is a flex or grid box with <code class="val">min-width:0</code> and wrapping enabled; no row has a fixed height and no text is truncated with an ellipsis. Buttons grow in height rather than clipping their label. In Flutter this maps to <code class="val">MediaQuery.textScaler</code> flowing straight through — nothing in Almanac assumes a text size.</span>
+    <span class="fa">هر ظرف یک جعبهٔ فلکس یا گرید با <code class="val">min-width:0</code> و امکان شکستن خط است؛ هیچ ردیفی ارتفاع ثابت ندارد و هیچ متنی با سه‌نقطه بریده نمی‌شود. دکمه‌ها به‌جای بریدن برچسب، بلندتر می‌شوند.</span>
+  </div>
+
+  <h3 class="sub"><span class="en">Everything else, briefly</span><span class="fa">بقیهٔ موارد، به‌اختصار</span></h3>
+  <div class="grid-3">
+    <div class="panel"><b><span class="en">Never colour alone</span><span class="fa">هرگز فقط رنگ</span></b><p style="margin:8px 0 0;font-size:var(--fs-caption);color:var(--ink-muted)"><span class="en">Every state pairs a colour with a glyph and a written word. Print any screen in greyscale and nothing is lost.</span><span class="fa">هر وضعیت رنگ را با یک نماد و یک کلمه جفت می‌کند. هر صفحه را سیاه‌وسفید چاپ کنید، چیزی از دست نمی‌رود.</span></p></div>
+    <div class="panel"><b><span class="en">Focus</span><span class="fa">فوکوس</span></b><p style="margin:8px 0 0;font-size:var(--fs-caption);color:var(--ink-muted)"><span class="en">3px <code class="val">--focus</code> ring with 2px offset on every focusable element, never removed. Honey in light, honey-light in dark — both clear 3:1 against their grounds.</span><span class="fa">حلقهٔ ۳ پیکسلی روی هر عنصر قابل فوکوس، هرگز حذف نمی‌شود.</span></p></div>
+    <div class="panel"><b><span class="en">Language of the copy</span><span class="fa">زبان متن</span></b><p style="margin:8px 0 0;font-size:var(--fs-caption);color:var(--ink-muted)"><span class="en">Plain sentences, no jargon, no streaks, no guilt. &quot;Not ticked&quot;, never &quot;missed dose&quot;. &quot;574 of 581 days&quot;, never &quot;you broke your streak&quot;.</span><span class="fa">جمله‌های ساده، بدون اصطلاح فنی و بدون احساس گناه. «ثبت نشده»، نه «دوز فراموش‌شده».</span></p></div>
+  </div>
+</section>
+
+<footer class="footer">
+  <svg width="240" height="18" viewBox="0 0 240 18" fill="none" aria-hidden="true" style="color:var(--primary);opacity:.8;margin-bottom:12px">
+    <path d="M2 9h84M154 9h84" stroke="currentColor" stroke-width="1"/>
+    <path d="M120 3.2c-4.6 0-8.4 3.2-8.4 5.8 4.6 0 8.4-3.2 8.4-5.8zM120 3.2c4.6 0 8.4 3.2 8.4 5.8-4.6 0-8.4-3.2-8.4-5.8z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+    <path d="M120 9v5.6M96 9h14M130 9h14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>
+  <p style="margin:0">
+    <span class="en"><b>Almanac</b> — design system for NearlyStop. Tokens are the contract: build from the custom property names, not the hex values. Companion file: <code class="val">almanac-screens.html</code>.</span>
+    <span class="fa"><b>آلماناک</b> — سیستم طراحی NearlyStop. توکن‌ها قرارداد هستند: از نام ویژگی‌ها بسازید، نه از مقدار رنگ‌ها. فایل همراه: <code class="val">almanac-screens.html</code>.</span>
+  </p>
+</footer>
+
+</div><!-- /.wrap -->
+
+<script>
+(function(){
+  var root=document.documentElement;
+  window.setTheme=function(t){
+    root.setAttribute('data-theme',t);
+    document.getElementById('tl').setAttribute('aria-pressed',String(t==='light'));
+    document.getElementById('td').setAttribute('aria-pressed',String(t==='dark'));
+    try{localStorage.setItem('almanac-theme',t);}catch(e){}
+  };
+  window.setLang=function(l){
+    root.setAttribute('data-lang',l);
+    root.setAttribute('lang',l==='fa'?'fa':'en');
+    root.setAttribute('dir',l==='fa'?'rtl':'ltr');
+    document.getElementById('le').setAttribute('aria-pressed',String(l==='en'));
+    document.getElementById('lf').setAttribute('aria-pressed',String(l==='fa'));
+    try{localStorage.setItem('almanac-lang',l);}catch(e){}
+  };
+  var t='light',l='en';
+  try{t=localStorage.getItem('almanac-theme')||'light';l=localStorage.getItem('almanac-lang')||'en';}catch(e){}
+  setTheme(t==='dark'?'dark':'light');
+  setLang(l==='fa'?'fa':'en');
+
+  var btn=document.getElementById('playbtn'), demo=document.getElementById('mdemo');
+  if(btn&&demo){
+    btn.addEventListener('click',function(){
+      demo.classList.remove('run');
+      void demo.offsetWidth; /* restart the animations */
+      demo.classList.add('run');
+    });
+  }
+})();
+</script>
+</body>
+</html>

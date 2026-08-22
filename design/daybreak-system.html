@@ -1,0 +1,1311 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daybreak — design system</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Vazirmatn:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================================
+   DAYBREAK · TOKENS  (the dark theme overrides ONLY these custom properties)
+   ========================================================================== */
+:root{
+  /* surfaces */
+  --bg:#FFF9F2; --surface:#FFFFFF; --surface-raised:#FFF4E9; --surface-sunken:#FCEFE2;
+  /* ink */
+  --ink:#3B2A25; --ink-muted:#755B50; --ink-faint:#A08A80;
+  /* brand */
+  --primary:#F97350; --primary-deep:#B0402A; --secondary:#FFB84D; --on-primary:#2A1A16;
+  /* semantic */
+  --success:#1F7A55; --success-fill:#2E8B63;
+  --warning:#8A5A00; --warning-fill:#FFB84D;
+  --danger:#A8352B;  --danger-fill:#C63F32;
+  /* tints */
+  --tint-primary:#FFE7DE; --tint-success:#DFF3E8; --tint-warning:#FFEFD2; --tint-danger:#FCE4E1;
+  /* lines */
+  --border:#F0DDCD; --border-strong:#A67D68; --overlay:rgba(59,42,37,.55);
+  /* states */
+  --state-taken:#2E8B63; --state-missed:#A67D68; --state-today:#E2542F; --state-newdose:#8A5A00;
+  /* gradients */
+  --grad-sunrise:linear-gradient(138deg,#F9633F 0%,#F97350 32%,#FF9A4D 68%,#FFC46A 100%);
+  --grad-wash:linear-gradient(180deg,#FFF7EE 0%,#FFFFFF 100%);
+  /* elevation */
+  --shadow-0:none;
+  --shadow-1:0 1px 2px rgba(140,84,56,.07), 0 2px 8px rgba(140,84,56,.06);
+  --shadow-2:0 2px 4px rgba(140,84,56,.07), 0 10px 24px rgba(140,84,56,.10);
+  --shadow-3:0 6px 12px rgba(140,84,56,.09), 0 22px 48px rgba(140,84,56,.14);
+  --shadow-glow:0 8px 18px rgba(249,115,80,.22), 0 20px 44px rgba(249,115,80,.20);
+  --device-shell:#2A1E22;
+  /* radii */
+  --r-xs:8px; --r-sm:12px; --r-md:16px; --r-lg:24px; --r-xl:32px; --r-pill:999px;
+  /* spacing */
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-7:32px; --s-8:40px; --s-9:48px;
+  /* type */
+  --font-latin:"Nunito","Avenir Next","Segoe UI",system-ui,-apple-system,sans-serif;
+  --font-fa:"Vazirmatn","Nunito","Segoe UI",Tahoma,system-ui,sans-serif;
+  --font-mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --fs-display:72px; --fs-title:34px; --fs-heading:24px;
+  --fs-body-lg:20px; --fs-body:17px; --fs-label:15px; --fs-caption:14px;
+  --lh-tight:1.05; --lh-snug:1.25; --lh-body:1.6; --lh-fa-bump:.14;
+  /* motion */
+  --dur-fast:120ms; --dur-base:220ms; --dur-slow:420ms;
+  --ease-out:cubic-bezier(.22,.85,.34,1);
+  --ease-in-out:cubic-bezier(.65,0,.35,1);
+}
+:root[data-theme="dark"]{
+  --bg:#241A20; --surface:#2E2229; --surface-raised:#38292F; --surface-sunken:#1D1418;
+  --ink:#F9EBE2; --ink-muted:#C9AEA2; --ink-faint:#9A8078;
+  --primary:#FF8A66; --primary-deep:#FF8A66; --secondary:#FFC470; --on-primary:#2A1A16;
+  --success:#6FD3A4; --success-fill:#4FBF8B;
+  --warning:#FFC470; --warning-fill:#E7A54A;
+  --danger:#FF8A80;  --danger-fill:#E0655A;
+  --tint-primary:#3E2A26; --tint-success:#25382F; --tint-warning:#3A2E1E; --tint-danger:#3E2624;
+  --border:#45333A; --border-strong:#9A7A82; --overlay:rgba(16,9,13,.66);
+  --state-taken:#4FBF8B; --state-missed:#9A7A82; --state-today:#FF8A66; --state-newdose:#FFC470;
+  --grad-sunrise:linear-gradient(138deg,#E8613F 0%,#FF7A52 34%,#FF9E52 70%,#FFC470 100%);
+  --grad-wash:linear-gradient(180deg,#3B2B31 0%,#2E2229 100%);
+  --shadow-1:0 1px 2px rgba(8,4,6,.45), 0 2px 8px rgba(8,4,6,.35);
+  --shadow-2:0 2px 4px rgba(8,4,6,.45), 0 10px 24px rgba(8,4,6,.45);
+  --shadow-3:0 6px 12px rgba(8,4,6,.5), 0 22px 48px rgba(8,4,6,.55);
+  --shadow-glow:0 8px 18px rgba(255,122,82,.24), 0 20px 44px rgba(255,122,82,.18);
+  --device-shell:#120C0F;
+}
+
+/* ==========================================================================
+   page
+   ========================================================================== */
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{
+  margin:0;color:var(--ink);font-family:var(--font-latin);
+  font-size:var(--fs-body);line-height:var(--lh-body);-webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(1100px 520px at 10% -10%, rgba(255,184,77,.18), transparent 62%),
+    radial-gradient(900px 460px at 95% 0%, rgba(249,115,80,.14), transparent 60%),
+    var(--bg);
+  transition:background-color var(--dur-slow) var(--ease-out), color var(--dur-base) var(--ease-out);
+}
+html[lang="fa"] body{font-family:var(--font-fa);line-height:calc(var(--lh-body) + var(--lh-fa-bump))}
+.wrap{max-width:1180px;margin-inline:auto;padding:0 var(--s-6) var(--s-9)}
+
+.topbar{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 86%,transparent);
+  backdrop-filter:blur(14px) saturate(1.2);border-bottom:1px solid var(--border)}
+.topbar-in{max-width:1180px;margin-inline:auto;padding:var(--s-3) var(--s-6);display:flex;align-items:center;gap:var(--s-4);flex-wrap:wrap}
+.brandmark{display:flex;align-items:center;gap:var(--s-3);margin-inline-end:auto}
+.sunbadge{width:44px;height:44px;border-radius:var(--r-pill);background:var(--grad-sunrise);
+  box-shadow:var(--shadow-glow);display:grid;place-items:center;color:var(--on-primary);flex:0 0 auto}
+.brandmark b{font-size:var(--fs-body-lg);font-weight:800;display:block;line-height:1.2;letter-spacing:-.01em}
+.brandmark span{font-size:var(--fs-caption);color:var(--ink-muted);font-weight:600}
+.seg{display:inline-flex;background:var(--surface-raised);border:1px solid var(--border);
+  border-radius:var(--r-pill);padding:4px;gap:4px;box-shadow:var(--shadow-1)}
+.seg button{font:inherit;font-size:var(--fs-label);font-weight:700;min-height:44px;min-width:64px;
+  padding:0 var(--s-4);border:0;border-radius:var(--r-pill);background:transparent;color:var(--ink-muted);
+  cursor:pointer;display:inline-flex;align-items:center;gap:var(--s-2);
+  transition:background var(--dur-base) var(--ease-out),color var(--dur-base) var(--ease-out)}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-1)}
+.seg button:focus-visible,a:focus-visible,button:focus-visible{outline:3px solid var(--primary-deep);outline-offset:2px;border-radius:var(--r-xs)}
+
+/* section furniture */
+.hero-doc{padding:var(--s-9) 0 var(--s-6);max-width:78ch}
+.hero-doc .kicker{font-size:var(--fs-label);font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--primary-deep)}
+html[lang="fa"] .kicker{letter-spacing:0;text-transform:none}
+.hero-doc h1{font-size:clamp(38px,6vw,64px);line-height:1.04;letter-spacing:-.03em;font-weight:800;margin:var(--s-3) 0}
+.hero-doc h1 .glow{background:var(--grad-sunrise);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-doc p{font-size:var(--fs-body-lg);color:var(--ink-muted);margin:0 0 var(--s-4)}
+
+.toc{display:flex;flex-wrap:wrap;gap:var(--s-2);margin-bottom:var(--s-8)}
+.toc a{min-height:44px;display:inline-flex;align-items:center;gap:8px;padding:0 var(--s-4);
+  border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--border);
+  color:var(--ink);text-decoration:none;font-size:var(--fs-label);font-weight:700;box-shadow:var(--shadow-1)}
+.toc a:hover{background:var(--surface-raised)}
+.toc a .n{color:var(--primary-deep);font-weight:800}
+
+section{margin-bottom:var(--s-9);scroll-margin-top:96px}
+.sechead{display:flex;align-items:center;gap:var(--s-4);margin-bottom:var(--s-4);flex-wrap:wrap}
+.sechead .num{width:48px;height:48px;flex:0 0 auto;border-radius:var(--r-md);background:var(--grad-sunrise);
+  color:var(--on-primary);display:grid;place-items:center;font-weight:800;font-size:var(--fs-body-lg);box-shadow:var(--shadow-glow)}
+.sechead h2{margin:0;font-size:var(--fs-title);font-weight:800;letter-spacing:-.02em;line-height:var(--lh-snug)}
+.lede{color:var(--ink-muted);font-size:var(--fs-body-lg);max-width:76ch;margin:0 0 var(--s-5)}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-1);padding:var(--s-6);margin-bottom:var(--s-4)}
+.panel h3{margin:0 0 var(--s-2);font-size:var(--fs-heading);font-weight:800;letter-spacing:-.01em}
+.panel h4{margin:var(--s-5) 0 var(--s-3);font-size:var(--fs-body-lg);font-weight:800}
+.panel p{color:var(--ink-muted);margin:0 0 var(--s-4)}
+.panel p:last-child{margin-bottom:0}
+
+code,.tok,.val{font-family:var(--font-mono);font-size:14px;direction:ltr;unicode-bidi:isolate}
+.tok{background:var(--tint-primary);color:var(--primary-deep);border-radius:var(--r-xs);padding:2px 8px;font-weight:700;display:inline-block}
+.val{color:var(--ink-muted);font-weight:600}
+pre{background:var(--surface-sunken);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:var(--s-4);overflow-x:auto;margin:0;font-family:var(--font-mono);font-size:13.5px;
+  line-height:1.65;color:var(--ink);direction:ltr;text-align:left}
+
+/* generic spec row: live example + the token beside it */
+.specrow{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:var(--s-5);
+  align-items:center;padding:var(--s-4) 0;border-bottom:1px dashed var(--border)}
+.specrow:last-child{border-bottom:0}
+@media (max-width:720px){.specrow{grid-template-columns:1fr}}
+.specmeta{font-size:var(--fs-label);color:var(--ink-muted);line-height:1.7}
+.specmeta b{color:var(--ink);font-weight:800}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:var(--s-4)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:var(--s-4)}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:var(--fs-label)}
+th,td{text-align:start;padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+th{font-weight:800;background:var(--surface-raised);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.pass{display:inline-flex;align-items:center;gap:6px;font-weight:800;color:var(--success);
+  background:var(--tint-success);border-radius:var(--r-pill);padding:3px 10px;white-space:nowrap}
+.ratio{font-family:var(--font-mono);font-weight:700;direction:ltr;unicode-bidi:isolate}
+
+/* colour swatches */
+.swatch{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow-1)}
+.swatch .chipbox{height:78px;border-bottom:1px solid var(--border)}
+.swatch .meta{padding:var(--s-3) var(--s-4)}
+.swatch .nm{font-family:var(--font-mono);font-size:13.5px;font-weight:700;color:var(--ink);direction:ltr;display:block}
+.swatch .hx{font-family:var(--font-mono);font-size:12.5px;color:var(--ink-muted);direction:ltr;display:block;margin-top:2px}
+.swatch .role{font-size:var(--fs-caption);color:var(--ink-muted);display:block;margin-top:6px;line-height:1.45}
+
+/* type specimens */
+.typespec{display:flex;flex-direction:column;gap:6px}
+.typespec .en{color:var(--ink)}
+.typespec .fa{font-family:var(--font-fa);color:var(--ink);direction:rtl;text-align:start}
+html[lang="fa"] .typespec .en{font-family:var(--font-latin);direction:ltr;text-align:start}
+
+/* spacing ruler */
+.ruler{display:flex;flex-direction:column;gap:10px}
+.rul{display:flex;align-items:center;gap:var(--s-3)}
+.rul .bar{height:22px;border-radius:var(--r-xs);background:var(--grad-sunrise);flex:0 0 auto;box-shadow:var(--shadow-1)}
+.rul .lbl{font-family:var(--font-mono);font-size:13px;color:var(--ink-muted);direction:ltr}
+
+/* radii */
+.radbox{height:104px;background:var(--grad-sunrise);box-shadow:var(--shadow-1);display:grid;place-items:center;
+  color:var(--on-primary);font-weight:800;font-family:var(--font-mono);font-size:13px}
+
+/* shadows */
+.shadowdemo{height:96px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--border);
+  display:grid;place-items:center;font-weight:800;margin-bottom:var(--s-3)}
+
+/* ---- app components (identical CSS to the product) ---- */
+.btn{font:inherit;font-weight:800;font-size:var(--fs-body-lg);min-height:56px;border-radius:var(--r-pill);
+  border:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  padding:0 var(--s-6);transition:transform var(--dur-fast) var(--ease-out),box-shadow var(--dur-base) var(--ease-out),filter var(--dur-base) var(--ease-out)}
+.btn-primary{background:var(--grad-sunrise);color:var(--on-primary);box-shadow:var(--shadow-glow)}
+.btn-primary:hover{filter:brightness(1.05);box-shadow:var(--shadow-3)}
+.btn-primary.is-pressed,.btn-primary:active{transform:translateY(1px) scale(.985);filter:brightness(.94);box-shadow:var(--shadow-1)}
+.btn-secondary{background:var(--surface);color:var(--ink);border:2px solid var(--border-strong);box-shadow:var(--shadow-1)}
+.btn-secondary:hover{background:var(--surface-raised)}
+.btn-secondary.is-pressed,.btn-secondary:active{transform:translateY(1px) scale(.985);background:var(--surface-sunken)}
+.btn-tertiary{background:transparent;color:var(--primary-deep);box-shadow:none;text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:2px}
+.btn-tertiary:hover{background:var(--tint-primary);text-decoration:none}
+.btn-danger{background:var(--surface);color:var(--danger);border:2px solid var(--danger);box-shadow:var(--shadow-1)}
+.btn-danger:hover{background:var(--tint-danger)}
+.btn:disabled,.btn.is-disabled{background:var(--surface-sunken);color:var(--ink-faint);border-color:var(--border);
+  box-shadow:none;filter:none;cursor:not-allowed;transform:none}
+.btn-block{width:100%}
+
+.hero{position:relative;overflow:hidden;border-radius:var(--r-lg);background:var(--grad-sunrise);
+  color:var(--on-primary);padding:var(--s-5);box-shadow:var(--shadow-glow);max-width:352px}
+.hero .arc{position:absolute;inset-inline-end:-70px;top:-90px;opacity:.5;pointer-events:none}
+html[dir="rtl"] .hero .arc{transform:scaleX(-1)}
+.badge{position:relative;display:inline-flex;align-items:center;gap:8px;min-height:34px;padding:0 14px;border-radius:var(--r-pill);
+  font-size:var(--fs-caption);font-weight:800;background:rgba(255,249,242,.92);color:var(--on-primary);
+  box-shadow:0 2px 6px rgba(120,60,30,.18)}
+.hero .dose{position:relative;font-size:var(--fs-display);font-weight:800;letter-spacing:-.045em;
+  line-height:var(--lh-tight);margin:var(--s-4) 0 2px;display:flex;align-items:baseline;gap:8px}
+.hero .dose .unit{font-size:28px;font-weight:700;letter-spacing:-.01em}
+html[lang="fa"] .hero .dose{font-size:58px;letter-spacing:0}
+.hero .tablets{position:relative;font-size:var(--fs-body);font-weight:700;display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,249,242,.55);border-radius:var(--r-pill);padding:6px 14px;margin-top:var(--s-2)}
+.btn-onhero{background:var(--surface);color:var(--ink);box-shadow:0 4px 10px rgba(120,60,30,.22);margin-top:var(--s-5);width:100%}
+
+.srow{display:flex;align-items:center;gap:var(--s-3);background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:var(--s-3) var(--s-4);margin-bottom:var(--s-2);min-height:64px}
+.srow .mark{width:26px;height:26px;flex:0 0 auto;display:grid;place-items:center;border-radius:var(--r-pill)}
+.srow .m-taken{background:var(--state-taken);color:#FFF9F2}
+.srow .m-missed{border:3px solid var(--state-missed)}
+.srow .m-upcoming{border:2px dashed var(--border-strong)}
+.srow .m-today{background:var(--grad-sunrise);color:var(--on-primary);box-shadow:var(--shadow-glow)}
+.srow .sday{font-size:var(--fs-body);font-weight:800;display:block;line-height:1.3}
+.srow .stab{font-size:var(--fs-caption);color:var(--ink-muted);font-weight:600;display:block}
+.srow .send{margin-inline-start:auto;text-align:end;flex:0 0 auto}
+.srow .sdose{font-size:var(--fs-body-lg);font-weight:800;display:block;line-height:1.25}
+.srow .sstate{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-muted);
+  display:inline-flex;align-items:center;gap:4px}
+html[lang="fa"] .srow .sstate{letter-spacing:0;text-transform:none;font-size:var(--fs-caption)}
+.srow.today{border:2px solid var(--state-today);box-shadow:var(--shadow-2);padding:var(--s-4)}
+.srow.today .sstate{color:var(--primary-deep)}
+.srow.taken .sstate{color:var(--success)}
+.srow.missed{border-style:dashed;border-color:var(--border-strong)}
+.srow.missed .sstate{color:var(--danger)}
+
+.chip{min-height:44px;display:inline-flex;align-items:center;gap:8px;padding:0 var(--s-4);border-radius:var(--r-pill);
+  font-size:var(--fs-label);font-weight:800;background:var(--surface-raised);border:1px solid var(--border-strong);color:var(--ink)}
+.chip.on{background:var(--tint-primary);border-color:var(--primary-deep);color:var(--primary-deep)}
+.pillbadge{display:inline-flex;align-items:center;gap:8px;min-height:34px;padding:0 14px;border-radius:var(--r-pill);
+  font-size:var(--fs-caption);font-weight:800}
+.pb-taken{background:var(--tint-success);color:var(--success)}
+.pb-missed{background:var(--surface-raised);color:var(--ink-muted);border:2px dashed var(--border-strong)}
+.pb-new{background:var(--tint-warning);color:var(--warning)}
+.pb-today{background:var(--grad-sunrise);color:var(--on-primary)}
+
+.field{display:block;margin-bottom:var(--s-4)}
+.field .flabel{display:block;font-size:var(--fs-label);font-weight:800;margin-bottom:6px}
+.input{width:100%;min-height:56px;border-radius:var(--r-md);border:2px solid var(--border-strong);
+  background:var(--surface);color:var(--ink);font:inherit;font-size:var(--fs-body);padding:0 var(--s-4)}
+.input::placeholder{color:var(--ink-faint)}
+.input:focus{outline:3px solid var(--primary-deep);outline-offset:1px;border-color:var(--primary-deep)}
+.input.err{border-color:var(--danger)}
+.input:disabled{background:var(--surface-sunken);color:var(--ink-faint);border-color:var(--border);cursor:not-allowed}
+.helper{font-size:var(--fs-label);color:var(--ink-muted);margin-top:6px;display:flex;align-items:center;gap:6px}
+.helper.err{color:var(--danger);font-weight:700}
+
+.switch{width:64px;height:38px;border-radius:var(--r-pill);flex:0 0 auto;background:var(--surface-sunken);
+  border:2px solid var(--border-strong);display:flex;align-items:center;padding:2px;cursor:pointer}
+.switch .knob{width:30px;height:30px;border-radius:var(--r-pill);background:var(--surface);box-shadow:var(--shadow-1);
+  display:grid;place-items:center;color:var(--ink-muted);transition:transform var(--dur-base) var(--ease-out)}
+.switch.on{background:var(--grad-sunrise);border-color:transparent}
+.switch.on .knob{transform:translateX(26px);color:var(--primary-deep)}
+html[dir="rtl"] .switch.on .knob{transform:translateX(-26px)}
+
+.segctl{display:flex;gap:4px;background:var(--surface-sunken);border:1px solid var(--border);
+  border-radius:var(--r-pill);padding:5px}
+.segctl .so{flex:1 1 0;min-height:44px;border-radius:var(--r-pill);display:grid;place-items:center;
+  font-size:var(--fs-label);font-weight:800;color:var(--ink-muted);text-align:center;padding:0 8px;cursor:pointer}
+.segctl .so.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-1)}
+
+.slider{display:flex;align-items:center;gap:var(--s-3)}
+.slider .track{flex:1 1 auto;height:10px;border-radius:var(--r-pill);background:var(--surface-sunken);
+  border:1px solid var(--border);position:relative}
+.slider .fill{position:absolute;inset-block:0;inset-inline-start:0;width:66%;border-radius:var(--r-pill);background:var(--grad-sunrise)}
+.slider .knob{position:absolute;inset-inline-start:66%;top:50%;transform:translate(-50%,-50%);width:32px;height:32px;
+  border-radius:var(--r-pill);background:var(--surface);border:2px solid var(--state-today);box-shadow:var(--shadow-2)}
+html[dir="rtl"] .slider .knob{transform:translate(50%,-50%)}
+
+.tabbar{display:flex;align-items:flex-start;justify-content:space-around;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r-lg);padding:10px 8px;box-shadow:var(--shadow-1);max-width:390px}
+.tab{flex:1 1 0;min-width:44px;min-height:52px;border-radius:var(--r-md);display:flex;flex-direction:column;
+  align-items:center;gap:3px;justify-content:center;color:var(--ink-muted)}
+.tab .tl{font-size:12px;font-weight:700}
+.tab[aria-current="page"]{color:var(--primary-deep)}
+.tab[aria-current="page"] .tico{background:var(--tint-primary);border-radius:var(--r-pill)}
+.tico{width:52px;height:30px;display:grid;place-items:center}
+
+.banner{display:flex;align-items:center;gap:var(--s-3);width:100%;text-align:start;background:var(--tint-warning);
+  color:var(--ink);border:1px solid color-mix(in srgb,var(--warning) 40%,transparent);border-radius:var(--r-lg);
+  padding:var(--s-4);min-height:64px;font:inherit;font-size:var(--fs-body);font-weight:700;box-shadow:var(--shadow-1)}
+.banner .bicon{width:40px;height:40px;flex:0 0 auto;border-radius:var(--r-pill);background:var(--surface);
+  color:var(--warning);display:grid;place-items:center;border:2px solid color-mix(in srgb,var(--warning) 50%,transparent)}
+.banner .bchev{margin-inline-start:auto;color:var(--ink-muted);flex:0 0 auto}
+
+.emptystate{text-align:center;padding:var(--s-7) var(--s-5);background:var(--grad-wash);border:1px dashed var(--border-strong);
+  border-radius:var(--r-lg)}
+.emptystate .es-ic{width:88px;height:88px;border-radius:var(--r-pill);margin:0 auto var(--s-4);display:grid;place-items:center;
+  background:var(--tint-primary);color:var(--primary-deep)}
+.emptystate h4{margin:0 0 var(--s-2);font-size:var(--fs-heading);font-weight:800}
+.emptystate p{margin:0 auto var(--s-5);max-width:38ch;color:var(--ink-muted)}
+
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s-4);box-shadow:var(--shadow-1)}
+.stat .sv{font-size:var(--fs-title);font-weight:800;letter-spacing:-.02em;line-height:1.1;display:block}
+.stat .sv .u{font-size:var(--fs-body);font-weight:700;letter-spacing:0}
+.stat .sl{font-size:var(--fs-label);color:var(--ink-muted);font-weight:600;display:block;margin-top:4px;line-height:1.4}
+
+.sheetdemo{position:relative;background:var(--surface-sunken);border-radius:var(--r-lg);overflow:hidden;
+  min-height:330px;border:1px solid var(--border)}
+.sheetdemo .dim{position:absolute;inset:0;background:var(--overlay)}
+.sheetdemo .sheet{position:absolute;inset-inline:10px;bottom:10px;background:var(--surface);border-radius:var(--r-xl);
+  padding:var(--s-6) var(--s-5) var(--s-5);box-shadow:var(--shadow-3);text-align:center}
+.sheetdemo .grip{width:52px;height:5px;border-radius:var(--r-pill);background:var(--border);margin:0 auto var(--s-4)}
+.sheetdemo .seal{width:72px;height:72px;border-radius:var(--r-pill);margin:0 auto var(--s-3);background:var(--grad-sunrise);
+  display:grid;place-items:center;color:var(--on-primary);box-shadow:var(--shadow-glow)}
+.sheetdemo h4{margin:0 0 var(--s-2);font-size:var(--fs-heading);font-weight:800}
+.sheetdemo p{margin:0 0 var(--s-4);font-size:var(--fs-label);color:var(--ink-muted)}
+
+/* icons */
+.iconcell{display:flex;flex-direction:column;align-items:center;gap:8px;padding:var(--s-4);background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r-md);text-align:center}
+.iconcell .inm{font-family:var(--font-mono);font-size:12px;color:var(--ink-muted);direction:ltr}
+.iconstack{display:flex;align-items:flex-end;gap:var(--s-4);flex-wrap:wrap}
+
+/* motion demo */
+.motiontrack{height:64px;border-radius:var(--r-pill);background:var(--surface-sunken);border:1px solid var(--border);
+  position:relative;overflow:hidden}
+.motiondot{position:absolute;top:8px;inset-inline-start:8px;width:48px;height:48px;border-radius:var(--r-pill);
+  background:var(--grad-sunrise);box-shadow:var(--shadow-glow);display:grid;place-items:center;color:var(--on-primary);
+  transition:transform var(--dur-slow) var(--ease-out)}
+.motiontrack.go .motiondot{transform:translateX(var(--travel,220px))}
+html[dir="rtl"] .motiontrack.go .motiondot{transform:translateX(calc(-1 * var(--travel,220px)))}
+
+/* rtl demo */
+.dirdemo{border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s-4);background:var(--surface-raised)}
+.dirdemo[lang="en"]{font-family:var(--font-latin)}
+.dirdemo .cap{font-size:var(--fs-caption);font-weight:800;color:var(--ink-muted);margin-bottom:var(--s-3);
+  letter-spacing:.08em;text-transform:uppercase}
+
+/* a11y demos */
+.taptarget{width:44px;height:44px;border-radius:var(--r-sm);border:2px dashed var(--primary-deep);
+  display:grid;place-items:center;color:var(--primary-deep);background:var(--tint-primary)}
+.scaledemo{--demo-scale:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s-5);box-shadow:var(--shadow-1)}
+.scaledemo .sd-title{font-size:calc(var(--fs-heading) * var(--demo-scale));font-weight:800;line-height:1.25}
+.scaledemo .sd-body{font-size:calc(var(--fs-body) * var(--demo-scale));color:var(--ink-muted);line-height:1.6}
+.scaledemo .sd-btn{min-height:calc(56px * var(--demo-scale));font-size:calc(var(--fs-body-lg) * var(--demo-scale));margin-top:var(--s-4);width:100%}
+
+.ic{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ic16{width:16px;height:16px}.ic18{width:18px;height:18px}.ic20{width:20px;height:20px}
+.ic28{width:28px;height:28px}.ic32{width:32px;height:32px}.ic40{width:40px;height:40px}
+html[dir="rtl"] .mirror{transform:scaleX(-1)}
+.row{display:flex;gap:var(--s-3);flex-wrap:wrap;align-items:center}
+.stackv{display:flex;flex-direction:column;gap:var(--s-3)}
+.note{display:flex;gap:var(--s-3);align-items:flex-start;background:var(--tint-primary);border-radius:var(--r-md);
+  padding:var(--s-4);font-size:var(--fs-label);font-weight:600;color:var(--ink);line-height:1.6}
+.note svg{color:var(--primary-deep);flex:0 0 auto;margin-top:2px}
+ul.rules{margin:0;padding-inline-start:1.2em;color:var(--ink-muted)}
+ul.rules li{margin-bottom:8px}
+ul.rules b{color:var(--ink)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:1ms!important}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.6l5 5L19.5 6.5"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.4V12l3.1 2"/></symbol>
+  <symbol id="i-pill" viewBox="0 0 24 24"><rect x="2.6" y="8.2" width="18.8" height="7.6" rx="3.8"/><path d="M12 8.2v7.6"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="4"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6.5h11M9 12h11M9 17.5h11"/><circle cx="4.6" cy="6.5" r="1.5"/><circle cx="4.6" cy="12" r="1.5"/><circle cx="4.6" cy="17.5" r="1.5"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3.5 20h17"/><path d="M6 20v-5M11 20V9M16 20v-8"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M19 12.5V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6.5"/><path d="M16.4 3.9l3.7 3.7L13 14.7l-4.3.6.6-4.3z"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.6v5"/><circle cx="12" cy="16.2" r="1.15" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.6v11"/><path d="M7.8 10.6L12 14.8l4.2-4.2"/><path d="M4.5 17.5v1.4a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-1.4"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4"/><path d="M7.8 8.2L12 4l4.2 4.2"/><path d="M4.5 17.5v1.4a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-1.4"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9.5 5.5l7 6.5-7 6.5"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><path d="M2.6 19h18.8"/><path d="M5.6 19a6.4 6.4 0 0 1 12.8 0"/><path d="M12 4.2v2.3M4.6 7.3l1.7 1.6M19.4 7.3l-1.7 1.6"/></symbol>
+  <symbol id="i-sunrise" viewBox="0 0 24 24"><path d="M2.6 20h18.8"/><path d="M6.4 20a5.6 5.6 0 0 1 11.2 0"/><path d="M12 2.6v4.2M12 2.6L9.4 5.4M12 2.6l2.6 2.8"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="7" y="5" width="3.6" height="14" rx="1.8"/><rect x="13.4" y="5" width="3.6" height="14" rx="1.8"/></symbol>
+  <symbol id="i-flare" viewBox="0 0 24 24"><path d="M2.8 12h3.6l2.4-6 4 13 2.6-7h5.8"/></symbol>
+  <symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/></symbol>
+  <symbol id="i-arrowright" viewBox="0 0 24 24"><path d="M4.5 12h15"/><path d="M13.6 6.2L19.4 12l-5.8 5.8"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.4" width="15" height="10.2" rx="3.2"/><path d="M8.2 10.4V7.8a3.8 3.8 0 0 1 7.6 0v2.6"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="3.4"/></symbol>
+</defs></svg>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brandmark">
+      <span class="sunbadge"><svg class="ic" aria-hidden="true"><use href="#i-sunrise"/></svg></span>
+      <span>
+        <b data-en="Daybreak" data-fa="سپیده‌دم">Daybreak</b>
+        <span data-en="Design system specification · NearlyStop" data-fa="سند سیستم طراحی · NearlyStop">Design system specification · NearlyStop</span>
+      </span>
+    </div>
+    <div class="seg" role="group" aria-label="Theme">
+      <button type="button" id="btn-light" aria-pressed="true" onclick="setTheme('light')">
+        <svg class="ic ic20" aria-hidden="true"><use href="#i-sun"/></svg><span data-en="Light" data-fa="روشن">Light</span></button>
+      <button type="button" id="btn-dark" aria-pressed="false" onclick="setTheme('dark')">
+        <svg class="ic ic20" aria-hidden="true"><use href="#i-clock"/></svg><span data-en="Dark" data-fa="تاریک">Dark</span></button>
+    </div>
+    <div class="seg" role="group" aria-label="Language">
+      <button type="button" id="btn-en" aria-pressed="true" onclick="setLang('en')">English</button>
+      <button type="button" id="btn-fa" aria-pressed="false" onclick="setLang('fa')">فارسی</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="hero-doc">
+    <p class="kicker" data-en="Design system · v1.0 · build spec" data-fa="سیستم طراحی · نسخهٔ ۱٫۰ · سند ساخت">Design system · v1.0 · build spec</p>
+    <h1><span class="glow" data-en="Daybreak" data-fa="سپیده‌دم">Daybreak</span></h1>
+    <p data-en="Every value a developer needs, with the live component beside the token that produces it."
+       data-fa="هر مقداری که برنامه‌نویس لازم دارد، همراه با نمونهٔ زندهٔ هر کامپوننت در کنار توکنی که آن را می‌سازد.">Every value a developer needs, with the live component beside the token that produces it.</p>
+  </div>
+
+  <nav class="toc" aria-label="Contents">
+    <a href="#idea"><span class="n">1</span><span data-en="The idea" data-fa="ایده">The idea</span></a>
+    <a href="#colour"><span class="n">2</span><span data-en="Colour" data-fa="رنگ">Colour</span></a>
+    <a href="#type"><span class="n">3</span><span data-en="Typography" data-fa="تایپوگرافی">Typography</span></a>
+    <a href="#space"><span class="n">4</span><span data-en="Spacing" data-fa="فاصله">Spacing</span></a>
+    <a href="#radii"><span class="n">5</span><span data-en="Radii" data-fa="گردی گوشه">Radii</span></a>
+    <a href="#elevation"><span class="n">6</span><span data-en="Elevation" data-fa="ارتفاع">Elevation</span></a>
+    <a href="#components"><span class="n">7</span><span data-en="Components" data-fa="کامپوننت‌ها">Components</span></a>
+    <a href="#icons"><span class="n">8</span><span data-en="Icons" data-fa="آیکون‌ها">Icons</span></a>
+    <a href="#motion"><span class="n">9</span><span data-en="Motion" data-fa="حرکت">Motion</span></a>
+    <a href="#rtl"><span class="n">10</span><span data-en="RTL rules" data-fa="قواعد راست‌به‌چپ">RTL rules</span></a>
+    <a href="#a11y"><span class="n">11</span><span data-en="Accessibility" data-fa="دسترس‌پذیری">Accessibility</span></a>
+  </nav>
+
+  <!-- ================= 1 · IDEA ================= -->
+  <section id="idea">
+    <div class="sechead"><span class="num">1</span><h2 data-en="The idea" data-fa="ایده">The idea</h2></div>
+    <div class="panel">
+      <h3 data-en="Daybreak — light coming up over the horizon" data-fa="سپیده‌دم — نوری که از افق بالا می‌آید">Daybreak — light coming up over the horizon</h3>
+      <p data-en="Daybreak is built on one sentence: every dose is one more step toward the morning you are heading for. The ground is warm cream, never white and never clinical; the signature accent is a coral-to-amber sunrise gradient reserved for the single most important thing on each screen; shadows are soft, diffuse and tinted with the same warm hue, so nothing has a hard edge or a cold grey rim. Corners are large — 24px on cards, fully rounded on buttons — because rounded shapes read as friendly rather than as forms to be filled in."
+         data-fa="سپیده‌دم بر یک جمله بنا شده است: هر دوز یک گام دیگر به سوی صبحی است که به آن می‌رسید. زمینه، کرمِ گرم است — نه سفید و نه بیمارستانی؛ رنگ امضای سیستم گرادیان مرجانی تا کهربایی است که فقط برای مهم‌ترین عنصر هر صفحه کنار گذاشته شده؛ سایه‌ها نرم، پخش و با همان گرمای رنگی تیره شده‌اند تا هیچ لبهٔ تیز یا حاشیهٔ خاکستری سرد وجود نداشته باشد. گوشه‌ها بزرگ‌اند — ۲۴ پیکسل روی کارت‌ها و کاملاً گرد روی دکمه‌ها — چون شکل‌های گرد مهربان به نظر می‌رسند، نه مثل فرمی که باید پر شود.">Daybreak is built on one sentence: every dose is one more step toward the morning you are heading for. The ground is warm cream, never white and never clinical; the signature accent is a coral-to-amber sunrise gradient reserved for the single most important thing on each screen; shadows are soft, diffuse and tinted with the same warm hue, so nothing has a hard edge or a cold grey rim. Corners are large — 24px on cards, fully rounded on buttons — because rounded shapes read as friendly rather than as forms to be filled in.</p>
+      <p data-en="The dark theme is a deep warm plum-brown night that still glows: the same hue family, lowered, never a cold black void. Three signature moves carry the identity — the gradient dose hero with a sunrise arc behind the number, progress drawn as a rising arc, and day state carried by shape (soft filled dot for taken, hollow ring for not ticked) so colour is never doing the work alone."
+         data-fa="تم تاریک، شبی گرم به رنگ آلویی–قهوه‌ای است که هنوز می‌درخشد: همان خانوادهٔ رنگی، فقط پایین‌تر — نه هرگز یک سیاهیِ سرد و خالی. سه حرکت امضایی هویت را حمل می‌کنند: کارت اصلی دوز با کمان طلوع پشت عدد، پیشرفت به شکل کمانی رو به بالا، و وضعیت هر روز که با «شکل» منتقل می‌شود (نقطهٔ پر برای مصرف‌شده، حلقهٔ توخالی برای ثبت‌نشده) تا رنگ هرگز به‌تنهایی کار را انجام ندهد.">The dark theme is a deep warm plum-brown night that still glows: the same hue family, lowered, never a cold black void. Three signature moves carry the identity — the gradient dose hero with a sunrise arc behind the number, progress drawn as a rising arc, and day state carried by shape (soft filled dot for taken, hollow ring for not ticked) so colour is never doing the work alone.</p>
+      <div class="note">
+        <svg class="ic ic20" aria-hidden="true"><use href="#i-alert"/></svg>
+        <span data-en="Audience note: readers are 60–80 and open this app every morning for around 780 days. Nothing may read as clinical, sad or childish. Body text never goes below 17px, and every state has a word next to it."
+              data-fa="نکتهٔ مخاطب: کاربران ۶۰ تا ۸۰ ساله‌اند و حدود ۷۸۰ روز هر صبح این برنامه را باز می‌کنند. هیچ چیز نباید بیمارستانی، غمگین یا کودکانه به نظر برسد. متن اصلی هرگز زیر ۱۷ پیکسل نمی‌رود و هر وضعیت یک کلمه در کنارش دارد.">Audience note: readers are 60–80 and open this app every morning for around 780 days. Nothing may read as clinical, sad or childish. Body text never goes below 17px, and every state has a word next to it.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 2 · COLOUR ================= -->
+  <section id="colour">
+    <div class="sechead"><span class="num">2</span><h2 data-en="Colour" data-fa="رنگ">Colour</h2></div>
+    <p class="lede" data-en="Swatches render the token in the theme you are currently viewing; both hex values are printed. Toggle the theme above to see the dark set."
+       data-fa="نمونه‌های رنگ، توکن را در تم فعلی نمایش می‌دهند و هر دو مقدار هگز چاپ شده است. برای دیدن مجموعهٔ تاریک، تم بالا را عوض کنید.">Swatches render the token in the theme you are currently viewing; both hex values are printed. Toggle the theme above to see the dark set.</p>
+
+    <div class="panel">
+      <h3 data-en="Surfaces & ink" data-fa="سطوح و متن">Surfaces &amp; ink</h3>
+      <div class="grid3">
+        <div class="swatch"><div class="chipbox" style="background:var(--bg)"></div><div class="meta">
+          <span class="nm">--bg</span><span class="hx">L #FFF9F2 · D #241A20</span>
+          <span class="role" data-en="App background. Warm cream, never pure white." data-fa="زمینهٔ برنامه. کرم گرم، هرگز سفید خالص.">App background. Warm cream, never pure white.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--surface)"></div><div class="meta">
+          <span class="nm">--surface</span><span class="hx">L #FFFFFF · D #2E2229</span>
+          <span class="role" data-en="Cards, rows, sheets, tab bar." data-fa="کارت‌ها، ردیف‌ها، شیت‌ها، نوار تب.">Cards, rows, sheets, tab bar.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--surface-raised)"></div><div class="meta">
+          <span class="nm">--surface-raised</span><span class="hx">L #FFF4E9 · D #38292F</span>
+          <span class="role" data-en="Block headers, chips, section wash." data-fa="سرصفحهٔ مرحله‌ها، چیپ‌ها، پس‌زمینهٔ بخش‌ها.">Block headers, chips, section wash.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--surface-sunken)"></div><div class="meta">
+          <span class="nm">--surface-sunken</span><span class="hx">L #FCEFE2 · D #1D1418</span>
+          <span class="role" data-en="Track of sliders, segmented control ground, code." data-fa="ریل اسلایدر، زمینهٔ کنترل بخش‌بندی‌شده، کد.">Track of sliders, segmented control ground, code.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--ink)"></div><div class="meta">
+          <span class="nm">--ink</span><span class="hx">L #3B2A25 · D #F9EBE2</span>
+          <span class="role" data-en="Primary text. 13.0:1 on --bg." data-fa="متن اصلی. نسبت ۱۳٫۰ روی زمینه.">Primary text. 13.0:1 on --bg.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--ink-muted)"></div><div class="meta">
+          <span class="nm">--ink-muted</span><span class="hx">L #755B50 · D #C9AEA2</span>
+          <span class="role" data-en="Secondary text. 6.0:1 on --bg. Still full AA." data-fa="متن ثانویه. نسبت ۶٫۰ روی زمینه — همچنان AA کامل.">Secondary text. 6.0:1 on --bg. Still full AA.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--ink-faint)"></div><div class="meta">
+          <span class="nm">--ink-faint</span><span class="hx">L #A08A80 · D #9A8078</span>
+          <span class="role" data-en="Decorative only — disabled glyphs, placeholders. Never body copy." data-fa="فقط تزئینی — نشانه‌های غیرفعال و متن راهنما. هرگز متن اصلی.">Decorative only — disabled glyphs, placeholders. Never body copy.</span></div></div>
+      </div>
+
+      <h4 data-en="Brand & semantic" data-fa="برند و معنایی">Brand &amp; semantic</h4>
+      <div class="grid3">
+        <div class="swatch"><div class="chipbox" style="background:var(--grad-sunrise)"></div><div class="meta">
+          <span class="nm">--grad-sunrise</span><span class="hx">#F9633F → #FFC46A (138°)</span>
+          <span class="role" data-en="The signature. One per screen: the dose hero, the primary button, the active mark." data-fa="امضای سیستم. در هر صفحه فقط یک بار: کارت دوز، دکمهٔ اصلی، نشانهٔ فعال.">The signature. One per screen: the dose hero, the primary button, the active mark.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--primary)"></div><div class="meta">
+          <span class="nm">--primary</span><span class="hx">L #F97350 · D #FF8A66</span>
+          <span class="role" data-en="Fill only in light mode (2.8:1). Text uses --primary-deep." data-fa="در تم روشن فقط برای پُرکردن سطح (۲٫۸). برای متن از --primary-deep استفاده کنید.">Fill only in light mode (2.8:1). Text uses --primary-deep.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--primary-deep)"></div><div class="meta">
+          <span class="nm">--primary-deep</span><span class="hx">L #B0402A · D #FF8A66</span>
+          <span class="role" data-en="Accent text, links, active tab, focus ring. 5.6:1 on --bg." data-fa="متن تأکیدی، پیوند، تب فعال، حلقهٔ فوکوس. نسبت ۵٫۶ روی زمینه.">Accent text, links, active tab, focus ring. 5.6:1 on --bg.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--secondary)"></div><div class="meta">
+          <span class="nm">--secondary</span><span class="hx">L #FFB84D · D #FFC470</span>
+          <span class="role" data-en="Amber end of the gradient; warm highlights." data-fa="سرِ کهربایی گرادیان؛ برجسته‌سازی گرم.">Amber end of the gradient; warm highlights.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--on-primary)"></div><div class="meta">
+          <span class="nm">--on-primary</span><span class="hx">L/D #2A1A16</span>
+          <span class="role" data-en="Deep brown sits ON the gradient — 6.0:1 on coral, 9.7:1 on amber. White would fail." data-fa="قهوه‌ای تیره روی گرادیان می‌نشیند — ۶٫۰ روی مرجانی و ۹٫۷ روی کهربایی. سفید مردود می‌شد.">Deep brown sits ON the gradient — 6.0:1 on coral, 9.7:1 on amber. White would fail.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--success)"></div><div class="meta">
+          <span class="nm">--success</span><span class="hx">L #1F7A55 · D #6FD3A4</span>
+          <span class="role" data-en="Success text on --tint-success. 4.6:1." data-fa="متن موفقیت روی زمینهٔ سبز روشن. نسبت ۴٫۶.">Success text on --tint-success. 4.6:1.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--warning)"></div><div class="meta">
+          <span class="nm">--warning</span><span class="hx">L #8A5A00 · D #FFC470</span>
+          <span class="role" data-en="Backfill banner text and icon. 5.2:1 on --tint-warning." data-fa="متن و آیکون بنر یادآوری. نسبت ۵٫۲ روی زمینهٔ کهربایی روشن.">Backfill banner text and icon. 5.2:1 on --tint-warning.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--danger)"></div><div class="meta">
+          <span class="nm">--danger</span><span class="hx">L #A8352B · D #FF8A80</span>
+          <span class="role" data-en="Flare marks, destructive actions. Never used for “missed”." data-fa="نشانهٔ عود و کنش‌های حذفی. هرگز برای «ثبت‌نشده».">Flare marks, destructive actions. Never used for “missed”.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--border)"></div><div class="meta">
+          <span class="nm">--border</span><span class="hx">L #F0DDCD · D #45333A</span>
+          <span class="role" data-en="Decorative hairline only — never the sole boundary of a control." data-fa="فقط خط تزئینی — هرگز تنها مرز یک کنترل نیست.">Decorative hairline only — never the sole boundary of a control.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--border-strong)"></div><div class="meta">
+          <span class="nm">--border-strong</span><span class="hx">L #A67D68 · D #9A7A82</span>
+          <span class="role" data-en="Interactive boundary: inputs, switches, secondary buttons. 3.65:1." data-fa="مرز عناصر تعاملی: ورودی، کلید، دکمهٔ ثانویه. نسبت ۳٫۶۵.">Interactive boundary: inputs, switches, secondary buttons. 3.65:1.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--overlay)"></div><div class="meta">
+          <span class="nm">--overlay</span><span class="hx">L rgba(59,42,37,.55) · D rgba(16,9,13,.66)</span>
+          <span class="role" data-en="Scrim behind the disclaimer sheet." data-fa="پردهٔ تیره پشت شیت سلب مسئولیت.">Scrim behind the disclaimer sheet.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--tint-primary)"></div><div class="meta">
+          <span class="nm">--tint-primary</span><span class="hx">L #FFE7DE · D #3E2A26</span>
+          <span class="role" data-en="Ground for accent chips and the active tab pill." data-fa="زمینهٔ چیپ‌های تأکیدی و قرص تب فعال.">Ground for accent chips and the active tab pill.</span></div></div>
+      </div>
+
+      <h4 data-en="Day-state colours (always paired with a shape and a word)" data-fa="رنگ وضعیت روزها (همیشه همراه شکل و یک کلمه)">Day-state colours (always paired with a shape and a word)</h4>
+      <div class="grid3">
+        <div class="swatch"><div class="chipbox" style="background:var(--state-taken)"></div><div class="meta">
+          <span class="nm">--state-taken</span><span class="hx">L #2E8B63 · D #4FBF8B</span>
+          <span class="role" data-en="Filled dot + check glyph + the word “Taken”. 4.2:1 against --surface." data-fa="نقطهٔ پر + تیک + کلمهٔ «مصرف شد». نسبت ۴٫۲ نسبت به سطح.">Filled dot + check glyph + the word “Taken”. 4.2:1 against --surface.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--state-missed)"></div><div class="meta">
+          <span class="nm">--state-missed</span><span class="hx">L #A67D68 · D #9A7A82</span>
+          <span class="role" data-en="Hollow 3px ring + dashed row border + “Not ticked”. Deliberately not red." data-fa="حلقهٔ توخالی ۳ پیکسلی + کادر خط‌چین + «ثبت نشده». عمداً قرمز نیست.">Hollow 3px ring + dashed row border + “Not ticked”. Deliberately not red.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--state-today)"></div><div class="meta">
+          <span class="nm">--state-today</span><span class="hx">L #E2542F · D #FF8A66</span>
+          <span class="role" data-en="2px row border + sunrise mark + the word “Today”. 3.8:1 boundary." data-fa="کادر ۲ پیکسلی + نشان طلوع + کلمهٔ «امروز». مرز با نسبت ۳٫۸.">2px row border + sunrise mark + the word “Today”. 3.8:1 boundary.</span></div></div>
+        <div class="swatch"><div class="chipbox" style="background:var(--state-newdose)"></div><div class="meta">
+          <span class="nm">--state-newdose</span><span class="hx">L #8A5A00 · D #FFC470</span>
+          <span class="role" data-en="Badge with the sunrise icon and the words “New dose day”." data-fa="نشان با آیکون طلوع و عبارت «روز دوز جدید».">Badge with the sunrise icon and the words “New dose day”.</span></div></div>
+      </div>
+
+      <h4 data-en="Measured contrast — every text-on-background pair" data-fa="کنتراست اندازه‌گیری‌شده — همهٔ جفت‌های متن روی زمینه">Measured contrast — every text-on-background pair</h4>
+      <div class="tablewrap">
+        <table>
+          <thead><tr>
+            <th data-en="Foreground" data-fa="پیش‌زمینه">Foreground</th>
+            <th data-en="Background" data-fa="زمینه">Background</th>
+            <th data-en="Light" data-fa="روشن">Light</th>
+            <th data-en="Dark" data-fa="تاریک">Dark</th>
+            <th data-en="Required" data-fa="حد لازم">Required</th>
+            <th>WCAG AA</th>
+          </tr></thead>
+          <tbody>
+            <tr><td><code>--ink</code></td><td><code>--bg</code></td><td class="ratio">13.01</td><td class="ratio">14.48</td><td class="ratio">4.5</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+            <tr><td><code>--ink</code></td><td><code>--surface</code></td><td class="ratio">13.60</td><td class="ratio">13.08</td><td class="ratio">4.5</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+            <tr><td><code>--ink</code></td><td><code>--surface-raised</code></td><td class="ratio">12.55</td><td class="ratio">11.80</td><td class="ratio">4.5</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+            <tr><td><code>--ink-muted</code></td><td><code>--bg</code></td><td class="ratio">5.96</td><td class="ratio">8.09</td><td class="ratio">4.5</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+            <tr><td><code>--ink-muted</code></td><td><code>--surface</code></td><td class="ratio">6.23</td><td class="ratio">7.31</td><td class="ratio">4.5</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+            <tr><td><code>--ink-muted</code></td><td><code>--surface-raised</code></td><td class="ratio">5.75</td><td class="ratio">6.59</td><td class="ratio">4.5</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+            <tr><td><code>--primary-deep</code></td><td><code>--bg</code></td><td class="ratio">5.56</td><td class="ratio">7.30</td><td class="ratio">4.5</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+            <tr><td><code>--primary-deep</code></td><td><code>--tint-primary</code></td><td class="ratio">4.91</td><td class="ratio">5.81</td><td class="ratio">4.5</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+            <tr><td><code>--on-primary</code></td><td><code>--primary</code></td><td class="ratio">6.04</td><td class="ratio">7.22</td><td class="ratio">4.5</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+            <tr><td><code>--on-primary</code></td><td><code>--secondary</code></td><td class="ratio">9.71</td><td class="ratio">10.64</td><td class="ratio">4.5</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+            <tr><td><code>--success</code></td><td><code>--tint-success</code></td><td class="ratio">4.56</td><td class="ratio">6.84</td><td class="ratio">4.5</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+            <tr><td><code>--warning</code></td><td><code>--tint-warning</code></td><td class="ratio">5.23</td><td class="ratio">8.42</td><td class="ratio">4.5</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+            <tr><td><code>--danger</code></td><td><code>--tint-danger</code></td><td class="ratio">5.40</td><td class="ratio">6.10</td><td class="ratio">4.5</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+            <tr><td><code>--danger</code></td><td><code>--surface</code></td><td class="ratio">6.54</td><td class="ratio">6.68</td><td class="ratio">4.5</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+            <tr><td><code>--border-strong</code></td><td><code>--surface</code></td><td class="ratio">3.65</td><td class="ratio">3.98</td><td class="ratio">3.0</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+            <tr><td><code>--state-taken</code></td><td><code>--surface</code></td><td class="ratio">4.21</td><td class="ratio">6.65</td><td class="ratio">3.0</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+            <tr><td><code>--state-today</code></td><td><code>--surface</code></td><td class="ratio">3.79</td><td class="ratio">6.59</td><td class="ratio">3.0</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+            <tr><td><code>--state-missed</code></td><td><code>--surface</code></td><td class="ratio">3.65</td><td class="ratio">3.98</td><td class="ratio">3.0</td><td><span class="pass"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg>Pass</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:var(--s-4)" data-en="Ratios computed with the WCAG 2.1 relative-luminance formula. Rows requiring 3.0 are non-text UI boundaries and state marks; rows requiring 4.5 are text. --primary and --secondary are fill-only tokens in the light theme and never carry text."
+         data-fa="نسبت‌ها با فرمول روشناییِ نسبی WCAG 2.1 محاسبه شده‌اند. سطرهایی که حد ۳٫۰ دارند مرزهای غیرمتنی و نشانه‌های وضعیت‌اند؛ سطرهای ۴٫۵ متن‌اند. توکن‌های --primary و --secondary در تم روشن فقط برای پرکردن سطح‌اند و هرگز متن حمل نمی‌کنند.">Ratios computed with the WCAG 2.1 relative-luminance formula. Rows requiring 3.0 are non-text UI boundaries and state marks; rows requiring 4.5 are text. --primary and --secondary are fill-only tokens in the light theme and never carry text.</p>
+    </div>
+  </section>
+
+  <!-- ================= 3 · TYPOGRAPHY ================= -->
+  <section id="type">
+    <div class="sechead"><span class="num">3</span><h2 data-en="Typography" data-fa="تایپوگرافی">Typography</h2></div>
+    <p class="lede" data-en="Nunito for Latin — a rounded geometric sans whose numerals feel soft and confident. Vazirmatn for Persian. Every step is rendered in both faces below."
+       data-fa="نونیتو برای لاتین — سنس هندسیِ گرد که اعدادش نرم و مطمئن‌اند. وزیرمتن برای فارسی. هر پله در ادامه با هر دو قلم نمایش داده شده است.">Nunito for Latin — a rounded geometric sans whose numerals feel soft and confident. Vazirmatn for Persian. Every step is rendered in both faces below.</p>
+
+    <div class="panel">
+      <div class="specrow">
+        <div class="typespec">
+          <span class="en" style="font-size:var(--fs-display);font-weight:800;line-height:var(--lh-tight);letter-spacing:-.045em">9mg</span>
+          <span class="fa" style="font-size:58px;font-weight:800;line-height:1.15">۹ میلی‌گرم</span>
+        </div>
+        <div class="specmeta">
+          <b data-en="Display" data-fa="نمایشی">Display</b><br>
+          <span class="tok">--fs-display</span> <span class="val">72px</span><br>
+          <span class="val">weight 800 · line-height 1.05 · letter-spacing −0.045em</span><br>
+          <span data-en="Only the dose number on Today. Persian steps down to 58px and letter-spacing resets to 0." data-fa="فقط برای عدد دوز در صفحهٔ امروز. در فارسی به ۵۸ پیکسل کاهش می‌یابد و فاصلهٔ حروف صفر می‌شود.">Only the dose number on Today. Persian steps down to 58px and letter-spacing resets to 0.</span>
+        </div>
+      </div>
+
+      <div class="specrow">
+        <div class="typespec">
+          <span class="en" style="font-size:var(--fs-title);font-weight:800;line-height:var(--lh-snug);letter-spacing:-.02em">Schedule</span>
+          <span class="fa" style="font-size:var(--fs-title);font-weight:800;line-height:1.4">برنامه</span>
+        </div>
+        <div class="specmeta">
+          <b data-en="Title" data-fa="عنوان">Title</b><br>
+          <span class="tok">--fs-title</span> <span class="val">34px</span><br>
+          <span class="val">weight 800 · line-height 1.25 · letter-spacing −0.02em</span><br>
+          <span data-en="Screen titles and stat values." data-fa="عنوان صفحه‌ها و مقدار آمارها.">Screen titles and stat values.</span>
+        </div>
+      </div>
+
+      <div class="specrow">
+        <div class="typespec">
+          <span class="en" style="font-size:var(--fs-heading);font-weight:800;line-height:var(--lh-snug)">Welcome to NearlyStop</span>
+          <span class="fa" style="font-size:var(--fs-heading);font-weight:800;line-height:1.45">به NearlyStop خوش آمدید</span>
+        </div>
+        <div class="specmeta">
+          <b data-en="Heading" data-fa="سرتیتر">Heading</b><br>
+          <span class="tok">--fs-heading</span> <span class="val">24px</span><br>
+          <span class="val">weight 800 · line-height 1.25 · letter-spacing −0.01em</span><br>
+          <span data-en="Sheet titles, card headings, empty-state headings." data-fa="عنوان شیت‌ها، سرتیتر کارت‌ها و حالت خالی.">Sheet titles, card headings, empty-state headings.</span>
+        </div>
+      </div>
+
+      <div class="specrow">
+        <div class="typespec">
+          <span class="en" style="font-size:var(--fs-body-lg);font-weight:400;line-height:1.55">Step 3 of 15 · Day 14 of 52</span>
+          <span class="fa" style="font-size:var(--fs-body-lg);font-weight:400;line-height:1.7">گام ۳ از ۱۵ · روز ۱۴ از ۵۲</span>
+        </div>
+        <div class="specmeta">
+          <b data-en="Body large" data-fa="متن بزرگ">Body large</b><br>
+          <span class="tok">--fs-body-lg</span> <span class="val">20px</span><br>
+          <span class="val">weight 400/800 · line-height 1.55 · letter-spacing 0</span><br>
+          <span data-en="Button labels and lede paragraphs." data-fa="برچسب دکمه‌ها و پاراگراف‌های آغازین.">Button labels and lede paragraphs.</span>
+        </div>
+      </div>
+
+      <div class="specrow">
+        <div class="typespec">
+          <span class="en" style="font-size:var(--fs-body);font-weight:400;line-height:var(--lh-body)">Yesterday wasn’t ticked — mark it now?</span>
+          <span class="fa" style="font-size:var(--fs-body);font-weight:400;line-height:1.74">دیروز ثبت نشده — الان علامت بزنید؟</span>
+        </div>
+        <div class="specmeta">
+          <b data-en="Body" data-fa="متن">Body</b><br>
+          <span class="tok">--fs-body</span> <span class="val">17px</span><br>
+          <span class="val">weight 400/700 · line-height 1.60 · letter-spacing 0</span><br>
+          <span data-en="The floor. No text in the product is smaller than this except the two metadata steps below." data-fa="کف اندازه. هیچ متنی در محصول کوچک‌تر از این نیست، جز دو پلهٔ فرادادهٔ زیر.">The floor. No text in the product is smaller than this except the two metadata steps below.</span>
+        </div>
+      </div>
+
+      <div class="specrow">
+        <div class="typespec">
+          <span class="en" style="font-size:var(--fs-label);font-weight:700;line-height:1.4">Tablet strengths held</span>
+          <span class="fa" style="font-size:var(--fs-label);font-weight:700;line-height:1.55">قرص‌های موجود</span>
+        </div>
+        <div class="specmeta">
+          <b data-en="Label" data-fa="برچسب">Label</b><br>
+          <span class="tok">--fs-label</span> <span class="val">15px</span><br>
+          <span class="val">weight 700 · line-height 1.40 · letter-spacing +0.01em</span><br>
+          <span data-en="Field labels, chips, secondary buttons, table cells." data-fa="برچسب فیلدها، چیپ‌ها، دکمه‌های ثانویه، سلول جدول‌ها.">Field labels, chips, secondary buttons, table cells.</span>
+        </div>
+      </div>
+
+      <div class="specrow">
+        <div class="typespec">
+          <span class="en" style="font-size:var(--fs-caption);font-weight:800;line-height:1.45;letter-spacing:.02em">1 × 5mg · 4 × 1mg</span>
+          <span class="fa" style="font-size:var(--fs-caption);font-weight:800;line-height:1.6">۱ عدد ۵ میلی‌گرمی · ۴ عدد ۱ میلی‌گرمی</span>
+        </div>
+        <div class="specmeta">
+          <b data-en="Caption" data-fa="زیرنویس">Caption</b><br>
+          <span class="tok">--fs-caption</span> <span class="val">14px</span><br>
+          <span class="val">weight 600/800 · line-height 1.45 · letter-spacing +0.02em</span><br>
+          <span data-en="Badges and tablet breakdowns only. Never a full sentence." data-fa="فقط برای نشان‌ها و ریز قرص‌ها. هرگز یک جملهٔ کامل.">Badges and tablet breakdowns only. Never a full sentence.</span>
+        </div>
+      </div>
+
+      <div class="note" style="margin-top:var(--s-5)">
+        <svg class="ic ic20" aria-hidden="true"><use href="#i-note"/></svg>
+        <span data-en="Persian line-height adjustment: Vazirmatn’s ascenders, descenders and diacritics need more room, so every step adds +0.14 to its line-height token (--lh-fa-bump) and drops all negative letter-spacing to 0. Never letter-space Persian. Uppercase transforms are also switched off in Persian — the script has no case."
+              data-fa="تنظیم ارتفاع خط فارسی: صعودها، نزول‌ها و اعراب وزیرمتن به فضای بیشتری نیاز دارند، پس هر پله ۰٫۱۴ به توکن ارتفاع خط اضافه می‌کند (--lh-fa-bump) و همهٔ فاصله‌های منفی حروف صفر می‌شوند. هرگز حروف فارسی را از هم باز نکنید. تبدیل به حروف بزرگ هم در فارسی خاموش می‌شود — این خط، بزرگ و کوچک ندارد.">Persian line-height adjustment: Vazirmatn’s ascenders, descenders and diacritics need more room, so every step adds +0.14 to its line-height token (--lh-fa-bump) and drops all negative letter-spacing to 0. Never letter-space Persian. Uppercase transforms are also switched off in Persian — the script has no case.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 4 · SPACING ================= -->
+  <section id="space">
+    <div class="sechead"><span class="num">4</span><h2 data-en="Spacing" data-fa="فاصله">Spacing</h2></div>
+    <p class="lede" data-en="A 4 / 8 scale. Use --s-4 as the default gutter inside cards, --s-5 for screen padding, --s-6+ to separate groups."
+       data-fa="مقیاس ۴ و ۸. فاصلهٔ پیش‌فرض درون کارت --s-4 است، حاشیهٔ صفحه --s-5 و برای جدا کردن گروه‌ها از --s-6 به بالا.">A 4 / 8 scale. Use --s-4 as the default gutter inside cards, --s-5 for screen padding, --s-6+ to separate groups.</p>
+    <div class="panel">
+      <div class="ruler">
+        <div class="rul"><span class="bar" style="width:var(--s-1)"></span><span class="lbl">--s-1 · 4px</span></div>
+        <div class="rul"><span class="bar" style="width:var(--s-2)"></span><span class="lbl">--s-2 · 8px</span></div>
+        <div class="rul"><span class="bar" style="width:var(--s-3)"></span><span class="lbl">--s-3 · 12px</span></div>
+        <div class="rul"><span class="bar" style="width:var(--s-4)"></span><span class="lbl">--s-4 · 16px</span></div>
+        <div class="rul"><span class="bar" style="width:var(--s-5)"></span><span class="lbl">--s-5 · 20px</span></div>
+        <div class="rul"><span class="bar" style="width:var(--s-6)"></span><span class="lbl">--s-6 · 24px</span></div>
+        <div class="rul"><span class="bar" style="width:var(--s-7)"></span><span class="lbl">--s-7 · 32px</span></div>
+        <div class="rul"><span class="bar" style="width:var(--s-8)"></span><span class="lbl">--s-8 · 40px</span></div>
+        <div class="rul"><span class="bar" style="width:var(--s-9)"></span><span class="lbl">--s-9 · 48px</span></div>
+      </div>
+      <p style="margin-top:var(--s-5)" data-en="Spacing is applied with logical properties only — padding-inline, margin-inline-start, inset-inline-end — so the whole layout mirrors in Persian without a single overridden rule."
+         data-fa="فاصله‌ها فقط با ویژگی‌های منطقی اعمال می‌شوند — padding-inline و margin-inline-start و inset-inline-end — تا کل چیدمان در فارسی بدون حتی یک قاعدهٔ بازنویسی‌شده آینه شود.">Spacing is applied with logical properties only — padding-inline, margin-inline-start, inset-inline-end — so the whole layout mirrors in Persian without a single overridden rule.</p>
+    </div>
+  </section>
+
+  <!-- ================= 5 · RADII ================= -->
+  <section id="radii">
+    <div class="sechead"><span class="num">5</span><h2 data-en="Radii" data-fa="گردی گوشه">Radii</h2></div>
+    <p class="lede" data-en="Nothing sharp anywhere. Cards 24, inputs 16, buttons fully rounded."
+       data-fa="هیچ گوشهٔ تیزی وجود ندارد. کارت‌ها ۲۴، ورودی‌ها ۱۶ و دکمه‌ها کاملاً گرد.">Nothing sharp anywhere. Cards 24, inputs 16, buttons fully rounded.</p>
+    <div class="panel">
+      <div class="grid3">
+        <div><div class="radbox" style="border-radius:var(--r-xs)">8</div><p class="specmeta" style="margin-top:8px"><span class="tok">--r-xs</span> <span class="val">8px</span><br><span data-en="Code chips, tiny tags" data-fa="چیپ کد و برچسب‌های ریز">Code chips, tiny tags</span></p></div>
+        <div><div class="radbox" style="border-radius:var(--r-sm)">12</div><p class="specmeta" style="margin-top:8px"><span class="tok">--r-sm</span> <span class="val">12px</span><br><span data-en="Row icons, small tiles" data-fa="آیکون ردیف‌ها و کاشی‌های کوچک">Row icons, small tiles</span></p></div>
+        <div><div class="radbox" style="border-radius:var(--r-md)">16</div><p class="specmeta" style="margin-top:8px"><span class="tok">--r-md</span> <span class="val">16px</span><br><span data-en="Inputs, schedule rows, tables" data-fa="ورودی‌ها، ردیف برنامه، جدول‌ها">Inputs, schedule rows, tables</span></p></div>
+        <div><div class="radbox" style="border-radius:var(--r-lg)">24</div><p class="specmeta" style="margin-top:8px"><span class="tok">--r-lg</span> <span class="val">24px</span><br><span data-en="Cards, hero, banners" data-fa="کارت‌ها، کارت اصلی، بنرها">Cards, hero, banners</span></p></div>
+        <div><div class="radbox" style="border-radius:var(--r-xl)">32</div><p class="specmeta" style="margin-top:8px"><span class="tok">--r-xl</span> <span class="val">32px</span><br><span data-en="Bottom sheets and modals" data-fa="شیت‌های پایینی و پنجره‌ها">Bottom sheets and modals</span></p></div>
+        <div><div class="radbox" style="border-radius:var(--r-pill)">999</div><p class="specmeta" style="margin-top:8px"><span class="tok">--r-pill</span> <span class="val">999px</span><br><span data-en="All buttons, chips, badges, switches" data-fa="همهٔ دکمه‌ها، چیپ‌ها، نشان‌ها و کلیدها">All buttons, chips, badges, switches</span></p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 6 · ELEVATION ================= -->
+  <section id="elevation">
+    <div class="sechead"><span class="num">6</span><h2 data-en="Shadows / elevation" data-fa="سایه و ارتفاع">Shadows / elevation</h2></div>
+    <p class="lede" data-en="Multi-layer, wide and soft, tinted with the warm brand hue — never rgba(0,0,0). In the dark theme the same levels use a near-black plum so surfaces separate without a grey halo."
+       data-fa="سایه‌ها چندلایه، پهن و نرم‌اند و با همان گرمای برند رنگ گرفته‌اند — هرگز سیاه خالص. در تم تاریک همان سطوح از آلویی بسیار تیره استفاده می‌کنند تا سطوح بدون هالهٔ خاکستری از هم جدا شوند.">Multi-layer, wide and soft, tinted with the warm brand hue — never rgba(0,0,0). In the dark theme the same levels use a near-black plum so surfaces separate without a grey halo.</p>
+    <div class="panel">
+      <div class="specrow">
+        <div><div class="shadowdemo" style="box-shadow:var(--shadow-0)"><span data-en="Level 0 — flush" data-fa="سطح ۰ — هم‌سطح">Level 0 — flush</span></div></div>
+        <div class="specmeta"><span class="tok">--shadow-0</span><pre>--shadow-0: none;</pre></div>
+      </div>
+      <div class="specrow">
+        <div><div class="shadowdemo" style="box-shadow:var(--shadow-1)"><span data-en="Level 1 — rows, chips" data-fa="سطح ۱ — ردیف‌ها و چیپ‌ها">Level 1 — rows, chips</span></div></div>
+        <div class="specmeta"><span class="tok">--shadow-1</span><pre>--shadow-1:
+  0 1px 2px rgba(140,84,56,.07),
+  0 2px 8px rgba(140,84,56,.06);
+/* dark */
+  0 1px 2px rgba(8,4,6,.45),
+  0 2px 8px rgba(8,4,6,.35);</pre></div>
+      </div>
+      <div class="specrow">
+        <div><div class="shadowdemo" style="box-shadow:var(--shadow-2)"><span data-en="Level 2 — cards, today row" data-fa="سطح ۲ — کارت‌ها و ردیف امروز">Level 2 — cards, today row</span></div></div>
+        <div class="specmeta"><span class="tok">--shadow-2</span><pre>--shadow-2:
+  0 2px 4px rgba(140,84,56,.07),
+  0 10px 24px rgba(140,84,56,.10);
+/* dark */
+  0 2px 4px rgba(8,4,6,.45),
+  0 10px 24px rgba(8,4,6,.45);</pre></div>
+      </div>
+      <div class="specrow">
+        <div><div class="shadowdemo" style="box-shadow:var(--shadow-3)"><span data-en="Level 3 — sheets, modals" data-fa="سطح ۳ — شیت‌ها و پنجره‌ها">Level 3 — sheets, modals</span></div></div>
+        <div class="specmeta"><span class="tok">--shadow-3</span><pre>--shadow-3:
+  0 6px 12px rgba(140,84,56,.09),
+  0 22px 48px rgba(140,84,56,.14);
+/* dark */
+  0 6px 12px rgba(8,4,6,.5),
+  0 22px 48px rgba(8,4,6,.55);</pre></div>
+      </div>
+      <div class="specrow">
+        <div><div class="shadowdemo" style="box-shadow:var(--shadow-glow);background:var(--grad-sunrise);color:var(--on-primary);border:0">
+          <span data-en="Glow — the gradient hero only" data-fa="درخشش — فقط کارت گرادیانی">Glow — the gradient hero only</span></div></div>
+        <div class="specmeta"><span class="tok">--shadow-glow</span><pre>--shadow-glow:
+  0 8px 18px rgba(249,115,80,.22),
+  0 20px 44px rgba(249,115,80,.20);
+/* dark */
+  0 8px 18px rgba(255,122,82,.24),
+  0 20px 44px rgba(255,122,82,.18);</pre>
+        <span data-en="Reserved for the one gradient element per screen. Two glows on one screen is a bug." data-fa="فقط برای تنها عنصر گرادیانی هر صفحه. دو درخشش در یک صفحه یعنی ایراد.">Reserved for the one gradient element per screen. Two glows on one screen is a bug.</span></div>
+      </div>
+      <div class="note">
+        <svg class="ic ic20" aria-hidden="true"><use href="#i-sun"/></svg>
+        <span data-en="Raised surfaces may also carry --grad-wash, a very subtle vertical warm wash from #FFF7EE to #FFFFFF (dark: #3B2B31 to #2E2229). It is a wash, not a gradient anyone should notice."
+              data-fa="سطوح برجسته می‌توانند --grad-wash را هم داشته باشند: یک شیب عمودی بسیار ملایم از #FFF7EE به #FFFFFF (در تاریک از #3B2B31 به #2E2229). این یک لایهٔ نرم است، نه گرادیانی که کسی باید متوجهش شود.">Raised surfaces may also carry --grad-wash, a very subtle vertical warm wash from #FFF7EE to #FFFFFF (dark: #3B2B31 to #2E2229). It is a wash, not a gradient anyone should notice.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 7 · COMPONENTS ================= -->
+  <section id="components">
+    <div class="sechead"><span class="num">7</span><h2 data-en="Components" data-fa="کامپوننت‌ها">Components</h2></div>
+    <p class="lede" data-en="All live. Hover and press them — the pressed and disabled variants are also pinned open so you can see them side by side."
+       data-fa="همه زنده‌اند. روی آن‌ها بروید و فشار دهید — حالت فشرده و غیرفعال هم ثابت نگه داشته شده تا کنار هم دیده شوند.">All live. Hover and press them — the pressed and disabled variants are also pinned open so you can see them side by side.</p>
+
+    <div class="panel">
+      <h3 data-en="Buttons" data-fa="دکمه‌ها">Buttons</h3>
+      <div class="specrow">
+        <div class="row">
+          <button class="btn btn-primary"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-en="Taken" data-fa="مصرف شد">Taken</span></button>
+          <button class="btn btn-primary is-pressed"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-en="Pressed" data-fa="فشرده">Pressed</span></button>
+          <button class="btn btn-primary" disabled><span data-en="Disabled" data-fa="غیرفعال">Disabled</span></button>
+        </div>
+        <div class="specmeta"><b data-en="Primary" data-fa="اصلی">Primary</b><br>
+          <span class="val">background: var(--grad-sunrise); color: var(--on-primary);<br>min-height 56px; border-radius: var(--r-pill); box-shadow: var(--shadow-glow)</span><br>
+          <span data-en="One per screen. Hover brightens 5%; press drops 1px, scales 0.985 and falls to --shadow-1." data-fa="در هر صفحه فقط یکی. هاور ۵٪ روشن‌تر می‌کند؛ فشار ۱ پیکسل پایین می‌رود، ۰٫۹۸۵ کوچک می‌شود و سایه به سطح ۱ می‌افتد.">One per screen. Hover brightens 5%; press drops 1px, scales 0.985 and falls to --shadow-1.</span>
+        </div>
+      </div>
+      <div class="specrow">
+        <div class="row">
+          <button class="btn btn-secondary"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg><span data-en="Export" data-fa="خروجی">Export</span></button>
+          <button class="btn btn-secondary is-pressed"><span data-en="Pressed" data-fa="فشرده">Pressed</span></button>
+          <button class="btn btn-secondary" disabled><span data-en="Disabled" data-fa="غیرفعال">Disabled</span></button>
+        </div>
+        <div class="specmeta"><b data-en="Secondary" data-fa="ثانویه">Secondary</b><br>
+          <span class="val">background: var(--surface); border: 2px solid var(--border-strong); color: var(--ink)</span><br>
+          <span data-en="The 2px border is what makes it a control at 3.65:1 — the hairline --border alone would fail." data-fa="همان کادر ۲ پیکسلی است که با نسبت ۳٫۶۵ آن را به یک کنترل تبدیل می‌کند؛ خط نازک --border به‌تنهایی مردود می‌شد.">The 2px border is what makes it a control at 3.65:1 — the hairline --border alone would fail.</span>
+        </div>
+      </div>
+      <div class="specrow">
+        <div class="row">
+          <button class="btn btn-tertiary"><span data-en="Read the disclaimer again" data-fa="خواندن دوبارهٔ سلب مسئولیت">Read the disclaimer again</span></button>
+        </div>
+        <div class="specmeta"><b data-en="Tertiary" data-fa="سوم">Tertiary</b><br>
+          <span class="val">color: var(--primary-deep); underline 2px; offset 5px</span><br>
+          <span data-en="Underlined always — never colour alone." data-fa="همیشه زیرخط‌دار — هرگز فقط با رنگ.">Underlined always — never colour alone.</span>
+        </div>
+      </div>
+      <div class="specrow">
+        <div class="row">
+          <button class="btn btn-danger"><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg><span data-en="Delete this plan" data-fa="حذف این طرح">Delete this plan</span></button>
+        </div>
+        <div class="specmeta"><b data-en="Destructive" data-fa="حذفی">Destructive</b><br>
+          <span class="val">color: var(--danger); border: 2px solid var(--danger); background: var(--surface)</span><br>
+          <span data-en="Outlined, not filled — a solid red button is never the biggest thing on a screen in this product." data-fa="کادردار، نه پر — در این محصول دکمهٔ قرمزِ توپر هرگز بزرگ‌ترین عنصر صفحه نیست.">Outlined, not filled — a solid red button is never the biggest thing on a screen in this product.</span>
+        </div>
+      </div>
+
+      <h3 style="margin-top:var(--s-7)" data-en="The dose hero" data-fa="کارت اصلی دوز">The dose hero</h3>
+      <div class="specrow">
+        <div>
+          <div class="hero">
+            <svg class="arc" width="240" height="240" viewBox="0 0 240 240" aria-hidden="true">
+              <g fill="none" stroke="#FFF7EE" stroke-width="2">
+                <circle cx="120" cy="120" r="46" opacity=".85"/><circle cx="120" cy="120" r="70" opacity=".6"/>
+                <circle cx="120" cy="120" r="94" opacity=".4"/><circle cx="120" cy="120" r="118" opacity=".25"/>
+              </g></svg>
+            <span class="badge"><svg class="ic ic18" aria-hidden="true"><use href="#i-sunrise"/></svg><span data-en="New dose day" data-fa="روز دوز جدید">New dose day</span></span>
+            <div class="dose"><span data-en="9" data-fa="۹">9</span><span class="unit" data-en="mg" data-fa="میلی‌گرم">mg</span></div>
+            <div class="tablets"><svg class="ic ic18" aria-hidden="true"><use href="#i-pill"/></svg><span data-en="1 × 5mg · 4 × 1mg" data-fa="۱ عدد ۵ میلی‌گرمی · ۴ عدد ۱ میلی‌گرمی">1 × 5mg · 4 × 1mg</span></div>
+            <button class="btn btn-onhero"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-en="Taken" data-fa="مصرف شد">Taken</span></button>
+          </div>
+        </div>
+        <div class="specmeta">
+          <b data-en="Signature move 1" data-fa="حرکت امضایی ۱">Signature move 1</b><br>
+          <span class="val">background: var(--grad-sunrise); border-radius: var(--r-lg); padding: var(--s-5); box-shadow: var(--shadow-glow)</span><br>
+          <span data-en="Four concentric arcs at 0.85 → 0.25 opacity sit behind the number as a sunrise. The arc group mirrors in RTL (scaleX(−1)); the number, badge and pill do not." data-fa="چهار کمان هم‌مرکز با شفافیت ۰٫۸۵ تا ۰٫۲۵ پشت عدد می‌نشینند و طلوع را می‌سازند. گروه کمان‌ها در راست‌به‌چپ آینه می‌شود؛ عدد، نشان و قرص نه.">Four concentric arcs at 0.85 → 0.25 opacity sit behind the number as a sunrise. The arc group mirrors in RTL (scaleX(−1)); the number, badge and pill do not.</span><br>
+          <span data-en="The action on the hero is --surface with --ink text (13.6:1), not a translucent white — translucency over a gradient cannot be measured." data-fa="دکمهٔ روی کارت از --surface با متن --ink است (نسبت ۱۳٫۶)، نه سفیدِ نیمه‌شفاف — شفافیت روی گرادیان قابل اندازه‌گیری نیست.">The action on the hero is --surface with --ink text (13.6:1), not a translucent white — translucency over a gradient cannot be measured.</span>
+        </div>
+      </div>
+
+      <h3 style="margin-top:var(--s-7)" data-en="List rows — the four day states" data-fa="ردیف‌های فهرست — چهار وضعیت روز">List rows — the four day states</h3>
+      <div class="specrow">
+        <div>
+          <div class="srow taken">
+            <span class="mark m-taken"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg></span>
+            <span><span class="sday" data-en="Mon 14 Apr" data-fa="دوشنبه ۲۵ فروردین">Mon 14 Apr</span><span class="stab" data-en="2 × 5mg" data-fa="۲ عدد ۵ میلی‌گرمی">2 × 5mg</span></span>
+            <span class="send"><span class="sdose" data-en="10mg" data-fa="۱۰ میلی‌گرم">10mg</span>
+              <span class="sstate"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg><span data-en="Taken" data-fa="مصرف شد">Taken</span></span></span>
+          </div>
+          <div class="srow missed">
+            <span class="mark m-missed"></span>
+            <span><span class="sday" data-en="Tue 15 Apr" data-fa="سه‌شنبه ۲۶ فروردین">Tue 15 Apr</span><span class="stab" data-en="2 × 5mg" data-fa="۲ عدد ۵ میلی‌گرمی">2 × 5mg</span></span>
+            <span class="send"><span class="sdose" data-en="10mg" data-fa="۱۰ میلی‌گرم">10mg</span>
+              <span class="sstate"><svg class="ic ic16" aria-hidden="true"><use href="#i-circle"/></svg><span data-en="Not ticked" data-fa="ثبت نشده">Not ticked</span></span></span>
+          </div>
+          <div class="srow today">
+            <span class="mark m-today"><svg class="ic ic16" aria-hidden="true"><use href="#i-sunrise"/></svg></span>
+            <span><span class="sday" data-en="Wed 16 Apr" data-fa="چهارشنبه ۲۷ فروردین">Wed 16 Apr</span><span class="stab" data-en="1 × 5mg, 4 × 1mg" data-fa="۱ عدد ۵ میلی‌گرمی، ۴ عدد ۱ میلی‌گرمی">1 × 5mg, 4 × 1mg</span></span>
+            <span class="send"><span class="sdose" data-en="9mg" data-fa="۹ میلی‌گرم">9mg</span>
+              <span class="sstate"><svg class="ic ic16" aria-hidden="true"><use href="#i-sun"/></svg><span data-en="Today" data-fa="امروز">Today</span></span></span>
+          </div>
+          <div class="srow upcoming">
+            <span class="mark m-upcoming"></span>
+            <span><span class="sday" data-en="Thu 17 Apr" data-fa="پنج‌شنبه ۲۸ فروردین">Thu 17 Apr</span><span class="stab" data-en="2 × 5mg" data-fa="۲ عدد ۵ میلی‌گرمی">2 × 5mg</span></span>
+            <span class="send"><span class="sdose" data-en="10mg" data-fa="۱۰ میلی‌گرم">10mg</span>
+              <span class="sstate"><svg class="ic ic16" aria-hidden="true"><use href="#i-clock"/></svg><span data-en="Upcoming" data-fa="پیش‌رو">Upcoming</span></span></span>
+          </div>
+        </div>
+        <div class="specmeta">
+          <b data-en="Shape carries the state; colour only reinforces it" data-fa="شکل، وضعیت را می‌رساند؛ رنگ فقط آن را تقویت می‌کند">Shape carries the state; colour only reinforces it</b><br>
+          <span class="val">taken → filled dot + check + word · <span class="tok">--state-taken</span><br>
+          missed → hollow 3px ring + dashed border + word · <span class="tok">--state-missed</span><br>
+          today → sunrise mark + 2px solid border + word · <span class="tok">--state-today</span><br>
+          upcoming → dashed outline circle + clock + word · <span class="tok">--border-strong</span></span><br>
+          <span data-en="Row min-height 64px; gap --s-3; radius --r-md. Every row is legible in greyscale — try it." data-fa="حداقل ارتفاع ردیف ۶۴ پیکسل؛ فاصله --s-3؛ گردی --r-md. هر ردیف در حالت سیاه‌وسفید هم خواناست — امتحان کنید.">Row min-height 64px; gap --s-3; radius --r-md. Every row is legible in greyscale — try it.</span>
+        </div>
+      </div>
+
+      <h3 style="margin-top:var(--s-7)" data-en="Chips & badges" data-fa="چیپ‌ها و نشان‌ها">Chips &amp; badges</h3>
+      <div class="specrow">
+        <div class="row">
+          <span class="chip on"><svg class="ic ic18" aria-hidden="true"><use href="#i-pill"/></svg><span data-en="5mg" data-fa="۵ میلی‌گرم">5mg</span></span>
+          <span class="chip"><svg class="ic ic18" aria-hidden="true"><use href="#i-pill"/></svg><span data-en="2.5mg" data-fa="۲٫۵ میلی‌گرم">2.5mg</span></span>
+          <span class="pillbadge pb-new"><svg class="ic ic16" aria-hidden="true"><use href="#i-sunrise"/></svg><span data-en="New dose day" data-fa="روز دوز جدید">New dose day</span></span>
+          <span class="pillbadge pb-taken"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg><span data-en="Taken" data-fa="مصرف شد">Taken</span></span>
+          <span class="pillbadge pb-missed"><svg class="ic ic16" aria-hidden="true"><use href="#i-circle"/></svg><span data-en="Not ticked" data-fa="ثبت نشده">Not ticked</span></span>
+          <span class="pillbadge pb-today"><svg class="ic ic16" aria-hidden="true"><use href="#i-sun"/></svg><span data-en="Today" data-fa="امروز">Today</span></span>
+        </div>
+        <div class="specmeta">
+          <span class="val">min-height 44px (chip) / 34px (badge); radius --r-pill; --fs-label / --fs-caption</span><br>
+          <span data-en="Selected chips are tint + strong border + accent ink; unselected keep the same border weight so nothing shifts when tapped. Every badge carries an icon, so the badge still reads with colour removed." data-fa="چیپ انتخاب‌شده = زمینهٔ کم‌رنگ + کادر پررنگ + متن تأکیدی؛ چیپ انتخاب‌نشده همان ضخامت کادر را دارد تا با لمس چیزی جابه‌جا نشود. هر نشان یک آیکون دارد، پس بدون رنگ هم خوانده می‌شود.">Selected chips are tint + strong border + accent ink; unselected keep the same border weight so nothing shifts when tapped. Every badge carries an icon, so the badge still reads with colour removed.</span>
+        </div>
+      </div>
+
+      <h3 style="margin-top:var(--s-7)" data-en="Form inputs" data-fa="ورودی‌های فرم">Form inputs</h3>
+      <div class="specrow">
+        <div>
+          <label class="field"><span class="flabel" data-en="Current dose" data-fa="دوز فعلی">Current dose</span>
+            <input class="input" value="10" aria-label="Current dose">
+            <span class="helper"><svg class="ic ic16" aria-hidden="true"><use href="#i-pill"/></svg><span data-en="milligrams per day" data-fa="میلی‌گرم در روز">milligrams per day</span></span>
+          </label>
+          <label class="field"><span class="flabel" data-en="Target dose" data-fa="دوز هدف">Target dose</span>
+            <input class="input err" value="-2" aria-label="Target dose" aria-invalid="true">
+            <span class="helper err"><svg class="ic ic16" aria-hidden="true"><use href="#i-alert"/></svg><span data-en="Target cannot be below zero" data-fa="هدف نمی‌تواند کمتر از صفر باشد">Target cannot be below zero</span></span>
+          </label>
+          <label class="field"><span class="flabel" data-en="Disabled" data-fa="غیرفعال">Disabled</span>
+            <input class="input" value="Prednisolone" disabled aria-label="Medicine">
+          </label>
+        </div>
+        <div class="specmeta">
+          <span class="val">min-height 56px; radius --r-md; border 2px var(--border-strong); font-size --fs-body</span><br>
+          <span data-en="Focus is a 3px --primary-deep outline with 1px offset — visible on every surface in both themes. Error state adds an icon and a sentence; the red border is never the only signal." data-fa="فوکوس یک کادر بیرونی ۳ پیکسلی با رنگ --primary-deep و فاصلهٔ ۱ پیکسل است — در هر سطح و هر تم دیده می‌شود. حالت خطا یک آیکون و یک جمله اضافه می‌کند؛ کادر قرمز هرگز تنها نشانه نیست.">Focus is a 3px --primary-deep outline with 1px offset — visible on every surface in both themes. Error state adds an icon and a sentence; the red border is never the only signal.</span>
+        </div>
+      </div>
+
+      <h3 style="margin-top:var(--s-7)" data-en="Toggles, sliders, segmented control" data-fa="کلیدها، اسلایدر و کنترل بخش‌بندی‌شده">Toggles, sliders, segmented control</h3>
+      <div class="specrow">
+        <div class="stackv">
+          <div class="row" style="gap:var(--s-4)">
+            <span class="switch on" id="sw1" role="switch" aria-checked="true" tabindex="0"><span class="knob"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg></span></span>
+            <span style="font-weight:700" data-en="On — knob shows a tick" data-fa="روشن — روی دستگیره تیک هست">On — knob shows a tick</span>
+          </div>
+          <div class="row" style="gap:var(--s-4)">
+            <span class="switch" role="switch" aria-checked="false" tabindex="0"><span class="knob"></span></span>
+            <span style="font-weight:700;color:var(--ink-muted)" data-en="Off — empty knob, sunken track" data-fa="خاموش — دستگیرهٔ خالی و ریل فرورفته">Off — empty knob, sunken track</span>
+          </div>
+          <div class="slider" style="margin-top:var(--s-3)">
+            <span style="font-size:14px;font-weight:800;color:var(--ink-muted)">A</span>
+            <span class="track"><span class="fill"></span><span class="knob"></span></span>
+            <span style="font-size:20px;font-weight:800;color:var(--ink-muted)">A</span>
+          </div>
+          <div class="segctl" style="margin-top:var(--s-3)">
+            <span class="so on" data-en="Dead Slow and Nearly Stop" data-fa="آهسته و تقریباً متوقف">Dead Slow and Nearly Stop</span>
+            <span class="so" data-en="Percentage" data-fa="درصدی">Percentage</span>
+            <span class="so" data-en="Fixed mg" data-fa="مقدار ثابت">Fixed mg</span>
+          </div>
+        </div>
+        <div class="specmeta">
+          <span class="val">switch 64 × 38px, knob 30px, track border 2px var(--border-strong)<br>
+          slider track 10px, knob 32px with 2px var(--state-today) ring<br>
+          segmented option min-height 44px, radius --r-pill</span><br>
+          <span data-en="The switch shows a tick when on, so it is not a bare colour change. The knob translates 26px and mirrors to −26px in RTL. Slider knob is 32px inside a 44px hit area." data-fa="کلید در حالت روشن یک تیک نشان می‌دهد تا فقط تغییر رنگ نباشد. دستگیره ۲۶ پیکسل جابه‌جا می‌شود و در راست‌به‌چپ به منفی ۲۶ آینه می‌شود. دستگیرهٔ اسلایدر ۳۲ پیکسل است، درون ناحیهٔ لمس ۴۴ پیکسلی.">The switch shows a tick when on, so it is not a bare colour change. The knob translates 26px and mirrors to −26px in RTL. Slider knob is 32px inside a 44px hit area.</span>
+        </div>
+      </div>
+
+      <h3 style="margin-top:var(--s-7)" data-en="Tab bar" data-fa="نوار تب">Tab bar</h3>
+      <div class="specrow">
+        <div>
+          <nav class="tabbar">
+            <span class="tab" aria-current="page"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg></span><span class="tl" data-en="Today" data-fa="امروز">Today</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg></span><span class="tl" data-en="Schedule" data-fa="برنامه">Schedule</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></span><span class="tl" data-en="Progress" data-fa="پیشرفت">Progress</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-pill"/></svg></span><span class="tl" data-en="Plan" data-fa="طرح">Plan</span></span>
+            <span class="tab"><span class="tico"><svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg></span><span class="tl" data-en="Settings" data-fa="تنظیمات">Settings</span></span>
+          </nav>
+        </div>
+        <div class="specmeta">
+          <span class="val">height 96px incl. 26px home-indicator inset; item min 44 × 52px; label 12px/700</span><br>
+          <span data-en="Labels are always visible — never icon-only. The active tab is marked three ways: --primary-deep ink, a --tint-primary pill behind the icon, and aria-current=&quot;page&quot;. Tab order mirrors in RTL because the bar is a flex row using logical flow." data-fa="برچسب‌ها همیشه دیده می‌شوند — هرگز فقط آیکون. تب فعال با سه نشانه مشخص می‌شود: رنگ --primary-deep، قرص --tint-primary پشت آیکون، و aria-current. ترتیب تب‌ها در راست‌به‌چپ آینه می‌شود چون نوار یک ردیف فلکس با جریان منطقی است.">Labels are always visible — never icon-only. The active tab is marked three ways: --primary-deep ink, a --tint-primary pill behind the icon, and aria-current="page". Tab order mirrors in RTL because the bar is a flex row using logical flow.</span>
+        </div>
+      </div>
+
+      <h3 style="margin-top:var(--s-7)" data-en="Sheet, banner, empty state, stat block" data-fa="شیت، بنر، حالت خالی و بلوک آمار">Sheet, banner, empty state, stat block</h3>
+      <div class="specrow">
+        <div>
+          <div class="sheetdemo">
+            <div class="dim"></div>
+            <div class="sheet">
+              <div class="grip"></div>
+              <div class="seal"><svg class="ic ic32" aria-hidden="true"><use href="#i-sunrise"/></svg></div>
+              <h4 data-en="Welcome to NearlyStop" data-fa="به NearlyStop خوش آمدید">Welcome to NearlyStop</h4>
+              <p data-en="NearlyStop arranges the plan you and your doctor agreed. It does not give medical advice." data-fa="NearlyStop فقط طرحی را که شما و پزشکتان توافق کرده‌اید مرتب می‌کند و توصیهٔ پزشکی نیست.">NearlyStop arranges the plan you and your doctor agreed. It does not give medical advice.</p>
+              <button class="btn btn-primary btn-block"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-en="I understand" data-fa="متوجه شدم">I understand</span></button>
+            </div>
+          </div>
+        </div>
+        <div class="specmeta">
+          <b data-en="Modal / bottom sheet" data-fa="پنجره / شیت پایینی">Modal / bottom sheet</b><br>
+          <span class="val">radius --r-xl (32px); inset-inline 10px; bottom 10px; box-shadow --shadow-3; scrim var(--overlay)</span><br>
+          <span data-en="Anchored to the bottom so a thumb reaches the button. Grip bar is decorative; the button is the only exit." data-fa="به پایین چسبیده تا انگشت شست به دکمه برسد. نوار بالای شیت تزئینی است؛ تنها راه خروج، دکمه است.">Anchored to the bottom so a thumb reaches the button. Grip bar is decorative; the button is the only exit.</span>
+        </div>
+      </div>
+      <div class="specrow">
+        <div>
+          <button class="banner">
+            <span class="bicon"><svg class="ic ic20" aria-hidden="true"><use href="#i-alert"/></svg></span>
+            <span data-en="Yesterday wasn’t ticked — mark it now?" data-fa="دیروز ثبت نشده — الان علامت بزنید؟">Yesterday wasn’t ticked — mark it now?</span>
+            <span class="bchev"><svg class="ic ic20 mirror" aria-hidden="true"><use href="#i-chevron"/></svg></span>
+          </button>
+        </div>
+        <div class="specmeta">
+          <b data-en="Banner" data-fa="بنر">Banner</b><br>
+          <span class="val">background --tint-warning; border 1px color-mix(--warning 40%); radius --r-lg; min-height 64px</span><br>
+          <span data-en="Amber, never red: a missed tick is not an emergency and must never feel like a telling-off. The chevron mirrors in RTL." data-fa="کهربایی، نه قرمز: یک روز ثبت‌نشده اورژانس نیست و هرگز نباید حس سرزنش بدهد. فلش در راست‌به‌چپ آینه می‌شود.">Amber, never red: a missed tick is not an emergency and must never feel like a telling-off. The chevron mirrors in RTL.</span>
+        </div>
+      </div>
+      <div class="specrow">
+        <div>
+          <div class="emptystate">
+            <div class="es-ic"><svg class="ic ic40" aria-hidden="true"><use href="#i-calendar"/></svg></div>
+            <h4 data-en="No plan yet" data-fa="هنوز طرحی ثبت نشده">No plan yet</h4>
+            <p data-en="Add the dose and the tablets you have, and NearlyStop will lay the days out for you." data-fa="دوز و قرص‌هایی را که دارید وارد کنید تا NearlyStop روزها را برایتان بچیند.">Add the dose and the tablets you have, and NearlyStop will lay the days out for you.</p>
+            <button class="btn btn-primary"><svg class="ic" aria-hidden="true"><use href="#i-pill"/></svg><span data-en="Set up my plan" data-fa="ساختن طرح من">Set up my plan</span></button>
+          </div>
+        </div>
+        <div class="specmeta">
+          <b data-en="Empty state" data-fa="حالت خالی">Empty state</b><br>
+          <span class="val">background --grad-wash; border 1px dashed --border-strong; radius --r-lg; icon well 88px --tint-primary</span><br>
+          <span data-en="Always says what to do next and gives the action. Never an apology, never a shrug illustration." data-fa="همیشه می‌گوید قدم بعد چیست و کنش را در اختیار می‌گذارد. نه عذرخواهی، نه تصویرِ شانه‌بالاانداختن.">Always says what to do next and gives the action. Never an apology, never a shrug illustration.</span>
+        </div>
+      </div>
+      <div class="specrow">
+        <div class="grid3" style="gap:var(--s-3)">
+          <div class="stat"><span class="sv" data-en="581" data-fa="۵۸۱">581</span><span class="sl" data-en="days on prednisolone" data-fa="روز مصرف پردنیزولون">days on prednisolone</span></div>
+          <div class="stat"><span class="sv"><span data-en="6,842" data-fa="۶٬۸۴۲">6,842</span><span class="u" data-en=" mg" data-fa=" میلی‌گرم"> mg</span></span><span class="sl" data-en="taken in total" data-fa="در مجموع مصرف شده">taken in total</span></div>
+          <div class="stat"><span class="sv" data-en="574 of 581" data-fa="۵۷۴ از ۵۸۱">574 of 581</span><span class="sl" data-en="days ticked so far" data-fa="روز تا اینجا ثبت شده">days ticked so far</span></div>
+        </div>
+        <div class="specmeta">
+          <b data-en="Progress stat block" data-fa="بلوک آمار پیشرفت">Progress stat block</b><br>
+          <span class="val">value --fs-title/800; label --fs-label/600 --ink-muted; card radius --r-lg; shadow --shadow-1</span><br>
+          <span data-en="Counts are never framed as a streak. “574 of 581 days ticked so far” — a number that can only go up, never a run that can be broken." data-fa="شمارش‌ها هرگز به شکل «زنجیرهٔ بی‌وقفه» بیان نمی‌شوند. «۵۷۴ از ۵۸۱ روز ثبت شده» — عددی که فقط بالا می‌رود، نه رشته‌ای که پاره می‌شود.">Counts are never framed as a streak. “574 of 581 days ticked so far” — a number that can only go up, never a run that can be broken.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 8 · ICONS ================= -->
+  <section id="icons">
+    <div class="sechead"><span class="num">8</span><h2 data-en="Iconography" data-fa="آیکون‌ها">Iconography</h2></div>
+    <p class="lede" data-en="One family, drawn on a 24 × 24 grid: 2px stroke, round caps and joins, no fills except two deliberate dots. Rounded terminals match the type."
+       data-fa="یک خانوادهٔ واحد روی شبکهٔ ۲۴ در ۲۴: خط ۲ پیکسلی، سرها و گوشه‌های گرد، بدون سطح پر جز دو نقطهٔ عمدی. سرهای گرد با قلم هماهنگ‌اند.">One family, drawn on a 24 × 24 grid: 2px stroke, round caps and joins, no fills except two deliberate dots. Rounded terminals match the type.</p>
+    <div class="panel">
+      <div class="grid3" style="grid-template-columns:repeat(auto-fit,minmax(132px,1fr))">
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-check"/></svg><span class="inm">check</span></div>
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-clock"/></svg><span class="inm">clock</span></div>
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-pill"/></svg><span class="inm">pill</span></div>
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-calendar"/></svg><span class="inm">calendar</span></div>
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-list"/></svg><span class="inm">list</span></div>
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-chart"/></svg><span class="inm">chart</span></div>
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-gear"/></svg><span class="inm">gear</span></div>
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-note"/></svg><span class="inm">note</span></div>
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-alert"/></svg><span class="inm">alert</span></div>
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-download"/></svg><span class="inm">download</span></div>
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-upload"/></svg><span class="inm">upload</span></div>
+        <div class="iconcell"><svg class="ic ic28 mirror" aria-hidden="true"><use href="#i-chevron"/></svg><span class="inm">chevron *</span></div>
+        <div class="iconcell"><svg class="ic ic28 mirror" aria-hidden="true"><use href="#i-arrowright"/></svg><span class="inm">arrow *</span></div>
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-sun"/></svg><span class="inm">sun</span></div>
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-sunrise"/></svg><span class="inm">sunrise</span></div>
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-pause"/></svg><span class="inm">pause / hold</span></div>
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-flare"/></svg><span class="inm">flare</span></div>
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-circle"/></svg><span class="inm">circle</span></div>
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-lock"/></svg><span class="inm">lock</span></div>
+        <div class="iconcell"><svg class="ic ic28" aria-hidden="true"><use href="#i-target"/></svg><span class="inm">target</span></div>
+      </div>
+
+      <h4 data-en="Sizing and stroke rules" data-fa="قواعد اندازه و ضخامت">Sizing and stroke rules</h4>
+      <div class="specrow">
+        <div class="iconstack">
+          <span style="text-align:center"><svg class="ic ic16" aria-hidden="true"><use href="#i-check"/></svg><br><span class="val">16</span></span>
+          <span style="text-align:center"><svg class="ic ic20" aria-hidden="true"><use href="#i-check"/></svg><br><span class="val">20</span></span>
+          <span style="text-align:center"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><br><span class="val">24</span></span>
+          <span style="text-align:center"><svg class="ic ic28" aria-hidden="true"><use href="#i-check"/></svg><br><span class="val">28</span></span>
+          <span style="text-align:center"><svg class="ic ic40" aria-hidden="true"><use href="#i-check"/></svg><br><span class="val">40</span></span>
+        </div>
+        <div class="specmeta">
+          <span class="val">16px inline with --fs-caption · 20px inline with --fs-body · 24px default (buttons, tabs, rows) · 28–40px feature marks</span><br>
+          <span data-en="Stroke stays 2px at every size — it is never scaled, so icons keep the same visual weight as the type. Icons are always drawn with currentColor and inherit the text colour of the element they sit in; no icon has a hard-coded hex." data-fa="ضخامت خط در همهٔ اندازه‌ها ۲ پیکسل می‌ماند و هرگز مقیاس نمی‌گیرد، تا وزن بصری آیکون با قلم یکی بماند. آیکون‌ها همیشه با currentColor کشیده می‌شوند و رنگ متن والد را می‌گیرند؛ هیچ آیکونی رنگ ثابت ندارد.">Stroke stays 2px at every size — it is never scaled, so icons keep the same visual weight as the type. Icons are always drawn with currentColor and inherit the text colour of the element they sit in; no icon has a hard-coded hex.</span><br>
+          <span data-en="* chevron and arrow carry class “mirror” and flip in RTL. Everything else does not." data-fa="* فلش و شورون کلاس mirror دارند و در راست‌به‌چپ برمی‌گردند. بقیه نه.">* chevron and arrow carry class “mirror” and flip in RTL. Everything else does not.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 9 · MOTION ================= -->
+  <section id="motion">
+    <div class="sechead"><span class="num">9</span><h2 data-en="Motion" data-fa="حرکت">Motion</h2></div>
+    <p class="lede" data-en="Motion in Daybreak is warm and unhurried but never slow enough to be waited on. One easing curve for almost everything: things arrive quickly and settle softly, like light."
+       data-fa="حرکت در سپیده‌دم گرم و بی‌شتاب است، اما هرگز آن‌قدر کند نیست که منتظرش بمانید. تقریباً همه‌چیز با یک منحنی: سریع می‌رسد و نرم می‌نشیند، مثل نور.">Motion in Daybreak is warm and unhurried but never slow enough to be waited on. One easing curve for almost everything: things arrive quickly and settle softly, like light.</p>
+    <div class="panel">
+      <div class="specrow">
+        <div>
+          <div class="motiontrack" id="mtrack"><span class="motiondot"><svg class="ic" aria-hidden="true"><use href="#i-sunrise"/></svg></span></div>
+          <button class="btn btn-secondary" style="margin-top:var(--s-4)" onclick="document.getElementById('mtrack').classList.toggle('go')">
+            <svg class="ic" aria-hidden="true"><use href="#i-arrowright"/></svg><span data-en="Play the easing" data-fa="پخش منحنی حرکت">Play the easing</span></button>
+        </div>
+        <div class="specmeta">
+          <span class="tok">--dur-fast</span> <span class="val">120ms — press feedback, colour changes</span><br>
+          <span class="tok">--dur-base</span> <span class="val">220ms — switches, tab changes, chips</span><br>
+          <span class="tok">--dur-slow</span> <span class="val">420ms — sheets, theme change, hero arrival</span><br>
+          <span class="tok">--ease-out</span> <span class="val">cubic-bezier(.22,.85,.34,1)</span><br>
+          <span class="tok">--ease-in-out</span> <span class="val">cubic-bezier(.65,0,.35,1) — only for things that leave and return</span><br>
+          <span data-en="The demo above runs at --dur-slow with --ease-out, and its direction is mirrored in Persian. Nothing in the product bounces, spins or celebrates: the app is opened 780 times and a party animation stops being charming on day 3." data-fa="نمونهٔ بالا با --dur-slow و --ease-out اجرا می‌شود و جهتش در فارسی آینه است. هیچ چیز در محصول نمی‌جهد، نمی‌چرخد و جشن نمی‌گیرد: این برنامه ۷۸۰ بار باز می‌شود و انیمیشن جشن از روز سوم دلنشین نیست.">The demo above runs at --dur-slow with --ease-out, and its direction is mirrored in Persian. Nothing in the product bounces, spins or celebrates: the app is opened 780 times and a party animation stops being charming on day 3.</span>
+        </div>
+      </div>
+      <div class="note">
+        <svg class="ic ic20" aria-hidden="true"><use href="#i-alert"/></svg>
+        <span data-en="prefers-reduced-motion: every transition duration collapses to 1ms and all animation is switched off — including this page. State still changes instantly and correctly; nothing depends on an animation completing."
+              data-fa="prefers-reduced-motion: مدت همهٔ گذارها به ۱ میلی‌ثانیه می‌رسد و همهٔ انیمیشن‌ها خاموش می‌شوند — از جمله در همین صفحه. وضعیت‌ها همچنان فوری و درست تغییر می‌کنند؛ هیچ چیز به پایان یافتن یک انیمیشن وابسته نیست.">prefers-reduced-motion: every transition duration collapses to 1ms and all animation is switched off — including this page. State still changes instantly and correctly; nothing depends on an animation completing.</span>
+      </div>
+      <pre>@media (prefers-reduced-motion: reduce){
+  *{ animation: none !important; transition-duration: 1ms !important; }
+}</pre>
+    </div>
+  </section>
+
+  <!-- ================= 10 · RTL ================= -->
+  <section id="rtl">
+    <div class="sechead"><span class="num">10</span><h2 data-en="RTL rules" data-fa="قواعد راست‌به‌چپ">RTL rules</h2></div>
+    <p class="lede" data-en="The mirror is real, not a hack: there is not a single left/right property in the system. Toggle فارسی above and every component below flips itself."
+       data-fa="آینه‌شدن واقعی است، نه ترفند: در کل سیستم حتی یک ویژگی چپ/راست وجود ندارد. بالا فارسی را انتخاب کنید تا همهٔ کامپوننت‌های زیر خودشان برگردند.">The mirror is real, not a hack: there is not a single left/right property in the system. Toggle فارسی above and every component below flips itself.</p>
+    <div class="panel">
+      <div class="grid2">
+        <div>
+          <h4 style="margin-top:0" data-en="What mirrors" data-fa="چه چیزی آینه می‌شود">What mirrors</h4>
+          <ul class="rules">
+            <li><b data-en="Layout flow" data-fa="جریان چیدمان">Layout flow</b><span data-en=" — every box uses margin-inline-start, padding-inline-end, inset-inline-start and text-align: start." data-fa=" — هر جعبه از margin-inline-start و padding-inline-end و inset-inline-start و text-align: start استفاده می‌کند."> — every box uses margin-inline-start, padding-inline-end, inset-inline-start and text-align: start.</span></li>
+            <li><b data-en="Directional icons" data-fa="آیکون‌های جهت‌دار">Directional icons</b><span data-en=" — chevron and arrow (class “mirror”, transform: scaleX(−1))." data-fa=" — شورون و فلش (کلاس mirror با transform: scaleX(−1))."> — chevron and arrow (class “mirror”, transform: scaleX(−1)).</span></li>
+            <li><b data-en="Progress direction" data-fa="جهت پیشرفت">Progress direction</b><span data-en=" — slider fills from the inline start; the staircase chart is drawn right-to-left in Persian." data-fa=" — اسلایدر از ابتدای منطقی پر می‌شود؛ نمودار پلکانی در فارسی از راست به چپ کشیده می‌شود."> — slider fills from the inline start; the staircase chart is drawn right-to-left in Persian.</span></li>
+            <li><b data-en="Switch knob travel" data-fa="حرکت دستگیرهٔ کلید">Switch knob travel</b><span data-en=" — +26px becomes −26px." data-fa=" — مثبت ۲۶ پیکسل به منفی ۲۶ تبدیل می‌شود."> — +26px becomes −26px.</span></li>
+            <li><b data-en="The sunrise arc" data-fa="کمان طلوع">The sunrise arc</b><span data-en=" — it is a light source with a direction, so it flips with the layout." data-fa=" — یک منبع نور جهت‌دار است، پس همراه چیدمان برمی‌گردد."> — it is a light source with a direction, so it flips with the layout.</span></li>
+            <li><b data-en="Tab order" data-fa="ترتیب تب‌ها">Tab order</b><span data-en=" — Today sits at the inline start in both languages." data-fa=" — «امروز» در هر دو زبان در ابتدای منطقی قرار دارد."> — Today sits at the inline start in both languages.</span></li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="margin-top:0" data-en="What does not mirror" data-fa="چه چیزی آینه نمی‌شود">What does not mirror</h4>
+          <ul class="rules">
+            <li><b data-en="Clock, pill, check, sun, calendar, gear, lock" data-fa="ساعت، قرص، تیک، خورشید، تقویم، چرخ‌دنده، قفل">Clock, pill, check, sun, calendar, gear, lock</b><span data-en=" — these have no direction; flipping them makes a clock run backwards." data-fa=" — این‌ها جهت ندارند؛ برگرداندنشان یعنی ساعتی که برعکس می‌چرخد."> — these have no direction; flipping them makes a clock run backwards.</span></li>
+            <li><b data-en="Numerals and units" data-fa="اعداد و یکاها">Numerals and units</b><span data-en=" — “۹ میلی‌گرم” keeps its own internal order; the bidi algorithm handles it, we never reverse strings by hand." data-fa=" — «۹ میلی‌گرم» ترتیب داخلی خودش را حفظ می‌کند؛ الگوریتم دوجهته آن را مدیریت می‌کند و ما هرگز رشته‌ها را دستی برنمی‌گردانیم."> — “۹ میلی‌گرم” keeps its own internal order; the bidi algorithm handles it, we never reverse strings by hand.</span></li>
+            <li><b data-en="Latin brand name" data-fa="نام لاتین برند">Latin brand name</b><span data-en=" — “NearlyStop” stays LTR inside Persian sentences, isolated with unicode-bidi." data-fa=" — «NearlyStop» درون جملهٔ فارسی چپ‌به‌راست می‌ماند و با unicode-bidi ایزوله می‌شود."> — “NearlyStop” stays LTR inside Persian sentences, isolated with unicode-bidi.</span></li>
+            <li><b data-en="Token names and code" data-fa="نام توکن‌ها و کد">Token names and code</b><span data-en=" — always rendered dir=&quot;ltr&quot;, left-aligned, even on this page in Persian." data-fa=" — همیشه با dir=&quot;ltr&quot; و تراز چپ نمایش داده می‌شوند، حتی در همین صفحه در حالت فارسی."> — always rendered dir="ltr", left-aligned, even on this page in Persian.</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <h4 data-en="Numerals" data-fa="اعداد">Numerals</h4>
+      <div class="specrow">
+        <div class="row" style="font-size:34px;font-weight:800;gap:var(--s-6)">
+          <span dir="ltr" style="font-family:var(--font-latin)">0 1 2 3 4 5 6 7 8 9</span>
+          <span dir="rtl" style="font-family:var(--font-fa)">۰ ۱ ۲ ۳ ۴ ۵ ۶ ۷ ۸ ۹</span>
+        </div>
+        <div class="specmeta">
+          <span data-en="Persian uses Persian-Indic numerals throughout the product interface — doses, dates, day counts, the clock in the reminder row. The thousands separator is the Persian comma ٬ (6,842 → ۶٬۸۴۲) and the decimal mark is ٫ (0.9 → ۰٫۹). Dates are Persian-calendar: Wednesday 16 April 2026 is چهارشنبه ۲۷ فروردین ۱۴۰۵."
+                data-fa="در رابط فارسی همه‌جا از ارقام فارسی استفاده می‌شود — دوز، تاریخ، شمار روزها و ساعت یادآور. جداکنندهٔ هزارگان ویرگول فارسی «٬» است (۶٬۸۴۲) و علامت اعشار «٫» (۰٫۹). تاریخ‌ها شمسی‌اند: چهارشنبه ۱۶ آوریل ۲۰۲۶ می‌شود چهارشنبه ۲۷ فروردین ۱۴۰۵.">Persian uses Persian-Indic numerals throughout the product interface — doses, dates, day counts, the clock in the reminder row. The thousands separator is the Persian comma ٬ (6,842 → ۶٬۸۴۲) and the decimal mark is ٫ (0.9 → ۰٫۹). Dates are Persian-calendar: Wednesday 16 April 2026 is چهارشنبه ۲۷ فروردین ۱۴۰۵.</span>
+        </div>
+      </div>
+
+      <h4 data-en="The same row, both directions" data-fa="یک ردیف، در دو جهت">The same row, both directions</h4>
+      <div class="grid2">
+        <div class="dirdemo" dir="ltr" lang="en">
+          <div class="cap">LTR · English</div>
+          <div class="srow today" style="margin-bottom:0">
+            <span class="mark m-today"><svg class="ic ic16" aria-hidden="true"><use href="#i-sunrise"/></svg></span>
+            <span><span class="sday">Wed 16 Apr</span><span class="stab">1 × 5mg, 4 × 1mg</span></span>
+            <span class="send"><span class="sdose">9mg</span>
+              <span class="sstate"><svg class="ic ic16" aria-hidden="true"><use href="#i-sun"/></svg>Today</span></span>
+          </div>
+          <button class="banner" style="margin-top:var(--s-3)">
+            <span class="bicon"><svg class="ic ic20" aria-hidden="true"><use href="#i-alert"/></svg></span>
+            <span style="font-size:var(--fs-label)">Yesterday wasn’t ticked</span>
+            <span class="bchev"><svg class="ic ic20" style="transform:none" aria-hidden="true"><use href="#i-chevron"/></svg></span>
+          </button>
+        </div>
+        <div class="dirdemo" dir="rtl" lang="fa" style="font-family:var(--font-fa)">
+          <div class="cap">RTL · فارسی</div>
+          <div class="srow today" style="margin-bottom:0">
+            <span class="mark m-today"><svg class="ic ic16" aria-hidden="true"><use href="#i-sunrise"/></svg></span>
+            <span><span class="sday">چهارشنبه ۲۷ فروردین</span><span class="stab">۱ عدد ۵ میلی‌گرمی، ۴ عدد ۱ میلی‌گرمی</span></span>
+            <span class="send"><span class="sdose">۹ میلی‌گرم</span>
+              <span class="sstate" style="text-transform:none;letter-spacing:0;font-size:var(--fs-caption)"><svg class="ic ic16" aria-hidden="true"><use href="#i-sun"/></svg>امروز</span></span>
+          </div>
+          <button class="banner" style="margin-top:var(--s-3);font-family:var(--font-fa)">
+            <span class="bicon"><svg class="ic ic20" aria-hidden="true"><use href="#i-alert"/></svg></span>
+            <span style="font-size:var(--fs-label)">دیروز ثبت نشده</span>
+            <span class="bchev"><svg class="ic ic20" style="transform:scaleX(-1)" aria-hidden="true"><use href="#i-chevron"/></svg></span>
+          </button>
+        </div>
+      </div>
+      <p style="margin-top:var(--s-4)" data-en="Note in the pair above: the mark, the sunrise icon and the sun icon are identical in both — they have no direction. The chevron is the only glyph that changed. The dose moved to the opposite edge purely because .send uses margin-inline-start: auto."
+         data-fa="در جفت بالا دقت کنید: نشانه، آیکون طلوع و آیکون خورشید در هر دو یکسان‌اند — جهتی ندارند. تنها نشانه‌ای که تغییر کرده شورون است. دوز فقط به این دلیل به لبهٔ مقابل رفته که .send از margin-inline-start: auto استفاده می‌کند.">Note in the pair above: the mark, the sunrise icon and the sun icon are identical in both — they have no direction. The chevron is the only glyph that changed. The dose moved to the opposite edge purely because .send uses margin-inline-start: auto.</p>
+    </div>
+  </section>
+
+  <!-- ================= 11 · ACCESSIBILITY ================= -->
+  <section id="a11y">
+    <div class="sechead"><span class="num">11</span><h2 data-en="Accessibility" data-fa="دسترس‌پذیری">Accessibility</h2></div>
+    <p class="lede" data-en="Designed as if the reader is not wearing their glasses. These are requirements, not polish — a build that misses one of them is not finished."
+       data-fa="با این فرض طراحی شده که خواننده عینکش را نزده است. این‌ها الزام‌اند، نه تزئین — نسخه‌ای که یکی از آن‌ها را رعایت نکند، تمام‌نشده است.">Designed as if the reader is not wearing their glasses. These are requirements, not polish — a build that misses one of them is not finished.</p>
+
+    <div class="panel">
+      <h3 data-en="Minimum tap target, at true size" data-fa="حداقل ناحیهٔ لمس، در اندازهٔ واقعی">Minimum tap target, at true size</h3>
+      <div class="specrow">
+        <div class="row" style="align-items:flex-end;gap:var(--s-5)">
+          <div style="text-align:center">
+            <div class="taptarget"><svg class="ic ic20" aria-hidden="true"><use href="#i-check"/></svg></div>
+            <span class="val">44 × 44</span>
+          </div>
+          <div style="text-align:center">
+            <div class="taptarget" style="width:56px;height:56px;border-radius:var(--r-pill);border-style:solid"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg></div>
+            <span class="val">56 × 56</span>
+          </div>
+          <div style="text-align:center">
+            <div class="taptarget" style="width:64px;height:64px;border-radius:var(--r-md);border-style:solid"><svg class="ic ic28" aria-hidden="true"><use href="#i-check"/></svg></div>
+            <span class="val">64 × 64</span>
+          </div>
+        </div>
+        <div class="specmeta">
+          <span data-en="44 × 44px is the floor for anything tappable, including icon-only controls and the switch. Buttons are 56px tall and list rows 64px, because the primary user is 60–80 and often taps with a shaky or arthritic hand. Adjacent targets keep at least --s-2 (8px) between them." data-fa="۴۴ در ۴۴ پیکسل کف مطلق هر عنصر لمسی است، از جمله دکمه‌های فقط‌آیکون و کلیدها. ارتفاع دکمه‌ها ۵۶ و ردیف‌ها ۶۴ پیکسل است، چون کاربر اصلی ۶۰ تا ۸۰ ساله است و اغلب با دستی لرزان یا دردناک لمس می‌کند. بین دو هدف مجاور دست‌کم ۸ پیکسل فاصله می‌ماند.">44 × 44px is the floor for anything tappable, including icon-only controls and the switch. Buttons are 56px tall and list rows 64px, because the primary user is 60–80 and often taps with a shaky or arthritic hand. Adjacent targets keep at least --s-2 (8px) between them.</span>
+        </div>
+      </div>
+
+      <h3 style="margin-top:var(--s-6)" data-en="Text scaling" data-fa="بزرگ‌نمایی متن">Text scaling</h3>
+      <div class="specrow">
+        <div>
+          <div class="scaledemo" id="scaledemo">
+            <div class="sd-title" data-en="New dose day" data-fa="روز دوز جدید">New dose day</div>
+            <div class="sd-body" data-en="Step 3 of 15 · Day 14 of 52. Yesterday wasn’t ticked — mark it now?" data-fa="گام ۳ از ۱۵ · روز ۱۴ از ۵۲. دیروز ثبت نشده — الان علامت بزنید؟">Step 3 of 15 · Day 14 of 52. Yesterday wasn’t ticked — mark it now?</div>
+            <button class="btn btn-primary sd-btn"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-en="Taken" data-fa="مصرف شد">Taken</span></button>
+          </div>
+          <div class="segctl" style="margin-top:var(--s-4)">
+            <button class="so on" type="button" onclick="setScale(this,1)">100%</button>
+            <button class="so" type="button" onclick="setScale(this,1.25)">125%</button>
+            <button class="so" type="button" onclick="setScale(this,1.5)">150%</button>
+            <button class="so" type="button" onclick="setScale(this,2)">200%</button>
+          </div>
+        </div>
+        <div class="specmeta">
+          <span data-en="Every container is auto-height with wrapping flex rows; no text sits in a fixed-height box. At 200% the card grows, the button grows with it, and nothing clips or truncates — try the buttons. Never use ellipsis on a dose, a date or a state word." data-fa="ارتفاع همهٔ ظرف‌ها خودکار است و ردیف‌های فلکس می‌شکنند؛ هیچ متنی داخل جعبه‌ای با ارتفاع ثابت نمی‌نشیند. در ۲۰۰٪ کارت بزرگ می‌شود، دکمه هم با آن بزرگ می‌شود و هیچ چیز بریده نمی‌شود — دکمه‌ها را امتحان کنید. هرگز روی دوز، تاریخ یا کلمهٔ وضعیت از سه‌نقطه استفاده نکنید.">Every container is auto-height with wrapping flex rows; no text sits in a fixed-height box. At 200% the card grows, the button grows with it, and nothing clips or truncates — try the buttons. Never use ellipsis on a dose, a date or a state word.</span>
+        </div>
+      </div>
+
+      <h3 style="margin-top:var(--s-6)" data-en="Never colour alone" data-fa="هرگز فقط رنگ">Never colour alone</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr>
+            <th data-en="State" data-fa="وضعیت">State</th>
+            <th data-en="Shape" data-fa="شکل">Shape</th>
+            <th data-en="Icon" data-fa="آیکون">Icon</th>
+            <th data-en="Word" data-fa="کلمه">Word</th>
+            <th data-en="Colour" data-fa="رنگ">Colour</th>
+          </tr></thead>
+          <tbody>
+            <tr><td data-en="Taken" data-fa="مصرف شد">Taken</td><td data-en="filled dot" data-fa="نقطهٔ پر">filled dot</td><td><svg class="ic ic20" aria-hidden="true"><use href="#i-check"/></svg></td><td data-en="“Taken”" data-fa="«مصرف شد»">“Taken”</td><td><code>--state-taken</code></td></tr>
+            <tr><td data-en="Not ticked" data-fa="ثبت نشده">Not ticked</td><td data-en="hollow ring + dashed row" data-fa="حلقهٔ توخالی + کادر خط‌چین">hollow ring + dashed row</td><td><svg class="ic ic20" aria-hidden="true"><use href="#i-circle"/></svg></td><td data-en="“Not ticked”" data-fa="«ثبت نشده»">“Not ticked”</td><td><code>--state-missed</code></td></tr>
+            <tr><td data-en="Today" data-fa="امروز">Today</td><td data-en="2px solid row border" data-fa="کادر توپر ۲ پیکسلی">2px solid row border</td><td><svg class="ic ic20" aria-hidden="true"><use href="#i-sun"/></svg></td><td data-en="“Today”" data-fa="«امروز»">“Today”</td><td><code>--state-today</code></td></tr>
+            <tr><td data-en="Upcoming" data-fa="پیش‌رو">Upcoming</td><td data-en="dashed outline circle" data-fa="دایرهٔ خط‌چین">dashed outline circle</td><td><svg class="ic ic20" aria-hidden="true"><use href="#i-clock"/></svg></td><td data-en="“Upcoming”" data-fa="«پیش‌رو»">“Upcoming”</td><td><code>--border-strong</code></td></tr>
+            <tr><td data-en="New dose day" data-fa="روز دوز جدید">New dose day</td><td data-en="pill badge on the hero" data-fa="نشان قرصی روی کارت اصلی">pill badge on the hero</td><td><svg class="ic ic20" aria-hidden="true"><use href="#i-sunrise"/></svg></td><td data-en="“New dose day”" data-fa="«روز دوز جدید»">“New dose day”</td><td><code>--state-newdose</code></td></tr>
+            <tr><td data-en="Flare" data-fa="عود">Flare</td><td data-en="ringed marker on the chart" data-fa="نشانگر حلقه‌دار روی نمودار">ringed marker on the chart</td><td><svg class="ic ic20" aria-hidden="true"><use href="#i-flare"/></svg></td><td data-en="“2 flares recorded”" data-fa="«۲ عود ثبت شده»">“2 flares recorded”</td><td><code>--danger</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note" style="margin-top:var(--s-5)">
+        <svg class="ic ic20" aria-hidden="true"><use href="#i-check"/></svg>
+        <span data-en="Also required in the build: focus-visible outline of 3px --primary-deep with 2px offset on every interactive element; semantic headings in order; aria-current on the active tab; role=switch with aria-checked on toggles; decorative SVG marked aria-hidden and meaningful SVG given a label; the staircase chart carries a full sentence in its aria-label; and the whole interface remains usable in greyscale."
+              data-fa="الزامات دیگر در ساخت: کادر فوکوس ۳ پیکسلی --primary-deep با فاصلهٔ ۲ پیکسل روی هر عنصر تعاملی؛ سرتیترهای معنایی به ترتیب؛ aria-current روی تب فعال؛ role=switch و aria-checked روی کلیدها؛ SVG تزئینی با aria-hidden و SVG معنادار با برچسب؛ نمودار پلکانی یک جملهٔ کامل در aria-label دارد؛ و کل رابط در حالت سیاه‌وسفید هم قابل استفاده می‌ماند.">Also required in the build: focus-visible outline of 3px --primary-deep with 2px offset on every interactive element; semantic headings in order; aria-current on the active tab; role=switch with aria-checked on toggles; decorative SVG marked aria-hidden and meaningful SVG given a label; the staircase chart carries a full sentence in its aria-label; and the whole interface remains usable in greyscale.</span>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  document.getElementById('btn-light').setAttribute('aria-pressed', t==='light');
+  document.getElementById('btn-dark').setAttribute('aria-pressed', t==='dark');
+}
+function setLang(l){
+  var fa = l==='fa';
+  document.documentElement.lang = l;
+  document.documentElement.dir = fa ? 'rtl' : 'ltr';
+  document.getElementById('btn-en').setAttribute('aria-pressed', !fa);
+  document.getElementById('btn-fa').setAttribute('aria-pressed', fa);
+  document.querySelectorAll('[data-en]').forEach(function(el){
+    el.textContent = fa ? el.getAttribute('data-fa') : el.getAttribute('data-en');
+  });
+}
+function setScale(btn, v){
+  document.getElementById('scaledemo').style.setProperty('--demo-scale', v);
+  btn.parentNode.querySelectorAll('.so').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+}
+/* motion demo travel distance adapts to the track width */
+(function(){
+  var t = document.getElementById('mtrack');
+  function fit(){ t.style.setProperty('--travel', Math.max(60, t.clientWidth - 64) + 'px'); }
+  fit(); window.addEventListener('resize', fit);
+})();
+setTheme('light'); setLang('en');
+</script>
+</body>
+</html>
