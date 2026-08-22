@@ -46,10 +46,12 @@ ALLOW: set[str] = {
     #     riverpod -> test -> web_socket_channel -> web_socket
     # No file under lib/ imports any of them, so nothing references the sockets
     # and they are tree-shaken out of the AOT snapshot. The enforced gates are
-    # real ones, not this note: tool/check_bans.sh refuses a network-client
-    # import anywhere under lib/, and EPIC-15 owns both the absent INTERNET
-    # permission in the release manifest and the airplane-mode clean-install
-    # check (SPEC §10). Re-audit if riverpod ever drops `test` to a dev dep.
+    # real ones, not this note: tool/check_bans.sh bans BOTH an import of
+    # package:web_socket / package:web_socket_channel anywhere under lib/ AND
+    # the socket call sites themselves (HttpClient, Socket, WebSocket, ...), and
+    # EPIC-15 owns the absent INTERNET permission in the release manifest plus
+    # the airplane-mode clean-install check (SPEC §10). Re-audit if riverpod ever
+    # drops `test` to a dev dependency.
     "web_socket",
     "web_socket_channel",
 }

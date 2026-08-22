@@ -6,9 +6,9 @@ set -uo pipefail
 #
 # Usage: bash tool/check_bans.sh [ROOT]     (ROOT defaults to the repo root)
 #
-# ADDING A RULE: append one row to the RULES table below. Nothing else changes.
-# Later epics do exactly that — 02 (raw token values), 03 (ARB parity and i18n
-# bans), 07 (component patterns), 12 (the plugin-import gate), 14 (a11y and RTL
+# ADDING A RULE: append one `add_rule` call below. Nothing else changes. Later
+# epics do exactly that — 02 (raw token values), 03 (ARB parity and i18n bans),
+# 07 (component patterns), 12 (the plugin-import gate), 14 (a11y and RTL
 # patterns). No epic creates a second gate under scripts/; tool/ is the only
 # script directory and this is the only grep entry point CI calls.
 #
@@ -19,9 +19,21 @@ set -uo pipefail
 # The scanner's own pattern list contains every needle by construction, so only
 # lib/ and test/ are ever scanned — never tool/.
 
-cd "${1:-$(dirname "$0")/..}"
+# Resolve tool/ before cd-ing anywhere: the awk stripper is loaded by path, and
+# a relative path plus a ROOT argument means awk silently finds nothing, every
+# rule scans an empty haystack, and the gate reports OK.
+tool_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+stripper="$tool_dir/strip_comments.awk"
 
-stripper=tool/strip_comments.awk
+root="${1:-$tool_dir/..}"
+cd "$root" || {
+  echo "check_bans: cannot enter '$root' — refusing to report OK on an unscanned tree."
+  exit 2
+}
+[ -f "$stripper" ] || {
+  echo "check_bans: $stripper is missing — the comment stripper is load-bearing."
+  exit 2
+}
 
 # The rules promoted to `error` in analysis_options.yaml, read from that file so
 # the suppression rule below cannot drift out of step with the promotions it
@@ -41,25 +53,53 @@ promoted="$(awk '
 promoted="${promoted%|}"
 
 # ------------------------------------------------------------------ the rules
-# Tab-separated: SCOPE <tab> MODE <tab> EXEMPT-PATH <tab> REGEX <tab> REASON
-#   SCOPE  — a directory to walk (`lib`, `test`)
-#   MODE   — `code` matches comment-stripped source; `comment` matches the raw
-#            file, and is only for rules that are ABOUT comments
-#   EXEMPT — one path this rule does not apply to, or `-`
-rules=()
-add_rule() { rules+=("$1"$'\t'"$2"$'\t'"$3"$'\t'"$4"$'\t'"$5"); }
+# add_rule <scopes> <mode> <exempt-path> <extended-regex> <reason>
+#   scopes — space-separated directories to walk (`lib`, `lib test`)
+#   mode   — `code` matches comment-stripped source (string literals survive, so
+#            an import URI is still matchable); `comment` matches the raw file
+#            and is only for rules that are ABOUT comments
+#   exempt — one path this rule does not apply to, or `-`
+# Fields are held in four parallel arrays rather than one delimited string: a
+# delimited encoding shifts every column the first time a rule needs an empty
+# field.
+rule_scopes=()
+rule_modes=()
+rule_exempt=()
+rule_patterns=()
+rule_reasons=()
+add_rule() {
+  rule_scopes+=("$1")
+  rule_modes+=("$2")
+  rule_exempt+=("$3")
+  rule_patterns+=("$4")
+  rule_reasons+=("$5")
+}
 
 # Zero network calls, zero telemetry, bundled fonts. The store listing will
 # claim all three; an import is the one place the claim can quietly break.
 add_rule lib code - \
-  "^[[:space:]]*(import|export)[[:space:]]+['\"]package:(http|dio|firebase_[a-z_]*|google_fonts|sentry[a-z_]*|dynamic_color)/" \
+  "^[[:space:]]*(import|export)[[:space:]]+['\"]package:(http|dio|firebase_[a-z_]*|google_fonts|sentry[a-z_]*|dynamic_color|grpc|socket_io[a-z_]*|web_socket[a-z_]*)/" \
   "zero network calls, zero telemetry, bundled fonts — this import breaks a promise the store listing makes"
+
+# The same promise at the call site. `dart:io` itself stays allowed — EPIC-13
+# writes a backup file — but the socket half of it does not, and web_socket /
+# web_socket_channel are ALLOW-listed in tool/audit_deps.py precisely because
+# this rule stops them ever being reached from lib/.
+add_rule lib code - \
+  '\b(HttpClient|HttpServer|RawDatagramSocket|RawSecureSocket|RawSocket|SecureSocket|Socket|WebSocket)[[:space:]]*[.(]' \
+  "zero network calls — a socket API in lib/ is the runtime half of the promise the import ban makes"
 
 # Every date comes from clockProvider. A 780-day plan crosses DST twice a year;
 # a wall-clock read is how a dose silently lands on the wrong calendar day.
 add_rule lib code lib/core/time/clock.dart \
   'DateTime\.now\(\)' \
   "use the injected Clock (clockProvider), never DateTime.now() — DST and the 780-day horizon depend on it"
+
+# The void arm is spelled `Result<void, F>`. EPIC-12 and EPIC-13 drafts say
+# `Result<Unit, F>`; this stops one landing by accident.
+add_rule lib code - \
+  '\bUnit\b' \
+  "there is no Unit type in this codebase — the void arm of Result is Result<void, F>"
 
 # RTL correctness by construction: four locales, two of them right-to-left.
 add_rule lib code - \
@@ -77,40 +117,47 @@ add_rule lib code - \
 # deliberately promoted to error leaves every later edit in that file
 # unprotected — exactly the leak the promotion exists to catch.
 if [ -n "$promoted" ]; then
-  for scope in lib test; do
-    add_rule "$scope" comment - \
-      "//[[:space:]]*ignore_for_file:.*(${promoted})" \
-      "suppressions are line-scoped with a reason — // ignore_for_file: on a promoted rule disarms it for the whole file"
-  done
+  add_rule "lib test" comment - \
+    "//[[:space:]]*ignore_for_file:.*(${promoted})" \
+    "suppressions are line-scoped with a reason — // ignore_for_file: on a promoted rule disarms it for the whole file"
 fi
 
 # ------------------------------------------------------------------ the walk
 # One pass per file: read once, strip once, then apply every rule that governs
-# it. Stripping per rule instead re-reads the tree once for each rule, which
-# grows with both the codebase and the five epics still to append rules here.
+# it. Stripping per rule re-reads the tree once for each rule, which grows with
+# both the codebase and the epics still to append rules here.
 offenders=()
 
 scan_scope() {
-  local scope="$1" file stripped raw rule scope_of mode exempt pattern reason haystack hit
+  local scope="$1"
+  local file stripped raw stripped_done raw_done haystack hit r
   [ -d "$scope" ] || return 0
   while IFS= read -r file; do
     [ -n "$file" ] || continue
-    raw="$(cat "$file")"
     stripped=""
-    for rule in "${rules[@]}"; do
-      IFS=$'\t' read -r scope_of mode exempt pattern reason <<<"$rule"
-      [ "$scope_of" = "$scope" ] || continue
-      [ "$exempt" = "$file" ] && continue
-      if [ "$mode" = "code" ]; then
-        [ -n "$stripped" ] || stripped="$(awk -f "$stripper" "$file")"
+    raw=""
+    stripped_done=0
+    raw_done=0
+    for r in "${!rule_patterns[@]}"; do
+      case " ${rule_scopes[$r]} " in *" $scope "*) ;; *) continue ;; esac
+      [ "${rule_exempt[$r]}" = "$file" ] && continue
+      if [ "${rule_modes[$r]}" = "code" ]; then
+        if [ "$stripped_done" -eq 0 ]; then
+          stripped="$(awk -f "$stripper" "$file")"
+          stripped_done=1
+        fi
         haystack="$stripped"
       else
+        if [ "$raw_done" -eq 0 ]; then
+          raw="$(cat "$file")"
+          raw_done=1
+        fi
         haystack="$raw"
       fi
       while IFS= read -r hit; do
         [ -n "$hit" ] || continue
-        offenders+=("$file:${hit%%:*}: $reason"$'\n'"        ${hit#*:}")
-      done < <(grep -nE "$pattern" <<<"$haystack" || true)
+        offenders+=("$file:${hit%%:*}: ${rule_reasons[$r]}"$'\n'"        ${hit#*:}")
+      done < <(grep -nE "${rule_patterns[$r]}" <<<"$haystack" || true)
     done
   done < <(find "$scope" -type f -name '*.dart' \
     ! -name '*.g.dart' ! -name '*.freezed.dart' ! -name '*.drift.dart' \

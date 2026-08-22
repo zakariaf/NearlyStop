@@ -5,8 +5,8 @@
 /// the global error net installed in `bootstrap()`.
 ///
 /// The void arm is spelled `Result<void, F>` — `const Ok<void, F>(null)`.
-/// There is deliberately no `Unit` type in this codebase; a test under
-/// `test/core/result_test.dart` fails the build if one appears.
+/// There is deliberately no `Unit` type in this codebase, and `tool/check_bans.sh`
+/// fails the build if one appears under `lib/`.
 library;
 
 import 'package:meta/meta.dart';
@@ -65,10 +65,13 @@ final class Err<T, F extends Failure> extends Result<T, F> {
   /// Why the operation failed. Switch it exhaustively; never render it raw.
   final F failure;
 
+  // runtimeType, not `is` — see the note on [Ok.==].
   @override
   bool operator ==(Object other) =>
-      other is Err<T, F> && other.failure == failure;
+      other.runtimeType == runtimeType &&
+      other is Err<T, F> &&
+      other.failure == failure;
 
   @override
-  int get hashCode => Object.hash(Err<T, F>, failure);
+  int get hashCode => Object.hash(runtimeType, failure);
 }

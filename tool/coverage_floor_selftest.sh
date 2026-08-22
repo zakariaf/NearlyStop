@@ -119,6 +119,17 @@ else
   pass "aggregate drops $tested_only_pct% -> $with_untested_pct% once the untested file counts"
 fi
 
+echo "case 7: duplicate SF: records for one path are MERGED per line, never summed"
+run "$fixtures/duplicate_records.info" "$scratch/step_size_100.txt"
+if [ "$code" -ne 0 ]; then
+  bad "two records covering 3 distinct lines between them must read 3/3 (exit $code)"
+  echo "$out" | sed 's/^/         /'
+elif ! grep -q '(3/3 lines)' <<<"$out"; then
+  bad "records were summed, not merged: $out"
+else
+  pass "3/3 lines, not 6/4 — a second --coverage pass cannot fail a covered file"
+fi
+
 if [ "$failures" -ne 0 ]; then
   echo "coverage_floor_selftest: $failures case(s) failed"
   exit 1

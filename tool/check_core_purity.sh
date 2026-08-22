@@ -10,7 +10,21 @@ set -uo pipefail
 # Extended by EPIC-04 (which adds files, not a second walker). CONTRACTS.md §2
 # is the contract.
 
-cd "${1:-$(dirname "$0")/..}"
+# Resolve tool/ before cd-ing: the stripper is loaded by path, and a relative
+# path plus a ROOT argument means awk finds nothing, every file scans empty, and
+# the gate reports OK on an unscanned tree.
+tool_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+stripper="$tool_dir/strip_comments.awk"
+
+root="${1:-$tool_dir/..}"
+cd "$root" || {
+  echo "check_core_purity: cannot enter '$root' — refusing to report OK on an unscanned tree."
+  exit 2
+}
+[ -f "$stripper" ] || {
+  echo "check_core_purity: $stripper is missing — the comment stripper is load-bearing."
+  exit 2
+}
 
 core=lib/core
 offenders=()
@@ -43,7 +57,7 @@ fi
 
 while IFS= read -r file; do
   [ -n "$file" ] || continue
-  stripped="$(awk -f tool/strip_comments.awk "$file")"
+  stripped="$(awk -f "$stripper" "$file")"
   for uri in "${banned_uris[@]}"; do
     if [ "$uri" = "package:timezone/" ] && [[ "$file" == "$timezone_exception_dir"* ]]; then
       continue

@@ -11,8 +11,6 @@ analyzer:
   # tool/coverage_floor.sh parses it rather than retyping them: excludes and
   # coverage filters that drift apart lie the coverage number upward.
   exclude:
-    - test/.test_coverage.dart
-    - lib/generated_plugin_registrant.dart
     - '**/*.g.dart'
     - '**/*.freezed.dart'
     - '**/*.drift.dart'

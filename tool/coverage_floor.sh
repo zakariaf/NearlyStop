@@ -72,27 +72,51 @@ def glob_to_regex(glob):
 
 
 def read_lcov(path):
-    """Returns {source path: (lines_found, lines_hit)}."""
-    records, current, found, hit, da = {}, None, None, None, {}
+    """Returns {source path: (lines_found, lines_hit)}.
+
+    Duplicate SF: records for one path are MERGED per line, never summed. A
+    merged report or a second --coverage pass appended to the same file would
+    otherwise turn a fully covered 12/12 file into 24/19 and fail its floor —
+    or double-count a hit line and float a file over one.
+    """
+    per_line = {}          # path -> {line number: max hit count}
+    totals = {}            # path -> (found, hit) for records that carry no DA
+    current, found, hit, da = None, None, None, {}
     for raw in open(path, encoding='utf-8'):
         line = raw.strip()
         if line.startswith('SF:'):
             current, found, hit, da = line[3:], None, None, {}
-        elif line.startswith('DA:') and current is not None:
+        elif current is None:
+            continue       # LF:/LH:/DA: before the first SF: belongs to nothing
+        elif line.startswith('DA:'):
             number, _, count = line[3:].partition(',')
             da[number] = int(count or 0)
         elif line.startswith('LF:'):
             found = int(line[3:])
         elif line.startswith('LH:'):
             hit = int(line[3:])
-        elif line == 'end_of_record' and current is not None:
-            if found is None:
-                found = len(da)
-            if hit is None:
-                hit = sum(1 for c in da.values() if c > 0)
-            previous = records.get(current, (0, 0))
-            records[current] = (previous[0] + found, previous[1] + hit)
+        elif line == 'end_of_record':
+            if da:
+                merged = per_line.setdefault(current, {})
+                for number, count in da.items():
+                    merged[number] = max(merged.get(number, 0), count)
+            else:
+                previous = totals.get(current)
+                candidate = (found or 0, hit or 0)
+                # No per-line data to merge, so keep the widest record rather
+                # than adding two views of the same file together.
+                totals[current] = candidate if previous is None else (
+                    max(previous[0], candidate[0]),
+                    max(previous[1], candidate[1]),
+                )
             current = None
+
+    records = {}
+    for source, merged in per_line.items():
+        records[source] = (len(merged), sum(1 for c in merged.values() if c > 0))
+    for source, value in totals.items():
+        if source not in records:
+            records[source] = value
     return records
 
 

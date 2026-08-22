@@ -27,8 +27,10 @@ doctor already agreed, and tells them what to swallow this morning.
 
 **This app makes zero network calls.** No analytics, no crash reporting, no
 telemetry, no font CDN. `tool/check_bans.sh` fails the build on an import that
-could open a socket, and the claim is verified in airplane mode from a clean
-install before every release.
+could open a socket **and** on a socket call site (`HttpClient`, `Socket`,
+`WebSocket`, …) anywhere under `lib/`, and `tool/audit-deps.sh` walks the whole
+transitive tree. Neither proves runtime behaviour, so the claim is verified in
+airplane mode from a clean install before every release.
 
 ## Run it
 

@@ -51,7 +51,10 @@ jobs:
           cache: true
 
       - run: flutter --version
-      - run: flutter pub get
+      # Contract: the committed pubspec.lock IS the pin. Without
+      # --enforce-lockfile a constraint or SDK change lets pub silently
+      # re-resolve, and CI then reports green over a version set nobody reviewed.
+      - run: flutter pub get --enforce-lockfile
 
       # Contract: the lint ruleset is actually ON. A pinned `include:` naming a
       # file absent from the resolved package emits one warning and then runs
@@ -127,7 +130,7 @@ jobs:
           channel: stable
           flutter-version: ${{ steps.toolchain.outputs.version }} # keep == verify's pin
           cache: true
-      - run: flutter pub get
+      - run: flutter pub get --enforce-lockfile
 
       # Contract: the app still compiles for a real target. Unsigned on purpose
       # — no signing secret in this job means there is nothing here to leak.

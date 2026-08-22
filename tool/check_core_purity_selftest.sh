@@ -52,7 +52,10 @@ for uri in \
   "package:drift/drift.dart" \
   "package:flutter_test/flutter_test.dart" \
   "dart:ui"; do
-  cp "$clock_backup" "$clock"
+  # The redirect truncates $clock; `cat -` reads the header from stdin and the
+  # body from the BACKUP, so the backup is what restores the file. Do not add a
+  # cp here — it would be undone by the redirect on the next line and would hide
+  # which statement actually does the restoring.
   printf "import '%s';\n" "$uri" | cat - "$clock_backup" >"$clock"
   run_gate
   if [ "$code" -ne 1 ]; then
@@ -91,6 +94,37 @@ else
 fi
 rm -f "$notif_scratch" "$dsns_scratch"
 rmdir lib/core/notifications lib/core/dsns 2>/dev/null
+
+echo "case 13: the gate refuses to report OK on a tree it could not scan"
+out="$(bash "$gate" /definitely/not/a/directory 2>&1)"
+code=$?
+if [ "$code" -eq 0 ]; then
+  bad "a bad ROOT reported success"
+elif ! grep -qi 'cannot enter' <<<"$out"; then
+  bad "a bad ROOT failed but never said why"
+else
+  pass "a bad ROOT exits non-zero and says so"
+fi
+
+echo "case 14: the gate works from an arbitrary ROOT"
+alt="$(mktemp -d)"
+mkdir -p "$alt/lib/core/dsns"
+cat >"$alt/lib/core/dsns/planted.dart" <<'DART'
+import 'package:flutter/material.dart';
+
+/// Scratch.
+Widget? scratch;
+DART
+out="$(bash "$gate" "$alt" 2>&1)"
+code=$?
+rm -rf "$alt"
+if [ "$code" -ne 1 ]; then
+  bad "the gate did not flag a planted import under an explicit ROOT (exit $code)"
+elif ! grep -q 'package:flutter/' <<<"$out"; then
+  bad "the gate ran under an explicit ROOT but scanned an empty haystack"
+else
+  pass "an explicit ROOT is scanned, not silently skipped"
+fi
 
 if [ "$failures" -ne 0 ]; then
   echo "check_core_purity_selftest: $failures case(s) failed"
