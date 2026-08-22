@@ -50,7 +50,11 @@ app.*.map.json
 .idea/
 .vscode/
 
+# Written by tool/coverage_include_untested.sh before a coverage run so that
+# untested lib/ files land in the denominator. Regenerated every time; never
+# committed.
+test/zzz_coverage_all_files_test.dart
+
 # NOTE: pubspec.lock is deliberately NOT ignored. This is an application, and the
 # committed lock is what makes a stranger's clone resolve the versions that were
 # tested (dependency-hygiene rule 2). Never ignore design/reference/*.png either.
-test/zzz_coverage_all_files_test.dart

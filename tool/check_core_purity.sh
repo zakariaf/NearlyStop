@@ -41,31 +41,9 @@ if [ ! -d "$core" ]; then
   exit 2
 fi
 
-strip_comments() {
-  awk '
-    BEGIN { inblock = 0 }
-    {
-      line = $0; out = ""; i = 1; n = length(line)
-      while (i <= n) {
-        two = substr(line, i, 2)
-        if (inblock) {
-          if (two == "*/") { inblock = 0; i += 2 } else { i++ }
-        } else if (two == "/*") {
-          inblock = 1; i += 2
-        } else if (two == "//") {
-          break
-        } else {
-          out = out substr(line, i, 1); i++
-        }
-      }
-      print out
-    }
-  ' "$1"
-}
-
 while IFS= read -r file; do
   [ -n "$file" ] || continue
-  stripped="$(strip_comments "$file")"
+  stripped="$(awk -f tool/strip_comments.awk "$file")"
   for uri in "${banned_uris[@]}"; do
     if [ "$uri" = "package:timezone/" ] && [[ "$file" == "$timezone_exception_dir"* ]]; then
       continue
@@ -73,7 +51,7 @@ while IFS= read -r file; do
     while IFS= read -r hit; do
       [ -n "$hit" ] || continue
       offenders+=("$file:${hit%%:*}: imports $uri"$'\n'"        ${hit#*:}")
-    done < <(grep -nE "^[[:space:]]*(import|export)[[:space:]]+['\"]${uri//\//\\/}" <<<"$stripped" || true)
+    done < <(grep -nE "^[[:space:]]*(import|export)[[:space:]]+['\"]${uri}" <<<"$stripped" || true)
   done
 done < <(find "$core" -type f -name '*.dart' | sort)
 
