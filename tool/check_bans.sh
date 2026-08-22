@@ -168,7 +168,43 @@ for scope in lib test; do
   scan_scope "$scope"
 done
 
+# ------------------------------------------------- delegated rule groups
+# EPIC-02's design-value gates. They live in their own files because their
+# patterns are a different KIND of rule — an aesthetic value rather than a
+# source-graph property — but they are reached only from here, so there is one
+# entry point and one exit code. Their output is captured and replayed with the
+# rest, so a raw hex and a hardcoded padding in the same run are reported
+# together rather than the first one masking the second.
+delegated=()
+run_delegated() {
+  local script="$1" reason="$2" output
+  output="$(bash "$tool_dir/$script" 2>&1)"
+  if [ $? -ne 0 ]; then
+    delegated+=("$reason"$'\n'"$output")
+  fi
+}
+
+run_delegated check_raw_values.sh \
+  "design values belong in lib/theme/ — read a token slot, or add one (with its contrast-budget row and its test in the same commit)"
+run_delegated check_font_bundling.sh \
+  "fonts ship inside the binary — google_fonts is a network call in an app whose store listing claims none"
+
 # ------------------------------------------------------------------- verdict
+if [ "${#delegated[@]}" -ne 0 ]; then
+  for d in "${delegated[@]}"; do
+    echo "$d"
+    echo
+  done
+fi
+
+if [ "${#offenders[@]}" -ne 0 ] || [ "${#delegated[@]}" -ne 0 ]; then
+  if [ "${#offenders[@]}" -eq 0 ]; then
+    echo "check_bans: ${#delegated[@]} delegated gate(s) failed."
+    echo "Each of these is a promise the app makes that a passing test cannot see."
+    exit 1
+  fi
+fi
+
 if [ "${#offenders[@]}" -ne 0 ]; then
   echo "check_bans: ${#offenders[@]} violation(s)."
   echo
