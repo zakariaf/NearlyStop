@@ -103,6 +103,22 @@ the file EPIC-15 cannot start without.
   > EPIC-02 added the raw-value rules, EPIC-07 added the component rules. This epic appends a rule
   > group; it does not create `tool/check_a11y_gates.sh` or anything under `scripts/`.
 
+- **Tests first (TDD)** — the gate is code, and a gate nobody proved can fail is decoration. Its
+  self-test lives beside it: `tool/fixtures/bans/` fixture pair plus
+  `test/tools/check_bans_test.dart`, which shells out to the script and asserts its exit code and
+  output. Write and watch fail, in this order:
+  1. one **must-fail** fixture per new rule — `withClampedTextScaling`, `FittedBox`,
+     `TextOverflow.ellipsis`, `SystemChrome.setPreferredOrientations`, and `takeException()` inside a
+     `tearDown` — each turning the script red with the rule's name printed next to the hit
+  2. a fixture containing `double get textScaleFactor` at the path `lib/theme/user_text_scaler.dart`
+     leaves the script **green**; the identical declaration at any other path turns it red. That is the
+     narrow rule, asserted as a rule rather than trusted as a regex
+  3. `MediaQuery.of(context).copyWith(` green; `MediaQuery.of(context).size` red — same file, so the
+     test distinguishes the misuse from the legal use
+  4. no allowlist file exists anywhere in the tree, asserted directly, so the narrow rules cannot quietly
+     become one later
+  5. a fixture with **three** violations produces three printed hits and exits 1 **once** — accumulate,
+     not fail-fast, which is the property that makes the gate usable
 - **Details** — **Do not re-add rules EPIC-01 already ships**: `EdgeInsets.only(` with `left:`/`right:`,
   `Alignment.center(Left|Right)`, `Positioned(` with `left:`/`right:`, `TextAlign.(left|right)`,
   `Icons.arrow_(back|forward)`, `Colors.black`/`Colors.white`, and `Color(0x` outside
@@ -142,6 +158,21 @@ the file EPIC-15 cannot start without.
 - **What** — One overflow/fit matrix per screen, sized so it stays runnable, that proves nothing clips
   at the largest scale on the smallest surface.
 - **Where** — `test/a11y/overflow_matrix_test.dart` (new), extending `test/support/harness.dart`.
+- **Tests first (TDD)** — this is a genuine red-first loop even though the screens already exist: the
+  matrix is written and run **before** any widget is touched, and every fix in `lib/features/` is a red
+  cell going green. `test/a11y/overflow_matrix_test.dart`, `flutter_test` widget,
+  `setUpAll(loadAppFonts)`, one `testWidgets` per tuple. Write and watch fail, in this order:
+  1. prove the assertion can fail before trusting it: force a `SizedBox(height: 48)` onto a day row and
+     confirm at least one 2.0-scale cell goes red with the tuple named in the message. A matrix that
+     cannot fail is 300 green tests that assert nothing
+  2. every cell asserts **both** `expect(tester.takeException(), isNull)` **and** three fit assertions —
+     the dose numeral, the block-header title and the day-row label each `getRect` inside their computed
+     parent rect. Clipped text reports no overflow, so the exception check alone is not a fit check
+  3. run the full pruned axis set red-first and record which cells fail before fixing anything; the
+     composed-ceiling cells assert against EPIC-11's declared cap read from the constant, never a
+     literal `3.0` or `6.2`
+  4. an import-identity assertion that every cell reads `test/fixtures/seeded_taper.dart` — a matrix shot
+     against a different fixture than task 9's captures is not comparable to them
 - **Details** — `setUpAll(loadAppFonts)` is mandatory or the bold axis is inert under Ahem. Loop
   **around** `testWidgets`, never inside — overflow is reported once per `RenderObject`, so a loop
   inside one test silently under-reports every tuple after the first. Axes, deliberately pruned so the
@@ -178,6 +209,26 @@ the file EPIC-15 cannot start without.
 - **What** — Replace/extend EPIC-02's isolated budget test with one that measures the pairs the built
   screens actually composite, in all four themes.
 - **Where** — `test/a11y/contrast_test.dart` (new), `docs/a11y/contrast-budget.md` (regenerated table).
+- **Tests first (TDD)** — `test/a11y/contrast_test.dart`. The `wcag()` and APCA `Lc` helpers are pure
+  Dart and are tested as pure Dart; the theme loop needs `flutter_test` for `ThemeData` but pumps **no
+  widget** — this is `f(colour, colour) → ratio`, not a screenshot. Write and watch fail, in this order:
+  1. pin the oracle before measuring a single token: `wcag(#000000, #FFFFFF) == closeTo(21.0, 1e-6)`,
+     `wcag(#FFFFFF, #FFFFFF) == 1.0`, `wcag(#777777, #FFFFFF) == closeTo(4.48, 0.01)` against published
+     values. A contrast suite built on an unverified formula measures nothing
+  2. seeded fuzz, 500 random colour pairs: `wcag(a, b) == wcag(b, a)` and the result is always within
+     `[1.0, 21.0]` — symmetry and range, with the pair echoed in `reason:`
+  3. the four-theme × two-script loop, every declared pair against its floor (≥4.5:1 normal, ≥7:1 high
+     contrast), each `expect` naming theme, script, pair and measured ratio in `reason:` so a failure is
+     its own report line
+  4. `onPrimary` against **each** `sunrise` endpoint stop as two separate expectations — a gradient is
+     not one background, and averaging it hides the failing end
+  5. the Progress staircase stroke against the card fill at both gradient endpoints, ≥3:1
+  6. the chroma-only pairs `wcag(stateTaken, surface)` and `wcag(stateMissed, surface)` asserted
+     directly — that luminance gap is exactly what a grayscale reader perceives
+  7. a source assertion that no `TextStyle` or `Icon` colour in `lib/` resolves `c.primary` — write it
+     red against a seeded violation first
+  8. `docs/a11y/contrast-budget.md` is regenerated by the run and a stale committed table fails the
+     build, so the document cannot drift from the measurements
 - **Details** — Pure Dart over colour **values**, never `meetsGuideline(textContrastGuideline)` — that
   matcher screenshots and histograms the layer and false-passes white on `#FAFAFA`. Implement `wcag(a,b)`
   from relative luminance and an APCA `Lc` helper.
@@ -216,6 +267,27 @@ the file EPIC-15 cannot start without.
 
 - **What** — Assert every screen's semantic tree: roles, labels, live regions, and traversal order.
 - **Where** — `test/a11y/semantics_test.dart` (new), fixes across `lib/features/*/presentation/`.
+- **Tests first (TDD)** — `test/a11y/semantics_test.dart`, `flutter_test` widget with
+  `tester.ensureSemantics()`. Written and run red before any fix lands in `lib/features/`; each fix is
+  one assertion going green. Write and watch fail, in this order:
+  1. Today's hero is **one** container node whose label equals the composed SPEC §5.4 sentence for the
+     pinned fixture, built in the test from `AppLocalizations` rather than typed as a literal — a copy
+     change must fail in one place, not two
+  2. that node's visual children carry no semantics of their own (`ExcludeSemantics` honoured) — the
+     assertion that catches the sentence fragmenting into four announcements
+  3. Taken is `isButton` + `hasTapAction`; its success announcement node has `isLiveRegion`; the backfill
+     banner is a `liveRegion` and appears before the secondary actions
+  4. each Schedule day row is one node labelled `weekday, date, dose, tablets, state`; block headers are
+     `isHeader`; the jump-to-today control has a non-empty label
+  5. the Progress chart carries exactly one summary label describing the trend; each stat block names its
+     unit in words ("milligrams", not "mg")
+  6. Settings: each language option's label is the **localized language name**, never a tag like `ckb`,
+     and the selected one carries the selected flag; the About version row is one node reading
+     "NearlyStop, version 1.0.0, build 1"; "View licenses" is a labelled button
+  7. traversal: `simulatedAccessibilityTraversal()` on Today equals exactly
+     `[dose, state, Taken, backfill, …secondary]` as a **list equality**, not a `contains` — order is the
+     claim, and `contains` passes on any order
+  8. a tree walk asserting every `Icon` in all six screens is either labelled or inside `ExcludeSemantics`
 - **Details** — Use `isSemantics(...)` (never the deprecated `containsSemantics`). Per screen:
   - **Today** — the hero card is **one** container node whose label is the SPEC §5.4 sentence,
     e.g. for the pinned fixture *"Today, 10 milligrams: two 5 milligram tablets. Not yet taken."* —
@@ -244,6 +316,20 @@ the file EPIC-15 cannot start without.
 
 - **What** — Measure every interactive target explicitly instead of trusting the built-in guideline.
 - **Where** — `test/a11y/tap_targets_test.dart` (new).
+- **Tests first (TDD)** — `test/a11y/tap_targets_test.dart`, `flutter_test` widget. Write and watch
+  fail, in this order:
+  1. prove the loop can fail: wrap one real button in a `SizedBox(height: 40)` fixture and confirm the
+     test goes red **naming that widget**. A measurement loop with a useless failure message costs more
+     than it saves
+  2. per screen, at scale 1.0: every node with `hasTapAction` has `getSize().width >= 44` and
+     `height >= 44`
+  3. the same loop at scale 2.0 — a target that is 44 at 1.0 and still 44 at 2.0 is a clamped parent,
+     which is the actual bug and is invisible at one scale
+  4. the Taken action separately at `height >= 88`
+  5. every node with `hasLongPressAction` also has `hasTapAction` — no action reachable only by long
+     press
+  6. if `meetsGuideline(androidTapTargetGuideline)` is used at all it is `await expectLater`-ed and
+     carries a comment saying it is advisory, because it skips nodes flush with the view edge
 - **Details** — `meetsGuideline(androidTapTargetGuideline)` skips every node flush with the view edge,
   so it is advisory only and must be `await expectLater`-ed if used at all. The gate is an explicit
   loop: for each screen, find every node with `hasTapAction`, `getSize` it, assert
@@ -258,6 +344,23 @@ the file EPIC-15 cannot start without.
 
 - **What** — Prove every state signal survives desaturation and colour-vision deficiency.
 - **Where** — `test/a11y/state_signals_test.dart` (new), `docs/design-review/grayscale/` (sweep output).
+- **Tests first (TDD, automated half)** — `test/a11y/state_signals_test.dart`, `flutter_test` widget
+  over the painters' public value objects, never over pixels. Write and watch fail, in this order:
+  1. the sharpest form of the claim first: pump each state row under a theme whose four state colours are
+     **all identical**, and assert the four rows are still distinguishable by `(shape, glyph, label)`.
+     "Never colour alone" is exactly this test; everything below is its detail
+  2. for each of `taken`/`missed`/`today`/`upcoming`: the row exposes its declared shape value, its glyph
+     and its localized label together, asserted as three separate expectations so a missing one names
+     itself
+  3. a chip's selected state is fill **and** a 2px `borderStrong` ring **and** a check glyph **and** w800
+     — four expectations, same reason
+  4. the tab bar's active destination is the filled icon variant + w800 + the 3px indicator
+  5. `stateMissed` resolves to `clay56` and not to `danger` — a one-line regression guard on the
+     CONTRACTS §9 decision, which is a copy-paste away from being undone
+  6. the luminance-gap pairs are re-used from task 3's helper, not re-implemented
+  **Manual half, honestly:** desaturation and the deuteranopia/protanopia/tritanopia simulations are a
+  human pass over the task 12 stills. They go on the named manual pre-release pass and into the sign-off
+  — not into a green test that would only assert an image was written.
 - **Details** — Two halves. **Automated:** for each of `taken`/`missed`/`today`/`upcoming`, assert the
   row renders its declared shape (`find.byType(DayStateMarkerPainter)`'s `shape` field, or the painter's
   public value object), its glyph, and its localized label together — shape first, colour derived last.
@@ -274,6 +377,20 @@ the file EPIC-15 cannot start without.
 
 - **What** — Verify every declared motion moment has a reduced-motion path that lands on the end state.
 - **Where** — `test/a11y/reduced_motion_test.dart` (new), fixes in components that animate.
+- **Tests first (TDD)** — `test/a11y/reduced_motion_test.dart`, `flutter_test` widget with
+  `disableAnimations: true`, timed `pump(Duration)` and `fakeAsync` where a timer is involved — never
+  `pumpAndSettle`, which hangs on an indefinite indicator. Write and watch fail, in this order:
+  1. `resolveMotion(context, motion.base)` returns `Duration.zero` under `disableAnimations: true`, for
+     every entry in the declared moment catalog — one expectation per moment, not one loop assertion
+  2. for each moment, after a single `pump()` following the interaction the widget is already in its end
+     state, `SchedulerBinding.instance.hasScheduledFrame` is `false`, and no timer is pending
+  3. the same moments with animations **enabled** still animate — otherwise the reduced-motion test
+     passes trivially on a feature that was never built
+  4. feedback survives the collapse: the injected haptic gateway records exactly one call per moment with
+     animations disabled, and the `liveRegion` announcement still fires. Collapsing motion must not
+     silently remove the acknowledgement
+  5. a source assertion that `repeat(` appears nowhere in `lib/` — no ambient animation without a stop
+     condition
 - **Details** — Pump with `MediaQuery.copyWith(disableAnimations: true)` layered above `MaterialApp`
   (harness already supports the flag pattern). Assert `resolveMotion(context, motion.base)` returns
   `Duration.zero`; assert that after a single `pump()` following an interaction, the widget is already
@@ -291,6 +408,13 @@ the file EPIC-15 cannot start without.
 
 - **What** — Hear the app, on both platforms, with the real assistive services.
 - **Where** — `docs/design-review/on-device-pass.md` (new, part of the sign-off bundle).
+- **Tests first** — *Scaffold — a named manual pass, deliberately not automated.* There is no assertion
+  to write: VoiceOver and TalkBack are not reproducible off-device, no Switch Access simulation exists,
+  and a widget test here would only re-assert the semantics tree that task 4 already owns. Writing one
+  would be worse than the gap, because it would stop someone listening to the app. Verified by
+  `docs/design-review/on-device-pass.md` carrying the transcribed output per platform per locale, and by
+  any failure being filed as a BLOCKER into task 13's table. If the transcript disagrees with task 4's
+  asserted label, the **test** is what gets corrected first, then the code.
 - **Details** — Automation cannot do this: Flutter ships four machine-checkable guidelines (one
   known-broken) and no Switch Access simulation exists at all. Run VoiceOver on a real iPhone and
   TalkBack on a real low-end Android, on the **release** build, in `en` and `fa`. Script the pass:
@@ -309,6 +433,20 @@ the file EPIC-15 cannot start without.
 - **What** — The complete 24-pair comparison against the committed reference PNGs.
 - **Where** — `parity/ref/`, `parity/app/`, `parity/sheets/` (side-by-side HTML + rendered sheets),
   `test/parity/*_parity_test.dart` (extended).
+- **Tests first (TDD for the assertions; the sheets are a gate)** — the 24 side-by-side sheets cannot be
+  made to fail before a capture exists, so they are a **gate, not a driver**. The exact-tier assertions
+  in `test/parity/*_parity_test.dart` are a different thing and are written **from the reference's own
+  values, before looking at a single capture** — a number read off the implementation and then asserted
+  proves nothing. `flutter_test` widget. Write and watch fail, in this order:
+  1. per screen, the resolved token colours, radii, type sizes and weights equal the values dumped from
+     `design/daybreak-screens.html`, transcribed into the test as the source of truth
+  2. element order and nesting per screen, asserted as a list, matching the reference's order
+  3. `getRect` on each screen's named landmarks within ±2 logical px of the reference rects
+  4. one sampled flat fill per screen at ΔE00 ≤ 2 — never a text pixel, which is where rasterisation
+     lives
+  5. under `Directionality.rtl`: chevrons and the next-step arrow mirror, and the sunrise gradient
+     resolves through `AlignmentDirectional` rather than a fixed `Alignment`
+  6. every capture reads `test/fixtures/seeded_taper.dart` (the same import-identity assertion as task 2)
 - **Details** — Follow `daybreak-visual-parity` exactly. Crop each frame from
   `design/reference/daybreak-screens-{light,dark}-{en,fa}.png` using the documented rect dump — the
   sheets are 2600×4760, 3 columns × 2 rows, frames in order `01 welcome`, `02 today`, `03 schedule`,
@@ -331,6 +469,24 @@ the file EPIC-15 cannot start without.
 - **What** — The two locales the mockup never showed, checked against rules rather than pixels.
 - **Where** — `test/parity/de_length_test.dart`, `test/parity/ckb_script_test.dart`,
   `test/golden/ckb_script_golden_test.dart` (real-font lane).
+- **Tests first (TDD)** — the two rule-based tests are written first; the `ckb` real-font golden is
+  written alongside them as the only thing that can catch tofu, and is a gate. Write and watch fail, in
+  this order:
+  1. `de`: derive the longest ARB value per screen **programmatically** from `app_de.arb` — a hardcoded
+     "longest string" rots the first time copy changes — then render it at compact_320 × 2.0 × bold and
+     assert no overflow
+  2. `de`: that label's `TextPainter.didExceedMaxLines` is false and its rendered text equals the full
+     ARB value — no ellipsis, no `FittedBox` shrink standing in for a fixed layout
+  3. `ckb`: the resolved `fontFamily` for Sorani text is the declared Perso-Arabic face, not the Latin
+     fallback
+  4. `ckb`: a joined form is strictly narrower than the sum of its isolated glyph widths — the
+     machine-checkable proxy for shaping actually happening
+  5. `ckb`: rendered numerals are U+06Fx while the **stored** value round-trips as ASCII through the
+     repository — both halves, since either alone is satisfiable by the wrong implementation
+  6. `ckb`: one known framework string per Material control (a dialog's cancel label, the date picker's
+     header) comes from `CkbMaterialLocalizations`, not English
+  7. the real-font golden with `loadAppFonts()` and a pinned OS: written alongside, and the only check
+     that catches `.notdef` boxes — Ahem squares would render "fine" in every assertion above
 - **Details** — **de** rides the `en` cell: assert the longest ARB value per screen renders without
   overflow at compact_320 × 2.0 × bold, and that no label ellipsizes or shrinks. Identify the longest
   strings programmatically from `app_de.arb` so the test does not rot. **ckb** rides the `fa` cell:
@@ -347,6 +503,22 @@ the file EPIC-15 cannot start without.
 - **What** — Find and fix jank on the one list that will hold ~780 days.
 - **Where** — `lib/features/schedule/presentation/`, `lib/features/schedule/application/`,
   `docs/perf/schedule-profile.md` (before/after).
+- **Tests first (TDD for the structure; the trace is a measurement)** — frame times are measured on
+  hardware and recorded; a frame-time assertion in CI would be a flake and is deliberately not written.
+  What **is** written first, red, before any optimisation:
+  `test/features/schedule/laziness_test.dart`, `flutter_test` widget over a seeded 780-day taper.
+  1. pumping Schedule builds fewer than 40 day rows. Against a materialized
+     `ListView(children: [...])` this fails immediately, which is the point — it is a structural
+     assertion, not a timing one
+  2. flinging to day one and back leaves the built-row count still bounded — no accumulation across
+     scrolls
+  3. `generateSchedule` is invoked **exactly once** for a pump of Today, Schedule and Progress together,
+     counted through a wrapper around `derivedScheduleProvider`'s dependency. Twice is precisely the
+     defect CONTRACTS §4 exists to prevent, and nothing else in the suite would notice it
+  4. changing one day's log rebuilds exactly one row, not the list — the `select` scoping claim, asserted
+  5. the day-state painter's `shouldRepaint` returns `false` for an equal config value object and `true`
+     for a differing one, and `paint()` allocates nothing (assert on the value object's equality, which
+     is what makes both true)
 - **Details** — Measure first, in **profile** mode on a real floor device (a cheap Android), with a
   seeded full-length taper (10mg → 0 at the SPEC §3.4 step sizes ≈ 780 days, 15 steps × 11 blocks).
   DevTools → Performance, record a fast fling from today back to day one and forward to the end.
@@ -369,6 +541,12 @@ the file EPIC-15 cannot start without.
 
 - **What** — Shoot the full `design-review-workflow` matrix on the release build.
 - **Where** — `docs/design-review/sweep/` (one PNG per cell), `tool/sweep_screenshots.sh`.
+- **Tests first** — *Scaffold.* Shooting stills and videos of a release build produces no behaviour a
+  test could catch; a test asserting a PNG was written asserts that the filesystem works. Verified by
+  the matrix inventory in task 13's sign-off — every declared cell has a file, and a missing file is a
+  missing cell. The one property worth holding is already asserted elsewhere: every cell is seeded from
+  `test/fixtures/seeded_taper.dart`, pinned by task 2's import-identity test, so the sweep, the parity
+  sheets and the overflow matrix are all looking at the same taper.
 - **Details** — Preconditions per the skill: last build task done, CI green, **release** build (a debug
   banner or debug-mode jank wastes the sweep), status bar standardized (`xcrun simctl status_bar …
   override` / an emulator demo-mode equivalent) so shots differ only where the UI differs. Cells:
@@ -394,6 +572,15 @@ the file EPIC-15 cannot start without.
 
 - **What** — Turn the sweep and on-device pass into graded findings, fix them once, and sign off.
 - **Where** — `docs/design-review/YYYY-MM-DD-signoff.md` (new, tracked).
+- **Tests first** — *Scaffold for the document; TDD for every finding it grades.* The sign-off is a
+  record and has no behaviour. The fix round does: **each BLOCKER and each FIX is reproduced as a
+  failing test before it is fixed**, in whichever suite already owns it — a clipped label becomes a red
+  cell in task 2's matrix, a contrast miss a red pair in task 3, a wrong announcement a red label in
+  task 4, an undersized control a red measurement in task 5. The findings table's resolution column
+  names that test by file and case, so a resolution with no test is visible as one. This is the
+  README's "a bug found later gets a failing test first, too", applied to the one round of fixes this
+  epic permits itself. The destructive on-device steps (rotate, export → wipe → import, truncated
+  backup, symbolized crash) stay a manual pass and are recorded as run, not simulated green.
 - **Details** — Consolidate every observation into one deduped table graded **BLOCKER / FIX / NOTE**.
   Every accessibility-floor violation is a mandatory BLOCKER regardless of how good the screen looks —
   contrast, tap size, text-scale reflow, colour-alone, RTL correctness, reduce-motion safety. Judge each
@@ -439,6 +626,13 @@ the file EPIC-15 cannot start without.
 
 - **What** — Bless only the golden images that the fix round legitimately changed.
 - **Where** — `test/**/goldens/*.png`, `test/parity/**`.
+- **Tests first** — *Scaffold, and emphatically so.* A golden asserts nothing; it records what the code
+  did. There is no failing test to write before blessing an image, and inventing one would invert the
+  ritual. The order is the safeguard instead: the **real** assertions — task 2's geometry and overflow,
+  task 3's contrast, task 4's semantics, task 5's measurements — are green *before* a single PNG is
+  re-baselined, because a golden will happily bless clipped text that those tests would have caught.
+  Verified by `flutter test --tags golden` passing twice in a row **without** `--update-goldens`, by
+  every changed PNG having been opened by eye, and by no `--update-goldens` appearing in any workflow.
 - **Details** — Follow `run-goldens-rebaseline` literally. Green the real assertions (geometry,
   overflow, contrast, semantics) **first** — a golden asserts nothing and will happily bless clipped
   text. Re-baseline only in the pinned blessing environment with `loadAppFonts()` in effect, scoped
@@ -475,6 +669,7 @@ piece of the mockup's phone chrome. Method, capture geometry and the mismatch de
 
 ## Definition of done
 
+- [ ] Every TDD task's tests were written first and observed failing before its implementation
 - [ ] The a11y rule group added to the **existing** `tool/check_bans.sh` (no second script, nothing under `scripts/`); green with EPIC-11's `UserTextScaler` in the tree and no allowlist file
 - [ ] Overflow + fit matrix covers all six screens at compact_320 × 200% × bold in `en`, `de`, `fa`, `ckb`, plus the composed OS-3.0 × app-2.0 ceiling axis in `en` + `de`
 - [ ] Composited contrast test loops **four** themes — light, dark, light-high-contrast, dark-high-contrast — at ≥4.5:1 normal / ≥7:1 high contrast; `docs/a11y/contrast-budget.md` regenerated with a row per pair per theme

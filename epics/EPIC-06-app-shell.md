@@ -85,6 +85,28 @@ the Daybreak component.
   `lib/providers.dart` for root seams (`clockProvider` per `CONTRACTS.md` §1, `databaseProvider`,
   `bootstrapSettingsProvider`). EPIC-01's `lib/bootstrap.dart` moves to `lib/app/bootstrap.dart` in
   this epic; EPIC-12's "`lib/app/bootstrap.dart`" reference is the correct one.
+- **Tests first (TDD)** — `test/app/bootstrap_test.dart` (`flutter_test` widget) and
+  `test/core/diagnostics/crash_sink_test.dart` (pure `package:test` — the sink is under `lib/core/`,
+  so no `flutter_test` import; drive it over an injected temp directory).
+  Write and watch fail, in this order:
+  1. `bootstrap()` with a settings row `themeMode: dark`, then a **single** `tester.pump()` with no
+     settle: a `Builder` records `Theme.of(context).brightness` on every build and the recorded list
+     is exactly `[Brightness.dark]` — length 1, no light entry anywhere. This is the no-flash claim;
+     asserting only the final frame would pass with a flash.
+  2. Same shape with `highContrast: true`: frame one's `ColorScheme` equals
+     `buildDaybreakTheme(Brightness.light, DaybreakScript.latin, highContrast: true).colorScheme`.
+  3. Order: a bare-`implements` fake `DatabaseLocation` that records, at the moment it is first
+     asked for a path, whether `FlutterError.onError` has already been replaced. Expect `true` —
+     the crash sink is installed before the database is opened, not after.
+  4. Corrupt database: the fake throws on open → `bootstrap()` completes without rethrowing,
+     the container's settings are `AppSettings.defaults()`, and `bootstrapErrorProvider` holds a
+     recoverable `StorageFailure`. Frame one still paints (no black screen).
+  5. `main()` awaits exactly one thing before `runApp`: assert no `FutureBuilder` is constructed in
+     the launch path (`find.byType(FutureBuilder)` empty on frame one).
+  6. Crash sink, pure: writing `cap + 1` records to a cap-`cap` rotating log leaves exactly `cap`
+     records with the **oldest** dropped and the file ≤ the byte cap; a `FlutterErrorDetails` with a
+     stack serialises to a single line; writing to an unwritable directory returns a failure rather
+     than throwing out of `FlutterError.onError`.
 - **Details** — Order, and each step's reason:
   1. `WidgetsFlutterBinding.ensureInitialized()` — needed before `path_provider`.
   2. Install the crash sink **first thing after the binding**: `FlutterError.onError` and
@@ -114,6 +136,29 @@ the Daybreak component.
 - **What** — Settings as live app state, seeded by the bootstrap value.
 - **Where** — `lib/features/settings/application/settings_controller.dart`,
   `lib/providers.dart` (the `bootstrapSettingsProvider` seam).
+- **Tests first (TDD)** — `test/features/settings/settings_controller_test.dart`, headless
+  `ProviderContainer` (no widget pumped — `testing-strategy` rule 7), plus
+  `test/core/settings/app_settings_test.dart` pure `package:test` for the value object.
+  The settings repository is a bare-`implements` `FakeSettingsRepository` over a `StreamController`
+  with a settable `nextResult`, so it can fail; never `mocktail`, never a mocked DAO.
+  Write and watch fail, in this order:
+  1. `container.read(settingsControllerProvider)` returns the `bootstrapSettingsProvider` value
+     **synchronously, in the same microtask**, with a `watchSettings()` stream that never emits —
+     `state.themeMode == ThemeMode.dark`, and the state type is `AppSettings`, not `AsyncValue`.
+     This is the test that fails if anyone reaches for `StreamNotifier`.
+  2. Emitting a new row on the controller pushes it into state: a `container.listen` records exactly
+     `[bootstrapSettings, emittedSettings]` in that order.
+  3. `setHighContrast(true)` writes through the repository (the fake records one call with `true`)
+     and state is **unchanged** immediately after the await — it changes only when the stream emits.
+     No optimistic mutation.
+  4. A write the fake fails returns `Result.failure(StorageFailure.io)` and leaves state at the
+     previous value; nothing throws.
+  5. `container.dispose()` cancels the subscription — `controller.hasListener` is `false` afterwards
+     and a post-dispose emission does not touch state.
+  6. Pure `AppSettings`: value equality over all seven fields; seeded fuzz over 200 generated
+     settings asserting `copyWith` of one field changes that field and **no** other (independent
+     oracle: field-by-field comparison, not `copyWith` itself), with the seed in `reason:`.
+     `localeTag == null` and `disclaimerAcceptedAt == null` are in the generated domain.
 - **Details** — `SettingsController extends Notifier<AppSettings>` — **not** `StreamNotifier`. A
   `StreamNotifier`'s state starts as `AsyncLoading` and drift's `.watch()` never emits synchronously,
   so `requireValue` on frame one throws and the whole no-flash promise fails on its own acceptance
@@ -137,6 +182,27 @@ the Daybreak component.
 
 - **What** — The `MaterialApp.router` and everything that wraps it.
 - **Where** — `lib/app/app.dart`.
+- **Tests first (TDD)** — `test/app/app_test.dart`, `flutter_test` widget. Assert on the **observable
+  `ThemeData`/`MediaQuery`**, not on a spy: the independent oracle is a direct call to
+  `buildDaybreakTheme(...)` with the arguments we claim were passed.
+  Write and watch fail, in this order:
+  1. Theme arguments, all three, as a table over `{light, dark} × {latin, persoArabic} ×
+     {highContrast false, true}` — eight cells. For each, seed the settings and resolved locale, then
+     `expect(Theme.of(ctx), equals(buildDaybreakTheme(brightness, script, highContrast: hc)))`.
+     A dropped script argument fails cells 3–8; a dropped `highContrast` fails the four `true` cells.
+  2. Resolved locale `fa` → `Directionality.of(ctx) == TextDirection.rtl` and the app's
+     `bodyLarge.fontFamily == 'Vazirmatn'`; `en` and `de` → `ltr` and `'Nunito'`; `ckb` → `rtl` and
+     `'Vazirmatn'`.
+  3. Text scale composition: OS `textScaler` 2.0 × app multiplier 1.5 →
+     `MediaQuery.textScalerOf(ctx).scale(10) == 30`. The product is unbounded.
+  4. The app multiplier alone is bounded 0.9–1.5: settings `textScale: 2.0` with OS at 1.0 →
+     `scale(10) == 15`; `textScale: 0.5` → `scale(10) == 9`.
+  5. The OS value is never clamped down: OS 3.0, app 1.0 → `scale(10) == 30`. Pair it with a source
+     assertion that `withClampedTextScaling` appears nowhere in `lib/` (one grep test, or the rule
+     added to `tool/check_bans.sh`).
+  6. `onGenerateTitle` returns the localized title: `en` and `de` produce different, non-empty
+     strings, and neither is the hardcoded package name.
+  7. `debugShowCheckedModeBanner` is `false`.
 - **Details** — `ConsumerWidget` reading `settingsControllerProvider`, `resolvedLocaleProvider` and
   `routerProvider`.
   - The theme builder takes **three** arguments, not one (`CONTRACTS.md` §9):
@@ -175,6 +241,26 @@ the Daybreak component.
 > by EPIC-06 and live in `lib/app/locale_providers.dart`. `appLocalizationsProvider` is the **only**
 > sanctioned way to reach `AppLocalizations` outside a widget.
 
+- **Tests first (TDD)** — `test/app/locale_providers_test.dart`, headless `ProviderContainer` with
+  `platformDispatcher.localesTestValue` for the OS side.
+  Write and watch fail, in this order:
+  1. `localeTag: 'de'` → `resolvedLocaleProvider == const Locale('de')` and
+     `appLocalizationsProvider.appTitle` is the German ARB string (not the English one).
+  2. **Re-emission on a settings change:** on a live container, change `localeTag` `en → de`; a
+     `container.listen(appLocalizationsProvider, …)` records exactly two values whose `localeName`s
+     are `['en', 'de']`. No relaunch, no container rebuild. This is the test that fails if the
+     provider is keyed on the launch locale.
+  3. `localeTag == null`, OS locales `[fa_IR]` → resolves `fa`; swap the OS list to `[de_DE]` and
+     invalidate → re-emits `de`, and the recorded sequence is `['fa', 'de']`.
+  4. `localeTag: 'ckb'` → an app string comes back in Sorani, and `lookupAppLocalizations` throws for
+     none of `kSupportedLocales` — loop all four tags.
+  5. Two call sites, one answer (seeded fuzz, independent oracle): for 200 seeded
+     `(storedTag, osLocaleList)` pairs drawn from supported tags, unsupported tags, `null`, and
+     empty/multi-entry OS lists, assert `resolvedLocaleProvider` equals a direct call to
+     `resolveAppLocale(...)` **and** equals what the `MaterialApp` `localeListResolutionCallback`
+     returns for the same inputs. Echo `storedTag` and the OS list in `reason:`.
+  6. Same fuzz loop, second invariant: the result is always a member of `kSupportedLocales` — never
+     an unsupported locale, never `null`.
 - **Details** — Two providers, both tiny, both load-bearing:
   - `resolvedLocaleProvider` = `Provider<Locale>` returning
     `resolveAppLocale(settings.localeTag, WidgetsBinding.instance.platformDispatcher.locales, kSupportedLocales)`
@@ -201,6 +287,34 @@ the Daybreak component.
 
 - **What** — One app-wide `GoRouter` with five branches and the Welcome gate.
 - **Where** — `lib/routing/app_router.dart`, `lib/routing/routes.dart`.
+- **Tests first (TDD)** — `test/routing/app_router_test.dart`. Redirects are asserted **headlessly**:
+  build the router from a `ProviderContainer`, call `router.go(...)`, and read
+  `router.routerDelegate.currentConfiguration.uri.path` — no widget pumped. Cases 6–7 need a real
+  tree and use `pumpApp` (task 8).
+  Write and watch fail, in this order:
+  1. `disclaimerAcceptedAt == null`: a table over all six locations
+     (`/today`, `/schedule`, `/progress`, `/plan`, `/settings`, `/settings/disclaimer`) — every one
+     lands on `/welcome`.
+  2. With `disclaimerAcceptedAt` set, the same six locations each stay where they were sent, and the
+     initial location is `/today`.
+  3. `/settings/disclaimer` with the disclaimer accepted is **not** redirected, and `router.pop()`
+     from it lands on `/settings` — the Settings branch is its parent, so back returns to Settings.
+  4. Accepting from `/welcome` leaves the gate exactly once: after `disclaimerAcceptedAt` is written,
+     `router.go('/today')` stays at `/today`, and no later navigation re-arms the gate.
+  5. No escape from the gate: at `/welcome`, `router.canPop()` is `false` and a system back
+     (`tester.binding.handlePopRoute()`) leaves the location unchanged.
+  6. Branch state preservation (widget): scroll the Schedule branch's list to offset 1200, switch to
+     Today, switch back — the controller's offset is still 1200. `.builder` instead of
+     `indexedStack` fails this.
+  7. Unknown route `/nope` renders the localized "that page does not exist" copy (found by the ARB
+     string, in `de` as well as `en`), `find.byType(ErrorWidget)` is empty, and its button navigates
+     to `/today`.
+  8. Router identity: `container.read(routerProvider)` is `identical` before and after toggling high
+     contrast, and case 6's scroll offset survives the toggle. A `ref.watch` in `routerProvider`
+     fails this; `refreshListenable` passes it.
+  9. Route literals live in one file: a source test asserting no `'/today'`-shaped string literal
+     appears under `lib/` outside `lib/routing/routes.dart` (add it to `tool/check_bans.sh` and let
+     the test assert the script is red on a planted violation).
 - **Details** —
   ```dart
   StatefulShellRoute.indexedStack(
@@ -257,6 +371,34 @@ the Daybreak component.
 > `missedDaysProvider` or `currentStepProgressProvider` — those were duplicates of the screen-level
 > providers and are deleted from this epic.
 
+- **Tests first (TDD)** — `test/app/derived_schedule_provider_test.dart`, headless
+  `ProviderContainer` with `clockProvider.overrideWithValue(Clock.fixed(…))` (the Riverpod seam, not
+  ambient `withClock`) and a bare-`implements` `FakeTaperRepository` over a `StreamController`,
+  seeded from `test/fixtures/seeded_taper.dart`.
+  Write and watch fail, in this order:
+  1. **Total coverage (`CONTRACTS.md` §5):** collect the `LocalDate`s of every emitted `DayPlan` into
+     a `Set`; assert the set equals an independently-built date range `[planStart,
+     lastStepStart + 200 days]` — same length as the list (so no duplicates) and no missing date.
+     Building the expected range with a plain day-by-day loop is the independent oracle; do not
+     re-use the generator to compute it.
+  2. Clock fixed to 2025-04-16 → `todayDateProvider == LocalDate(2025, 4, 16)`, and the lookup for
+     that date is the fixture's active-step day 14 at 10mg with `dayInStep: 14` and a non-null
+     `blockIndex`.
+  3. Advance the clock one day and invalidate `todayDateProvider` → the lookup is 2025-04-17's plan,
+     **and the fake repository recorded zero calls** — a clock change must not touch the database.
+  4. Steady-state between steps: for the fixture's step 0 (52 days, no holds), day 53 is
+     `kind: DayKind.steadyState`, dose 9.5mg (the step's `toDose`), `blockIndex: null`,
+     `dayInStep: null`.
+  5. After the final step: every date past `lastStepStart + realisedLength` is `steadyState` at the
+     target dose (0mg), indefinitely to the end of the range.
+  6. A snapshot of `Result.failure(StorageFailure.io)` → `derivedScheduleProvider` is a failure
+     carrying that same failure — not an empty list, not a throw.
+  7. A plan with **no** steps → a defined result (pin it: success with an empty list) so EPIC-08 has
+     a contract for day zero rather than an unhandled shape.
+  8. Synchronous derivation: after the stream's first emission, `container.read(derivedScheduleProvider)`
+     returns a value in the same microtask, with no `await` and no `AsyncLoading` arm.
+  9. Seeded fuzz over 100 generated plans (varied start dates, 1–15 steps, 0–14 holds per step, 0–3
+     flares), re-asserting invariant 1 each time with the seed and the plan summary in `reason:`.
 - **Details** —
   - `taperSnapshotProvider` = `StreamProvider<Result<TaperSnapshot, StorageFailure>>` from
     `TaperRepository.watchSnapshot()` — the single repository of `CONTRACTS.md` §3.
@@ -298,6 +440,32 @@ the Daybreak component.
 > nothing. The ticker lives in `lib/app/`, not `lib/core/`, because it invalidates a Riverpod
 > provider and `lib/core/**` may not import Riverpod (`CONTRACTS.md` §2).
 
+- **Tests first (TDD)** — `test/app/day_ticker_test.dart`, `fakeAsync` around a `ProviderContainer`
+  with `clockProvider.overrideWithValue(…)`. Never sleep, never `pumpAndSettle` — rule 10.
+  Write and watch fail, in this order:
+  1. Clock at 2025-04-16 23:59:00 local, ticker mounted: `async.elapse(59s)` →
+     `todayDateProvider` is still 2025-04-16; `async.elapse(1s)` → 2025-04-17, and a
+     `container.listen` counter records exactly **one** invalidation, not two.
+  2. Reschedule: elapse a further 7 × 24 h → the date is 2025-04-24 and the counter reads exactly 8.
+     A ticker that fires once and stops fails here.
+  3. DST: with the clock at 2025-03-30 00:30 in a 23-hour local day, the scheduled interval is
+     23 h 30 min, not 24 h 30 min — assert the computed `Duration` equals
+     `DateTime(y, m, d + 1).difference(now)` and that the tick lands at local midnight.
+     (This case runs in the `TZ=Europe/Berlin` invocation; say so in the file header.)
+  4. Resume across midnight: without letting the timer fire, advance the injected clock 8 h past
+     midnight and invoke the `AppLifecycleListener`'s `onResume` → `todayDateProvider` is the new
+     date. This is the "phone was asleep" and "we flew to Sydney" case.
+  5. One lifecycle owner, two hooks, no crosstalk: `didChangeLocales` invalidates
+     `resolvedLocaleProvider` and **not** `todayDateProvider`; a midnight tick invalidates
+     `todayDateProvider` and **not** `resolvedLocaleProvider`. Assert both counters each way.
+  6. Disposal: after `container.dispose()`, `async.pendingTimers` is empty and elapsing another day
+     changes nothing. A leaked timer is the "Timer still pending" failure this test prevents.
+  7. No side effects on rollover: across the tick the fake repository records zero calls and
+     `container.read(routerProvider)` is `identical` before and after.
+  8. TZ invariance, asserted by the second CI invocation: a small frozen table of
+     `LocalDate → DayPlan` fingerprints from the fixture, asserted byte-identical under both `TZ=UTC`
+     and `TZ=Europe/Berlin`. A time-zone change moves *which day is today*, never *which dose belongs
+     to a day*.
 - **Details** — `DayTicker` schedules a single `Timer` for the interval to the next **local** midnight
   (computed as `DateTime(now.year, now.month, now.day + 1)` minus `now` — using the local constructor
   deliberately, so a DST-shortened day is 23 h and still lands correctly) and, on fire, invalidates
@@ -321,6 +489,30 @@ the Daybreak component.
 - **What** — The chrome the five screens live in, plus honest stubs.
 - **Where** — `lib/features/shell/presentation/app_shell.dart`,
   `lib/features/{today,schedule,progress,plan,settings}/presentation/*_screen.dart`.
+- **Tests first (TDD)** — `test/features/shell/app_shell_test.dart`, `flutter_test` widget via
+  `pumpApp`. The behaviour is test-first; the shell golden is written alongside as a gate, not a
+  driver.
+  Write and watch fail, in this order:
+  1. A table over the five destinations: tapping destination *i* changes
+     `currentConfiguration.uri.path` to `Routes.today/schedule/progress/plan/settings` respectively,
+     each exactly once.
+  2. Breakpoint, both sides: at a 599×800 viewport `find.byType(NavigationBar)` is found and
+     `NavigationRail` is not; at 600×800 the rail is found and the bar is not.
+  3. `labelBehavior == NavigationDestinationLabelBehavior.alwaysShow`, and in `de` at 360dp width all
+     five labels are findable as text with `tester.takeException()` null — no overflow, no
+     icon-only fallback.
+  4. At `TextScaler.linear(2.0)` in `de` the bar's measured height is **greater** than at 1.0,
+     `takeException()` is still null, and no label is elided.
+  5. Semantics: exactly one destination carries `SemanticsFlag.isSelected` at a time; each carries a
+     button role with its localized label; `meetsGuideline(androidTapTargetGuideline)` and
+     `meetsGuideline(textContrastGuideline)` pass in `en` and `fa`.
+  6. Error region: push a `StorageFailure` into the shell's error state → a banner renders, is
+     **still present** after `tester.pump(const Duration(seconds: 30))`, and `find.byType(SnackBar)`
+     is empty. Timed `pump`, never `pumpAndSettle`.
+  7. Each of the five placeholder screens renders its localized title and one `bodyLarge` line, and
+     each is constructed as a `const` in the test — a non-`const` screen fails to compile.
+  8. Written alongside, gate not driver: the shell golden in `{light, dark} × {en, fa}` and the
+     landscape rail capture, baselined after the widget exists.
 - **Details** — `AppShell` is a `Scaffold` with the branch's body and, below 600dp width, a Material 3
   `NavigationBar` with five destinations; at ≥600dp a `NavigationRail` beside the body
   (`adaptive-layout`; `SPEC.md` §5.4 requires landscape to work, people prop tablets on kitchen
@@ -341,6 +533,25 @@ the Daybreak component.
 
 - **What** — The shell's own test suite.
 - **Where** — `test/app/`, `test/routing/`, `test/features/shell/`.
+- **Tests first (TDD)** — most of this task's suite is **already written**, under tasks 1–7, before
+  each implementation. What is genuinely new here is `pumpApp` itself, and a harness that silently
+  drops one of its arguments makes every later epic's test vacuous — so it gets its own tests first,
+  in `test/support/harness_test.dart` (`flutter_test`).
+  Write and watch fail, in this order:
+  1. `pumpApp(tester, overrides: [probeProvider.overrideWithValue(42)])` → a widget reading
+     `probeProvider` sees `42`. A harness that ignores `overrides` fails here and nowhere else.
+  2. `pumpApp(locale: const Locale('de'))` → `Localizations.localeOf(ctx) == Locale('de')` and
+     `Directionality.of(ctx) == ltr`; `Locale('fa')` → `rtl`.
+  3. `pumpApp(brightness: Brightness.dark)` → `Theme.of(ctx).brightness == Brightness.dark`.
+  4. `pumpApp(textScaler: const TextScaler.linear(2.0))` →
+     `MediaQuery.textScalerOf(ctx).scale(10) == 20`.
+  5. Defaults pinned: `pumpApp(tester)` with no optional arguments gives `en`, `Brightness.light` and
+     `scale(10) == 10`, so every later epic's unspecified test is deterministic.
+  6. `pumpApp` returns after **one** frame without settling, so a frame-one assertion (task 1) is
+     expressible through it — assert a build counter of 1.
+  7. a11y smoke across the shell: for each of the five routes, in `en` and `fa`,
+     `meetsGuideline(textContrastGuideline)`, `meetsGuideline(androidTapTargetGuideline)` and
+     `meetsGuideline(labeledTapTargetGuideline)`.
 - **Details** — (a) bootstrap: no-flash test from task 1; (b) corrupt-database bootstrap falls back to
   defaults and surfaces a recoverable error; (c) router: welcome gate, deep link redirect,
   `/settings/disclaimer` re-read, branch state preservation, unknown route → localized error page;
@@ -356,6 +567,7 @@ the Daybreak component.
 
 ## Definition of done
 
+- [ ] Every TDD task's tests were written first and observed failing before its implementation
 - [ ] Cold start reads settings before the first frame; a test asserts frame one is already in the stored theme
 - [ ] Crash sink is local-file-only; no network-capable diagnostics package is in `pubspec.yaml`
 - [ ] One `GoRouter`, five `indexedStack` branches with preserved state, Welcome as an opaque non-dismissible gate, re-read at `/settings/disclaimer` only

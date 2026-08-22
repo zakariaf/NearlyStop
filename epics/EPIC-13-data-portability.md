@@ -82,6 +82,20 @@ backup first. Every refusal — wrong file, corrupted file, newer schema — say
 - **What** — Add the packages and the two injected ports.
 - **Where** — `pubspec.yaml`, `lib/services/files/share_gateway.dart`,
   `lib/services/files/file_picker_gateway.dart`, `lib/services/files/fake_*.dart`.
+- **Tests first (TDD)** — adding seven packages is Scaffold and gets no test. The two **ports and their
+  fakes** are not: `test/services/files/fake_gateways_test.dart`, pure `package:test`. Write and watch
+  fail, in this order:
+  1. `FakeShareGateway.shareFile` records `path`, `mimeType`, `subject` and `originRect`, and returns
+     `Ok(null)`
+  2. with its failure mode set, the same call returns `Err(ShareFailure.cancelled())` — a fake that can
+     never fail would make task 7's "failing export leaves the buttons enabled" untestable
+  3. every call site in the app passes a non-null `originRect`: a test that walks the recorded calls
+     from the export flows and asserts none is null. A share sheet without a source rect **crashes on
+     iPad**, and this is the only place that is checkable off-device
+  4. `FakeFilePickerGateway.pickBackupFile()` returns `Err(PickFailure.cancelled())`,
+     `Err(PickFailure.unreadable())` and `Ok(File)` on demand — all three, since `PickFailure` is a
+     separate family from `RestoreFailure` and gets its own coverage
+  5. both fakes are bare-`implements` with no `noSuchMethod`, so adding a port method is a compile error
 - **Details** — `pdf` (pure-Dart document building), `printing` (share **and** print — a clinician handout
   is a thing people print), `share_plus` (the generic share sheet for CSV/backup), `file_selector`
   (Flutter-team maintained open dialog, lighter than `file_picker`), `crypto` (SHA-256), `convert`
@@ -112,6 +126,32 @@ backup first. Every refusal — wrong file, corrupted file, newer schema — say
 - **What** — Define the only file shape restore accepts, and write it.
 - **Where** — `lib/features/backup/domain/backup_envelope.dart`,
   `lib/features/backup/data/backup_writer.dart`, `lib/features/backup/data/backup_reader.dart`.
+- **Tests first (TDD)** — `test/features/backup/backup_envelope_test.dart` (pure `package:test` for the
+  header and the value encodings) and `test/features/backup/backup_writer_test.dart` (a real
+  `NativeDatabase.memory()` engine plus a temp directory — never a mocked DAO; `addTearDown(db.close)`).
+  This is the file whose bugs are silent data loss, so it carries the 100% floor. Write and watch fail,
+  in this order:
+  1. header round trip: `BackupHeader.parse(header.toJsonLine()) == header` for `formatVersion 1`,
+     `schemaVersion 1`, `appVersion '1.0.0+1'`, a fixed `exportedAtUtc` and a known digest
+  2. the header parses from line 1 **alone**, with the rest of the file absent — that is the entire
+     reason it goes first
+  3. dose encoding round trip and rounding goldens: `Milligrams(950) ↔ 950`, `Milligrams(25) ↔ 25`
+     (0.25mg), `Milligrams(0) ↔ 0`; and an explicit assertion that 9.5mg encodes as **950, not 9500** —
+     the micrograms regression CONTRACTS §11 names, which no other test in the suite would catch
+  4. date round trip: `LocalDate(2025, 4, 16) ↔ '2025-04-16'`; 2024-02-29 survives; instants carry a
+     trailing `Z` and decode to the same UTC instant
+  5. enum codes, not labels: a fuzz over **every** value of every exported enum asserting
+     `decode(encode(v)) == v`, so a renamed label cannot silently change the wire format
+  6. row order: seed the same six-table fixture twice with **shuffled insertion order** → byte-identical
+     payloads. This is what `ORDER BY uid` (and `(planId, date), uid` for `dose_logs`) buys, and it is
+     untestable later without it
+  7. the digest in the header equals `sha256.convert(payloadBytes)` computed independently in the test —
+     an independent oracle, never the writer's own accumulator sink
+  8. running the export under a `fa` locale produces bytes containing no U+06Fx and no U+066x character
+  9. an `IOSink` that throws mid-write → the temp directory is empty afterwards and no publishable file
+     exists
+  10. a 780-day fixture exports without the payload ever existing as one `String`: assert through an
+      injected counting sink that the largest single write is bounded, rather than trusting the shape
 - **Details** — Header-first, so a truncated or foreign file is rejected by its first line rather than by
   a mid-parse exception: `formatVersion` (this envelope's own shape, starts at 1, bumps independently),
   `schemaVersion` (the `AppDatabase.schemaVersion` the payload was written from), `appVersion` (from
@@ -152,6 +192,33 @@ backup first. Every refusal — wrong file, corrupted file, newer schema — say
 - **What** — An all-or-nothing import that cannot damage the live database.
 - **Where** — `lib/features/backup/data/restore_service.dart`,
   `lib/features/backup/domain/restore_failure.dart`.
+- **Tests first (TDD)** — `test/features/backup/restore_service_test.dart`, against **real** database
+  files in a temp directory (a `NativeDatabase(File(...))` live DB and a staging one — a mocked DAO
+  proves nothing about WAL, sidecars or transactions). Every case ends by asserting the live database
+  file's SHA-256 is what it was before, except where a publish is meant to have happened. Write and
+  watch fail, in this order:
+  1. line 1 that is not JSON → `notABackupFile()`; a JSON object with no version field → the same
+  2. a CSV file and a PDF file, fed straight to restore → `notABackupFile()` for each. Restore refusing
+     the doctor exports is a rule, so it is a test
+  3. `formatVersion: kFormatVersion + 1` → `unsupportedFormat`
+  4. `schemaVersion: AppDatabase.schemaVersion + 1` → `newerThanApp()`, with **no staging file created**
+     — refused, never guessed, and never half-applied
+  5. one payload byte flipped → `corrupted()`, and again no staging file exists: the digest is verified
+     before any insert, which is an ordering claim and needs its own assertion
+  6. a row missing a non-null column → `malformedPayload(table: 'dose_logs', line: 7)` carrying the
+     right table **and** the right line number
+  7. the upgrade ladder: register a synthetic `upgradePayload(1 → 2)` in test scope against a stubbed
+     `schemaVersion` of 2 and restore a generated v1 payload → the transformed rows land, and the
+     transformer ran **exactly once**. Then a 1 → 3 case asserting `1→2` then `2→3` ran in that order
+  8. WAL-safe publish: build a live DB with a **non-empty `-wal`**, restore over it, reopen → the
+     contents are exactly the file's, `PRAGMA integrity_check` returns `ok`, and no `-wal`/`-shm` from
+     the old database survives beside the new file. A happy-path publish passes without this assertion
+  9. publish failure injected **after** the rename (make the reopen fail) → `publishFailed()`, all three
+     rollback files restored, and the reopened live database holds its **pre-restore** contents
+  10. success → the repository providers are invalidated, then `gateway.cancelAll()` once, then
+      `syncNotifications()` once, asserted as a recorded call **sequence** on the fake gateway
+  11. replace-all: a live DB holding rows the file does not contain ends with exactly the file's rows —
+      no merge, no survivors
 - **Details** — The ladder, in order, each rung its own typed failure:
   1. Read line 1. Not JSON, or missing a version field → `RestoreFailure.notABackupFile()`.
   2. `formatVersion > kFormatVersion` → `unsupportedFormat`.
@@ -204,6 +271,17 @@ backup first. Every refusal — wrong file, corrupted file, newer schema — say
 - **What** — Make SPEC §5.3's rule a code path, not a habit.
 - **Where** — `lib/features/backup/presentation/export_guard.dart`, plus the delete-plan sheet from
   EPIC-11 and the restore confirmation from task 3.
+- **Tests first (TDD)** — `test/features/backup/export_guard_test.dart`, `flutter_test` widget with a
+  recording destructive callback and the fake share gateway. Write and watch fail, in this order:
+  1. dismissing the sheet (`Navigator.pop(null)`, and a scrim tap) → the destructive callback is invoked
+     **zero** times and nothing is exported
+  2. "Export first" → the export runs to completion **and then** the destructive callback runs exactly
+     once, asserted as an ordered call log, not as two independent counters
+  3. the export **failing** → the destructive callback is invoked zero times and the failure is shown.
+     This is the case that separates a guard from a formality
+  4. "Continue without a backup" → destructive callback once, export zero times
+  5. the less-prominent action is the tertiary-styled widget type (assert the type, not the colour), and
+     the sheet's own buttons never call the destructive callback directly — only the guard does
 - **Details** — `ExportGuard` wraps a destructive callback on top of **EPIC-07's shared confirm sheet**
   (`lib/features/shared/confirm_sheet.dart` — EPIC-08's Hold/Flare, EPIC-11's delete-plan and this are its
   three consumers; do not invent a fourth private dialog here). The sheet's primary action is
@@ -220,6 +298,22 @@ backup first. Every refusal — wrong file, corrupted file, newer schema — say
 
 - **What** — A spreadsheet-readable dose history.
 - **Where** — `lib/features/export/data/dose_history_csv.dart`.
+- **Tests first (TDD)** — `test/features/export/dose_history_csv_test.dart`, pure `package:test`, with a
+  **real third-party CSV parser as the independent oracle** — never this file's own reader. Write and
+  watch fail, in this order:
+  1. hostile round trip: a note of `a,b"c` with an embedded newline is written, parsed back by the
+     oracle parser, and equals the original cell exactly
+  2. formula injection, one case each: `=cmd()`, `+1`, `-2 today`, `@x`, a leading TAB and a leading CR
+     all come back prefixed with `'`, and stripping that prefix yields the original text. `-2 today` is
+     a real patient note and a live formula, so it is not an edge case
+  3. the file's first three bytes are `EF BB BF` and the first row is the declared column list in the
+     declared order
+  4. run under a `fa` locale: `planned_mg` and `actual_mg` are ASCII decimals and `date` is `yyyy-MM-dd`,
+     while `weekday` **is** localized — a machine column and a human column in the same file, asserted
+     to behave differently on purpose
+  5. an empty note and a null note are still distinguishable after the round trip
+  6. golden vector: the seeded fixture's CSV is byte-identical to `test/golden/dose_history_en.csv`,
+     committed, with a fixed clock so the file is stable
 - **Details** — Columns: `date`, `weekday`, `step`, `block`, `planned_mg`, `actual_mg`, `taken`,
   `tablets`, `note`, `event`. Written with RFC 4180 quoting — quote any field containing the delimiter, a
   quote, CR or LF, and double embedded quotes — **and** neutralised against formula injection: a field
@@ -235,6 +329,21 @@ backup first. Every refusal — wrong file, corrupted file, newer schema — say
 - **What** — Something a rheumatologist could actually read (SPEC §10).
 - **Where** — `lib/features/export/data/dose_history_pdf.dart`,
   `lib/features/export/data/pdf_theme.dart`.
+- **Tests first (TDD, partly)** — `test/features/export/dose_history_pdf_test.dart`, pure
+  `package:test` over the built document, not over pixels. Write and watch fail, in this order:
+  1. a 300-day fixture produces more than one page, and **every** page's text content contains the
+     disclaimer sentence. "On every page" is the claim, so it is asserted per page, not once
+  2. the document embeds exactly the two bundled faces and references no built-in Helvetica — the check
+     that catches a Persian page rendering as boxes before a human ever opens it
+  3. pages 2+ each begin with the table's header row (`headerCount: 1`)
+  4. the title block's drug, date range, current and target all come from the fixture — assert against
+     the fixture's values so a hardcoded string fails
+  5. the three headline stats equal the numbers the Progress screen computes from the same `DayPlan`
+     list — one source, two renderings, asserted equal
+  **Honestly not machine-checkable, and not faked green:** RTL legibility, bidi ordering and Sorani
+  letterform shaping (ڕ ڵ ۆ ێ). A human opens the `en`, `de`, `fa` and `ckb` PDFs — that is this task's
+  own acceptance, and it belongs on the named manual pre-release pass, with the `ckb` fallback decision
+  recorded there.
 - **Details** — Built with `pw.Document`. Page 1: a title block (drug, date range, current dose, target),
   the three headline stats (cumulative mg, days since day one, "taken 341 of 350 days" — never framed as
   a streak), and the dose staircase drawn as a `pw.CustomPaint` from the same `DayPlan` list the Progress
@@ -260,6 +369,23 @@ backup first. Every refusal — wrong file, corrupted file, newer schema — say
 - **What** — Replace EPIC-10 and EPIC-11's stubs with the real providers.
 - **Where** — `lib/features/export/presentation/export_sheet.dart`,
   `lib/features/backup/presentation/backup_actions.dart`, plus the two screens.
+- **Tests first (TDD)** — `test/features/export/export_sheet_test.dart` and
+  `test/features/settings/backup_actions_test.dart`, `flutter_test` widget over the fake gateways.
+  Write and watch fail, in this order:
+  1. Progress → Export opens a sheet with exactly two options, each carrying its audience line; picking
+     PDF calls the pdf provider once and the csv provider zero times, and vice versa
+  2. while an export runs, the tapped button is disabled and shows its inline spinner, and there is no
+     app-covering `ModalBarrier` in the tree
+  3. a failed export leaves both buttons enabled and renders the localized message derived from
+     `failure.code`. Seed a failure whose `toString()` contains a sentinel string and assert the
+     sentinel appears **nowhere** in the rendered tree — that is how "no `e.toString()` reaches a
+     screen" becomes checkable rather than aspirational
+  4. Settings → Import opens the picker, then the replace-all confirmation naming the file's
+     `exportedAtUtc` and plan summary, then restore; cancelling at the confirmation performs **zero**
+     restores
+  5. the sharing surface renders the unencrypted-plain-text sentence from the ARB — the honesty claim
+     the store privacy copy depends on
+  6. a source assertion that no `NotImplementedYet` stub remains in `lib/`
 - **Details** — Progress's Export opens a small sheet offering **PDF** and **CSV** with one line each
   explaining who the format is for. Settings' Export data goes straight to the backup file and shares it.
   Settings' Import data opens `FilePickerGateway`, then the replace-all confirmation, then the restore.
@@ -275,6 +401,19 @@ backup first. Every refusal — wrong file, corrupted file, newer schema — say
 
 - **What** — The suite the skill requires, on a fixture designed to break things.
 - **Where** — `test/features/backup/`, `test/features/export/`, `test/fixtures/hostile_plan.dart`.
+- **Tests first (TDD)** — the hostile fixture itself is Scaffold (it is data), and the refusal, escaping,
+  ladder and WAL cases were written first under tasks 2, 3 and 5. Two live only here, and both are
+  written before the code path that has to satisfy them —
+  `test/features/backup/round_trip_test.dart`, real `NativeDatabase` files, fixed clock:
+  1. export → import into an empty database → export again → **byte-identical** files. With
+     `exportedAtUtc` frozen by `withClock`, any difference is a real one
+  2. the same, with the source rows inserted in a shuffled order → still byte-identical
+  3. importing the same file twice yields identical state and no duplicates:
+     `COUNT(*) == COUNT(DISTINCT uid)` on every one of the six tables
+  4. the conservation invariant: cumulative mg and the taken-day count computed from the database
+     **after** a restore equal the values computed **before** the export — `==` on integer hundredths,
+     never `closeTo`. Back it with a runtime `assert` inside the cumulative primitive so the same
+     invariant trips in debug the moment it is violated
 - **Details** — The hostile fixture: a drug name with an apostrophe and a comma, notes containing double
   quotes, an embedded newline, an emoji, RTL text with bidi marks, a whitespace-only string, a null-vs-
   empty pair, a `=cmd()` note, a 0.5mg dose, a DST-ambiguous local instant, and a `DoseLog` on 29
@@ -302,6 +441,7 @@ backup first. Every refusal — wrong file, corrupted file, newer schema — say
 
 ## Definition of done
 
+- [ ] Every TDD task's tests were written first and observed failing before its implementation
 - [ ] Backup and doctor-export are separate code paths; restore refuses a CSV or PDF outright
 - [ ] Every backup carries `formatVersion`, `schemaVersion`, `appVersion`, `exportedAtUtc` and a payload
       SHA-256, in that header-first order

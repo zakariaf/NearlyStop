@@ -67,6 +67,12 @@ column to get there.
 
 - **What** — Add drift and its native stack; pin versions.
 - **Where** — `pubspec.yaml`, `build.yaml`, `analysis_options.yaml`, `.github/workflows/ci.yml`.
+- **Tests first** — *Scaffold.* Adding dependencies, pinning versions and writing `build.yaml` has no
+  behaviour to assert; a test that `import 'package:drift/drift.dart'` resolves is a test that pub
+  works. It is verified by the gates it enables, both added here: `dart run build_runner build
+  --delete-conflicting-outputs` followed by `git diff --exit-code` in CI, and
+  `flutter analyze --fatal-infos` proving `depend_on_referenced_packages` is satisfied for the direct
+  `package:riverpod` import task 7 makes.
 - **Details** — Runtime: `drift`, `sqlite3_flutter_libs`, `path_provider`, **`ulid`** (task 3 mints a
   `uid` on every row; `CONTRACTS.md` §11 requires it and EPIC-13's backup format assumes it exists —
   adding it at epic 13 would mean a schema migration invented in the export epic). This epic also
@@ -87,6 +93,26 @@ column to get there.
 
 - **What** — Bridge the domain's value objects into SQLite columns without lying about precision.
 - **Where** — `lib/data/db/converters.dart`.
+- **Tests first (TDD)** — `test/data/db/converters_test.dart`, pure `package:test` — a `TypeConverter`
+  is `f(input) → output` and needs no database. `testing-strategy` rule 3 requires a **round-trip**
+  test per conversion plus **boundary goldens**. Write and watch fail, in this order:
+  1. `MilligramsConverter`: `toSql(0.25mg) == 25`, `fromSql(25) == 0.25mg`; round-trip
+     `fromSql(toSql(m)) == m` on `hundredths` for every `m` 0.25–60 mg in 0.25 steps; the SQL type
+     parameter is `int`, so the test stops compiling if anyone declares
+     `TypeConverter<Milligrams, double>`.
+  2. `LocalDateConverter`: `toSql(LocalDate(2026,1,5)) == '2026-01-05'` — zero-padded, which the
+     naive `'$y-$m-$d'` gets wrong; round-trip over 2028-02-29, 2026-01-01 and 2026-12-31 plus a
+     seeded 2,000-date fuzz echoing the date in `reason:`; `fromSql('2026-4-16')` and
+     `fromSql('16/04/2026')` throw, so the DAO has something to map to `Corrupt`.
+  3. `StrengthListConverter`: `toSql([1mg, 5mg, 1mg]) == '500,100'` — sorted **descending** and
+     deduplicated on write; round-trip of `[25,20,10,5,2.5,1]`; `fromSql('')` yields an empty list
+     (rejecting empty is the repository's job, not the converter's); `fromSql('500,abc')` throws.
+  4. `TaperMethodConverter`: all three arms round-trip through `name` — `'dsns'`, `'percentage'`,
+     `'fixedMg'`; `fromSql('weekly')` throws a `FormatException`, which is the exact input task 6
+     turns into `StorageFailure.Corrupt`.
+  5. instants: `DateTime.utc(2026,4,16,7,30)` round-trips through epoch ms and comes back with
+     `isUtc == true`; a **local** `DateTime` written and read back compares equal *as an instant* —
+     the assertion that proves the ms path is zone-safe and that nobody stored a date string here.
 - **Details** —
   - `MilligramsConverter extends TypeConverter<Milligrams, int>` — stores `hundredths`.
     **A dose is never a REAL column.** Floating point in a dosing database is how 9.0 becomes
@@ -114,6 +140,29 @@ column to get there.
 
 - **What** — The `SPEC.md` §6 model, as drift tables. Facts only.
 - **Where** — `lib/data/db/tables.dart`.
+- **Tests first (TDD)** — `test/data/db/tables_test.dart` against a **real**
+  `AppDatabase.forTesting(NativeDatabase.memory())` with `addTearDown(db.close)` — never a mocked
+  DAO, because constraints, cascades and pragmas are exactly what a mock cannot have
+  (`testing-strategy` rule 4). Write and watch fail, in this order:
+  1. `PRAGMA foreign_keys` returns `1` on a freshly opened connection. SQLite defaults it to **0**
+     per connection, so this test is red against a `beforeOpen` that forgets it — and every cascade
+     below is decorative until it is green.
+  2. cascade: insert a plan, 2 steps, 3 dose logs, 1 flare and 1 hold on a step, delete the plan,
+     assert all five tables are empty — including `HoldEvents`, which cascades *through* `Steps` and
+     is the second hop a single-level cascade silently misses.
+  3. `uid`, table-driven over all six tables: a second row with an existing `uid` throws
+     `SqliteException` (extended result code 2067), and a row with a null `uid` throws. Six tables,
+     two cases each.
+  4. `UNIQUE(planId, date)` on `DoseLogs` rejects a duplicate date, and `insertOnConflictUpdate` for
+     that same date **updates** it, leaving exactly one row — the property backfill depends on.
+  5. `UNIQUE(planId, stepIndex)` on `Steps` rejects a duplicate index. This is also the test that
+     proves the hand-written `customConstraints` string parses at all: `UNIQUE(plan_id, index)`
+     would be a syntax error thrown at `createAll()`, before any assertion runs.
+  6. `CHECK(extraDays > 0)` on `HoldEvents` rejects `0` and `-1` and accepts `1`.
+  7. `SettingsRows`' `CHECK(id = 0)` rejects `id: 1`, so the single-row table cannot grow a second.
+  8. column shapes, asserted by writing and reading raw values back: `startingDose` holds `900` for
+     9 mg (INTEGER, never REAL), `startDate` holds `'2026-04-16'` (TEXT), `createdAt` holds epoch ms
+     (INTEGER), and `percentage` is the only REAL in the schema.
 - **Details** —
   ```
   TaperPlans     id INTEGER pk autoincrement · uid TEXT NOT NULL UNIQUE
@@ -189,6 +238,20 @@ column to get there.
 
 - **What** — `AppDatabase`, its connection, and the boundary that keeps tests off `path_provider`.
 - **Where** — `lib/data/db/app_database.dart`, `lib/data/db/database_location.dart`.
+- **Tests first (TDD)** — `test/data/db/app_database_test.dart`: `NativeDatabase.memory()` for the
+  engine and a bare-`implements` `FakeDatabaseLocation` for the seam — never `mocktail`, since this
+  is an interface we own and an interface change should be a compile error
+  (`testing-strategy` rule 5). Write and watch fail, in this order:
+  1. `AppDatabase.forTesting(NativeDatabase.memory()).schemaVersion == 1` — a literal pin, so the
+     accidental bump that would strand task 8's dump is a red test rather than a silent migration.
+  2. `onCreate` on an empty in-memory database produces all six tables: select from each and get an
+     empty result rather than "no such table".
+  3. `AppDocumentsDatabaseLocation.databaseFile()` composes `<injected docs dir>/nearlystop.sqlite`,
+     driven entirely through the fake — the test passes with no `path_provider` plugin binary
+     present, which is the point of the seam.
+  4. the two-line version of task 9: open a temp-**file** `NativeDatabase`, insert a plan, `close()`,
+     reopen from the same path, read the plan back equal. It fails first and cheapest if the
+     `LazyDatabase`/`createInBackground` wiring is wrong.
 - **Details** — `@DriftDatabase(tables: [...], daos: [...]) class AppDatabase extends _$AppDatabase`,
   **`schemaVersion => 1`** — the shipped schema is the task-3 tables at version 1 (`CONTRACTS.md` §11;
   the artificial v2 is gone, see task 8). Connection via `LazyDatabase(() async => NativeDatabase.createInBackground(
@@ -205,6 +268,30 @@ column to get there.
 
 - **What** — Four DAOs, each owning one aggregate's queries.
 - **Where** — `lib/data/db/daos/plan_dao.dart`, `step_dao.dart`, `log_dao.dart`, `settings_dao.dart`.
+- **Tests first (TDD)** — `test/data/db/daos/{plan,step,log,settings}_dao_test.dart`, one file per
+  DAO, each against `NativeDatabase.memory()` with `addTearDown(db.close)` and every `.watch()`
+  subscription cancelled in teardown (a live stream leaves "Timer still pending" and poisons the
+  next test). Write and watch fail, in this order:
+  1. `PlanDao.watchActivePlan()` emits `null` on an empty table — the fresh-install and post-delete
+     case — and does **not** throw; it then emits the plan after an insert. This is the
+     `watchSingleOrNull` vs `watchSingle` decision, pinned.
+  2. with two plans whose `createdAt` differ by 1 ms, `watchActivePlan()` emits the later one,
+     asserted by `uid` (`ORDER BY createdAt DESC LIMIT 1`).
+  3. `LogDao.watchLogs(planId)` re-emits with no manual invalidation:
+     `expectLater(stream, emitsInOrder([isEmpty, hasLength(1)]))` around a single insert.
+  4. `watchLogsBetween(planId, 2026-04-10, 2026-04-20)` returns exactly the 11 inclusive dates and
+     excludes 04-09 and 04-21 — the off-by-one both bounds invite.
+  5. `upsertLog` twice for the same `(planId, date)` leaves **one** row carrying the second write's
+     values.
+  6. `StepDao.nextStepIndex(planId)` is `0` on an empty table and `3` after steps 0, 1, 2 — the
+     value `recordFlare` and `startNextStep` both depend on, where a guess is a straight `UNIQUE`
+     violation on the app's most emotionally loaded action.
+  7. `StepDao.watchHolds(planId)` joins through `Steps` and **re-emits when only `HoldEvents` is
+     written** — drift's table-based invalidation, which the repository's snapshot relies on. This
+     is the test that turns the explanatory comment into a fact.
+  8. `SettingsDao.ensureRowExists()` writes the defaults row and is idempotent on a second call
+     (still one row, still the original values); `readSettingsOnce()` returns those defaults; a
+     per-field update changes that field and leaves the others untouched.
 - **Details** —
   - `PlanDao` — `watchActivePlan()` (`.watchSingleOrNull()`, `ORDER BY createdAt DESC LIMIT 1`; `null`
     on an empty table is the fresh-install and post-delete case and is **not** an error),
@@ -238,6 +325,49 @@ column to get there.
   watched snapshot, and returns typed `Result`s from every mutation.
 - **Where** — `lib/data/taper_repository.dart`, `lib/data/mappers.dart`,
   `lib/data/storage_failure.dart`.
+- **Tests first (TDD)** — `test/data/taper_repository_test.dart` and
+  `test/data/settings_repository_test.dart`, against a real `NativeDatabase.memory()` (never a mocked
+  DAO) with the repository constructed on an injected `Clock.fixed(2026-04-16T08:00Z)`; task 7 covers
+  the `clockProvider` route into the same seam. Write and watch fail, in this order:
+  1. `markTaken(2026-04-16, plannedMg: 9mg)` on a date with **no** row creates one with
+     `taken: true`, `actualMg == plannedMg == 900` and `takenAt == the fixed instant`; calling it
+     twice still leaves one row.
+  2. backfill: `markTaken(2026-04-13, plannedMg: 10mg)` with the clock still at 04-16 stores
+     `date == 2026-04-13` and `takenAt == 2026-04-16T08:00Z` — the date comes from the argument and
+     the instant from the clock, so no path can derive a date from `now()`.
+  3. note survival: `setNote(a future date, 'dizzy', plannedMg: 9mg)` on an un-ticked day creates the
+     row; then `markTaken`, then `undoTaken` — afterwards `note == 'dizzy'`, `taken == false`,
+     `takenAt == null` and the row still exists. `undoTaken` is not a delete.
+  4. `savePlan` on an empty database inserts the plan **and exactly one** `Step` with
+     `stepIndex: 0`, `fromDose == draft.currentDose`,
+     `toDose == nextDose(currentDose, stepSize, targetDose)`, `startDate == draft.startDate`,
+     `status: active`, `patternVersion == DsnsPattern.v1().version`; a second `savePlan` returns
+     `Err(Invariant)` and the step count is still 1.
+  5. `recordFlare(on: 2026-05-01, revertTo: 10mg)` in one transaction leaves the running step
+     `abandoned`, a `FlareEvent` on 05-01, and a new `Step` with `stepIndex == max + 1`,
+     `fromDose == 10mg`, `startDate == 2026-05-01`. Called twice, `stepIndex` is strictly increasing
+     with no `UNIQUE` violation, and `cumulativeTakenMg` over the snapshot is **unchanged** by either
+     flare — nothing was deleted.
+  6. `startNextStep` tapped **late** (clock 3 days past the step's end) and tapped **early** both
+     write `startDate == last.startDate.addDays(52)`; with a 3-day hold on that step both write
+     `addDays(55)`, so the hold is not swallowed. It returns `Err(Invariant)` when
+     `stepStatusFor(last) != completed` and when the target is already reached.
+  7. `updatePlanFacts(draft)` updates the plan row, appends **no** `Step`, and leaves the `DoseLogs`
+     table byte-identical — asserted by row counts plus a field-by-field comparison before and after.
+  8. `updateStrengths([])` → `Err(Invariant)`; `updateStrengths([5mg, 1mg])` succeeds and every
+     existing `DoseLog.actualMg` is unchanged.
+  9. failure mapping driven by the **real** engine, not a stub: a direct DAO insert of a second log
+     on the same `(planId, date)` surfaces as `Err(ConstraintViolation)` and never as a thrown
+     `SqliteException`; a `method` column set to `'weekly'` by raw SQL surfaces as `Err(Corrupt)`
+     rather than crashing the app.
+  10. `watchSnapshot()` emits once on subscription and again after **each** mutation — assert with
+      `emitsInOrder` across `savePlan`, `markTaken`, `recordHold` — and the emitted `TaperSnapshot`
+      is exactly `generateSchedule`'s input set, proven by feeding it straight in and getting `Ok`.
+  11. `statusByStepId` is derived, not stored: advance the injected clock past a step's end, re-read
+      the snapshot, and the status flips with **no** write to `Steps.status`.
+  12. no drift type escapes — a test file that imports `lib/data/taper_repository.dart` **without**
+      importing `package:drift` and still names every public signature. It stops compiling the day
+      an `Insertable` or a generated row class reaches the API.
 - **Details** —
   > **Contract:** the method set below is `CONTRACTS.md` §3 and it is now **complete** — the screen
   > epics were each written against a different, non-existent API (`watchToday`, `watchStep`,
@@ -382,6 +512,22 @@ column to get there.
 - **What** — Riverpod entry points, still framework-light (`package:riverpod`, not `flutter_riverpod`,
   in this layer).
 - **Where** — `lib/data/providers.dart`.
+- **Tests first (TDD)** — `test/data/providers_test.dart`, headless `ProviderContainer` with
+  `addTearDown(container.dispose)` — no widget is pumped to test state
+  (`testing-strategy` rule 7). Write and watch fail, in this order:
+  1. reading `databaseProvider` with no override throws. The default is deliberately unimplemented so
+     no screen can ever open the database on the UI thread; a provider that silently opens one would
+     pass every other test in this file.
+  2. `ProviderContainer(overrides: [databaseProvider.overrideWithValue(testDb)])` gives a
+     `taperRepositoryProvider` that completes a `savePlan` and a `watchSnapshot` in a plain Dart
+     test, with zero platform channels touched.
+  3. `clockProvider.overrideWithValue(Clock.fixed(2026-04-16T08:00Z))` reaches the repository:
+     `markTaken` writes `takenAt` at that instant. This is the Riverpod half of the clock seam;
+     task 6 covers the constructor half, and both must agree.
+  4. `container.dispose()` closes the database — a query afterwards throws — proving
+     `ref.onDispose(db.close)` is wired rather than merely written down.
+  5. `taperRepositoryProvider` and `settingsRepositoryProvider` read from the same container share
+     one `AppDatabase`, asserted by `identical()`, not `==`.
 - **Details** — `databaseProvider` (throws by default; **overridden at bootstrap in EPIC-06** with the
   already-opened instance, so no screen ever awaits the database opening),
   `taperRepositoryProvider`, `settingsRepositoryProvider`, and `clockProvider` re-exported from
@@ -400,6 +546,27 @@ column to get there.
 - **Where** — `drift_schemas/` (committed dump), `lib/data/db/schema_versions.dart` (generated),
   `test/data/generated_migrations/` (generated), `test/data/migration_test.dart`,
   `lib/data/db/app_database.dart` (`MigrationStrategy`).
+- **Tests first — TDD for step 6, Scaffold for steps 2–4.** The `schema dump` / `schema steps` /
+  `schema generate` invocations are ceremony over generated artefacts and have no behaviour to
+  assert; they are verified by step 7's freshness gate (`git diff --exit-code`). The **ladder** is
+  behaviour, and `testing-strategy` rule 9 puts migration files on the 100%-by-diff-review floor, so
+  write `test/data/migration_test.dart` and watch it fail, in this order:
+  1. `verifySelfIntegrity()` passes on a database created fresh at v1 through `onCreate`.
+  2. `SchemaVerifier(GeneratedHelper()).schemaAt(1)` matches the live schema — the assertion that
+     catches a table edited in `tables.dart` after the dump was taken, which is the failure mode this
+     whole ceremony exists to prevent.
+  3. **the data-preservation test, the one that matters:** at v1 insert a plan, 60 dose logs (mixed
+     taken/untaken, two carrying notes), a flare and a hold; migrate up the ladder to the synthetic
+     v2 fixture (v1 plus one additive nullable column, living only in `test/`); then assert **every
+     row survived with identical values** — row count per table plus a field-by-field comparison of
+     all 60 logs including `uid`, `date`, `plannedMg`, `actualMg`, `taken`, `takenAt` and `note`. A
+     "the columns exist" assertion passes happily while the data is gone.
+  4. the added column is present and `null` on every migrated row, and writable afterwards.
+  5. a payload/binary mismatch in the wrong direction — opening a v1 binary against a v2 file —
+     fails loudly rather than silently dropping the unknown column.
+  6. `no_lib_file_imports_drift_dev`: walk `lib/` and assert zero `package:drift_dev` imports, so
+     `analyzer` and `build` never reach the shipping compile path. Same walker shape as EPIC-04
+     task 8 — write its planted-violation self-test first.
 - **Details** —
   > **Contract:** `CONTRACTS.md` §11 — **ship schema v1 at v1.0.0.** The draft's plan to ship an
   > artificial v2 adding `DoseLogs.recordedSource TEXT?` is removed. It was also not executable in the
@@ -451,6 +618,25 @@ column to get there.
 
 - **What** — The `SPEC.md` §10 line "kill the app mid-taper, reopen, and nothing is lost", as a test.
 - **Where** — `test/data/persistence_roundtrip_test.dart`.
+- **Tests first (TDD) — and this file belongs in task 6's red step, not after its green.** It is the
+  epic's headline test, so it is written while the repository is still failing it. A **file-backed**
+  `NativeDatabase` in `Directory.systemTemp.createTempSync(…)`, deleted in `addTearDown`;
+  `NativeDatabase.memory()` cannot prove this, because the entire claim is that bytes survive the
+  process. Clock injected and fixed. Write and watch fail, in this order:
+  1. build the fixture through the public repository API only: `savePlan`, then 120 days of
+     `markTaken` (a handful skipped so `adherence` has something to say), one `recordHold` of 3 days
+     at day 20 and one `recordFlare` at day 45. Capture `generateSchedule(snapshot)` and
+     `cumulativeTakenMg(snapshot.logs)`.
+  2. `await db.close()`, then open a **new** `AppDatabase` over the same file and rebuild the
+     snapshot.
+  3. the regenerated `List<DayPlan>` is identical to the pre-close list **element for element**,
+     compared through EPIC-04 task 9's serialised form so a failure names the first differing date
+     rather than saying "lists differ".
+  4. `cumulativeTakenMg` is unchanged, asserted in hundredths.
+  5. `statusByStepId` after the reopen matches the pre-close map at the same fixed clock.
+  6. name the test for the claim it discharges: EPIC-08's, EPIC-11's and EPIC-12's "kill and
+     relaunch" criteria point **here**, because `integration_test` restarts the widget tree and
+     proves nothing about the file on disk.
 - **Details** — Open a file-backed `NativeDatabase` in a temp directory, create a plan, run 120 days
   of logs including one flare and one hold, close the database, reopen it from the same file, rebuild
   the snapshot, feed it to `generateSchedule`, and assert the resulting `DayPlan` list is identical to
@@ -465,6 +651,7 @@ column to get there.
 
 ## Definition of done
 
+- [ ] Every TDD task's tests were written first and observed failing before its implementation
 - [ ] Six tables cover every `SPEC.md` §6 field; the deliberate additions (`uid`, `planId` foreign keys, `fixedStep`, `localeTag`/`themeMode`) are listed in the PR body with their reasons; no `DayPlan`/schedule table exists
 - [ ] `uid TEXT NOT NULL UNIQUE` on all six tables, minted at insert, in **schema v1** — EPIC-13's backup format has the stable ids it assumes
 - [ ] `Steps.stepIndex`, not `index`; the composite unique parses

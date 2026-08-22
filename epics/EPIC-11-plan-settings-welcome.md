@@ -87,6 +87,25 @@ reference frame in light and dark, LTR and RTL, and survives 200% text scale.
 - **Where** — `lib/features/plan/presentation/plan_screen.dart`,
   `lib/features/plan/presentation/plan_editor_notifier.dart`,
   `lib/features/plan/presentation/widgets/` (new), `lib/features/plan/presentation/plan_view_state.dart`.
+- **Tests first (TDD)** — `test/features/plan/plan_editor_notifier_test.dart` (`ProviderContainer` with a
+  bare-`implements` fake `TaperRepository`, container disposed in teardown) and
+  `test/features/plan/save_plan_step0_test.dart` (a real `NativeDatabase.memory()` engine — never a
+  mocked DAO). Write and watch fail, in this order:
+  1. seeding from a snapshot that carries a plan → every draft field equals the persisted fact, and
+     `strengths` arrives sorted and deduplicated (`[5, 1, 5]mg → [1, 5]mg`)
+  2. mutate every field, then discard → the fake recorded **zero** writes and the persisted row is
+     byte-identical to what it was before
+  3. `savePlan` on a plan with no steps → exactly one `TaperPlan` row **and** exactly one `Step`:
+     `index 0`, `fromDose` 1000 hundredths (10mg), `toDose` 900, `startDate == draft.startDate`,
+     `status active`, `patternVersion == DsnsPattern.v1().version`
+  4. `savePlan` a second time on that same plan → still exactly one `Step` row. This is the "and none
+     thereafter" half; the happy path alone never catches a repeated insert
+  5. a 9mg plan, where `suggestStep` returns 0.5mg, saved with `stepOverride = 100` (1mg) →
+     `Step 0.toDose` is 800, the override's result, not the suggestion's 850
+  6. a plan with 40 existing `DoseLog` rows re-saved with changed strengths → all 40 rows unchanged,
+     compared row-for-row, not by count alone
+  7. the fake returning `Err(StorageFailure.io())` → the notifier exposes the typed failure and the
+     draft is not cleared
 - **Details** — `PlanEditorNotifier extends Notifier<TaperPlanDraft>` where `TaperPlanDraft` is an
   immutable record of the editable facts: `drugName`, `currentDose` (`Milligrams`), `targetDose`,
   `strengths` (a sorted, deduplicated `List<Milligrams>` — exactly what EPIC-05's `StrengthListConverter`
@@ -118,6 +137,21 @@ reference frame in light and dark, LTR and RTL, and survives 200% text scale.
 - **What** — Build the four stacked cards of the Plan reference frame.
 - **Where** — `plan_screen.dart` plus `widgets/plan_summary_card.dart`, `widgets/strengths_card.dart`,
   `widgets/method_card.dart`, `widgets/next_step_card.dart`.
+- **Tests first (TDD)** — `test/features/plan/plan_screen_layout_test.dart`, `flutter_test` widget.
+  The behaviour is testable first; the goldens and the parity sheet are **written alongside and are a
+  gate, not a driver** — no screenshot comparison can fail before the screen exists. Write and watch
+  fail, in this order:
+  1. pumped on the pinned fixture, each of the four card widget types is found exactly once, and their
+     `tester.getTopLeft(...).dy` values are strictly ascending in the order summary → strengths →
+     method → next step
+  2. `find.byType(GridView)` and `find.byType(ListTile)` find nothing — the two defaults that break the
+     ±2px measurement
+  3. at `textScaler` 2.0 on compact_320, `MethodSegmentedControl` renders its vertical radio variant and
+     `tester.takeException()` is null (the screen must not impose a fixed-height parent)
+  4. the "Current dose" value's right edge sits within 1px of the card's content right edge in `en`, and
+     of the **left** edge under `Directionality.rtl` — asserted by measuring, which is what proves the
+     `Row` + `Spacer` and not a hardcoded `Alignment.centerRight`
+  5. the next-step pair renders `10mg → 9mg` for the pinned fixture with the arrow glyph mirrored in `fa`
 - **Details** — In reference order, top to bottom:
   1. **Summary card** — three `rowitem`s: drug name with a pill glyph and the "Medicine" sublabel;
      "Current dose" with the value right-aligned (`Directionality`-aware — use `Row` + `Spacer`, never a
@@ -145,6 +179,32 @@ reference frame in light and dark, LTR and RTL, and survives 200% text scale.
 - **What** — The `Form` behind the summary and strengths cards.
 - **Where** — `lib/features/plan/presentation/plan_edit_form.dart`, `widgets/dose_field.dart`,
   `widgets/strength_editor_sheet.dart`.
+- **Tests first (TDD)** — `test/features/plan/default_strengths_test.dart` (pure `package:test`, no
+  Flutter) and `test/features/plan/plan_edit_form_test.dart` (`flutter_test` widget — validation is a
+  widget-tree behaviour and cannot be driven headlessly). Write and watch fail, in this order:
+  1. pure, one case per region in `kDefaultStrengths`: `en_GB → ('Prednisolone', [1, 2.5, 5]mg)`,
+     `en_US → ('Prednisone', [1, 2.5, 5, 10, 20]mg)`, `de → ('Prednisolon', [1, 2, 5, 10, 20, 50]mg)`,
+     `fa`/`ckb → ('Prednisolone', [1, 5]mg)`; and, for every region in the table, the list is non-empty,
+     sorted ascending and free of duplicates
+  2. `parseDose` round trip through the field: `'9.5'` in `en`, `'9,5'` in `de` and `'۹٫۵'` in `fa` all
+     produce `Milligrams(950)`, and `formatDose` of that value returns the same string it was typed as
+  3. `'9.5'` under `de` is **rejected** with the localized separator error — coercing it is the bug
+  4. `'1.2.3'` and `'1,2.3'` (more than one separator) rejected; `'abc'` rejected; `''` rejected
+  5. `targetDose == currentDose` and `targetDose > currentDose` both rejected; a negative rejected
+  6. `'120'` (over the 100mg ceiling) shows the warning **and leaves Save enabled** — warn, not block
+  7. after the error appears, the error `Text` carries a semantics node (announced, not merely painted);
+     correcting the field to `'9.5'` re-enables Save on the next frame
+  8. `drugName`: empty rejected, 61 characters rejected, `'  Prednisolone  '` stored trimmed
+  9. method visibility: with `dsns` neither the percentage nor the fixed-mg field is in the tree; with
+     `percentage` only the percentage field (0 and 51 rejected, 10 default); with `fixedMg` only the
+     fixed-mg field, rejecting a value `> currentDose - targetDose`; the hold-period field defaults to
+     52 and rejects 0
+  10. removing the last strength is refused with the localized message and the list still has one entry;
+      removing a strength used by a future day is allowed
+  11. pumping the form and then removing it throws no "used after dispose" exception
+     (`tester.takeException()` null) — the controller/focus-node disposal claim, asserted
+  12. a source assertion that no numeral literal (`'٫'`, `'۰'`, a hand-written digit range) appears under
+      `lib/features/` — the same rule EPIC-03's CI grep enforces, red first against a seeded violation
 - **Details** — One `Form` with a `GlobalKey<FormState>`, `autovalidateMode:
   AutovalidateMode.onUserInteraction`. Fields:
   - `drugName`: `TextFormField`, `textCapitalization: TextCapitalization.words`, default
@@ -196,6 +256,30 @@ reference frame in light and dark, LTR and RTL, and survives 200% text scale.
 - **What** — Render the suggested next step from the pure engine, with the caveat, and let the user
   override the step.
 - **Where** — `widgets/next_step_card.dart`, `plan_editor_notifier.dart`.
+- **Tests first (TDD)** — `test/features/plan/next_step_view_state_test.dart` (pure `package:test` — the
+  projection from `StepSuggestion` to the card's numbers is `f(input) → output` and must not be driven
+  through `pumpWidget`) and `test/features/plan/next_step_card_test.dart` (`flutter_test` widget, for
+  the banner text and the stepper). The engine's own rule table is EPIC-04's; what is asserted here is
+  that the card renders **the engine's return value** and nothing it recomputed. Write and watch fail,
+  in this order:
+  1. pure: `NextStepViewState.from(StepSuggestion(suggested: 50, tenPercent: 90, differs: true),
+     current: 900, target: 0)` → pair `(900, 850)`. The `to` is `current - suggested`; a `to` derived
+     from `tenPercent` would give 810 and is the defect this test exists for
+  2. pure: with `stepOverride = 100` the pair becomes `(900, 800)` while the "suggested step" line still
+     reports the engine's 0.5mg — the user sees both numbers, the override wins
+  3. pure: `current 50, target 0, suggested 50` → `to == target` and `clampedToTarget == true`
+  4. pure: `current == target` → the `TaperComplete` state, `canStartNextStep == false`, and no negative
+     dose is representable from any input
+  5. pure, seeded fuzz over every dose from 0.5mg to 15mg in 0.25mg steps × halves on/off: the projected
+     `to` always equals `current - suggested`, is `>= target`, and is `> 0` unless `target == 0` and the
+     step lands exactly on it — oracle is `Milligrams` integer arithmetic in the test, never the widget;
+     echo the dose in `reason:`
+  6. widget: the banner is in the tree **iff** `communityPracticeDiffers`, and in `en` its text is
+     exactly `10% of 9mg is 0.9mg — your doctor's instruction wins`
+  7. widget in `fa`: the same ICU message renders `۹`, `۰٫۹` and `۰٫۵`, and the banner's text contains no
+     ASCII digit
+  8. widget: one tap on the stepper's `+` calls the notifier exactly once with the next achievable
+     increment, and the rendered pair updates to match — one tap, one write
 - **Details** — Call `suggestStep(current, target, strengths, allowHalves)` from EPIC-04 — a pure
   function, no `ref`, no clock. It returns
   `StepSuggestion { Milligrams suggested; Milligrams tenPercent; bool communityPracticeDiffers; }`.
@@ -235,6 +319,25 @@ reference frame in light and dark, LTR and RTL, and survives 200% text scale.
 - **What** — The "Start next step" primary action and a danger zone.
 - **Where** — `widgets/next_step_card.dart`, `widgets/plan_danger_zone.dart`,
   `lib/features/plan/presentation/confirm_start_step_sheet.dart`.
+- **Tests first (TDD)** — `test/features/plan/start_next_step_test.dart` (`ProviderContainer` with
+  `clockProvider.overrideWithValue(Clock.fixed(…))` and a fake repository; the pure
+  `stepStatusFor` boundaries themselves are EPIC-04's) and
+  `test/features/plan/delete_plan_confirm_test.dart` (`flutter_test` widget). Write and watch fail, in
+  this order:
+  1. clock pinned to `startDate + 51 days` → the action is **present, disabled**, and carries the
+     localized reason; at `startDate + 52 days` it is enabled. The boundary is the test, not the middle
+  2. with one `HoldEvent` of 3 extra days: disabled at +52, enabled at +55 — the gate reads
+     `stepStatusFor(step, holds, today)` and holds shift it
+  3. a fixture where every day of the step is logged but the clock says day 20 → still **disabled**.
+     This is the test that proves the second criterion ("or all its days logged") does not exist
+  4. tapping the enabled action calls `taperRepository.startNextStep()` exactly once; the previous
+     `Step` row is unchanged afterwards, asserted against a real `NativeDatabase.memory()`
+  5. `current == target` → the action is absent, not disabled (the taper-complete state from task 4)
+  6. delete: the first tap only opens the shared confirm sheet; nothing is deleted until the second
+  7. dismissing the sheet (`showModalBottomSheet` completing with `null`) → the destructive callback is
+     invoked **zero** times and the plan row is still present
+  8. the sheet's tree contains the "Export first" action and names what is lost — the plan and the count
+     of dose logs, read from the fixture, not a hardcoded number
 - **Details** — "Start next step" is enabled only when the active `Step` is `completed`, and "completed"
   has exactly **one** definition: EPIC-04's pure `stepStatusFor(step, holds, today)`, which returns
   `completed` when `today >= startDate + 52 + Σ holdExtraDays`. The screen calls that one function and
@@ -258,6 +361,22 @@ reference frame in light and dark, LTR and RTL, and survives 200% text scale.
 
 - **What** — The screen-level projection of the settings row. **Not** a second settings notifier.
 - **Where** — `lib/features/settings/application/settings_view_state.dart`.
+- **Tests first (TDD)** — `test/features/settings/settings_view_state_test.dart`, `ProviderContainer`
+  over EPIC-06's `SettingsController` with a fake `settingsRepository` whose failure mode is settable (a
+  fake that cannot fail would only prove the happy path). Write and watch fail, in this order:
+  1. `reminderTime` unit round trip: `minutesToTimeOfDay(timeOfDayToMinutes(t)) == t` for all 1440
+     minutes of the day; `TimeOfDay(8, 0) → 480`, `TimeOfDay(0, 0) → 0`, `TimeOfDay(23, 59) → 1439`
+  2. `textScale` quantisation goldens at the boundaries: `1.04 → 1.0`, `1.05 → 1.1`, `1.15 → 1.2`,
+     `0.9 → 1.0`, `2.5 → 2.0`; and a seeded fuzz over 500 doubles asserting the result is always in
+     `[1.0, 2.0]` and always an exact multiple of 0.1 within `1e-9`
+  3. a write returning `Err(StorageFailure.io())` with the stream never emitting → the projected value is
+     **exactly what it was before** and `rowError` names the row that failed
+  4. a successful write → the projected value changes only after the stream emits, asserted as an
+     ordering (read the state between the call and the emission and prove it has not moved). This is what
+     rules out an optimistic path
+  5. `localeTag == null` projects as the `System` selection, and `'fa'` projects as فارسی
+  6. a source assertion that exactly one class in `lib/` extends a settings notifier base — red first
+     against a deliberately added second one
 - **Details** — EPIC-06 owns `SettingsController` (a `StreamNotifier<AppSettings>` over
   `settingsRepository`) and owns its write policy: **the stream is the source of truth; local state is
   never mutated optimistically and reconciled.** This epic previously specified a second
@@ -281,6 +400,28 @@ reference frame in light and dark, LTR and RTL, and survives 200% text scale.
 - **Where** — `lib/features/settings/presentation/settings_screen.dart`,
   `widgets/reminder_row.dart`, `widgets/text_size_row.dart`, `widgets/language_row.dart`,
   `widgets/backup_card.dart`, `widgets/about_card.dart`, `widgets/privacy_footnote.dart`.
+- **Tests first (TDD)** — `test/features/settings/settings_screen_test.dart`, `flutter_test` widget,
+  with a fake `PackageInfo` and the fake `settingsRepository` from task 6. Frame-6 parity and the
+  goldens are **written alongside and are a gate, not a driver**. Write and watch fail, in this order:
+  1. tapping the reminder row opens `showTimePicker`; picking 08:00 calls the controller once with
+     `480`, and picking nothing (dismiss) calls it zero times
+  2. the language picker lists five options in order — System, English, Deutsch, فارسی, کوردیی ناوەندی —
+     and the resolved `fontFamily` of each option's `Text` is the Latin face for the first three and
+     Vazirmatn for the last two. Rendering فارسی in Nunito is the failure this catches
+  3. choosing فارسی writes `localeTag: 'fa'` exactly once; after the stream emits,
+     `Directionality.of(context)` is `rtl` and the reminder sublabel renders Persian numerals — with no
+     restart and no second pump of the app
+  4. choosing System writes `null`, and the picker's selection follows the OS locale again
+  5. the backup buttons call the stubbed provider; `Err(NotImplementedYet)` renders the inline error
+     surface and `find.byType(SnackBar)` finds nothing
+  6. at `textScaler` 1.4 the two backup buttons no longer share a row (their `getTopLeft().dy` differ);
+     at 1.0 they do
+  7. About with `PackageInfo(version: '1.0.0', buildNumber: '7')` renders `1.0.0 (7)`, exposes it as one
+     semantics node, and a long-press puts that exact string on the clipboard
+  8. "View licenses" pushes a route whose `Theme.of` is the Daybreak theme and whose `Directionality`
+     matches the app's — not bare Material
+  9. every row in all four cards has `getSize().height >= 44`, and each `Switch` has
+     `Semantics(toggled:, label:)` whose label reads as a sentence
 - **Details** — In reference order:
   1. Card one: **Daily reminder** row (clock glyph, "On · 8:00 am" sublabel formatted with
      `DateFormat.jm(locale)`, a `Switch`) which opens `showTimePicker` when tapped; **Text size** row
@@ -333,6 +474,28 @@ reference frame in light and dark, LTR and RTL, and survives 200% text scale.
   rather than replacing them.
 - **Where** — `lib/app.dart` (EPIC-06 owns this file and built the `MaterialApp.router` in it — this epic
   edits it, so say so in the PR), `lib/theme/user_text_scaler.dart`.
+- **Tests first (TDD)** — `test/theme/user_text_scaler_test.dart` (`flutter_test` because `TextScaler`
+  is a `dart:ui` type, but **no widget pumped** — this is `f(input) → output`) plus one widget case in
+  `test/app/text_scale_composition_test.dart`. Write and watch fail, in this order:
+  1. `UserTextScaler(base: TextScaler.linear(1.5), factor: 1.3).scale(16)` → `closeTo(31.2, 1e-9)`
+     (~1.95×). `closeTo`, never `==`, on a double
+  2. the composition cap: `base 3.0 × factor 2.0` on a 16pt font → exactly `64.0`, not `96.0`; and the
+     cap is read from the declared constant, so changing 4.0 changes the expectation in one place
+  3. pass-through: with `factor == 1.0`, `scale(fontSize)` equals `base.scale(fontSize)` exactly at base
+     0.5, 1.0, 3.0 and 3.1 — SPEC §10's "usable at the largest OS text size" is untouched
+  4. seeded fuzz, 500 pairs of `(base ∈ [0.5, 3.5], fontSize ∈ [8, 40])` × `factor ∈ [1.0, 2.0]`:
+     the result equals the independent oracle `min(base * factor * fontSize, fontSize * 4.0)` within
+     `1e-9`, with the generated triple in `reason:`
+  5. equality: two instances with equal base and factor are `==` with equal `hashCode`; changing only
+     the factor makes them unequal. `MediaQuery` skipping a rebuild is the bug this prevents
+  6. `textScaleFactor` returns the composed factor — the abstract deprecated getter must exist, and a
+     test that reads it is what stops a future reader deleting it
+  7. widget: with the OS scaler at 1.5 and the slider at 1.3, a `Text` inside the shell resolves a
+     `MediaQuery.textScalerOf` that is the `UserTextScaler`, and the OS value is still reachable through
+     it — nothing calls `withClampedTextScaling`
+  8. high contrast, as a four-row truth table: `(appToggle, MediaQuery.highContrastOf)` of
+     `(f,f) → normal`, `(t,f) → high`, `(f,t) → high`, `(t,t) → high`, each asserted on the
+     `DaybreakColors` instance `buildDaybreakTheme` returned
 - **Details** — **Do not** call `MediaQuery.withClampedTextScaling` and do not pass
   `TextScaler.linear(settings.textScale)` — both throw away the OS scaler. Write a small
   `UserTextScaler extends TextScaler` that wraps the inherited one:
@@ -368,6 +531,25 @@ reference frame in light and dark, LTR and RTL, and survives 200% text scale.
 - **What** — The disclaimer content and its accept gate. **The route and the redirect belong to EPIC-06.**
 - **Where** — `lib/features/welcome/presentation/welcome_screen.dart`,
   `lib/features/welcome/presentation/disclaimer_content.dart`.
+- **Tests first (TDD)** — `test/features/welcome/welcome_gate_test.dart` and
+  `test/features/welcome/welcome_accept_test.dart`, `flutter_test` widget with
+  `clockProvider.overrideWithValue(Clock.fixed(DateTime.utc(2025, 4, 16)))` and a fake
+  `settingsRepository` that counts writes. Write and watch fail, in this order:
+  1. 390×844 at scale 1.0, where the paragraph fits and `maxScrollExtent == 0`: the button is
+     **enabled after the first post-frame callback**, with no scroll event ever delivered. This is the
+     uninstallable-first-run case and it is the first test written
+  2. compact_320 at scale 2.0: disabled on the first frame; after `tester.drag` to
+     `position.maxScrollExtent`, enabled
+  3. `accessibleNavigation: true` at scale 2.0, never scrolled: enabled
+  4. a pump where `hasContentDimensions` is false on the first frame → enabled, not stuck
+  5. `PopScope`: a simulated Android back and an iOS swipe-back both leave the route at `/welcome` and
+     write nothing
+  6. accepting calls the controller exactly once with `disclaimerAcceptedAt` equal to the pinned instant
+     — the frozen clock is what makes that assertable — and then navigates to `/today`
+  7. `/settings/disclaimer` renders the same `DisclaimerContent`, has a Close action, has **no** gate
+     widget in the tree, and the fake records **zero** writes when it is closed
+  Restart persistence is `integration_test/first_run_test.dart` — killing and relaunching needs a real
+  binding, so it cannot be one of the widget cases above.
 - **Details** — EPIC-06 owns the `/welcome` route entry, its non-opaque `pageBuilder`
   (`CustomTransitionPage(opaque: false, barrierDismissible: false, barrierColor: c.overlay, …)` above the
   shell so the reference frame's dimmed Today stays painted behind it), and the top-level `redirect` that
@@ -402,6 +584,21 @@ reference frame in light and dark, LTR and RTL, and survives 200% text scale.
 - **What** — Every string on these three screens in en, de, fa, ckb.
 - **Where** — `lib/l10n/arb/app_en.arb`, `app_de.arb`, `app_fa.arb`, `app_ckb.arb` (the `arb-dir` in
   `l10n.yaml` is `lib/l10n/arb` — EPIC-03 set it; this epic previously wrote `lib/l10n/`).
+- **Tests first (TDD)** — `test/l10n/arb_parity_test.dart`, pure `package:test` reading the four ARB
+  files as JSON. Authoring the translations is craft, but the *contract between the four files* is
+  mechanical and it is what breaks. Write and watch fail, in this order:
+  1. every key in `app_en.arb` exists in `app_de`, `app_fa` and `app_ckb`, and vice versa — set equality
+     both ways, so an orphan key in `fa` fails as loudly as a missing one
+  2. for every key, the placeholder **names and types** match across all four files; the caveat message's
+     `{currentDose}`, `{percentDose}` and `{stepDose}` are declared `number` in each
+  3. the four language-name values (`English`, `Deutsch`, `فارسی`, `کوردیی ناوەندی`) are byte-identical
+     across all four ARBs — they are literals, not translations
+  4. no value contains `toUpperCase`-style shouting, and no value hardcodes a digit where a `number`
+     placeholder is declared (a literal `10%` in `fa` renders an ASCII 1 and 0)
+  5. every plural resource declares the CLDR categories its locale actually uses — `de` and `en` need
+     `one`/`other`, `fa` and `ckb` need `other` and must not silently inherit English's plural rules
+  6. rendered output: the caveat message resolved through `AppLocalizations` for `fa` contains `۰٫۹` and
+     no ASCII digit
 - **Details** — Roughly 75 new keys, including the ~6 for the Language row (its title, the "System"
   option, and the four language names — note the four **language names are not translated**: `English`,
   `Deutsch`, `فارسی`, `کوردیی ناوەندی` are the same literal in all four ARBs) and the ~6 for the About
@@ -418,6 +615,18 @@ reference frame in light and dark, LTR and RTL, and survives 200% text scale.
 
 - **What** — These screens must work on a tablet propped on a kitchen table (SPEC §5.4).
 - **Where** — `plan_screen.dart`, `settings_screen.dart`.
+- **Tests first (TDD)** — `test/features/plan/plan_adaptive_test.dart` and
+  `test/features/settings/settings_adaptive_test.dart`, `flutter_test` widget at fixed surface sizes.
+  The landscape goldens are written alongside as the gate. Write and watch fail, in this order:
+  1. at 1024×768 the summary and strengths cards share a `getTopLeft().dy` (two-up) and the next-step
+     card's width equals the content width (full-width beneath)
+  2. at 390×844 all four cards have distinct `dy` values (one-up) — the same assertion, inverted, so a
+     breakpoint that never fires is caught
+  3. exactly at the `medium` breakpoint and one logical pixel below it, the layout is the expected one on
+     each side — boundary, not middle
+  4. Settings at 1024×768: the content column's width is exactly 640, not 1024
+  5. on every one of those surfaces, no horizontal scroll exists — the only `Scrollable` in the tree has
+     a vertical `axisDirection` — and `tester.takeException()` is null
 - **Details** — Above the `medium` breakpoint from `adaptive-layout`, the Plan cards go two-up in a
   `Wrap`/`LayoutBuilder` with the next-step card full width beneath; Settings stays a single centred
   column with `maxWidth: 640` rather than stretching rows to 1200px. The shell's `NavigationRail` swap
@@ -430,6 +639,14 @@ reference frame in light and dark, LTR and RTL, and survives 200% text scale.
 - **What** — Goldens, a11y assertions, and behaviour tests.
 - **Where** — `test/features/plan/`, `test/features/settings/`, `test/features/welcome/`,
   `test/golden/`.
+- **Tests first** — *Scaffold.* This task **is** the suite; it adds no production behaviour of its own.
+  Every behavioural test it lists was already written first, and watched failing, under tasks 1, 3, 4,
+  5, 6, 7, 8, 9 and 11 — this task collects them, adds the 24 goldens and the extra language-picker
+  golden, and adds the `meetsGuideline` assertions. Goldens and guideline sweeps cannot be made to fail
+  before the screens exist, so they are a gate, not a driver. Verified by the whole suite passing in CI
+  and by the golden lane reproducing twice without `--update-goldens`. What is genuinely new here and
+  worth one assertion: a check that every screen listed above has at least one non-golden behavioural
+  test file, so a screen cannot ship golden-only.
 - **Details** — Golden matrix per `widget-golden-and-a11y-testing`: {plan, settings, welcome} × {light,
   dark} × {en, fa} × {1.0, 2.0} = 24 goldens, captured with `loadAppFonts()`, `debugDisableShadows`, and
   a pinned `Clock.fixed`. The Settings goldens include the Language and About cards — they are rows on an
@@ -447,6 +664,19 @@ reference frame in light and dark, LTR and RTL, and survives 200% text scale.
 
 - **What** — Prove frames 1, 5 and 6 against the reference.
 - **Where** — `docs/parity/epic-11/` (contact sheets, not committed to `lib/`).
+- **Tests first (TDD)** — the contact sheets are a **gate, not a driver**, but the pinned fixture is code
+  and its claims are assertable before a single frame is captured:
+  `test/fixtures/seeded_plan_test.dart`, pure `package:test` with `withClock(Clock.fixed(2025-04-16))`.
+  Write and watch fail, in this order:
+  1. `suggestStep(1000, 0, [500, 100], allowHalves: true)` → `suggested == 100` (1mg),
+     `tenPercent == 100`, `communityPracticeDiffers == false` — this is the whole argument for rendering
+     `10 → 9` with no banner, and it should be a test rather than a paragraph
+  2. the fixture's active step is `fromDose 1000, toDose 900` and `dayInStep == 14` under the pinned
+     clock — a fixture whose prose and code disagree is the failure mode this catches
+  3. the fixture object this epic reads is the **same file** EPIC-14 task 2 and EPIC-15 task 8 read
+     (import identity, one definition). Note when writing it: EPIC-14 task 2 currently describes the
+     shared fixture's active step as `10 → 9.5` while this task describes `10 → 9`. One file cannot be
+     both — settle it here, in the test, before any sheet or sweep cell is captured against it.
 - **Details** — Follow `daybreak-visual-parity`: dump the crop rects, crop frames 01, 05 and 06 from all
   four reference PNGs, capture the built screens at 390×844 @ DPR 2 with the pinned fixture, and build
   the paired sheets.
@@ -492,6 +722,7 @@ Fix the implementation, never the reference.
 
 ## Definition of done
 
+- [ ] Every TDD task's tests were written first and observed failing before its implementation
 - [ ] Plan renders the four reference cards and reads/writes a real `TaperPlan` through the single
       `taperRepository`; the names `PlanRepository`, `StepRepository` and `SettingsRepository` appear
       nowhere, and no file defines a `DoseMg` or a `CalendarDate`

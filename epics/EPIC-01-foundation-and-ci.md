@@ -63,6 +63,10 @@ before they write a line.
   merging rather than overwriting the files that already exist.
 - **Where** — creates `pubspec.yaml`, `lib/main.dart`, `android/`, `ios/`, `.metadata`; edits
   `.gitignore`.
+- **Tests first** — *Scaffold.* Generating a project and merging it into a directory asserts nothing
+  about this app's behaviour; a test here would only prove `flutter create` works. Verified by the
+  Acceptance below (`git status` clean under `design/`, `.claude/`, `epics/`; `flutter run` boots the
+  counter app) and by the CI job task 5 wires up.
 - **Details** —
   ```bash
   flutter create --org com.buzzjective --project-name nearlystop \
@@ -92,6 +96,21 @@ before they write a line.
 - **Where** — `lib/main.dart`, `lib/bootstrap.dart`, `lib/app.dart`, `lib/providers.dart`,
   `lib/core/`, `lib/core/time/clock.dart`, `lib/core/result.dart`, `lib/data/`, `lib/services/`,
   `lib/routing/`, `lib/theme/`, `lib/l10n/`, `lib/features/`, and the mirror under `test/`.
+- **Tests first (TDD)** — the directory tree itself is *Scaffold* (a `.gitkeep` cannot be wrong in a
+  way a test catches). `lib/core/result.dart` is not. Write `test/core/result_test.dart` first, pure
+  `package:test` — and note that this file importing neither `flutter_test` nor `package:flutter/` is
+  itself the purity claim task 6 gates. Write and watch fail, in this order:
+  1. `switch (Ok<int, StubFailure>(7)) { Ok(:final value) => value, Err() => -1 }` → `7`
+  2. the same switch over `Err<int, StubFailure>(StubFailure('boom'))` reaches the `Err` arm and
+     yields a failure whose `message` is `'boom'`
+  3. the void arm: `Ok<void, StubFailure>(null)` constructs, matches the `Ok` arm, and exposes no
+     value — **there is no `Unit`**, asserted in the same run by a `Process.run` grep for `\bUnit\b`
+     under `lib/`, so EPIC-12/13's `Result<Unit, F>` cannot land by accident
+  4. equality is by value: two `Err(StubFailure('boom'))` are `==`, `Ok(7)` and `Ok(8)` are not —
+     this is what makes every later `expect(result, Ok(...))` in EPIC-04/05 mean anything
+  Exhaustiveness (a `switch` missing an arm) and the `F extends Failure` bound are **compile**
+  failures, not test failures: prove each once on a deliberately broken sample, watch
+  `flutter analyze --fatal-infos` go red, delete it — the same never-trust-green ritual as task 4.
 - **Details** — `main.dart` is three lines: `void main() => bootstrap();`. `bootstrap.dart` is the
   composition root — for now it calls `WidgetsFlutterBinding.ensureInitialized()` and
   `runApp(const ProviderScope(child: NearlyStopApp()))`; EPIC-02 adds `LicenseRegistry`, EPIC-06 adds
@@ -124,6 +143,11 @@ before they write a line.
 
 - **What** — Declare only what EPIC-01–03 actually need; later epics add their own and own the audit.
 - **Where** — `pubspec.yaml`.
+- **Tests first** — *Scaffold.* Declaring dependencies has no behaviour to assert; a test that `intl`
+  resolves is a test that pub works. Verified by `flutter pub get` resolving from a cold cache,
+  `bash tool/audit-deps.sh` clean, and a committed `pubspec.lock`. The refusal list
+  (`google_fonts`, `firebase_*`, `sentry_flutter`, `http`/`dio`, `dynamic_color`) becomes a **gate**
+  in task 6, which is where it gets its both-arms test — a promise in a comment is not a gate.
 - **Details** —
   ```yaml
   environment:
@@ -172,6 +196,23 @@ before they write a line.
 - **What** — Build on the version-pinned `very_good_analysis` include, promote the
   silence-producing bug classes to error, exclude generated code.
 - **Where** — `analysis_options.yaml`, `tool/verify_include_pin.sh`.
+- **Tests first (TDD)** — `analysis_options.yaml` itself is *Scaffold*; `tool/verify_include_pin.sh`
+  is a gate, and **every gate script ships a self-test with both arms asserted**. Write
+  `tool/verify_include_pin_selftest.sh` first (plain bash, run in CI and locally; each case plants a
+  scratch file, runs the gate, asserts the exit code, greps the message, deletes the file). Write and
+  watch fail, in this order:
+  1. against a scratch options file naming
+     `package:very_good_analysis/analysis_options.99.0.0.yaml` → exit **1**, stdout naming the
+     missing filename and the resolved `very_good_analysis-*/lib/` directory it looked in
+  2. against the real file, whose include filename exists in the resolved package → exit **0**
+  3. the never-trust-green arm, scripted rather than done by hand: plant `print('x');` in a scratch
+     `lib/` file, assert `flutter analyze --fatal-infos` exits non-zero **and names `avoid_print`**,
+     delete it, assert analyze exits 0 again. A rule set that has never been seen to fail is a
+     comment — and an unresolved `include:` produces exactly that, silently.
+  4. the same both-arms treatment for `plugins: riverpod_lint`: plant a known riverpod-lint violation,
+     assert the analyzer names the riverpod rule, delete it. If the pinned SDK does not support the
+     first-party plugin protocol this case is what tells you, and the deferral gets recorded rather
+     than a decorative `plugins:` block shipped.
 - **Details** — Start from `.claude/skills/lint-and-style-config/examples/analysis_options.yaml`.
   ```yaml
   include: package:very_good_analysis/analysis_options.10.0.0.yaml   # filename must EXIST
@@ -214,6 +255,11 @@ before they write a line.
 
 - **What** — `.github/workflows/ci.yml` with pinned runner and toolchain and one job per contract.
 - **Where** — `.github/workflows/ci.yml`, `tool/ci_gates.sh`.
+- **Tests first** — *Scaffold.* A workflow file has no behaviour a Dart test can reach, and asserting
+  "GitHub runs my YAML" is asserting the framework. Every gate it calls is tested where it is built:
+  task 4's include pin, task 6's ban and purity walkers, task 7's coverage floor. Verified by the
+  first PR — `verify` and `build` both green on the scaffold, and a deliberately misformatted file
+  turning the run red. That red arm is observed once, deliberately, not assumed.
 - **Details** — Skeleton from `ci-pipeline-and-gates/references/workflow-skeleton.md`.
   ```yaml
   name: ci
@@ -268,6 +314,36 @@ before they write a line.
   > **no epic creates a second gate under `scripts/`**, and no epic re-litigates a pattern this task
   > already ships. State that rule here so the four epics that currently say `scripts/` have somewhere
   > to be corrected against.
+- **Tests first (TDD)** — `tool/check_bans_selftest.sh` and `tool/check_core_purity_selftest.sh`,
+  plain bash, both wired into CI. Every rule is asserted in **both** directions — a gate that has
+  never been seen to fail is a comment. Each case plants a file under a scratch path, runs the gate,
+  asserts the exit code, greps the message, deletes the file. Write and watch fail, in this order:
+  1. `check_bans.sh` on the clean tree → exit **0**, no output
+  2. planted `import 'package:http/http.dart';` in `lib/features/_scratch.dart` → exit **1**, output
+     naming `lib/features/_scratch.dart:<line>` and the *zero network calls* reason
+  3. planted `EdgeInsets.only(left: 8)` in the same file → exit **1**, naming the RTL reason
+  4. **both planted at once → exit 1 exactly once, with both offenders listed.** This is the
+     accumulate-and-fail-once contract, and it is the case a per-rule `exit 1` silently breaks.
+  5. `DateTime.now()` in `lib/features/_scratch.dart` → exit **1**; the same call in
+     `lib/core/time/clock.dart` → exit **0** (the one legitimate site)
+  6. `Icons.arrow_back` → exit **1**; `Icons.adaptive.arrow_back` → exit **0** — anchored to the
+     structure, not matched as a substring
+  7. `// ignore_for_file: unawaited_futures` → exit **1**; a line-scoped
+     `// ignore: unawaited_futures — reason` → exit **0**
+  8. every needle appearing inside a **stripped comment** in a `lib/` file → exit **0**, and
+     `tool/check_bans.sh` itself (which contains every needle by construction) → exit **0**. A gate
+     red on its own source is a gate nobody keeps.
+  9. `check_core_purity.sh` on the clean tree → exit **0**
+  10. planted `import 'package:flutter_riverpod/flutter_riverpod.dart';` in
+      `lib/core/time/clock.dart` → exit **1**, naming path and line
+  11. the same, **one separate case each**, for `package:flutter/material.dart`,
+      `package:riverpod/riverpod.dart`, `package:hooks_riverpod/hooks_riverpod.dart`,
+      `package:drift/drift.dart`, `package:flutter_test/flutter_test.dart` and `dart:ui`.
+      `package:riverpod` is not a substring of `package:flutter_riverpod`; one loose pattern passes
+      one of these six and leaves a hole the exact shape of the rest.
+  12. planted `import 'package:timezone/timezone.dart';` in `lib/core/notifications/_scratch.dart` →
+      exit **0**, and the identical import in `lib/core/dsns/_scratch.dart` → exit **1**. Only the
+      second case proves the exception is *scoped* rather than a hole.
 - **Details** — Strip comments first (a rule's own explanation contains its needle), anchor each
   pattern to a structure (an import URI, not a bare word), collect every offender, print all of them
   with a reason a stranger would understand, exit 1 once. Rules shipped in this epic:
@@ -316,6 +392,25 @@ before they write a line.
   coverage floor that is not a global percentage.
 - **Where** — `test/flutter_test_config.dart`, `test/core/result_test.dart`,
   `tool/coverage_floor.sh`.
+- **Tests first (TDD)** — `test/flutter_test_config.dart` is *Scaffold* (an empty hook cannot be
+  wrong in a way a test catches; EPIC-02 gives it a body) and `test/core/result_test.dart` already
+  exists from task 2. The new behaviour is `tool/coverage_floor.sh`, driven by
+  `tool/coverage_floor_selftest.sh` against hand-written `lcov.info` fixtures under
+  `tool/fixtures/lcov/` — ten lines each, no `flutter test` run inside the self-test. Write and watch
+  fail, in this order:
+  1. empty floor list, any fixture → exit **0**
+  2. floor list naming `lib/core/dsns/step_size.dart` at 100, fixture reporting 12/12 lines → exit **0**
+  3. same floor, fixture reporting 7/12 → exit **1**, message naming the path, `58.3%` and the `100%`
+     floor
+  4. **a listed path absent from `lcov.info` entirely → exit 1, naming the missing path.** Never a
+     skip: this is the case a rename would otherwise use to disarm the floor silently, on the two
+     files SPEC §10 says a bug is unrecoverable in.
+  5. a fixture containing `lib/l10n/gen/app_localizations.dart` and `lib/data/db.g.dart` → both
+     stripped before evaluation, using the **same globs** as the analyzer `exclude` in task 4 (assert
+     the globs are read from one place, not retyped in two)
+  6. an untested `lib/` file present at 0/40 lines → **reported, not gated**, and counted in the
+     denominator: the aggregate percentage over the fixture *drops* when it is included. That drop is
+     the coverage-lies-upward fix, asserted as a number rather than described in a comment.
 - **Details** — `flutter_test_config.dart` exports `testExecutable` and will call `loadAppFonts()`
   once EPIC-02 bundles Nunito and Vazirmatn; for now it is the hook, documented as such. Goldens must
   never render with Ahem — Perso-Arabic shaping and Persian digits would never be exercised.
@@ -345,6 +440,9 @@ before they write a line.
 - **What** — The PR template the per-epic workflow assumes, and a short contributing note that routes
   a contributor to the skills instead of restating them.
 - **Where** — `.github/pull_request_template.md`, `CONTRIBUTING.md`, `README.md`.
+- **Tests first** — *Scaffold.* A PR template, a contributing note and a README are prose. The one
+  claim in them a machine could reach ("`CONTRIBUTING.md` restates no rule that lives in a skill") is
+  a review judgement, not an assertion. Verified by opening a PR and seeing the template pre-filled.
 - **Details** — The PR template is verbatim the block in `epics/README.md`: **What and why · Closes ·
   Visual parity (UI epics only) · Tests · Deferred**. `CONTRIBUTING.md` is deliberately thin: the
   per-epic workflow (branch → implement → `/simplify` → `/code-review` → PR → green CI → merge), the
@@ -358,6 +456,7 @@ before they write a line.
 
 ## Definition of done
 
+- [ ] Every TDD task's tests were written first and observed failing before its implementation
 - [ ] `flutter create` output merged in place; `design/`, `.claude/`, `epics/` and the root markdown
       files are untouched in `git status`
 - [ ] Android + iOS only; app id `com.buzzjective.nearlystop`; orientation unlocked

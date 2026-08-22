@@ -94,6 +94,11 @@ button ladder counts once and a painter counts with the widget that owns it.
   directory question.
 - **Where** — `lib/theme/` (read only), `epics/EPIC-07-component-library.md` follow-up note in the PR,
   `lib/features/shared/presentation/widgets/`.
+- **Tests first** — *Scaffold.* Nothing here has behaviour: the names were already resolved, and this
+  task only reads `lib/theme/` and fixes a directory. A wrong slot name is a **compile error**, not a
+  test failure, and the "no alias layer was added" half is verified by `tool/check_bans.sh` (task 2)
+  plus the PR diff. Inventing a test that asserts `DaybreakShapes.radiusLg` exists would assert that
+  Dart resolves identifiers.
 - **Details** — **RESOLVED before this epic starts — no decision needed here.** The slot names were
   reconciled across the skills on 2026-08-22: `daybreak-tokens` is the authority and the other two
   skills were corrected to match it. The API is `DaybreakColors`, `DaybreakShapes` (radii
@@ -120,6 +125,28 @@ button ladder counts once and a painter counts with the widget that owns it.
 - **What** — Extend the gate EPIC-02 already wired into CI. **Do not create a second script.**
 - **Where** — `tool/check_raw_values.sh` (EPIC-02's, extended in place), `.github/workflows/ci.yml`
   (already wired — no new step).
+- **Tests first (TDD)** — the gate is code with behaviour, and a pattern that matches nothing is a
+  gate that passes forever. `test/tool/check_raw_values_test.dart`, pure `package:test`, driving the
+  script with `Process.run` over fixture trees written into a temp directory (`addTearDown` the
+  cleanup).
+  Write and watch fail, in this order:
+  1. Four new patterns, one fixture file each — `BoxShadow(`, `LinearGradient(`,
+     `Curves.easeOutCubic`, `EdgeInsets.all(8)` — each gives `exitCode == 1` and stdout containing
+     the fixture's `path:line`.
+  2. `EdgeInsetsDirectional.only(start: 8)` → `exitCode == 0`. The directional form is the sanctioned
+     one, and a regex that eats it would make every component uneditable.
+  3. The two commented allowances: a file containing `EdgeInsets.zero` and `Duration.zero` and
+     nothing else → `exitCode == 0`.
+  4. Scope: the same nine banned patterns inside `lib/theme/` → `exitCode == 0`; inside a generated
+     `*.g.dart` → `exitCode == 0`.
+  5. Regression on EPIC-02's five: `Color(0x`, `Colors.red`, `Duration(seconds: 1)`, `fontSize:` and
+     `BorderRadius.circular(8)` each still give `exitCode == 1` after the extension. Loop all nine
+     patterns in one table so a dropped rule is impossible to miss.
+  6. Accumulate-and-fail-once: two fixture files with one hit each → `exitCode == 1` **once**, and
+     both paths appear in the output. Fail-fast would print only the first.
+  7. `// ignore: whatever` on a banned line does **not** suppress the hit.
+  8. Clean tree: a fixture `lib/` with no violations → `exitCode == 0` and empty stdout, so the gate
+     is provably capable of passing.
 - **Details** — `tool/` is the project's one script directory and `tool/check_bans.sh` its one
   entry point (EPIC-01's accumulate-and-fail-once model); a `scripts/check_raw_values.sh` with a
   second pattern list is how a rule tightened in one place goes silently missing in the other.
@@ -150,6 +177,37 @@ button ladder counts once and a painter counts with the widget that owns it.
 > (`CONTRACTS.md` §9), so EPIC-08's `e.shadowGlow` is a sweep target, not a design difference.
 > Padding is `s.s5` on all sides, matching `.hero`. EPIC-08 states none of these values itself; it
 > says "per EPIC-07's `DoseHeroCard`".
+- **Tests first (TDD)** — `test/features/today/widgets/dose_hero_card_test.dart` (`flutter_test`
+  widget) and `test/features/today/widgets/sunrise_arc_painter_test.dart` (`flutter_test`, but no
+  `pumpWidget` — `shouldRepaint` is `f(old, new) → bool`). The goldens are written alongside as a
+  gate, not a driver.
+  Write and watch fail, in this order:
+  1. A single tap on the Taken action invokes `onTaken` **exactly once**; a tap elsewhere on the card
+     invokes it zero times; a long-press invokes it zero times (no long-press-only path).
+  2. With `isTaken: true` the taken state is present in the semantics tree **as text**, and the
+     action does not re-fire — assert the callback count after a tap is the pinned value (0).
+  3. One semantics container: `tester.getSemantics(find.byType(DoseHeroCard))` has the single label
+     *"Today, 9 milligrams: one 5 milligram tablet, four 1 milligram tablets. Not yet taken."*, and
+     the visual `Text` children contribute **no** separate nodes (`ExcludeSemantics`). Four fragments
+     instead of one sentence fails here.
+  4. The Taken button keeps its own node with `SemanticsFlag.isButton`, and after tapping, a
+     `liveRegion` confirmation node exists.
+  5. Degradation order, at its boundary: at `TextScaler.linear(1.5)` the `SunriseArcPainter` is in
+     the tree; at 1.7 it is gone. At 1.7 the top-level layout is a `Column`, not a `Row`; the
+     caption's second line is absent.
+  6. **The numeral never shrinks:** at 2.0 the numeral `Text`'s resolved `fontSize` equals
+     `displayLarge.fontSize` (the `TextScaler` does the growing, the widget does not shrink the
+     style), `find.byType(FittedBox)` is empty, its `overflow` is not `ellipsis`, and
+     `tester.takeException()` is null.
+  7. Contrast, computed by an independent WCAG-luminance helper in `test/support/`: `c.onPrimary`
+     against **both** `c.sunrise` endpoints is ≥ 4.5:1, looped over light, dark and high contrast.
+     The arc's decorative 2.8:1 pair is asserted to be reachable only from `SunriseArcPainter`.
+  8. `SunriseArcPainter.shouldRepaint`: `false` when all four of `arcColor`, `strokeWidth`, `sweep`,
+     `progress` are equal; `true` for each of the four single-field mutations, as a loop — so adding
+     a fifth field without updating `shouldRepaint` fails immediately. Assert `paint()` takes no
+     `BuildContext` (it is not in the signature) and the painter is under `ExcludeSemantics`.
+  9. Written alongside, gate not driver: the recipe-1 golden sheet, `{light, dark} × {en, fa}` at 1.0
+     and 2.0, baselined after the widget exists.
 - **Details** — `DecoratedBox` with `gradient: c.sunrise` (the **only** component allowed it, once per
   screen), `BorderRadius.all(r.radiusLg)`, `boxShadow: e.glow` (reserved for this card). Contents: date
   stamp, the day-kind badge (*"New dose day"* — glyph **and** word, never colour alone), the numeral in
@@ -186,6 +244,33 @@ button ladder counts once and a painter counts with the widget that owns it.
 > requirement argued above, and `daybreak-visual-parity` puts it in the "judged, not matched" tier.
 > EPIC-09 states none of these values; it says "per EPIC-07's `DayStateRow`".
 
+- **Tests first (TDD)** — `test/features/schedule/widgets/day_state_row_test.dart`, `flutter_test`
+  widget via `pumpApp`. Every case is a table over the four `DayState` members, written as an
+  exhaustive `switch` so a fifth member would break the build (`CONTRACTS.md` §1). Goldens alongside,
+  gate not driver.
+  Write and watch fail, in this order:
+  1. Each state reads as **one sentence** in the semantics tree containing the localized state word —
+     `{taken, missed, today, upcoming}` → the four ARB strings — in `en` and `fa`. The word is
+     present as text, never only as colour.
+  2. Shape is the primary signal: the four `DayStateMarker` painters' shape descriptors
+     (`filled`, `strokeWidth`, `dashed`, `hasCore`) are **pairwise distinct** across all four states —
+     a structural oracle, so the grayscale claim is asserted without a pixel diff.
+  3. **`missed` is `c.stateMissed` in all three places** — marker ring colour, row border colour, and
+     the state word's `TextStyle.color` — and `c.danger` equals none of them. This is the test that
+     catches EPIC-09's leftover and the reference HTML's own `--danger`.
+  4. Marker diameter is 26 logical px at 1.0 scale (`tester.getSize`), not 28.
+  5. `today` alone carries `w800`, a 2px `c.stateToday` border and `e.level2`; the other three are
+     `e.level0` on `c.surface` with a hairline `c.border`. Assert the negative for all three.
+  6. `isNewDose: true` — on **each** of the four states, since it is a separate bool — adds all three
+     of `c.stateNewDose`, the direction glyph, and the localized new-dose word.
+  7. Unachievable dose: with the flag text supplied, the flag string renders and **no** tablet
+     breakdown and no rounded number appears anywhere in the row (`SPEC.md` §3.3).
+  8. RTL geometry, asserted not eyeballed: in `fa`, `tester.getCenter(marker).dx > rowWidth / 2` and
+     the leading inset is measured from the right edge.
+  9. At `TextScaler.linear(2.0)` in `de` the row's height is greater than at 1.0 and
+     `tester.takeException()` is null.
+ 10. Written alongside, gate not driver: the recipe-2 golden sheet plus the grayscale variant that
+     the "was this taken?" claim is judged against.
 - **Details** — Four states, four shapes, each pairing a glyph **and** a localized text label with its
   colour. The `DayState` enum is EPIC-04's `{ taken, missed, today, upcoming }` — exactly four
   (`CONTRACTS.md` §1); `isNewDose` is a separate bool, never a fifth member:
@@ -231,6 +316,29 @@ button ladder counts once and a painter counts with the widget that owns it.
 > `surfaceSunken` / bottom-hairline-only / top-corners-`radiusMd` / no-glyph description is **wrong**
 > and is replaced. EPIC-09 keeps the pinning, the grouping and the copy; it states no token values.
 
+- **Tests first (TDD)** — `test/features/schedule/widgets/block_header_test.dart`, `flutter_test`
+  widget; the sliver cases mount it in a real `CustomScrollView`. Golden alongside, gate not driver.
+  Write and watch fail, in this order:
+  1. **`maxExtent` is measured, not fixed** — the classic bug in this component. Assert
+     `BlockHeaderDelegate.maxExtent` equals the rendered header's measured height (± 0.5) at
+     `TextScaler.linear(1.0)` in `en`, and again at 2.0 in `de`, where it must be **strictly
+     greater**. A hardcoded constant fails the second half.
+  2. `shouldRebuild(old)` is `true` for each single-field mutation of `title`, `doseSummary`,
+     `dayCount`, `isCurrent`, `isCompleted` and the text scale — as a loop — and `false` when none
+     changed.
+  3. Pinning: inside a `CustomScrollView` with `pinned: true`, after scrolling 800px
+     `tester.getTopLeft(find.byType(BlockHeader)).dy == 0.0`.
+  4. At 2.0 in `de` the title wraps to three lines with no clipping: the `RenderParagraph` reports 3
+     lines, `overflow` is not `ellipsis`, and `tester.takeException()` is null.
+  5. `isCurrent: true` → fill is `c.tintPrimary` and the border colour is the `c.borderCurrentBlock`
+     slot; `isCurrent: false` → `c.surfaceRaised` and `c.border`. Asserting against the resolved
+     theme slot rather than a literal is what keeps the raw-value gate honest — a `Color.lerp` at the
+     call site fails equality here as well as tripping task 2.
+  6. `isCompleted: true` adds **all three** of `c.tintSuccess`, the check glyph, and the localized
+     completed word — colour is never alone.
+  7. Semantics: the header node carries `SemanticsFlag.isHeader` and its label is the teaching
+     sentence *"Block 3 of 11 — one day at 9mg, then 4 days at 10mg"*, as one node.
+  8. Written alongside, gate not driver: the recipe-3 golden sheet.
 - **Details** — `const BlockHeader({required this.title, required this.doseSummary, required this.dayCount, required this.isCurrent, required this.isCompleted})`,
   all strings pre-localized. Fill `c.surfaceRaised`, 1px `c.border` on every edge, `r.radiusLg`,
   `e.level1`, padding `s.s4`, gap `s.s3`. Leading 36×36 glyph tile at `r.radiusSm`, `c.surface` fill,
@@ -264,6 +372,37 @@ button ladder counts once and a painter counts with the widget that owns it.
 > reference's 56, because it is pressed one-handed by a 74-year-old with a tremor 780 times. Its
 > shadow is `e.level2`; the `e.glow` slot stays reserved for the card beneath it.
 
+- **Tests first (TDD)** — `test/features/shared/widgets/daybreak_buttons_test.dart`, `flutter_test`
+  widget. Every case is a table over the five variants unless stated. Goldens alongside, gate not
+  driver.
+  Write and watch fail, in this order:
+  1. One tap → `onPressed` fires **exactly once**, for each of the five. A long press fires it
+     **zero** times — there is no long-press-only path anywhere in this app.
+  2. Disabled (`onPressed: null`): a tap fires nothing, the fill differs from the enabled fill, **and**
+     the localized disabled word is in the semantics label. Assert the label differs — a change in
+     `Opacity` alone fails this case, which is the point.
+  3. Min heights via `tester.getSize` at 1.0 scale: `TakenButton` ≥ 88, `PrimaryPillButton` 56,
+     `SecondaryButton` 56, `DestructiveButton` 56, `TertiaryButton` 48. At 2.0, each is **greater**
+     than its 1.0 value — grows, never shrinks.
+  4. Token values against resolved theme slots, not literals: Taken = `c.surface` fill + `c.ink` ink
+     + `e.level2`, and its shadow is **not** `e.glow` (that slot stays reserved for the card beneath);
+     Secondary = `c.surface` + `c.ink` + 2px `c.borderStrong`; Destructive = `c.tintDanger` +
+     `c.danger` + 1px `c.dangerFill`; Primary = `c.sunrise` + `c.onPrimary`.
+  5. Press feedback, both halves: on `onTapDown` then `pump(m.fast)`, the `Transform`'s scale is
+     0.98. Under `MediaQuery(disableAnimations: true)` the duration resolves to `Duration.zero`
+     **and `HapticFeedback.selectionClick()` still fires** — recorded on the mocked
+     `SystemChannels.platform`. A haptic wired to the animation's completion fails this case, and it
+     is the whole reason the rule says "plus".
+  6. `Semantics(button: true, label: …)` on every variant, and `HitTestBehavior.opaque` — a tap on
+     transparent padding inside the min-height box still registers as one call.
+  7. Labels are never uppercased: pass `'Mark as taken'` and assert the rendered string is
+     byte-identical; repeat with a Persian label to pin that no `toUpperCase()` sits in the path.
+  8. Destructive never acts directly: tapping `DestructiveButton` opens a `ConfirmSheet` (task 8) and
+     the destructive callback count is **0** while the sheet is open, **1** after confirming, **0**
+     after cancelling.
+  9. `meetsGuideline(androidTapTargetGuideline)` and `meetsGuideline(iOSTapTargetGuideline)` for
+     every variant, at 1.0 and 2.0.
+ 10. Written alongside, gate not driver: the recipe-4 ladder golden sheet.
 - **Details** —
   | Variant | Fill | Ink | Border | Min height |
   |---|---|---|---|---|
@@ -293,6 +432,40 @@ button ladder counts once and a painter counts with the widget that owns it.
 - **Where** — `lib/features/plan/presentation/widgets/strength_chip.dart`,
   `.../widgets/method_segmented_control.dart`,
   `lib/features/shared/presentation/widgets/daybreak_tab_bar.dart`.
+- **Tests first (TDD)** — three files, all `flutter_test` widget:
+  `test/features/plan/widgets/strength_chip_test.dart`,
+  `test/features/plan/widgets/method_segmented_control_test.dart`,
+  `test/features/shared/widgets/daybreak_tab_bar_test.dart`. Goldens alongside, gate not driver.
+  Write and watch fail, in this order:
+  1. `StrengthChip`: a tap calls `onSelected` **once** with the chip's value; selected renders **all
+     three** of the check glyph, `w800` and the 2px `c.borderStrong` ring, so selection survives
+     grayscale; size ≥ 44×44 at 1.0 and larger at 2.0.
+  2. Chips wrap, never scroll: eight chips at a 320dp-wide viewport occupy ≥ 2 rows (distinct
+     `getTopLeft().dy` values) and `find.descendant(of: chipArea, matching: find.byType(Scrollable))`
+     is **empty**. A strip hides options at 200%; this is the test that stops one appearing later.
+  3. `MethodSegmentedControl`: tapping segment *i* calls `onChanged` once with that `TaperMethod`;
+     the default value is `TaperMethod.dsns`; an exhaustive `switch` over `TaperMethod` in the test
+     pins the three members of `CONTRACTS.md` §8, so a fourth breaks the build.
+  4. Each segment carries `Semantics(inMutuallyExclusiveGroup: true, selected: …)` with **exactly
+     one** selected at a time.
+  5. Reflow, tested on both sides of the boundary, in `de` and `fa`: at `TextScaler.linear(1.5)` the
+     segments are a `Row` with equal widths (within 0.5px); at 1.6 they are a vertical list — one per
+     row, strictly increasing `getTopLeft().dy` — and `tester.takeException()` is null in all four
+     cells.
+  6. `DaybreakTabBar`: tapping destination *i* calls `onDestinationSelected(i)` exactly once, for all
+     five. Active renders the `c.tintPrimary` pill (measured 52×30, `r.radiusPill`), the **filled**
+     icon variant, `w800` and `c.primaryDeep`; inactive renders the outlined icon, `w600` and
+     `c.inkMuted`. Assert the negative too: **no 3px indicator bar** exists in the tree.
+  7. Labels always visible: all five findable as text in `de` at 360dp and at
+     `TextScaler.linear(2.0)`, `tester.takeException()` null, no ellipsis.
+  8. Geometry: bar height 96 at 1.0 with `MediaQuery(padding: EdgeInsets.only(bottom: 26))`; each
+     destination ≥ 44 wide and ≥ 52 tall; `androidTapTargetGuideline` passes.
+  9. The rail variant at a 800×600 viewport carries the **same three** selection signals (pill,
+     filled icon, weight) — run cases 6 and 8's assertions against it.
+ 10. RTL: in `fa` the first destination sits on the right — `getCenter(first).dx > width / 2` — a
+     geometry check, not by eye.
+ 11. Written alongside, gate not driver: recipe-5/6/7 golden sheets, including the grayscale
+     selection check and the 1.6× German reflow capture.
 - **Details** —
   - `StrengthChip`: `r.radiusPill`, min 44×44, `c.surfaceRaised` / `c.border`. Selected =
     `c.tintPrimary` + a 2px `c.borderStrong` ring + a check glyph + `w800`. Laid out in a `Wrap`,
@@ -323,6 +496,39 @@ button ladder counts once and a painter counts with the widget that owns it.
   `lib/features/shared/presentation/widgets/taper_empty_state.dart`,
   `lib/features/shared/presentation/widgets/confirm_sheet.dart`,
   `lib/features/shared/presentation/widgets/undo_row.dart`.
+- **Tests first (TDD)** — one file per recipe under
+  `test/features/{shared,progress,welcome}/widgets/`, all `flutter_test` widget. Every "never a
+  `SnackBar`" claim is asserted with a **timed** `pump(Duration)`, never `pumpAndSettle` on an
+  indefinite surface. Goldens alongside, gate not driver.
+  Write and watch fail, in this order:
+  1. `BackfillBanner`: `liveRegion: true` on its semantics node; still found after
+     `tester.pump(const Duration(seconds: 30))`; `find.byType(SnackBar)` empty; each of the two
+     tertiary actions fires once; the body `Text`'s colour is `c.ink`, **not** the warning ink.
+  2. `ProgressStatBlock`: each of the three blocks renders its unit **in words** — "taken 341 of 350
+     days", "12,480 mg cumulative", "day 402 on steroids"; the overline is byte-identical to the
+     mixed-case string passed in (no `toUpperCase()`); the numeral's style contains
+     `FontFeature.tabularFigures()`.
+  3. `DisclaimerSheet`, gate mode: the "I understand" action is **disabled** on frame one; after
+     `jumpTo(maxScrollExtent - 1)` it is still disabled; at `maxScrollExtent` it is enabled; tapping
+     it then calls `onAccept` exactly once. The off-by-one case is the one worth pinning.
+  4. `DisclaimerSheet`, gate mode, not escapable: a scrim tap and a downward drag each leave the
+     sheet mounted and `onAccept` uncalled.
+  5. `DisclaimerSheet`, re-read mode: dismissible, the action reads the "Close" ARB string, tapping
+     it pops the route and `onAccept` is **never** called.
+  6. `TaperEmptyState`: exactly **one** primary action in the tree; the illustration produces no
+     semantics node (`ExcludeSemantics`); heading and sentence are the strings passed in.
+  7. `ConfirmSheet` return value, as a table over the four exits: confirm tap →
+     `ConfirmResult.confirmed`; cancel tap, scrim tap, and drag-down → `ConfirmResult.cancelled`.
+     Never `null`, and the confirm callback's call count is **0** on all three cancel paths.
+  8. `ConfirmSheet` pre-action: tapping it runs the callback once and the sheet is **still mounted**
+     afterwards; a subsequent confirm still returns `confirmed`. This is what makes `SPEC.md` §5.3's
+     "export before anything destructive" implementable, so it is asserted here, not assumed.
+  9. `ConfirmSheet` semantics: the node carries `scopesRoute: true` and `namesRoute: true` with the
+     title as its label, and `primaryFocus` lands on the title after the sheet opens.
+ 10. `UndoRow`: `liveRegion: true`; still found after `pump(const Duration(seconds: 30))`;
+     `find.byType(SnackBar)` empty; "Undo" fires `onUndo` once; an explicit close dismisses it; a
+     second mutation leaves **exactly one** `UndoRow` in the tree, not two stacked.
+ 11. Written alongside, gate not driver: recipe-8 through recipe-12 golden sheets.
 - **Details** —
   - `BackfillBanner` — *"You haven't marked the last 3 days."* `c.tintWarning` fill, `r.radiusLg`, 1px
     `c.warningFill` border, a warning glyph, **body text in `c.ink`** (the semantic ink is for glyph
@@ -371,6 +577,27 @@ button ladder counts once and a painter counts with the widget that owns it.
   `test/support/load_app_fonts.dart` — beside EPIC-06's `test/support/harness.dart`, which supplies
   `pumpApp`. Golden output lives under `test/golden/` throughout the project (singular, per EPIC-06
   task 8); there is no `test/goldens/`.
+- **Tests first (TDD, narrowly)** — **the 48 goldens themselves are a gate, not a driver**: they are
+  baselined after tasks 3–8's widgets exist, and every task above already listed its sheet as
+  "written alongside". What *is* test-first here is the harness, because a silently broken harness
+  makes all 48 goldens worthless while staying green. `test/support/load_app_fonts_test.dart` and
+  `test/support/golden_sheet_test.dart`, `flutter_test`.
+  Write and watch fail, in this order:
+  1. `loadAppFonts()` actually loads glyphs: with fonts loaded, `Text('9')` and `Text('W')` in
+     Nunito lay out at **different** widths; without it they are equal (Ahem boxes every glyph
+     identically). This is the assertion that makes the acceptance criterion "deleting the
+     `loadAppFonts` call makes the goldens fail" true rather than hoped for.
+  2. Both families: `'Nunito'` and `'Vazirmatn'` are both resolvable after the call, and the Persian
+     numeral `'۹'` lays out at non-zero width under Vazirmatn.
+  3. `GoldenSheet`: given N named states it renders exactly N cells with those N labels; at
+     `TextScaler.linear(2.0)` the sheet grows and `tester.takeException()` is null — a clipping sheet
+     would bake overflow into every baseline.
+  4. `debugDisableShadows` is `false` inside a golden-lane test and restored to its previous value
+     after the group's `addTearDown` — assert both, or Daybreak's multi-layer shadows silently pin as
+     flat slabs.
+  5. Tag discipline: a test that enumerates the files under `test/golden/components/` and asserts
+     every one declares `@Tags(['golden'])`, so a new sheet cannot join the untagged lane and turn a
+     mac or Windows run permanently red.
 - **Details** — One **scenario sheet** golden per recipe rather than 96 separate files: a
   `GoldenSheet` widget renders the recipe's states in a grid, and the test emits four files per
   recipe — `{light,dark} × {en,fa}` — each rendered twice, at `TextScaler.linear(1.0)` and `2.0`
@@ -431,6 +658,7 @@ component goldens are baselined.
 
 ## Definition of done
 
+- [ ] Every TDD task's tests were written first and observed failing before its implementation
 - [ ] All twelve recipes in the numbered table exist as named `const` widget classes under `features/*/presentation/widgets/`; no `_buildX()` method anywhere
 - [ ] One `tool/check_raw_values.sh` (EPIC-02's, extended) green in CI — no hex, radius, duration, curve, bare `EdgeInsets` or `fontSize` outside `lib/theme/`; no second copy under `scripts/`
 - [ ] All four day states carry shape + glyph + localized label; a grayscale golden still answers "was this taken?"

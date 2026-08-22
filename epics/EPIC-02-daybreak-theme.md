@@ -70,6 +70,24 @@ first inline hex in a feature widget is a red build.
 
 - **What** — Port the full measured primitive pool into the one file in the repo allowed a raw hex.
 - **Where** — `lib/theme/primitives.dart`.
+- **Tests first (TDD)** — `test/theme/primitives_test.dart`, `flutter_test` value tests (the type is
+  `Color`, so `dart test` cannot host them), no `pumpWidget`. The *name is the claim* —
+  `<hueFamily><L*>` promises a measured lightness — so the test is an **independent oracle**:
+  linearise each sRGB channel, `Y = 0.2126R + 0.7152G + 0.0722B`, `L* = 116·f(Y) − 16`, and compare
+  it to the digits in the name. Write and watch fail, in this order:
+  1. pin the oracle before trusting it with the pool: `lStar(Color(0xFFFFFFFF))` is `closeTo(100, 1e-9)`
+     and `lStar(Color(0xFF000000))` is `closeTo(0, 1e-9)`
+  2. table-driven over **every** constant: `lStar(value).round()` equals the number in its name within
+     ±1, with `reason: '<name> measured L*=<x>'`. A transposed hex digit and a copy-pasted name both
+     fail here and nowhere else in the suite.
+  3. no two constants share a value under different names, and no two constants in one hue family
+     share an `L*` — a duplicated primitive is a slot that will drift
+  4. the deliberate sharing is asserted, not assumed: `clay56` is the value behind **both**
+     `borderStrong` and `stateMissed` once task 2 lands, so a later "cleanup" that splits them is a
+     red test rather than a silent re-measure
+  5. the four gradient-only stops (`#F9633F`, `#FF9A4D`, `#FFC46A`, `#FFF7EE`) are **absent** from
+     `Primitives` — a source grep in the same run, because a named stop invites a flat fill that no
+     contrast row ever measured
 - **Details** — Source of truth is `.claude/skills/daybreak-tokens/examples/daybreak_theme.dart`
   lines 29–87. `abstract final class Primitives`, all `static const Color`. Names are
   `<hueFamily><L*>` — the family is the measured hue/chroma band, the number is CIE L\* rounded:
@@ -95,6 +113,27 @@ first inline hex in a feature widget is a red build.
 - **What** — The slots widgets read, each with `copyWith`, an honest `lerp` and an asserting `of()`.
 - **Where** — `lib/theme/daybreak_colors.dart`, `daybreak_shapes.dart`, `daybreak_elevation.dart`,
   `daybreak_motion.dart`.
+- **Tests first (TDD)** — `test/theme/theme_extension_test.dart`, `flutter_test` value tests (the
+  types are `Color`/`BoxShadow`/`LinearGradient`), no `pumpWidget` except case 5. Field-walking
+  `lerp` **completeness** belongs to task 8; this task pins the mechanics. Write and watch fail, in
+  this order:
+  1. identity endpoints for all four extensions: `lerp(a, b, 0)` equals `a` and `lerp(a, b, 1)` equals
+     `b` — a `lerp` that ignores `t` passes nothing else
+  2. `a.copyWith(ink: Primitives.clay11)` changes `ink` and leaves **every other field** equal to
+     `a`'s, enumerated field by field rather than spot-checked
+  3. `List<BoxShadow>` goes through `BoxShadow.lerpList` (`lerp(level0, level3, 0.5).length` equals
+     the longer list's length, and no resulting layer is `Colors.black`) and `LinearGradient` through
+     `Gradient.lerp` (`lerp(sunriseLight, sunriseDark, 0.5).colors.length == 4`)
+  4. a non-interpolable field snaps: at `t = 0.49` it is `a`'s value, at `t = 0.51` it is `b`'s
+  5. `of(context)` **asserts** — `pumpWidget` a bare `MaterialApp` carrying no extensions and expect
+     `throwsA(isA<AssertionError>())`, once per extension. It must never `?? fallback`: a fallback
+     ships a palette no contrast row ever measured, and loud-in-debug beats wrong-in-field.
+  6. the silhouette factories map to the right radii: `cardShape()` is a `RoundedRectangleBorder` at
+     `radiusMd` (16), `pillShape()` at `radiusPill` (999), `heroShape()` at `radiusXl` (32) — the
+     mapping is the thing that can be wrong, not the radius constant
+  7. the declared ladders: `[s1…s9] == [4, 8, 12, 16, 20, 24, 32, 40, 48]`, radii
+     `[8, 12, 16, 24, 32, 999]`, and `DaybreakMotion` is `120 / 220 / 420` ms with the two named
+     cubics
 - **Details** —
   - `DaybreakColors` — `bg surface surfaceRaised surfaceSunken · ink inkMuted inkFaint · primary
     primaryDeep secondary onPrimary · success successFill warning warningFill danger dangerFill ·
@@ -126,6 +165,26 @@ first inline hex in a feature widget is a red build.
 
 - **What** — Light and dark `ColorScheme`s written by hand with a fixed role map.
 - **Where** — `lib/theme/color_schemes.dart`.
+- **Tests first (TDD)** — `test/theme/color_schemes_test.dart`, `flutter_test` value tests, no pump.
+  Each case carries its reason in the test name, because these two mappings are the whole epic. Write
+  and watch fail, in this order:
+  1. `light.scheme.outline == light.colors.borderStrong` **and** `!= light.colors.border` — Material
+     draws every `TextField`, `Switch`, `Checkbox` and `OutlinedButton` edge from `outline`, and the
+     decorative hairline there is invisible to a 78-year-old with nothing in the app to report it
+  2. `light.scheme.outlineVariant == light.colors.border`; both assertions repeated for dark
+  3. `light.scheme.primary == Primitives.coral43` **and**
+     `light.scheme.primary != light.colors.primary` — the decorative 2.76:1 coral must not reach text
+     through a Material role no widget in this repo wrote
+  4. measured, not trusted from the doc comment:
+     `contrastRatio(scheme.onPrimary, scheme.primary) >= 4.5` (expect ≈5.6)
+  5. the collision, asserted so the doc comment cannot rot: `scheme.onPrimary != colors.onPrimary`;
+     `contrastRatio(colors.onPrimary, Primitives.coral64) >= 4.5` (expect ≈6.04); and
+     `contrastRatio(Color(0xFFFFFFFF), Primitives.coral64) < 3.0` — white on the coral fill is the
+     exact mistake this pair exists to prevent, so it is asserted as a failure
+  6. dark is authored, not flipped: `dark.colors.bg == Primitives.plum11` and `!= Color(0xFF000000)`
+  7. each scheme's `brightness` matches the theme it is attached to, and every M3 role the app can
+     render is non-null — a `ColorScheme` written by hand is a `ColorScheme` with a forgotten role
+  `fromSeed`/`dynamic_color` absence is a **grep**, not a test; it lands in task 9's gate.
 - **Details** — Never `ColorScheme.fromSeed`, never `dynamic_color`. A seed hands Material a palette
   whose every derived role is unmeasured, per-role overrides do not propagate, and wallpaper-derived
   colour is untestable at build time.
@@ -156,6 +215,27 @@ first inline hex in a feature widget is a red build.
 - **What** — The sunrise and wash gradients as directional tokens; five elevation levels as warm
   multi-layer shadow lists.
 - **Where** — `lib/theme/gradients.dart`, `lib/theme/elevation.dart`.
+- **Tests first (TDD)** — `test/theme/gradients_test.dart` and `test/theme/elevation_test.dart`,
+  `flutter_test` value tests. The RTL *render* check in Acceptance is written alongside as a gate; the
+  driver is the resolution maths, which is cheaper and catches the same bug. Write and watch fail, in
+  this order:
+  1. `sunriseLight.begin` is an `AlignmentDirectional`, and
+     `sunriseLight.begin.resolve(TextDirection.ltr).x` is `closeTo(-0.669, 1e-3)` while
+     `.resolve(TextDirection.rtl).x` is `closeTo(0.669, 1e-3)`. A plain `Alignment` passes any
+     "is the value right" test and fails this mirror — the physical-side bug no LTR golden can see.
+  2. the 138° derivation, recomputed rather than restated: `begin` and `end` are componentwise
+     negatives, and the CSS angle recovered from `end` (clockwise from "to top", +y downward) is
+     `closeTo(138, 0.5)` degrees
+  3. `sunriseLight.stops == [0.0, 0.32, 0.68, 1.0]` and `colors.length == 4`; same for `wash`
+  4. the blur conversion as a rounding golden, table-driven with the CSS source beside each layer:
+     every `blurRadius` in `level1…level3` is `closeTo(0.866 * (cssBlur - 1), 0.05)` — css 4 → 2.598,
+     css 24 → 19.918. Pasting the CSS number straight in makes every shadow ~15% too tight and
+     nothing else in the suite notices.
+  5. `level0` is the empty list; `level1…level3` each carry ≥2 layers; **every** layer's colour is
+     `Primitives.clay42` in light and `Primitives.plum01` in dark, and `Colors.black` appears in
+     neither — a neutral shadow on #FFF9F2 reads as grey dirt
+  6. `glow` is `coral64` in light and `coral66` in dark, at alpha < 0.35
+  7. every shadow offset is vertical-only (`dx == 0`), so no elevation level acquires a physical side
 - **Details** —
   **Gradients.** `begin`/`end` are `AlignmentDirectional`, never `Alignment`. `Alignment` does not
   mirror, so in Persian and Kurdish the light would fall from the wrong corner while every other
@@ -202,6 +282,41 @@ first inline hex in a feature widget is a red build.
   app-specific type slots, and Nunito + Vazirmatn bundled with their licences registered.
 - **Where** — `lib/theme/daybreak_type.dart`, `lib/theme/daybreak_typography.dart`,
   `assets/fonts/`, `pubspec.yaml`, `lib/bootstrap.dart`.
+- **Tests first (TDD)** — downloading the TTFs and declaring the `pubspec.yaml` asset block are
+  *Scaffold*; everything the theme **computes** from them is not.
+  `test/theme/daybreak_type_test.dart`, `flutter_test`, with `loadAppFonts()` for cases 7 and 10 only
+  (never Ahem — its uniform metrics make a width test vacuously green). Write and watch fail, in this
+  order:
+  1. all **fifteen** M3 `TextTheme` slots are non-null in `daybreakTextTheme(latin)` and in
+     `daybreakTextTheme(perso)`, and no slot's `fontSize` is below 14 — an unassigned `labelSmall`
+     defaults to 11 and a `Chip` or `NavigationBar` will smuggle it onto a screen that never declared
+     it
+  2. the seven authored roles carry their declared sizes: display 72 · title 34 · heading 24 ·
+     body-lg 20 · body 17 · label 15 · caption 14
+  3. tracking is logical pixels, not `em`: `displayLarge.letterSpacing` is `closeTo(-3.24, 1e-9)`
+     (`-0.045em × 72`). `-0.045` passes any "is it negative" check and is 72× wrong; this case is the
+     only thing that catches it.
+  4. the Persian transform per role: `perso.<role>.height == latin.<role>.height + 0.14`
+     (`closeTo`, 1e-9) for all seven — **except** display, hand-set to `fontSize 58` / `height 1.15`
+     rather than taking the uniform lift
+  5. every `perso` slot has `letterSpacing == 0`: Perso-Arabic is joined and tracking snaps the
+     joins. A clamp applied only to the display slot fails here.
+  6. the `boldText` ladder as a table: `400→600`, `600→700`, `700→800`, `800→900`, `900→900`
+     (clamped at the shipped face's `wght` maximum), applied in the one theme-level transform
+  7. **weight actually moves the variable face** — a measurement, not a picture: with
+     `loadAppFonts()`, `TextPainter` the same string at `w400` and at `w800` and assert the widths
+     differ, once in Nunito and once in Vazirmatn. A `fontWeight` with no matching declared asset
+     renders identically at every weight, and a golden baselined against that defect passes forever.
+  8. every slot's `fontVariations` contains
+     `FontVariation('wght', style.fontWeight!.value.toDouble())` — derived in the same transform,
+     never at a call site
+  9. `DaybreakTypography.doseNumeral.fontFeatures` contains `FontFeature.tabularFigures()` (EPIC-03
+     task 9 then verifies the shipped file honours it), and `overline` carries positive tracking with
+     its `en`/`de`-only limit in the doc comment
+  10. the licences are real, not claimed: after `bootstrap()`'s registration, `LicenseRegistry.licenses`
+      yields an entry whose `packages` contains `Nunito` and one containing `Vazirmatn`, each with
+      non-empty OFL text. An unregistered OFL font makes the licenses page a lie, and nothing else in
+      the suite would notice.
 - **Details** — Values are authoritative in
   `.claude/skills/daybreak-bilingual-type/references/type-scale.md`; a number that disagrees is a bug,
   not a variant. display 72 · title 34 · heading 24 · body-lg 20 · body 17 · label 15 · caption 14.
@@ -267,6 +382,31 @@ first inline hex in a feature widget is a red build.
 
 - **What** — The single theme builder, wired into `lib/app.dart`, plus the derived day-state colour.
 - **Where** — `lib/theme/daybreak_theme.dart`, `lib/theme/day_state_colors.dart`, `lib/app.dart`.
+- **Tests first (TDD)** — `test/theme/daybreak_theme_test.dart` and
+  `test/theme/day_state_colors_test.dart`, `flutter_test` value tests, no pump — a `ThemeData` is
+  `f(args) → data`. `DayState` is declared in `test/fixtures/day_state.dart` until EPIC-04 lands, per
+  the Details below. Write and watch fail, in this order:
+  1. `buildDaybreakTheme(b, script, highContrast: hc)` returns a `ThemeData` carrying **all five**
+     extensions non-null, looped over `{light, dark} × {latin, perso} × {false, true}` — eight cases,
+     table-driven, so a new extension cannot be attached to one `ThemeData` and forgotten in seven
+  2. `theme.scaffoldBackgroundColor == DaybreakColors.of(theme).bg`, and `useMaterial3` is `true`
+  3. the script argument reaches the text theme: `perso` yields `fontFamily: 'Vazirmatn'` with
+     `fontFamilyFallback: ['Nunito']`, `latin` the inverse. This is the entire mechanism by which
+     EPIC-03's Persian transform reaches a screen, so a builder that quietly ignores the argument
+     fails here and nowhere else.
+  4. the 48dp floor: for the `FilledButton`, `OutlinedButton`, `TextButton` and `NavigationBar`
+     themes, `style.minimumSize.resolve({})!.height >= 48` **and** `fixedSize` resolves to `null` —
+     the label at 200% text scale must grow the button, not clip it
+  5. the mapping is total: looping `DayState.values`, `dayStateColor` returns `stateTaken`,
+     `stateMissed`, `stateToday` and the upcoming slot respectively — and the `switch` is exhaustive
+     over exactly four members, so a fifth added later is a compile error
+  6. **`dayStateColor(DayState.missed, c) == c.stateMissed` and `!= c.danger`**, in every palette,
+     with the reason in the test name. This was argued once and must not be quietly "fixed" back to
+     red by someone who reads a missed dose as an error state.
+  7. `isNewDose` is a separate channel: `dayStateColor(DayState.today, c, isNewDose: true)` is
+     `stateNewDose` while `isNewDose: false` is `stateToday` — a day is simultaneously `today`, a
+     new-dose day and not yet taken, which is why it cannot be a fifth enum member
+  8. `lib/theme/` declares no day-state enum of its own — a source grep in the same run
 - **Details** — `ThemeData buildDaybreakTheme(Brightness b, DaybreakScript script,
   {bool highContrast = false})` returns
   `useMaterial3: true`, the hand-authored `ColorScheme`, `daybreakTextTheme(script)`, the resolved
@@ -308,6 +448,33 @@ first inline hex in a feature widget is a red build.
   `buildDaybreakTheme(..., highContrast: true)`, measured to a higher floor than the default palette.
 - **Where** — `lib/theme/color_schemes.dart`, `lib/theme/daybreak_colors.dart`,
   `lib/theme/daybreak_theme.dart`, `test/theme/contrast_budget_test.dart`.
+- **Tests first (TDD)** — add the third and fourth palette to `test/theme/contrast_budget_test.dart`
+  **before** authoring the override set, so the floor drives the values instead of the values setting
+  the floor. `flutter_test`, no pump. Write and watch fail, in this order:
+  1. the structural overrides: `hcLight.border == hcLight.borderStrong`,
+     `hcLight.inkMuted == hcLight.ink`, `hcLight.inkFaint == base.inkMuted` — and the same three for
+     dark. For this population a caption they cannot read is a caption that is not there.
+  2. every **text** row measures **≥7.0** against `hcLight` and `hcDark`: concretely
+     `contrastRatio(hc.ink, hc.surface)`, `contrastRatio(hc.inkMuted, hc.surface)`,
+     `contrastRatio(hc.inkFaint, hc.bg)` and `contrastRatio(hc.onPrimary, hc.primary)`. Boundary and
+     state-mark rows measure **≥4.5**: `borderStrong` on `surface`, and each of the four state
+     colours on `surface`.
+  3. the tints are solid, not washes: `hc.tintPrimary`, `tintSuccess`, `tintWarning` and `tintDanger`
+     are fully opaque and each differs from `hc.surface` — a 6% wash over cream is invisible to the
+     eye this mode exists for, and it is the background half of every pair it participates in
+  4. `hc.stateMissed` is still warm taupe: `!= hc.danger`, its hue is within ±10° of
+     `base.stateMissed`'s, and its `L*` is strictly lower. Darkened until it clears the floor, never
+     recoloured — high contrast changes luminance, never the emotional register.
+  5. the carve-out survives the toggle: `hcLight.primary == base.primary` and
+     `contrastRatio(hcLight.primary, hcLight.surface) < 4.5`. Raising the coral to clear 7:1 is not
+     what the toggle promises, and a test that goes green when someone "fixes" it is a test that lost.
+  6. dark HC is authored: `hcDark.bg == Primitives.plum11`, not `#000000`
+  7. `buildDaybreakTheme(b, script, highContrast: true)` returns extensions carrying the HC values and
+     **not equal to** the base pair, for both brightnesses — so a `true` that silently falls through
+     to the default palette is red rather than invisible
+  8. the two palettes cannot drift structurally: every `DaybreakColors` field is non-null in all four
+     instances, and the HC pair is built as an override *over* the base (assert one untouched slot,
+     e.g. `sunrise`, is identical to the base's)
 - **Details** —
   > **Contract:** CONTRACTS.md §9 — **high contrast is v1.** SPEC §4.5 and §5.4 require the toggle and
   > EPIC-05 stores the `highContrast` column, but no epic built the palette: EPIC-06 task 3 and
@@ -350,6 +517,35 @@ first inline hex in a feature widget is a red build.
 - **What** — Contrast budget, `lerp` completeness, reduced motion, and a greyscale golden.
 - **Where** — `test/theme/contrast_budget_test.dart`, `test/theme/theme_extension_test.dart`,
   `test/theme/motion_test.dart`, `test/theme/goldens/`.
+- **Tests first (TDD)** — this task's deliverable *is* tests, but two of them drive code that does not
+  exist yet (`contrastRatio`, `resolveMotion`), so the order still matters. Files as in **Where**;
+  `flutter_test`, no pump except cases 6 and 7. Write and watch fail, in this order:
+  1. **pin the oracle before trusting it with nineteen rows**: `contrastRatio(white, black) == 21.0`,
+     `contrastRatio(x, x) == 1.0` for any `x`, and the published pair `#767676` on `#FFFFFF` is
+     `closeTo(4.54, 0.01)`. A linearisation bug in the helper turns the entire budget green.
+  2. the budget table: all nineteen rows from `daybreak-tokens/references/contrast-budget.md` ×
+     **four** palettes, each row naming its pair, its palette and its floor — text rows ≥4.5 (≥7.0 in
+     HC), boundary and state-mark rows ≥3.0 (≥4.5 in HC). The 72px dose numeral is held to the
+     **body** floor: the large-text 3:1 exemption is deliberately not spent, and that row asserts 4.5.
+  3. the two rows this epic adds: `ColorScheme.onPrimary` on `ColorScheme.primary`, and
+     `DaybreakColors.onPrimary` on the sunrise gradient's **worst stop** (the coral end) — a ratio
+     against a gradient is only meaningful there
+  4. the carve-out, **negatively**: `contrastRatio(light.primary, light.surface) < 4.5` (expect
+     ≈2.76), with the comment saying this is why `primary` is fill-only
+  5. `lerp` completeness, enumerated field by field: with `a = light` and `b = dark`, for every
+     interpolable field of every extension, `lerp(a, b, 0.5).field` differs from **both** `a.field`
+     and `b.field`; gradients compare through `Gradient.lerp`, shadow lists through
+     `BoxShadow.lerpList`. The failure mode is a field added in EPIC-07 and forgotten here, so the
+     list is written out rather than derived reflectively.
+  6. reduced motion: under `MediaQuery(data: MediaQueryData(disableAnimations: true), …)`,
+     `resolveMotion(context, m.fast)`, `(context, m.base)` and `(context, m.slow)` each return
+     **`Duration.zero`** — not a shorter duration, not a softer curve. With `disableAnimations: false`
+     each returns its declared 120 / 220 / 420 ms unchanged.
+  7. the greyscale day-state golden is **written alongside, gate not driver** — you cannot fail a
+     screenshot before the widget exists. Render `taken · missed · today · upcoming` plus a `today`
+     sample with `isNewDose: true`, under a saturation-zero `ColorFilter.matrix`, in the default and
+     the high-contrast palette. Its job is to answer "which one is which"; if it cannot, EPIC-07 has a
+     non-colour channel to add now rather than in EPIC-14.
 - **Details** —
   - **Contrast.** All nineteen rows from `daybreak-tokens/references/contrast-budget.md`, run against
     **all four** `DaybreakColors` instances (light, dark, light-HC, dark-HC — task 7), as a
@@ -383,6 +579,31 @@ first inline hex in a feature widget is a red build.
 - **What** — Add `check_raw_values.sh` and `check_font_bundling.sh` to the ban gate from EPIC-01.
 - **Where** — `tool/check_raw_values.sh`, `tool/check_font_bundling.sh`, `tool/check_bans.sh`,
   `.github/workflows/ci.yml`.
+- **Tests first (TDD)** — `tool/check_raw_values_selftest.sh` and
+  `tool/check_font_bundling_selftest.sh`, plain bash, on the same both-arms discipline as EPIC-01
+  task 6: plant, run, assert the exit code, grep the message, delete. Write and watch fail, in this
+  order:
+  1. both scripts on the clean tree → exit **0**
+  2. planted `Color(0xFF123456)` in `lib/features/_scratch.dart` → exit **1**, naming file and line;
+     the identical literal in `lib/theme/primitives.dart` → exit **0** (the one file allowed a hex)
+  3. `Colors.red` outside `lib/theme/` → exit **1**; `Colors.transparent` → exit **0**
+  4. `Duration(milliseconds: 200)` → exit **1**; `Duration.zero` → exit **0**
+  5. `BorderRadius.circular(12)` → exit **1**; `BorderRadius.circular(shapes.radiusSm)` → exit **0**
+     — the rule is a *literal* radius, not the constructor
+  6. `fontSize: 20` outside `lib/theme/` → exit **1**; the same inside `lib/theme/` → exit **0**
+  7. `Curves.easeOut` outside `lib/theme/` → exit **1**
+  8. `ColorScheme.fromSeed(`, or an import of `dynamic_color`, anywhere under `lib/` → exit **1** —
+     task 3's grep claim becomes an actual gate here
+  9. every needle inside a **stripped comment**, and every needle inside `tool/check_raw_values.sh`
+     itself → exit **0**
+  10. accumulate-and-fail-once through the single entry point: one `tool/check_bans.sh` run with a
+      planted raw hex **and** a planted `EdgeInsets.only(left:)` lists both and exits 1 exactly once.
+      This is the composition arm a naïve `set -e` per sub-script silently breaks, and it is the whole
+      reason the epic insists on one entry point.
+  11. `check_font_bundling.sh` against a fixture `pubspec.lock` containing `google_fonts:` → exit
+      **1**; against the real lock → exit **0**
+  An `// ignore` is never the fix here: a legitimate new need is a new token slot, landing with its
+  contrast-budget row and its test in the same commit.
 - **Details** — Copy both from `.claude/skills/design-system-structure/scripts/` **into `tool/`**, and
   call them from the single `tool/check_bans.sh` entry point EPIC-01 established. This file is the
   one raw-values gate in the repo: EPIC-07 task 2 **extends** it with its component patterns
@@ -405,6 +626,7 @@ first inline hex in a feature widget is a red build.
 
 ## Definition of done
 
+- [ ] Every TDD task's tests were written first and observed failing before its implementation
 - [ ] Every Daybreak hex lives in `lib/theme/primitives.dart`, named `<hueFamily><L*>`; gradient-only
       stops stay inline; no widget reads a primitive
 - [ ] All five extensions implement `copyWith` + a field-complete `lerp` + an asserting `of()`, and

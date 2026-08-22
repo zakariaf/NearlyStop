@@ -85,6 +85,12 @@ cheap: `docs/release/v1.0.0-gate.md` (SPEC §10, ticked against real runs) and
 
 - **What** — Fix the versioning scheme, write the changelog, and write down the ordered ritual.
 - **Where** — `pubspec.yaml`, `CHANGELOG.md`, `docs/release/RELEASING.md` (new).
+- **Tests first** — *Scaffold.* A version string, a changelog and a written ritual have no behaviour;
+  the rules that bite (the build number only goes up, a burned number is burned) are process, not code,
+  and a test asserting `pubspec.yaml` parses asserts that YAML works. Verified by the single-source
+  grep — no `versionName`, `versionCode`, `CFBundleShortVersionString` or `CFBundleVersion` literal in
+  any platform file — appended as a rule group to `tool/check_bans.sh` and running in CI. Give that rule
+  a must-fail fixture when you add it, the same as every other rule in that script.
 - **Details** — `version: 1.0.0+1` in `pubspec.yaml` is the **only** version source: `1.0.0` becomes
   `versionName` / `CFBundleShortVersionString`, `+1` becomes `versionCode` / `CFBundleVersion`. Nothing
   is hardcoded in `build.gradle.kts` or `Info.plist`; overrides happen only via
@@ -102,6 +108,14 @@ cheap: `docs/release/v1.0.0-gate.md` (SPEC §10, ticked against real runs) and
 - **What** — Real upload signing, Play App Signing enrolment, and no credential ever tracked.
 - **Where** — `android/app/build.gradle.kts`, `android/key.properties` (**gitignored**), `.gitignore`,
   `.github/workflows/release.yml` (new, manual-dispatch only).
+- **Tests first** — *Scaffold.* Generating a keystore, enrolling in Play App Signing and adding
+  `.gitignore` entries have no assertable behaviour, and the one branch that does — Gradle failing the
+  release build when `key.properties` is absent — is proved by running it, not by a Dart test of Gradle.
+  Verified by `flutter build appbundle --release` producing an upload-key-signed `.aab`, and by
+  `tool/check_release_hygiene.sh` reporting no tracked credentials. That script is a gate, so it gets
+  the same treatment as every gate here: add a fixture with a tracked `key.properties` and watch it turn
+  red before trusting it, and run the `git log --all --name-only` history check once, by hand, because a
+  credential committed and later deleted is exactly what a working-tree check misses.
 - **Details** — Generate an upload keystore outside the repo. `key.properties` carries
   `storeFile`/`storePassword`/`keyAlias`/`keyPassword` and is read in Gradle with a guard so an absent
   file falls back to debug signing for local debug builds but **fails the release build loudly**. Enrol
@@ -119,6 +133,13 @@ cheap: `docs/release/v1.0.0-gate.md` (SPEC §10, ticked against real runs) and
 - **What** — Archive/export configuration and the universal-vs-iPhone decision.
 - **Where** — `ios/ExportOptions.plist` (new), `ios/Runner/Info.plist`, `ios/Runner.xcodeproj` build
   settings, `ios/Podfile`.
+- **Tests first** — *Scaffold.* Export options, a team id, a deployment target and a device-family
+  setting are configuration; there is no behaviour to assert and no way to fail one usefully off-device.
+  Verified by `flutter build ipa --release` producing an uploadable artifact and by
+  `tool/check_ipa_slices.sh` passing before the upload is spent. The **one** declaration here that is
+  assertable — `CFBundleLocalizations` — is deliberately not tested here: task 5 owns it, so the four
+  locales are asserted once, in one place, against the ARB file list rather than against a list typed
+  twice.
 - **Details** — `ExportOptions.plist` with `method: app-store-connect`, the team id, and
   `uploadSymbols: true`. The App Store Connect API key (`.p8`) lives in a secret store, never in the
   repo. **Device family is a product decision:** SPEC §5.4 requires landscape because people prop
@@ -151,6 +172,13 @@ cheap: `docs/release/v1.0.0-gate.md` (SPEC §10, ticked against real runs) and
 - **Where** — `assets/branding/`, `pubspec.yaml` (dev dependencies + config),
   `android/app/src/main/res/**`, `ios/Runner/Assets.xcassets/**`,
   `android/app/src/main/res/values/styles.xml`.
+- **Tests first** — *Scaffold.* Bundling an icon and a splash mark is asset generation: a test that a
+  PNG exists at a density asserts that the generator ran, which the committed diff already shows. There
+  is no behaviour to catch — an icon that is ugly, clipped in the 72dp safe zone, or carries an alpha
+  channel is caught by looking at it on a device, which is this task's own acceptance. Verified by the
+  fresh-install check on both platforms and by the re-shot EPIC-14 sweep cells. Worth one committed
+  check rather than a test: treat the generated native assets as codegen output, so a regeneration that
+  produces a diff is a review item.
 - **Details** — Add `flutter_launcher_icons` as a **dev** dependency. `flutter_native_splash` is
   already one — EPIC-06 task 1 added it and configured the light/dark background colours, because
   EPIC-06's no-flash cold-start acceptance depends on it and cannot wait nine epics. This epic
@@ -179,6 +207,25 @@ cheap: `docs/release/v1.0.0-gate.md` (SPEC §10, ticked against real runs) and
 - **Where** — `test/policy/permissions_test.dart` (new), `android/app/src/main/AndroidManifest.xml`,
   `android/app/src/main/res/xml/locales_config.xml` (new), `ios/Runner/Info.plist`,
   `.github/workflows/ci.yml`, `.github/workflows/release.yml`.
+- **Tests first (TDD)** — `test/policy/permissions_test.dart` is a real test file and it is written
+  **before** the declarations it asserts, against the current tree, where it fails for the right reason:
+  `locales_config.xml` does not exist yet. Pure `package:test` parsing the merged manifest and the plist
+  as XML. Write and watch fail, in this order:
+  1. the Android permission set is asserted as one **set equality** against
+     `{POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED, VIBRATE}` — so a transitive plugin adding a node
+     fails as loudly as a removed one, which a per-permission `contains` would not
+  2. `SCHEDULE_EXACT_ALARM` and `USE_EXACT_ALARM` each absent, as their own named expectations citing
+     CONTRACTS §12, so the failure message says which contract broke
+  3. `android.permission.INTERNET` absent from the **release** merged manifest, with the failure message
+     stating that its presence in debug and profile is expected and correct — the message is part of the
+     test, because the wrong fix here is silent and permanent
+  4. `res/xml/locales_config.xml` lists exactly `en, de, fa, ckb` and `<application>` carries
+     `android:localeConfig`
+  5. `CFBundleLocalizations` equals the same four
+  6. both lists are derived from the `lib/l10n/arb/app_*.arb` filenames rather than typed — write the
+     failing case first by adding a throwaway `app_xx.arb` and confirming the test goes red
+  7. the `NS*UsageDescription` key set in `Info.plist` is **empty** — an unused usage string is a claim
+     that cannot be defended at review
 - **Details** — Read the **merged** manifest
   (`build/app/intermediates/merged_manifests/<variant>/AndroidManifest.xml`), not the source file, and
   use `build/app/outputs/logs/manifest-merger-blame-report.txt` to see which dependency contributed each
@@ -226,6 +273,13 @@ cheap: `docs/release/v1.0.0-gate.md` (SPEC §10, ticked against real runs) and
 - **What** — Data Safety, nutrition labels and `PrivacyInfo.xcprivacy`, each backed by evidence.
 - **Where** — `ios/Runner/PrivacyInfo.xcprivacy` (new), `docs/release/privacy-declarations.md` (new),
   `store/` copy.
+- **Tests first** — *Scaffold for the declarations; the audit behind them is a gate.* A store form and a
+  privacy manifest are documents, and transcribing a plugin's declared reason codes is a read, not a
+  behaviour. Verified by `tool/audit_deps.sh` over `dart pub deps --json`, which is where the assertable
+  part lives: it must fail on a **transitive** hit, not just a direct one, so seed a dependency with a
+  banned transitive package and watch it go red before trusting the clean result. The claim that no
+  socket opens is asserted by task 13's static gate and task 5's INTERNET assertion — cite those from
+  `privacy-declarations.md` rather than restating them here.
 - **Details** — The declaration is: **no data collected, no data shared, no account, no tracking.**
   Evidence, not assertion — run the `dependency-hygiene` transitive audit (`dart pub deps --json` +
   `tool/audit_deps.sh`) and record the result: no analytics, no crash SDK, no ads, no attribution,
@@ -260,6 +314,26 @@ cheap: `docs/release/v1.0.0-gate.md` (SPEC §10, ticked against real runs) and
   > symbolication** behind that row, and nothing on screen. If EPIC-11 merged without the row, that is
   > a defect filed against EPIC-11, not work absorbed here.
 
+- **Tests first (TDD)** — `test/core/diagnostics/crash_log_test.dart`, pure `package:test` over a temp
+  directory with `withClock(Clock.fixed(…))` and an injected `PackageInfo`. The log is the one piece of
+  real behaviour in this epic besides task 13, and its failure mode — leaking a patient's dose history
+  into a file they then mail to a stranger — is exactly what a test is for. Write and watch fail, in
+  this order:
+  1. an appended entry carries the error, the stack, `1.0.0+1` and the platform, and parses back out
+  2. the cap: append entries totalling twice the documented ceiling → the file is `<=` the ceiling, the
+     **newest** entry is intact and the oldest are gone. Boundary case at exactly the ceiling appends
+     nothing extra
+  3. seeded fuzz, 500 random entry sizes appended in a loop: the file never exceeds the ceiling. A crash
+     loop filling a phone is the scenario, and one example does not cover it
+  4. **no user content**: seed the plan with drug name `Prednisolone`, dose 9.5mg, note `felt rough`,
+     date 2025-04-16; force an error; assert the log contains none of those literals and matches no
+     `\d+(\.\d+)? ?mg` pattern anywhere
+  5. `diagnosticReport()` returns `null` when no log exists, an `XFile` when it does, and calls
+     `ShareGateway` **zero** times on its own — the share happens only from the user's tap
+  6. ordering: an error thrown before `runApp` is captured, proving both handlers are installed as the
+     first statements of `bootstrap()` and that no `runZonedGuarded` is involved
+  7. `git diff --stat` shows no file under `lib/features/settings/presentation/` — a gate on the PR, not
+     a test, and it belongs in the description
 - **Details** — **No crash SDK. No Sentry, no Crashlytics, no telemetry core.** They are data
   collection under both stores' rules, they would change the declaration, and they contradict SPEC §5.3.
   The substitute: the two error handlers installed first in `bootstrap()` (`FlutterError.onError` and
@@ -283,6 +357,13 @@ cheap: `docs/release/v1.0.0-gate.md` (SPEC §10, ticked against real runs) and
 
 - **What** — Listing copy, categories, and screenshots generated from the real app.
 - **Where** — `store/listing/{en,de,fa,ckb}/`, `store/screenshots/`, `tool/store_screenshots.sh`.
+- **Tests first** — *Scaffold.* Listing copy, keywords and screenshot sets are content and store state;
+  there is no behaviour, and the thing that actually goes wrong — a display type silently collided into
+  the wrong slot, a stray image left attached — is caught by **reading the store back after upload**,
+  which is this task's acceptance and cannot be simulated locally. Two mechanical properties are worth
+  a check rather than a memory: every listing locale directory holds all five required files, non-empty;
+  and the required display-type dimensions are the exact ones listed here (notably not 1284×2778). The
+  copy's framing is task 11's, and its banned-phrase check is written there.
 - **Details** — Write title, subtitle, short and full description, and keywords per locale, sourced from
   the same wording as the ARB so the listing and the app agree. **Store-locale support is not the same
   as app-locale support, and this is where honesty is needed:** Play supports German and Persian listing
@@ -306,6 +387,14 @@ cheap: `docs/release/v1.0.0-gate.md` (SPEC §10, ticked against real runs) and
 
 - **What** — Produce the actual artifacts and prove them on real devices.
 - **Where** — `build/symbols/1.0.0+N/` (archived off-machine), `docs/release/v1.0.0-gate.md`.
+- **Tests first** — *Scaffold, plus one gate written first.* Building, obfuscating and archiving symbols
+  produce artifacts, not behaviour, and the R8/reflection failures this task exists to surface appear
+  only in a release binary on hardware — an emulator green run would be the "green test over a
+  structurally-untestable path" that is worse than an admitted gap. The hardware walk-through is a named
+  manual pass, recorded with device and date. The **one** thing to write first is the debug-affordance
+  gate, because it is code: append the rule group to `tool/check_bans.sh` rejecting any dev menu entry
+  point, fixture-seeding call and `eraseDatabaseOnSchemaChange` in `lib/`, seed one violation, watch it
+  go red, then remove it. "Proved by a grep gate, not by memory" only holds if the grep was proved too.
 - **Details** —
   ```bash
   flutter build appbundle --release --obfuscate --split-debug-info=build/symbols/1.0.0+1
@@ -342,6 +431,11 @@ cheap: `docs/release/v1.0.0-gate.md` (SPEC §10, ticked against real runs) and
 
 - **What** — Measure and record the two numbers every future release is compared against.
 - **Where** — `docs/release/budgets.md` (new).
+- **Tests first** — *Scaffold.* This task records two measurements taken on one device; there is nothing
+  to assert first, and a size or cold-start assertion in CI would measure the runner, not the phone.
+  Verified by `budgets.md` holding today's numbers, the device they came from, and the rule that a
+  future regression past them is a blocker rather than a note — which is what turns a measurement into
+  a gate for the *next* release.
 - **Details** — `flutter build appbundle --release --analyze-size` for bytes broken down by library and
   asset — expect the bundled Nunito and Vazirmatn faces to be a visible share, and confirm the subsetting
   actually happened. `flutter run --profile --trace-startup` on a real floor device for
@@ -359,6 +453,20 @@ cheap: `docs/release/v1.0.0-gate.md` (SPEC §10, ticked against real runs) and
   the Welcome sheet copy and the Settings About card already exist (EPIC-11); this task verifies their
   wording holds the line and files a defect against EPIC-11 if it does not — it does not edit them here,
   because their ARB keys, goldens and parity cells were signed off in EPIC-14.
+- **Tests first (TDD, for the half a machine can hold)** — `test/policy/listing_copy_test.dart`, pure
+  `package:test` over `store/listing/**` and `lib/l10n/arb/*.arb`. Write and watch fail, in this order:
+  1. seed one violation first — put "calculates your dose" in the English listing and confirm the test
+     goes red naming the file and the phrase. A banned-phrase list that has never matched anything is
+     indistinguishable from a broken one
+  2. zero hits across all four listing locales and all four ARBs against the banned list —
+     *calculate/calculates*, *recommends*, *optimises the dose*, *works out your taper*, *tells you what
+     to take* — with the `de`, `fa` and `ckb` equivalents authored **with the translator** and committed
+     beside the test, never guessed
+  3. the disclaimer sentence in `app_en.arb` is byte-identical to the sentence quoted in
+     `store/review-notes.md`, so the listing and the app cannot drift apart
+  4. every listing locale has all five required files, non-empty
+  **Honestly:** a grep cannot judge framing. It catches the sentences someone already knows are wrong;
+  reading the whole listing against Guideline 1.4.1 is a human pass and stays this task's acceptance.
 - **Details** — Category **Medical** on both stores (SPEC §11.5) — it is the accurate category and it
   invites more scrutiny, which is the trade being made deliberately. Google Play's health-apps
   declaration form applies to this category; complete it. The load-bearing risk is Apple's Guideline
@@ -382,6 +490,12 @@ cheap: `docs/release/v1.0.0-gate.md` (SPEC §10, ticked against real runs) and
 
 - **What** — Turn SPEC §10 into a tracked checklist ticked against fresh runs.
 - **Where** — `docs/release/v1.0.0-gate.md` (new).
+- **Tests first** — *Scaffold.* The gate file is a checklist over evidence that already exists; it
+  creates no behaviour, and every line it ticks is either a test written first in an earlier epic or a
+  run performed here. What it must not do is tick from memory, so the discipline that replaces a test
+  is citation: each line names a test by file and case, a screenshot, a recorded run, or a section of
+  EPIC-14's sign-off. A line with no citation is an untested line, and reads as one. The migration line
+  carries the v1.1 deferral sentence verbatim rather than a tick.
 - **Details** — Each line is ticked against a run performed for this release, never from memory of
   earlier epics: a 52-day step matches the block table exactly; the property test proves 52 days and
   26/26 old/new for every dose pair; tablet composition is correct for every reachable dose and flags
@@ -405,7 +519,27 @@ cheap: `docs/release/v1.0.0-gate.md` (SPEC §10, ticked against real runs) and
 
 - **What** — Prove the central claim of the product, by running it.
 - **Where** — `docs/release/v1.0.0-gate.md` (final line), `test/policy/no_network_test.dart` (new),
-  `tool/check_bans.sh` (a network rule group appended — one script, per `epics/README.md`).
+  `tool/check_bans.sh` (a network rule group appended — one script, per `epics/README.md`),
+  `integration_test/no_network_test.dart` (new).
+- **Tests first (TDD)** — this is the one place in the epic with a genuine red-first loop, and it is the
+  product's central claim. `test/policy/no_network_test.dart` (pure `package:test`) plus an
+  `integration_test` that makes the airplane-mode run reproducible instead of ceremonial. Write and
+  watch fail, in this order:
+  1. the ban rule group, negative fixture first: a file importing `package:http` turns
+     `tool/check_bans.sh` red naming the rule; then one fixture each for `dio`, `google_fonts`,
+     `HttpClient`, `WebSocket` and `Socket`. Only then remove the fixtures and expect green
+  2. `dart pub deps --json` contains no banned package at **any** depth — write the transitive case
+     first, because a direct-dependency check passes on exactly the failure that matters
+  3. the runtime assertion, and it is the important one: an `integration_test` that installs
+     `HttpOverrides.global` with a `createHttpClient` that **throws**, then drives the whole flow —
+     first-run disclaimer, create a plan, Today, tap Taken, Schedule, Progress, generate and share an
+     export, set a reminder, back up, restore. Any network call anywhere fails the test with a stack
+     naming its caller. Write it before the release build exists; it will run against debug and that is
+     fine — it is asserting that no code path reaches a socket, not that a permission is missing
+  4. the release-manifest INTERNET check is task 5's; assert it once, there, and cite it here
+  **Honestly:** iOS has no permission-level equivalent of Android's absent INTERNET, so on iOS the proof
+  is layers 2 and 3 plus the on-device airplane-mode run, recorded with device, OS and date. The
+  automated layers make that run a confirmation rather than the only evidence.
 - **Details** — Three layers, all required. **Static:** a ban-gate rule group rejecting `package:http`,
   `dio`, `google_fonts`, `HttpClient`, `WebSocket` and `Socket` anywhere in `lib/`, plus the transitive
   dependency audit from task 6. **Manifest:** the release merged manifest contains no
@@ -423,6 +557,12 @@ cheap: `docs/release/v1.0.0-gate.md` (SPEC §10, ticked against real runs) and
 
 - **What** — Ship it, and watch it.
 - **Where** — git tag `v1.0.0`, GitHub release with notes, store consoles.
+- **Tests first** — *Scaffold.* Tagging, uploading and staging a rollout are operations on store state,
+  not code; nothing here can be asserted before it happens, and the failure modes — a stray screenshot,
+  an unpublished privacy answer, a territory left off — are caught by **reading the store back** rather
+  than by trusting the tool that wrote it. Verified by that read-back checklist against fresh queries,
+  and by the halt criterion being written down **before** the rollout starts, since a threshold decided
+  while watching a graph is not a criterion.
 - **Details** — Preconditions: clean tree, CI green on the release commit, the EPIC-14 sign-off present,
   notes written. Upload to the Play **internal** track and to TestFlight, then smoke-test from the store
   install — store delivery re-signs and re-compresses the artifact, so a local install is not the same
@@ -442,6 +582,7 @@ cheap: `docs/release/v1.0.0-gate.md` (SPEC §10, ticked against real runs) and
 
 ## Definition of done
 
+- [ ] Every TDD task's tests were written first and observed failing before its implementation
 - [ ] `version: 1.0.0+N` lives only in `pubspec.yaml`; no version hardcoded in any platform file
 - [ ] No keystore, `key.properties`, `.p8` or service-account JSON tracked, now or in history; Play App Signing enrolled
 - [ ] Icons and splash generated for every density on both platforms; adaptive + monochrome on Android, alpha-free 1024 on iOS; the EPIC-14 sweep cells the splash touches re-shot and overwritten

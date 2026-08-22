@@ -69,6 +69,14 @@ it. Everything about it is provable off-device in pure Dart tests with a fake ga
 - **What** — Add the three packages and the platform plumbing they need.
 - **Where** — `pubspec.yaml`, `android/app/src/main/AndroidManifest.xml`, `android/app/build.gradle.kts`,
   `ios/Runner/AppDelegate.swift`, `ios/Runner/Info.plist`.
+- **Tests first** — *Scaffold.* Adding three dependencies, four manifest nodes, a Gradle desugaring flag
+  and an `AppDelegate` line has no behaviour a test could catch; a test asserting the plugin exists
+  asserts that pub works. Verified by `flutter build apk --debug` and `flutter build ios --no-codesign`
+  succeeding, and by `tool/check-manifest-permissions.sh` passing in CI. One thing here **is** worth
+  writing first, because it is the gate everything else leans on: give that script a fixture pair
+  before wiring it — a merged-manifest fixture containing `SCHEDULE_EXACT_ALARM` that must turn it red,
+  and one carrying exactly `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `VIBRATE` that must leave it
+  green. An unproven gate is not a gate.
 - **Details** — `flutter_local_notifications`, `timezone`, `flutter_timezone` — **pin all three in
   `pubspec.yaml` and write the resolved versions into the PR**, because two of this epic's tasks name
   plugin APIs whose shape changed between majors (see tasks 3 and 5). Android manifest gets exactly
@@ -102,6 +110,32 @@ it. Everything about it is provable off-device in pure Dart tests with a fake ga
 - **Where** — `lib/core/notifications/scheduled_notification.dart`,
   `lib/core/notifications/recurrence_rule.dart`, `lib/core/notifications/reminder_scheduler.dart`,
   `lib/core/notifications/deterministic_id.dart`.
+- **Tests first (TDD)** — `test/core/notifications/reminder_scheduler_test.dart` and
+  `test/core/notifications/deterministic_id_test.dart`, pure `package:test` (no `flutter_test`, no
+  binding; `setUpAll(tz.initializeTimeZones)` and an explicit `tz.getLocation('Europe/Berlin')` so the
+  test never depends on the machine's zone). Time comes from `withClock(Clock.fixed(t), …)` — this
+  directory is the purest TDD in the epic. Write and watch fail, in this order:
+  1. `nextDailyAt(8, 0)` with the clock at 2025-04-16 07:30 Berlin → `TZDateTime` 2025-04-16 08:00 Berlin
+  2. same rule with the clock at 08:30 → rolls to 2025-04-17 08:00
+  3. clock at exactly 08:00:00 → **today**, not tomorrow (the boundary, asserted on purpose)
+  4. DST spring-forward: Berlin, 2025-03-30, rule 08:00 → local hour 8, UTC offset +02:00. A stored
+     instant would fire at 07:00 here, which is the whole reason the rule is wall-clock
+  5. DST fall-back: Berlin, 2025-10-26, rule 08:00 → local hour 8, offset +01:00
+  6. midnight rule `(0, 0)` with the clock at 23:59 → the next day's 00:00
+  7. `compute` returns the empty set when `reminderEnabled == false`; when `taperActive == false`; and
+     when current dose equals target. Three separate cases — one emptiness test hides the other two
+  8. `compute` with reminder on and taper active → exactly one entry, with
+     `matchComponents == DateTimeComponents.time` and
+     `androidScheduleMode == AndroidScheduleMode.inexactAllowWhileIdle`. A one-shot passes every other
+     test in this list, so this assertion is the one that pins "repeating"
+  9. `deterministicId` stability: computed at clock 2025-04-16 07:00 and again at 2025-04-19 09:00 →
+     **identical**. Changing the minute changes it; changing the body (a locale switch) changes it;
+     changing the title changes it
+  10. seeded fuzz, 500 iterations over random `(hour, minute, now)`: `nextDailyAt` is always `>= now`,
+      always `< now + 25h`, and its local `(hour, minute)` always equal the rule — the oracle is
+      `TZDateTime` component arithmetic written in the test, not the function under test; echo the
+      triple in `reason:`
+  11. round trip: `DailyReminderRule` → minutes-since-midnight → rule, for all 1440 minutes
 - **Details** — `ScheduledNotification` is a value object: `id` (`int`), `fireAt` (`tz.TZDateTime`),
   `title`, `body`, `payload` (a serializable `String`, here `'today'`), `channelId`, `matchComponents`
   (`DateTimeComponents?`). `DailyReminderRule` holds `hourLocal` and `minuteLocal` — **wall clock plus a
@@ -136,6 +170,24 @@ it. Everything about it is provable off-device in pure Dart tests with a fake ga
 - **What** — Isolate the plugin behind five methods.
 - **Where** — `lib/services/notifications/notification_gateway.dart`,
   `fln_notification_gateway.dart`, `fake_notification_gateway.dart`.
+- **Tests first (TDD)** — `test/services/notifications/fake_notification_gateway_test.dart`, pure
+  `package:test`. The fake is the thing every other test in this epic trusts, so its semantics get
+  asserted rather than assumed; `FlnNotificationGateway` itself is a thin translation layer with no
+  logic and no off-device test (see the honest note below). Write and watch fail, in this order:
+  1. `schedule(n)` then `getPending()` → one entry with the same id, `fireAt`, payload and channel
+  2. `schedule` with an **existing id replaces** it: pending length stays 1 and `fireAt` is the new one.
+     This mirrors the plugin's real semantics and the whole reconcile diff depends on it
+  3. `cancel(id)` removes only that id and leaves the others; `cancelAll()` empties the list
+  4. `checkPermission()` returns the settable state, including `denied` **after** it returned `granted` —
+     a fake that can never fail would make task 6's revoked-after-grant path untestable
+  5. every method records its call so a caller can be asserted on counts, and the counters are readable
+     and resettable
+  6. `class FakeNotificationGateway implements NotificationGateway` with no `noSuchMethod` superclass, so
+     adding a sixth port method is a **compile error** rather than a silent pass — assert by writing the
+     fake against the port before the port has all five methods
+  **Honestly untested here:** the real plugin adapter. Its correctness is the device matrix in task 9's
+  deferred list plus `tool/check-single-fln-import.sh`, and the "verify each API against `pubspec.lock`"
+  step is a read of the installed source, not a test.
 - **Details** — The port is exactly `schedule`, `cancel`, `cancelAll`, `getPending` and
   **`Future<PermissionState> checkPermission()`** — anything more means logic that belongs in
   `ReminderScheduler`. `checkPermission` is a platform *query*, not scheduler logic, which is why it
@@ -169,6 +221,24 @@ it. Everything about it is provable off-device in pure Dart tests with a fake ga
 - **What** — One idempotent function that every scheduling change flows through.
 - **Where** — `lib/services/notifications/sync_notifications.dart`,
   `lib/services/notifications/notification_providers.dart`.
+- **Tests first (TDD)** — `test/services/notifications/sync_notifications_test.dart`, driven headlessly
+  through `ProviderContainer` with `FakeNotificationGateway`, fake repositories and
+  `clockProvider.overrideWithValue(Clock.fixed(2025-04-16T07:00))`; container disposed in teardown, no
+  widget pumped. Write and watch fail, in this order:
+  1. empty gateway, reminder on, taper active → exactly **one** `schedule` call and **zero** `cancel`
+     calls; `getPending()` afterwards equals `ReminderScheduler.compute(...)`
+  2. run it a second time with nothing changed → **zero** gateway writes. Asserted on the fake's call
+     counters, not on the end state, because the end state is identical either way
+  3. advance the fixed clock past the fire time and run again → still zero writes. A repeating alarm
+     that gets cancelled and re-armed every morning is the bug the id design exists to prevent
+  4. edit the time 08:00 → 14:00 and run → exactly one `cancel(oldId)` and one `schedule(newId)`
+  5. reminder toggled off with one pending → exactly one cancel, zero schedules, pending empty
+  6. taper reaches target → same shape as (5), asserted separately so one condition cannot mask the other
+  7. a pending id that appears in no desired set (a foreign id from a restore) → cancelled
+  8. the gateway's `schedule` failing → `Err(ReminderFailure.schedulingRefused())`, and the pending set
+     is left in a state the next run repairs — run the reconcile again and assert it converges
+  9. the conservation invariant, asserted at the end of **every** case above through one shared helper:
+     `getPending()` id set == the computed desired id set
 - **Details** — `Future<Result<void, ReminderFailure>> syncNotifications(Ref ref)` (`Result<void, F>` is
   the established convention from EPIC-01/EPIC-05; there is no `Unit` type in this codebase) reads
   settings from `settingsRepository` and plan state from `taperRepository.watchSnapshot()`, calls
@@ -188,6 +258,24 @@ it. Everything about it is provable off-device in pure Dart tests with a fake ga
 - **Where** — `lib/bootstrap.dart`, `lib/app_lifecycle_observer.dart` (EPIC-01/06 put `bootstrap.dart`
   and `app.dart` at the root of `lib/`, and `tool/check_structure.sh` flags a `lib/app/` directory —
   this epic previously named one), plus a `ref.listen` in the settings layer.
+- **Tests first (TDD)** — `test/services/notifications/reconcile_triggers_test.dart`,
+  `ProviderContainer` plus one `flutter_test` case for the lifecycle listener, both against the fake
+  gateway with a counting `syncNotifications` wrapper. Write and watch fail, in this order:
+  1. changing `reminderTime` fires exactly **one** reconcile; changing `highContrast` fires **zero**.
+     The second half is the point — a `ref.listen` without the `select` passes the first and fails this
+  2. changing `resolvedLocaleProvider` from `en` to `fa` fires one reconcile and produces a different id
+  3. `tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed)` fires one reconcile, and
+     `checkPermission()` is called **before** the first `getPending()` — assert the recorded call order
+  4. two resumes in a row → the second performs zero gateway writes (idempotence at the trigger, not
+     only inside the reconcile)
+  5. bootstrap ordering: with `FlutterTimezone` faked to return `TimezoneInfo('Asia/Tehran')`,
+     `tz.local.name == 'Asia/Tehran'` after `bootstrap()`, and a gateway that **throws if scheduled
+     before `tz.setLocalLocation` ran** proves the ordering rather than assuming it
+  6. `.identifier` is read, not the object: a fake returning a `TimezoneInfo` whose `toString()` differs
+     from its `identifier` still yields the right zone
+  7. a structure assertion that no `boot_rearm_android.dart` exists anywhere in `lib/`
+  **Honestly untested:** Android boot re-arm, Doze and OEM battery managers. No Dart runs at boot, so
+  there is nothing to assert; those live on task 9's deferred list, not in a green test.
 - **Details** — Six triggers: (1) **bootstrap**, after `tz.initializeTimeZones()` +
   `tz.setLocalLocation(tz.getLocation((await FlutterTimezone.getLocalTimezone()).identifier))` and after
   the database opens — note the `.identifier`: `flutter_timezone` v5+ returns a `TimezoneInfo`, not a
@@ -219,6 +307,19 @@ it. Everything about it is provable off-device in pure Dart tests with a fake ga
 - **What** — Ask at the right moment, degrade honestly when refused.
 - **Where** — `lib/services/notifications/notification_permissions.dart`, and the reminder row from
   EPIC-11.
+- **Tests first (TDD)** — `test/services/notifications/notification_permissions_test.dart`
+  (`ProviderContainer` + fake gateway + fake `settingsRepository`) and one `flutter_test` case over
+  EPIC-11's reminder row. Write and watch fail, in this order:
+  1. toggle on with the fake permission `denied` → `Err(ReminderFailure.permissionDenied())`,
+     `reminderEnabled` is still `false` in the fake repository, and **zero** `schedule` calls happened
+  2. toggle on with `granted` → `reminderEnabled: true` persisted once, exactly one `schedule`
+  3. a full `bootstrap()` plus first frame makes **zero** `requestPermission` calls — the "never prompt
+     on launch" rule, asserted as a counter rather than remembered
+  4. revoked-after-grant: grant → schedule → flip the fake to `denied` → resume. The row reads "Blocked
+     in system settings", the stored `reminderEnabled` is **still true**, `getPending()` is untouched,
+     and `tester.takeException()` is null
+  5. the explanation renders inline inside the reminder card; `find.byType(SnackBar)` finds nothing
+  6. an ARB assertion that no string on this path mentions exact alarms in any of the four locales
 - **Details** — Never request on first launch — request at the moment the user turns the toggle **on**,
   which is the only point where the request is self-explanatory. Android 13+:
   `AndroidFlutterLocalNotificationsPlugin.requestNotificationsPermission()`. iOS:
@@ -254,6 +355,21 @@ it. Everything about it is provable off-device in pure Dart tests with a fake ga
 - **What** — Notification text that reads as a plan, not an instruction, and carries no medical detail.
 - **Where** — `lib/l10n/arb/app_{en,de,fa,ckb}.arb` (the `arb-dir` EPIC-03 set in `l10n.yaml`),
   `lib/services/notifications/notification_copy.dart`.
+- **Tests first (TDD)** — `test/services/notifications/notification_copy_test.dart`, over the generated
+  `AppLocalizations` loaded per locale with no widget pumped. Authoring the translations is craft; the
+  medical-safety and privacy constraints on them are mechanical, and those are the tests. Write and
+  watch fail, in this order:
+  1. for each of `en`, `de`, `fa`, `ckb`: `reminderBody` contains **no** Unicode decimal digit — not
+     ASCII, not U+06Fx, not U+066x. This is the "no dose in the notification" rule made checkable
+  2. `reminderTitle` in `en` is exactly `Your plan for today`
+  3. neither ARB entry declares a placeholder — a `{dose}` in the body is impossible by construction
+  4. neither string contains the drug name from the seeded fixture, in any locale
+  5. no locale's title begins with an imperative form, checked against a per-locale prefix list authored
+     **with the translator** and committed next to the test — a guess here would be worse than nothing
+  6. `fa` and `ckb` values contain no stray U+200E/U+200F — the exact defect the epic names, invisible
+     in review and visible in the shade
+  7. `NotificationCopy.from(l10n)` for two different locales produces two different `(title, body)`
+     pairs, which is what makes task 2's id change on a locale switch
 - **Details** — Title `reminderTitle`: **"Your plan for today"** (SPEC §11.4 settles this — *not* "Take
   your pills", *not* "Time for your dose", *not* an imperative in any locale). Body `reminderBody`:
   "Open NearlyStop to see today's dose." — no number, no drug name, no tablet counts. The body must not
@@ -273,6 +389,17 @@ it. Everything about it is provable off-device in pure Dart tests with a fake ga
 
 - **What** — Tapping the notification opens Today.
 - **Where** — `fln_notification_gateway.dart` (initialisation), `lib/routing/` (the deep link).
+- **Tests first (TDD)** — `test/services/notifications/notification_tap_test.dart`, pure
+  `package:test` for the mapping; the launch path itself is
+  `integration_test/notification_launch_test.dart`, written alongside because it needs a real binding.
+  Write and watch fail, in this order:
+  1. `payloadToRoute('today')` → `'/today'`
+  2. an unknown payload and an empty payload each → `null`, and the caller navigates nowhere
+  3. round trip: the payload survives `jsonDecode(jsonEncode(p))` unchanged — proof that nothing
+     non-serializable can be put in it
+  4. a source assertion that the background handler is a **top-level** function, carries
+     `@pragma('vm:entry-point')`, and its file imports no DAO, no `AppDatabase` and no drift symbol.
+     Two isolates writing one database is not a bug a runtime test would survive to report
 - **Details** — `onDidReceiveNotificationResponse` maps the serializable payload `'today'` to
   `router.go('/today')`. The background handler
   `onDidReceiveBackgroundNotificationResponse` is a **top-level** function annotated
@@ -288,6 +415,20 @@ it. Everything about it is provable off-device in pure Dart tests with a fake ga
 
 - **What** — Prove the engine off-device.
 - **Where** — `test/core/notifications/`, `test/services/notifications/`.
+- **Tests first (TDD)** — almost everything this task lists was already written first, and watched
+  failing, under tasks 2, 4, 5, 6 and 7; this task is where they are collected and where the deferred
+  set is written down honestly. One test genuinely belongs here and is written before the wiring it
+  covers: `test/features/settings/reminder_toggle_e2e_test.dart`, a `flutter_test` widget test that is
+  this epic's single **acceptance gate** —
+  1. pump Settings with `FakeNotificationGateway` and the clock pinned; toggle the reminder on; pick
+     08:00; then assert `getPending()` holds **exactly one** entry, at local 08:00, with
+     `matchComponents == DateTimeComponents.time` and the inexact schedule mode. One realistic scenario,
+     asserted to the exact expected value — that the pieces compose is the only thing it proves, and
+     nothing else in the epic proves it
+  2. toggle it back off in the same test → pending is empty. The round trip, not just the arm
+  **Deferred, not faked green:** reboot survival, Doze, OEM battery managers and real notification-shade
+  rendering of the `fa`/`ckb` bodies. These go on EPIC-14's manual device matrix and into the PR's
+  Deferred section; a green emulator test over any of them would be worse than the admitted gap.
 - **Details** — Pure tests with `Clock.fixed` and `tz` initialised from the embedded database:
   DST spring-forward (an 08:00 reminder on the day the clock jumps still fires at local 08:00), DST
   fall-back, reminder off → empty desired set, taper complete → empty desired set, a time edit produces a
@@ -304,6 +445,7 @@ it. Everything about it is provable off-device in pure Dart tests with a fake ga
 
 ## Definition of done
 
+- [ ] Every TDD task's tests were written first and observed failing before its implementation
 - [ ] `flutter_local_notifications` imported in exactly one file; the check script passes, with the
       CONTRACTS §2 `package:timezone` exception for `lib/core/notifications/**` encoded in the gate
 - [ ] All scheduling maths pure and Clock-injected; the purity check script passes

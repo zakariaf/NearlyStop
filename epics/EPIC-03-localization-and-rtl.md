@@ -87,6 +87,30 @@ overflow a button that has not been built yet.
 
 - **What** — Configure gen-l10n and author the template plus three translations.
 - **Where** — `l10n.yaml`, `lib/l10n/arb/app_{en,de,fa,ckb}.arb`, `lib/l10n/gen/`.
+- **Tests first (TDD)** — the *wording* of the translations is Scaffold (a German sentence cannot be
+  wrong in a way `expect` catches), but the **codegen contract and the ICU shapes** are exactly where
+  this task breaks. `test/l10n/arb_messages_test.dart`, `flutter_test` (the generated class imports
+  `flutter_localizations`), no pump — reach the strings through `lookupAppLocalizations(locale)`.
+  Write and watch fail, in this order:
+  1. `lookupAppLocalizations` **exists and is callable outside a `Localizations` scope**, for all four
+     locales. EPIC-06's `appLocalizationsProvider` (CONTRACTS §4) is built on it, and it only exists
+     because of `synthetic-package: false` — this case is the evidence the PR is asked to carry.
+  2. `AppLocalizations.of(context)` is non-nullable: the test uses it with no `!` and no `?.`, which
+     compiles only under `nullable-getter: false`
+  3. count-bearing strings are ICU `plural`, never a ternary and never concatenation — read the ARB
+     JSON in the test and assert every count-bearing key's template value contains `{count, plural,`.
+     A ternary in Dart cannot pass this, and a spliced string looks fine in English.
+  4. plurals select per locale: `en.takenDays(1)` uses the `one` branch and `en.takenDays(341)` the
+     `other`; `de` likewise; **`fa` and `ckb` return the `other` branch for both 1 and 341** — a
+     hand-faked `one` branch copied into those ARBs fails here
+  5. placeholders are substituted, not left behind: for every seeded message in every locale, the
+     rendered string contains each supplied value and **no surviving `{`**
+  6. the SPEC §5.4 semantics sentence is a real ICU message with typed placeholders in all four
+     locales: `en.todaySemantics(9, 1, 4)` is exactly *"Today, 9 milligrams: one 5 milligram tablet,
+     four 1 milligram tablets. Not yet taken."* — a semantics label is a user-facing string like any
+     other
+  A deleted or mistyped key is a **compile** error, not a test failure: prove it once by deleting a
+  key, watching `flutter analyze` go red, and restoring it.
 - **Details** —
   ```yaml
   arb-dir: lib/l10n/arb
@@ -130,6 +154,25 @@ overflow a button that has not been built yet.
 - **What** — Wire the delegates and make the resolved locale a single source of truth that the theme
   and the `MaterialApp` cannot disagree about.
 - **Where** — `lib/l10n/app_locales.dart`, `lib/app.dart`.
+- **Tests first (TDD)** — `test/l10n/app_locales_test.dart`, `flutter_test` value tests
+  (`basicLocaleListResolution` and `Locale` are framework types) plus two pumped cases. The alias
+  table *is* the test. Write and watch fail, in this order:
+  1. exact hits: `[en] → en`, `[de] → de`, `[fa] → fa`, `[ckb-Arab] → ckb-Arab`
+  2. **`[ku] → ckb-Arab`** — `basicLocaleListResolution` will not do this on its own; the alias is
+     explicit code and this case is the only thing that proves it is wired
+  3. country and script noise ignored: `[ckb-IQ]`, `[ckb-IR]` and `[ckb-Arab-IQ]` all → `ckb-Arab`;
+     `[de-CH] → de`; `[en-GB] → en`
+  4. `[fa-AF]` (Dari) → `fa`, not the `en` fallback
+  5. unsupported falls back to `en`: `[ar] → en`, `[ja-JP] → en`, and the empty list `[] → en`
+  6. preference **order** beats list position: `[ar, de] → de` (the first *supported* entry), and
+     `[de, fa] → de`
+  7. the two consumers cannot disagree: `pumpWidget` a `MaterialApp` with
+     `locale: resolveAppLocale(prefs)` for every row above and assert `Localizations.localeOf(context)`
+     equals the same value. This is the ordering bug the pure function exists to prevent — the theme
+     is built before `Localizations` resolves.
+  8. direction is never hardcoded: in the pumped `fa` and `ckb` cases `Directionality.of(context)` is
+     `TextDirection.rtl` and in `en`/`de` it is `ltr`, with **no** root `Directionality` anywhere in
+     the tree
 - **Details** — `supportedLocales` is
   `[Locale('en'), Locale('de'), Locale('fa'), Locale.fromSubtags(languageCode: 'ckb', scriptCode: 'Arab')]`.
   Direction is **never** hardcoded — no root `Directionality(TextDirection.rtl)`. RTL follows the
@@ -164,6 +207,29 @@ overflow a button that has not been built yet.
 - **What** — Supply Material, Cupertino and Widgets framework strings for Kurdish Sorani, which
   `flutter_localizations` does not ship.
 - **Where** — `lib/l10n/ckb_material_localizations.dart`, `lib/app.dart`.
+- **Tests first (TDD)** — `test/l10n/ckb_localizations_test.dart`, `flutter_test`. The tripwire comes
+  first: it is the evidence the PR is asked to carry, and it is what will one day tell a maintainer to
+  delete this file. Write and watch fail, in this order:
+  1. **the constraint, asserted rather than claimed**:
+     `GlobalMaterialLocalizations.delegate.isSupported(const Locale('ckb'))` is `false`, and
+     `kMaterialSupportedLanguages` does not contain `'ckb'`. When upstream adds it, this goes red and
+     names the file to delete.
+  2. `CkbMaterialLocalizationsDelegate().isSupported(Locale('ckb'))` is `true`, and **`false` for
+     `fa`, `en`, `de` and `ar`** — the delegate must be inert for everything else, which is what makes
+     placing it before the global delegates safe
+  3. `await load(const Locale('ckb'))` returns a `MaterialLocalizations` whose `cancelButtonLabel` is
+     the non-empty Persian string and whose `localeName` reports `'fa'` — the cost of the trade,
+     pinned in a test so nobody later mistakes it for a bug or forgets it was deliberate
+  4. the same two cases for `CkbCupertinoLocalizationsDelegate` and `CkbWidgetsLocalizationsDelegate`,
+     the third of which must yield `TextDirection.rtl` — that delegate is where RTL actually comes
+     from for `ckb`
+  5. `shouldReload(_)` is `false` for all three
+  6. end to end: `pumpWidget` a `MaterialApp` with
+     `locale: Locale.fromSubtags(languageCode: 'ckb', scriptCode: 'Arab')` and the three delegates
+     ordered **before** the globals — it builds without throwing (today it throws from
+     `isSupported`), `MaterialLocalizations.of(context)` resolves, `Directionality.of(context)` is
+     `rtl`, and an app-owned ARB string comes back in Kurdish (assert one of ours, never a framework
+     string)
 - **Details** — Verify the constraint before writing code, so the PR carries evidence rather than a
   claim: `GlobalMaterialLocalizations.delegate.isSupported(const Locale('ckb'))` returns `false`, and
   `kMaterialSupportedLanguages` does not contain `ckb`. Assert exactly that in a test — if a future
@@ -206,6 +272,31 @@ overflow a button that has not been built yet.
 
 - **What** — Connect the resolved locale to `daybreakTextTheme`, closing the loop EPIC-02 left open.
 - **Where** — `lib/theme/daybreak_theme.dart`, `lib/l10n/app_locales.dart`, `lib/app.dart`.
+- **Tests first (TDD)** — `test/l10n/script_for_test.dart` and `test/theme/script_theme_test.dart`,
+  `flutter_test` value tests; the zero-tofu render check is an inspection, **gate not driver**. Write
+  and watch fail, in this order:
+  1. `scriptFor(Locale('fa'))` and `scriptFor(ckbArab)` are `DaybreakScript.perso`;
+     `scriptFor(Locale('en'))`, `scriptFor(Locale('de'))` and `scriptFor(Locale('ja'))` are
+     `DaybreakScript.latin` — the unknown case falls to latin and never throws
+  2. `scriptFor` reads `languageCode` only: `Locale('fa', 'AF')` and
+     `Locale.fromSubtags(languageCode: 'ckb', scriptCode: 'Arab', countryCode: 'IQ')` are both `perso`
+  3. the cascade ends in the **other bundled face**, never a system font:
+     `buildDaybreakTheme(light, scriptFor(fa)).textTheme.bodyLarge!.fontFamily == 'Vazirmatn'` with
+     `fontFamilyFallback == ['Nunito']`, and `en` is `'Nunito'` with `['Vazirmatn']`. No entry is
+     `null`, `'system-ui'` or `'Tahoma'` — Nunito has no Perso-Arabic coverage, and the mockup's
+     browser tail does not carry over.
+  4. the loop EPIC-02 left open is closed, per locale: for each of `en/de/fa/ckb`,
+     `buildDaybreakTheme(b, scriptFor(l)).textTheme.bodyLarge!.height` equals
+     `daybreakTextTheme(scriptFor(l)).bodyLarge!.height` — `fa` and `ckb` are the `en` value `+ 0.14`
+     (`closeTo`, 1e-9), `de` is the `en` value exactly
+  5. `ckb` takes the identical transform as `fa`: all fifteen slots compare equal between the two
+     locales' themes
+  6. no per-widget Persian override survives: a source grep for a hardcoded `height:` or `fontFamily:`
+     outside `lib/theme/` is empty, asserted in the same run — if a later screen "needs `height: 1.74`
+     for Persian", the theme already did it and the widget is reading the wrong slot
+  7. no tracking and no casing on Perso-Arabic: every slot's `letterSpacing` is `0` under `perso`
+     (including `overline`, which degrades to plain caption), and `grep -rn '\.toUpperCase()' lib/` is
+     empty — casing lives in the ARB string, never at render
 - **Details** — `DaybreakScript scriptFor(Locale l) => switch (l.languageCode) { 'fa' || 'ckb' =>
   DaybreakScript.perso, _ => DaybreakScript.latin };`. The cascade must end in the **other bundled
   face**, never a system font: `fa`/`ckb` get `fontFamily: 'Vazirmatn'` with
@@ -231,6 +322,58 @@ overflow a button that has not been built yet.
 - **What** — One formatter per locale, one normalizer, and the **localized projection of EPIC-04's
   `Milligrams`**. This epic defines no dose type of its own.
 - **Where** — `lib/l10n/number_formats.dart`, `test/l10n/numerals_test.dart`.
+- **Tests first (TDD)** — `test/l10n/numerals_test.dart`. `formatDose`/`parseDose` take a `Locale`
+  (`dart:ui`), so this runs under `flutter_test`, but it is a pure `f(input) → output` suite: no
+  `pumpWidget`, no binding beyond the import. This is the purest TDD task in the epic and the one
+  where a defect is a ten-fold dosing error. Write and watch fail, in this order:
+  1. the two-digit rule, which is the whole reason CONTRACTS §10 exists:
+     `formatDose(Milligrams(25), en) == '0.25'` and `formatDose(Milligrams(125), en) == '1.25'` —
+     under `maximumFractionDigits: 1` these are `'0.3'` and `'1.3'`, and both doses are reachable
+     (half a 0.5mg tablet, half a 2.5mg tablet)
+  2. `minimumFractionDigits: 0`: `formatDose(Milligrams(900), en) == '9'`, not `'9.00'`
+  3. `formatDose(Milligrams(1050), de) == '10,5'` — comma decimal from `intl`'s symbol data, never a
+     hand-rolled rule
+  4. `formatDose(Milligrams(125), fa)` is exactly `'۱٫۲۵'` — **four** characters; every character is
+     in U+06F0–06F9 or is U+066B; the string contains **no** ASCII digit and **no** character in
+     U+0660–0669. Assert the emitted block rather than trusting the mapping.
+  5. `formatDose(mg, ckb) == formatDose(mg, fa)` over a table of doses — `intl` has no `ckb` number
+     symbols and falls back to Latin **silently**, so this case is the only thing standing between a
+     Kurdish user and ASCII digits
+  6. the hostile parses, each with its negative assertion beside it:
+     `parseDose('1٫5', fa)` is `Ok(Milligrams(150))` and **is not** `Milligrams(1500)`;
+     `parseDose('7,5', de)` is `Ok(Milligrams(750))` and **is not** `Milligrams(7500)`;
+     `parseDose('1.234,5', de)` and `parseDose('1,234.5', en)` are both `Ok(Milligrams(123450))` —
+     strip-non-digits is a thousand-fold error on the last two
+  7. **`parseDose('7,5', en)` is `Err(UnitFailure.invalidNumber)`** — never `750` and never `7500`. A
+     grouping comma in the decimal position is not a dose; deciding it here is what stops
+     `NumberFormat('en').parse` quietly returning 75.
+  8. `normalizeToAscii` is a **digit** normalizer, asserted as such: `normalizeToAscii('۱٫۵') == '1.5'`;
+     `normalizeToAscii('١٢٣') == '123'` (the Arabic block folds too);
+     `normalizeToAscii('۱٬۲۳۴') == '1234'` (U+066C dropped); and **`normalizeToAscii('7,5') == '7,5'`,
+     unchanged**, with `expect(() => double.parse(normalizeToAscii('7,5')), throwsFormatException)`
+     pinning exactly why parsing goes through `numberFormatFor(l).parse` instead
+  9. rejections, one case each: `parseDose('-1', en)` → `Err(negative)`; `parseDose('')`,
+     `parseDose('abc', en)` and `parseDose('١٢abc', ckb)` → `Err(invalidNumber)`;
+     `parseDose('1e400', en)` → `Err(nonFinite)`; a value above the plan's ceiling →
+     `Err(aboveCeiling)`
+  10. rounding to hundredths happens **exactly once**, as boundary goldens:
+      `parseDose('0.255', en) == Ok(Milligrams(26))`, `parseDose('0.254', en) == Ok(Milligrams(25))`,
+      `parseDose('0.005', en) == Ok(Milligrams(1))` — half-up, at the boundary, not "somewhere in the
+      pipeline twice"
+  11. the **round-trip property in 0.25mg steps**: for every `Milligrams(h)` with `h` from 25 to 6000
+      step 25, in each of `{en, de, fa, ckb}`, `parseDose(formatDose(mg, l), l) == Ok(mg)`, with
+      `reason: 'locale=${l.toLanguageTag()} hundredths=$h'` so a failure is its own minimal repro. A
+      0.5-step range never generates a quarter-milligram, which is precisely why the rounding bug
+      survived the previous draft's tests.
+  12. the same round trip against an **independent oracle**, so format and parse cannot be jointly
+      wrong: normalise the formatted string to ASCII digits, swap the locale's
+      `numberFormatFor(l).symbols.DECIMAL_SEP` for `'.'`, drop the grouping symbol, and assert
+      `double.parse(...)` is `closeTo(h / 100, 1e-9)` — a second path that never calls
+      `NumberFormat.parse`
+  13. seeded fuzz aimed at the failure *class*: `Random(0x5EED)`, 500 iterations over
+      `h = 25 + rng.nextInt(240) * 25`, asserting the round-tripped value is neither `10 × h` nor
+      `h ~/ 10` in any locale. The ten-fold error is the single worst bug this codebase could contain,
+      so it is asserted as an absence rather than hoped away by examples.
 - **Details** —
   > **Contract:** CONTRACTS.md §1 — **`lib/core/dose.dart` is not created by this epic and
   > `DoseMg` does not exist.** The canonical dose type is EPIC-04's `Milligrams`, integer hundredths.
@@ -301,6 +444,36 @@ overflow a button that has not been built yet.
 
 - **What** — Localized date rendering for the Schedule and Today headers, off canonical instants.
 - **Where** — `lib/l10n/date_formats.dart`, `pubspec.yaml`, `lib/bootstrap.dart`.
+- **Tests first (TDD)** — `test/l10n/date_formats_test.dart`, `flutter_test`, with
+  `initializeDateFormatting()` in `setUpAll`. Every formatter takes a `LocalDate`, so the suite is
+  pure `f(date, locale) → String`. Adding `shamsi_date` to `pubspec.yaml` and calling
+  `initializeDateFormatting()` in `bootstrap()` are the *Scaffold* half; the transitive-tree audit is
+  a review step, not a test. Write and watch fail, in this order:
+  1. one pinned date per locale, on the repo's shared fixture date **2025-04-16** (a Wednesday):
+     `en → 'Wed, Apr 16'` from `DateFormat.MMMEd`, and `de →` the `MMMEd('de')` rendering pinned as a
+     golden string rather than recomputed by the test
+  2. `fa →` Jalali **27 Farvardin 1404**, with the day number in U+06F0–06F9 (1 Farvardin 1404 fell on
+     2025-03-21, so 2025-04-16 is day 27)
+  3. the Jalali leap boundary — the entire reason `shamsi_date` is a dependency and not an exercise:
+     2025-03-20 → **1403/12/30** (1403 is a leap year, so 30 Esfand exists) and 2025-03-21 →
+     **1404/01/01**. Confirm both against the package, never by hand.
+  4. `ckb →` Gregorian, composed from the ARB lists: the string is built from
+     `ckbWeekdayNames[weekdayIndex]`, the `fa`-formatted day number and `ckbMonthNames[3]`. Assert it
+     is composed from `AppLocalizations`, not from `DateFormat`.
+  5. `expect(() => DateFormat.MMMEd('ckb'), throwsA(anything))` — the constraint that forces case 4,
+     asserted so nobody later "simplifies" the ckb path back into `intl`
+  6. no date string mixes digit blocks: in every locale the rendered digits are **all** ASCII or
+     **all** U+06Fx, and **never** U+066x (borrowing `ar` symbols would put two blocks in one string,
+     which is why it was rejected)
+  7. the display bridge is UTC-only: `LocalDate(2025, 4, 16).toUtcMidnight().isUtc` is `true` and its
+     `(year, month, day)` are `(2025, 4, 16)`. Constructing a *local* instant is how a Jalali date
+     lands one day off for everyone east of UTC, on the screen where the patient checks which day
+     they are on.
+  8. the second-zone arm is an **environment** assertion, not an in-process one: Dart cannot change
+     the local zone at runtime, so CI reruns this file under `TZ=Pacific/Auckland` and diffs the
+     output against the `TZ=UTC` run byte for byte. Say that in the file's doc comment rather than
+     faking an in-process zone switch — a green test over a structurally-untestable path is worse
+     than an admitted gap.
 - **Details** — Add `shamsi_date: ^1.0.0` (VERIFY the current version). It is a **dependency, not an
   exercise**: the Jalali leap cycle has irregular exceptions, and a hand-rolled converter is right for
   a year and then quietly wrong somewhere inside a 780-day taper. Audit its transitive tree before
@@ -345,6 +518,29 @@ overflow a button that has not been built yet.
 - **What** — One FSI/PDI helper at the view layer, applied to the mixed-script runs this app actually
   produces.
 - **Where** — `lib/l10n/bidi.dart`.
+- **Tests first (TDD)** — `test/l10n/bidi_test.dart`, pure `package:test` — keep the helper
+  parameterised on a direction value rather than a Flutter `TextDirection` so it stays at the cheapest
+  tier; the two render checks are `flutter_test` widget tests written alongside. Write and watch fail,
+  in this order:
+  1. known-direction isolates, asserted by code point: `isolateLtr('1 × 5mg')` is
+     `'\u2066' + '1 × 5mg' + '\u2069'` (LRI…PDI), and the RTL form uses `\u2067` (RLI). "It wraps in
+     something" is not the test.
+  2. **FSI (`\u2068`) never appears** for a value whose direction is known — first-strong mis-guesses
+     on a leading `½` or a leading digit, which is exactly the tablet-breakdown string
+  3. no legacy embedding survives: the output contains none of `\u202A`–`\u202E`
+  4. round trip: `stripIsolates(isolateLtr(x)) == x` over a table including `'1 × 5mg'`,
+     `'10mg → 9mg'`, a Latin drug name inside a Kurdish sentence, and the empty string
+  5. `stripIsolates` removes **every** character in U+2066–U+2069, including from a doubly-isolated
+     value, and leaves everything else byte-identical (pin a string carrying `×`, `½`, `→` and
+     Perso-Arabic digits)
+  6. the isolated value is always an **ARB placeholder**: the composed message equals
+     `l10n.tabletBreakdown(isolateLtr(parts))`, and the surrounding ARB text itself contains no
+     isolate character. Hard-splicing a substring passes a visual check and fails here.
+  7. the boundary is real: applied at the storage/export seam, `stripIsolates` leaves no character in
+     U+2066–U+2069 in the value handed to a CSV field, a DB write or a search query. EPIC-13 consumes
+     this helper; the assertion lives here.
+  8. written alongside as the render gate, not the driver: an `fa` and a `ckb` widget test of
+     `1 × 5mg · 2 × 1mg · ½ × 1mg` inside a Perso-Arabic sentence, checked for intended visual order
 - **Details** — The app's real mixed-direction problem is the tablet breakdown — `1 × 5mg · 2 × 1mg ·
   ½ × 1mg` — which is a run of numbers and a Latin unit inside a Perso-Arabic sentence, and it
   reorders wrongly without isolation. Same for the context line `10mg → 9mg` and for the drug name,
@@ -363,6 +559,29 @@ overflow a button that has not been built yet.
 - **What** — Catch German overflow before there is a screen to overflow, and give the UI epics a
   budget to build against.
 - **Where** — `lib/l10n/arb/app_en.arb` (`x-maxChars` metadata), `test/l10n/string_budget_test.dart`.
+- **Tests first (TDD)** — `test/l10n/string_budget_test.dart`, pure `package:test`: it reads the four
+  ARB files as JSON, so it needs no Flutter and no generated class. Write and watch fail, in this
+  order:
+  1. the loop: for every key in `app_en.arb` carrying `"x-maxChars": n` in its `@` metadata, every
+     locale's value for that key is `<= n`. The failure message names **key, locale, budget and
+     actual length**, in that order — a budget failure a reader cannot act on is a red build they
+     will delete.
+  2. length is counted in **grapheme clusters** (`value.characters.length`), not UTF-16 units: pin one
+     Perso-Arabic string carrying a combining mark (e.g. U+0654) and assert it counts as one cluster.
+     `String.length` overcounts it and would fail a budget the layout actually meets.
+  3. the red arm, planted and reverted: a `de` value one character over its budget turns the test red
+     naming that key — run it, see it, revert it
+  4. a key **without** `x-maxChars` is skipped, not failed — unconstrained by design, and the test
+     must not creep into demanding a budget everywhere
+  5. a budgeted key **missing** from a locale fails, naming key and locale, rather than reading a
+     `null` value as "fits". Task 10's parity gate catches it too; of the two failure modes this is
+     the more dangerous, because it is silent.
+  6. every budget is traceable: each `x-maxChars` carries a sibling comment naming the slot in
+     `design/daybreak-screens.html` it was measured from
+  The limit goes in the file's doc comment, not into an assertion: this is a **proxy**, blind to font
+  metrics and to 200% text scale. The real check is the UI epics' golden matrix. No `FittedBox`, no
+  `TextOverflow.ellipsis`, no `withClampedTextScaling` — those turn a loud test failure into a
+  truncated instruction on a 78-year-old's phone.
 - **Details** — German is reliably the longest-string locale here: *"Einnahme bestätigen"* against
   *"Taken"*, *"Nächsten Schritt beginnen"* against *"Start next step"*, *"Tablettenstärken"* against
   *"Tablet strengths"*. It is where a fixed-width button or a single-line chip breaks first.
@@ -387,6 +606,31 @@ overflow a button that has not been built yet.
 
 - **What** — Prove the bundled faces actually carry tabular figures for the digit blocks in use.
 - **Where** — `tool/verify_tnum.sh`, `lib/theme/daybreak_typography.dart`.
+- **Tests first (TDD)** — the *invariant* is the test and the `ttx` output only selects which
+  implementation satisfies it, so the test is written before the answer is known.
+  `test/theme/tabular_figures_test.dart`, `flutter_test` with `loadAppFonts()` — never Ahem, whose
+  uniform metrics would make every one of these cases vacuously green. Write and watch fail, in this
+  order:
+  1. Latin tabular advance: at `doseNumeral` size, `TextPainter` each of `0`–`9` in Nunito and assert
+     all ten widths equal (`closeTo`, 0.01)
+  2. the same ten measurements for `۰`–`۹` in Vazirmatn. **This is the case that may legitimately
+     fail**, because Vazirmatn's Perso-Arabic digits are not guaranteed to sit in the same feature
+     record as its Latin ones; its result chooses the implementation, and `tool/verify_tnum.sh`
+     (`ttx -t GSUB` against the exact files in `assets/fonts/`) is the evidence for which branch was
+     taken.
+  3. the invariant that must hold **either way**: rendering `9` then `10` at display size leaves the
+     numeral's **start edge** unmoved, and likewise `۹` then `۱۰`. Assert the start edge read
+     directionally, not the width — in `fa` the left edge is the trailing one.
+  4. if case 2 fails: `reservedNumeralWidth(DaybreakScript.perso)` is `>=` the widest of the ten
+     measured Persian digits, and the hero reserves exactly that — asserted against the measured
+     maximum, never against a hard-coded number
+  5. **`FittedBox` appears nowhere in the dose hero** — a source grep in the same run. It shrinks the
+     one number that must never shrink.
+  6. `doseNumeral.fontFeatures` still contains `FontFeature.tabularFigures()` — EPIC-02 task 5
+     declared it; this task is what makes the declaration true
+  `tool/verify_tnum.sh` itself is *Scaffold*: it prints the covered blocks per face, and its output is
+  recorded in a comment beside the slot with the date and font version so the next font bump knows to
+  re-check.
 - **Details** — EPIC-02 declared `FontFeature.tabularFigures()` on `doseNumeral` because the 72px
   number the user reads every morning must not shift between 9mg and 10mg. That declaration is only
   true if the shipped file has the feature. Verify with `fontTools` (`ttx -t GSUB`) against the exact
@@ -405,6 +649,32 @@ overflow a button that has not been built yet.
 
 - **What** — Make the ARB contract and the RTL discipline machine-checked.
 - **Where** — `tool/check_arb_parity.sh`, `tool/check_bans.sh`, `.github/workflows/ci.yml`.
+- **Tests first (TDD)** — `tool/check_arb_parity_selftest.sh`, plain bash, against checked-in fixtures
+  under `tool/fixtures/arb/` (one clean four-file set, plus a deliberately broken copy per case). Same
+  both-arms discipline as EPIC-01 task 6: plant, run, assert the exit code, grep the message, revert.
+  Write and watch fail, in this order:
+  1. the clean four-file set → exit **0**
+  2. a key deleted from `app_de.arb` → exit **1**, naming the key **and** the file — this ships the
+     template language silently and is invisible in review
+  3. a key present in `app_fa.arb` but absent from the template → exit **1** (no extra keys)
+  4. `{count}` renamed to `{n}` in `app_fa.arb` → exit **1**, naming key and placeholder. This one
+     breaks that translation at *runtime*, not at build time, which is why it needs a gate.
+  5. ICU **branch shapes**: template has `one`/`other`, `de` has only `other` → exit **1**; branch
+     *bodies* differing (which is what translation is) → exit **0**
+  6. the digit-table grep: planted `const _fa = ['۰','۱','۲'];` in `lib/features/_scratch.dart` →
+     exit **1**
+  7. the three exclusions, each asserted **passing** — the arm the previous wording could not express:
+     `lib/l10n/arb/app_fa.arb` and `app_ckb.arb` (they carry Perso-Arabic by definition);
+     `lib/l10n/number_formats.dart`, whose comment documents the U+06Fx block (comments stripped
+     first); and `tool/check_bans.sh` itself, which contains every needle it searches for
+  8. anchored to a quoted literal: a Persian digit inside a Dart **string literal** under
+     `lib/features/` → exit **1**, while the same character in a `//` comment there → exit **0**
+  9. the gen-l10n freshness gate: edit an ARB without regenerating, then
+     `flutter gen-l10n && git diff --exit-code -- lib/l10n/gen/` → exit **1**; on a clean tree → exit
+     **0**
+  10. composition through the single entry point: one `tool/check_bans.sh` run carrying a planted i18n
+      violation **and** a planted EPIC-01 violation (`EdgeInsets.only(left:)`) lists both and exits 1
+      exactly once
 - **Details** — Copy `check_arb_parity.sh` and `check_i18n_bans.sh` from
   `.claude/skills/i18n-rtl-l10n/scripts/` and fold the latter's patterns into the single
   `tool/check_bans.sh` from EPIC-01 rather than running two scripts.
@@ -431,6 +701,7 @@ overflow a button that has not been built yet.
 
 ## Definition of done
 
+- [ ] Every TDD task's tests were written first and observed failing before its implementation
 - [ ] `l10n.yaml` with `nullable-getter: false`; four ARB files with identical keys, placeholder names
       and ICU branch shapes; generated output committed and excluded from analysis and coverage
 - [ ] `supportedLocales` covers en/de/fa/ckb; `resolveAppLocale` is the single resolution function

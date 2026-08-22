@@ -16,13 +16,51 @@ merge per epic. Read this file before starting any epic; read `../SPEC.md` befor
 ```
 main
  └── epic/NN-slug
-       1. implement the epic's tasks in order
+       1. for each task, in order:
+            a. write the failing test   → RED     (run it, watch it fail for the right reason)
+            b. make it pass             → GREEN   (the least code that does it)
+            c. clean it up              → REFACTOR (tests stay green)
        2. /simplify        → fix every finding      (quality: reuse, simplification, efficiency)
        3. /code-review     → fix every finding      (correctness: the bug hunt)
        4. open PR          → description per the template below
        5. wait for CI      → green only. never merge on red, never on pending
        6. merge to main
 ```
+
+## Test-first, and where it genuinely does not apply
+
+**Every task that has behaviour is written test-first.** The test comes before the implementation, it
+is run before the implementation exists, and it is watched failing. A test written after the code
+passes on the first run, which proves nothing — it can pass for reasons the author never checked.
+"Watch it fail for the right reason" is the whole value, and it is why the red step is not optional.
+
+Each task in every epic is therefore tagged:
+
+| Tag | Meaning |
+|---|---|
+| **TDD** | Has behaviour. Write the named tests first, watch them fail, then implement. |
+| **Scaffold** | Has no behaviour to assert — creating a project, adding a dependency, bundling a font, writing a CI job. Verified by the gate it enables, not by a test written about it. |
+
+Forcing a test onto a Scaffold task produces a test that asserts the framework works, which is noise
+that future readers must maintain. Say `Scaffold` and move on. If you cannot decide, ask: *could this
+task be wrong in a way a test would catch?* If no, it is Scaffold.
+
+**TDD governs the sequence. `testing-strategy` governs the tier and the shape** — the cheapest tier
+that can assert the behaviour, `package:test` for pure domain code, a real `NativeDatabase.memory()`
+for the data layer, `ProviderContainer` for notifiers, seeded fuzz against an independent oracle for
+invariants. The two are orthogonal and both apply. Read that skill before writing the first test of
+any epic.
+
+Three consequences worth stating plainly:
+
+- **The domain engine (EPIC-04) is the purest TDD epic in the plan.** It is `f(input) → output` with
+  no Flutter, no IO and no clock beyond an injected one. Every rule in `SPEC.md` §3 becomes a test
+  before it becomes a function.
+- **UI parity is not a TDD loop.** You cannot write a failing screenshot comparison before the screen
+  exists. Golden and parity checks are written alongside the widget and are a *gate*, not a driver —
+  `daybreak-visual-parity` owns that distinction.
+- **A bug found later gets a failing test first, too.** Reproduce it as a red test, then fix it. That
+  test is the only thing stopping it coming back.
 
 **Both gates run before the PR is opened, not after.** `/simplify` is quality-only and does not hunt
 bugs; `/code-review` is the bug hunt. They answer different questions, so running one is not running

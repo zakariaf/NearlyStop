@@ -79,6 +79,30 @@ block table, the 26/26 split, composition correctness and flare determinism with
   thing, plus the two small enums every other epic reads.
 - **Where** — `lib/core/units/milligrams.dart`, `lib/core/units/tablet_strength.dart`,
   `lib/core/time/local_date.dart`, `lib/core/day_state.dart`, barrel `lib/core/units/units.dart`.
+- **Tests first (TDD)** — `test/core/units/milligrams_test.dart`, `test/core/time/local_date_test.dart`,
+  `test/core/day_state_test.dart`; all pure `package:test`, no `flutter_test` import.
+  Write and watch fail, in this order:
+  1. `Milligrams.fromHundredths(950).toDisplayString() == '9.5'`, `(25) == '0.25'`, `(900) == '9'`,
+     `(1000) == '10'` — trailing zeros trimmed, no locale separators, no thousands group.
+  2. round-trip: `Milligrams.parse(m.toDisplayString()).value == m` for every `m` from 0.25 mg to
+     60 mg in 0.25 steps; `==` on the integer `hundredths`, never `closeTo`.
+  3. parse rejections: `'9.005'`, `''`, `'-1'`, `'9,5'`, `'abc'` all return `Err(UnitFailure)`;
+     `'9.50'` returns 950 hundredths and `'.5'` returns 50.
+  4. the arithmetic goldens a `double` implementation fails: `10mg - 9.9mg` has
+     `hundredths == 10` exactly, `0.1mg + 0.2mg` has `hundredths == 30`, and
+     `Milligrams.fromHundredths(10) * 3` has `hundredths == 30`.
+  5. `half()` on 50 hundredths → `Ok(25)`; on 25 hundredths (odd) → `Err`, never a rounded 12 or 13.
+  6. `LocalDate(2026,3,28).addDays(1) == LocalDate(2026,3,29)` and
+     `LocalDate(2026,10,24).addDays(1) == LocalDate(2026,10,25)` — the two European DST edges;
+     plus `(2028,2,28).addDays(1) == (2028,2,29)` and `(2026,12,31).addDays(1) == (2027,1,1)`.
+  7. seeded fuzz, `Random(20260421)`, 3,000 iterations, against an independent oracle built on
+     `DateTime.utc` day arithmetic: `LocalDate.parse(d.toIso8601()) == d` and
+     `d.addDays(n).difference(d) == n` for `n` in −400…400, with `d` and `n` echoed in `reason:`.
+  8. `toUtcMidnight()` returns `isUtc == true` at hour 0 for a sample of dates. The *ban* on
+     constructing a local instant is a review and `tool/check_bans.sh` matter, not something this
+     test can assert — say so in the test's doc comment rather than faking a check.
+  9. an exhaustive `switch` over all four `DayState` members with no `default` arm, so adding a
+     fifth member stops the test compiling.
 - **Details** —
   `Milligrams` wraps `final int hundredths` (0.01 mg resolution). **No `double` anywhere in dose
   arithmetic.** Rationale: halves of a 0.5 mg tablet give 0.25 mg, so tenths are not enough, and
@@ -120,6 +144,21 @@ block table, the 26/26 split, composition correctness and flare determinism with
 
 - **What** — The eleven-block DSNS pattern from `SPEC.md` §3.1, versioned.
 - **Where** — `lib/core/dsns/dsns_pattern.dart`.
+- **Tests first (TDD)** — `test/core/dsns/dsns_pattern_test.dart`, pure `package:test`.
+  Write and watch fail, in this order:
+  1. the `SPEC.md` §3.1 table typed out as an 11-row `const` literal in the test —
+     `(new, old, length, cumulative)` = `(1,6,7,7) (1,5,6,13) (1,4,5,18) (1,3,4,22) (1,2,3,25)
+     (1,1,2,27) (2,1,3,30) (3,1,4,34) (4,1,5,39) (5,1,6,45) (6,1,7,52)` — diffed row for row
+     against `DsnsPattern.v1().blocks`, **including the running cumulative column**.
+  2. `totalDays == 52`, `totalNewDays == 26`, `totalOldDays == 26`, as three separate `expect`s so a
+     failure names which one broke.
+  3. `leadsWithNew` is `true` for indexes 1–6 and `false` for 7–11, asserted per block.
+  4. `blocks_7_to_11_all_have_exactly_one_old_day` — `oldDays == 1` for indexes 7…11.
+  5. `crossover_produces_two_consecutive_old_days` — block 6 is `(new 1, old 1)` and block 7 is
+     `(old 1, new 2)`, so block 6's last day and block 7's first day are both old. Asserted on the
+     block shapes here; task 6 asserts it again on the emitted day sequence.
+  6. `DsnsPattern.forVersion(1)` → `Ok`; `forVersion(0)` and `forVersion(2)` →
+     `Err(UnknownPatternVersion(0))` / `(2)`, carrying the requested version back.
 - **Details** —
   ```dart
   final class DsnsBlock {
@@ -154,6 +193,14 @@ block table, the 26/26 split, composition correctness and flare determinism with
 
 - **What** — The sealed failure hierarchy the whole engine returns.
 - **Where** — `lib/core/dsns/dsns_failure.dart` (extends the `Failure` base from EPIC-01).
+- **Tests first** — *Scaffold.* A sealed hierarchy of data-only failures has no behaviour to assert,
+  and the property that matters — every `switch (failure)` compiles with **no `default` arm** — is a
+  compile-time guarantee held by `flutter analyze --fatal-infos`, not something an `expect` can
+  check. Write `test/core/dsns/dsns_failure_exhaustiveness_test.dart` as the witness: one exhaustive
+  `switch` returning a tag per member, which stops compiling the moment a member is added and left
+  unhandled. The failures' **payloads** get their real assertions where they are produced —
+  `UnachievableDose` in task 4, `TargetAboveStart`/`NoStrengthsHeld` in task 5,
+  `MissingMethodParameter`/`PlanNotStarted` in task 6.
 - **Details** — `sealed class DomainFailure implements Failure` with:
   `UnachievableDose(Milligrams target, List<Milligrams> strengths, bool allowHalves)`,
   `NoStrengthsHeld()`, `TargetAboveStart(Milligrams start, Milligrams target)`,
@@ -172,6 +219,35 @@ block table, the 26/26 split, composition correctness and flare determinism with
 - **What** — Given a target dose, the strengths held and whether halves are allowed, return the
   composition minimising total tablets, then splits — or `UnachievableDose`.
 - **Where** — `lib/core/dsns/tablet_composer.dart`.
+- **Tests first (TDD)** — `test/core/dsns/tablet_composer_test.dart`, pure `package:test`.
+  Write and watch fail, in this order:
+  1. the `SPEC.md` §3.3 worked example: `[5,1]`, halves on, 6.5 mg → `counts == [(5mg,1),(1mg,1)]`,
+     `half == (1mg)`, `totalTablets == 3`, `splitCount == 1`.
+  2. `minimises_tablets_before_splits` — `[2.5,1]`, halves on, 4 mg →
+     `1 × 2.5mg + 1 × 1mg + ½ × 1mg` (`totalTablets == 3`, `splitCount == 1`), and explicitly
+     **not** `4 × 1mg`. This is the test that fails against a zero-half-first solver, which is the
+     whole reason the rule was corrected — write it before the DP exists.
+  3. the third sort key, `largestHalvedStrength desc`, on a genuine tie: `[5,2,1]`, halves on,
+     6.5 mg has two candidates at `(3 tablets, 1 split)` — `½ × 5mg + 2 × 2mg` and
+     `1 × 5mg + 1 × 1mg + ½ × 1mg`. Assert the first is returned.
+  4. deterministic reconstruction among equal-cost paths (largest strength / lowest index wins):
+     `[4,2,1]`, halves off, 4 mg → `1 × 4mg`, not `2 × 2mg` and not `4 × 1mg`.
+  5. `[5,1]`, halves **off**, 6.5 mg → `Err(UnachievableDose(6.5mg, [5,1], false))` — never 6 mg,
+     never 7 mg. Assert the payload's three fields, because the presentation layer writes its
+     sentence from them.
+  6. `[]` → `Err(NoStrengthsHeld)`. 100.00 mg composes; 100.01 mg → `Err(DoseOutOfRange)` —
+     both sides of the guard.
+  7. at most one half: over every dose 0.25–30 mg in 0.25 steps with `[5,1]` + halves,
+     `splitCount <= 1` on every reachable dose.
+  8. **seeded fuzz against an independent oracle** — `Random(20260421)`, 1,000 iterations, random
+     strength subsets of `{0.5,1,2,2.5,5,10,20,25}`, random `allowHalves`, random target
+     0.25–60 mg. The oracle is a brute-force bounded enumeration written in the test file (nested
+     loops over counts `0…target ~/ strength`, plus the one optional half) — never the DP under
+     test. Assert: `Σ strength × count [+ half] == target` **in hundredths**; the composer's
+     `(totalTablets, splitCount)` equals the oracle's minimum under `(tablets asc, splits asc)`;
+     and the composer returns `UnachievableDose` **exactly** when the oracle finds nothing. Echo
+     strengths, halves and target in `reason:` so each failure is its own minimal repro.
+  9. determinism: composing the same target twice returns equal compositions element for element.
 - **Details** —
   `SPEC.md` §3.3: `dose = Σ (strengthᵢ × countᵢ) [+ one optional half tablet]`. **v1 allows at most
   one half tablet in a composition** — that is what the formula says and what people actually do; a
@@ -215,6 +291,36 @@ block table, the 26/26 split, composition correctness and flare determinism with
 - **What** — `suggestStep(currentDose, targetDose, strengths, allowHalves) →
   Result<StepSuggestion, DomainFailure>`.
 - **Where** — `lib/core/dsns/step_size.dart`.
+- **Tests first (TDD)** — `test/core/dsns/step_size_test.dart`, pure `package:test`.
+  Write and watch fail, in this order:
+  1. `suggestStep(10mg, target 0, [5,1], halves)` → `suggested 1.0mg`, `tenPercent 1.0mg`,
+     `communityPracticeDiffers false`.
+  2. `suggestStep(9mg, …)` → `suggested 0.5mg`, `tenPercent 0.9mg`, `differs true` — the
+     `CONTRACTS.md` §6 correction to `SPEC.md` §4.4, so `9mg → 8.5mg`, never `9mg → 8mg`.
+  3. the remaining rows of the **Acceptance** table asserted on all three fields —
+     7.5 mg → `(0.75, 0.5, true)`, 5 mg → `(0.5, 0.5, **false**)`, 4 mg → `(0.4, 0.5, true)`,
+     2 mg → `(0.2, 0.5, true)`, 1 mg → `(0.1, 0.5, true)`, 0.5 mg → `(0.05, 0.5, true)`. The two
+     `false` rows are as load-bearing as the six `true` ones: a fallback that fires everywhere is
+     as wrong as one that never fires.
+  4. `allowHalves: false`, `[5,1]`, target 0: 4 mg / 2 mg / 1 mg all → `suggested 1.0, differs true`;
+     0.5 mg → `suggested 0.5` (clamped to the gap).
+  5. clamping: `suggestStep(10mg, target 9.5mg, [5,1], halves)` → `suggested 0.5mg` (the strict
+     answer 1.0 mg exceeds the gap) with `tenPercent` still `1.0mg`. Pin
+     `communityPracticeDiffers == false` here and dartdoc why: the 10% rule *was* satisfiable, the
+     clamp is a separate concern. `CONTRACTS.md` §6 fixes the clamp, not the flag; this test is
+     where the flag's answer stops drifting.
+  6. `currentDose == targetDose` → `Ok` with `suggested == Milligrams.zero`; `strengths: []` →
+     `Err(NoStrengthsHeld)`; `targetDose > currentDose` → `Err(TargetAboveStart(start, target))`
+     carrying both doses.
+  7. `nextDose`: `(10, 1, 0) → 9`; `(0.5, 1, 0) → 0` — clamps at target, never negative;
+     `(9, 0.5, 8.5) → 8.5`.
+  8. **seeded fuzz against an independent oracle** — `Random(20260421)`, 1,000 iterations over
+     random `current` 0.5–60 mg, random `target` in `[0, current]`, random strengths and halves.
+     Oracle: reuse task 4's brute-force enumerator (independent of both `suggestStep` and the DP)
+     to list every achievable increment, and assert `suggested` is the largest such increment
+     ≤ `tenPercent` when one exists and the smallest overall when none does; that
+     `tenPercent.hundredths == current.hundredths ~/ 10`; and that
+     `0 < suggested <= current - target` on every non-complete row. Echo every input in `reason:`.
 - **Details** —
   > **Contract:** the payload and the fallback are `CONTRACTS.md` §6, verbatim:
   > ```
@@ -290,6 +396,51 @@ block table, the 26/26 split, composition correctness and flare determinism with
 
 - **What** — The pure function at the centre of the app.
 - **Where** — `lib/core/dsns/day_plan.dart`, `lib/core/dsns/schedule_generator.dart`.
+- **Tests first (TDD)** — `test/core/dsns/schedule_generator_test.dart` and
+  `test/core/dsns/step_status_test.dart`, pure `package:test`, with `withClock(Clock.fixed(t), …)`
+  wherever a "today" is needed (never `DateTime.now()`). Fixture unless stated: plan 2026-04-01,
+  10 mg → target 0, `[5,1]`, halves on, DSNS, one step 10 → 9.
+  Write and watch fail, in this order:
+  1. `until: null` yields 52 `DayPlan`s. `days[0]` = 2026-04-01, `dose 9mg`, `doseKind newDose`,
+     `kind step`, `blockIndex 1`, `dayInBlock 1`, `dayInStep 1`, `isHoldDay false`;
+     `days[1..6]` are 10 mg `oldDose`; `days[7]` is 9 mg `newDose` opening block 2 — the single day
+     **leads**.
+  2. `two_consecutive_old_days_at_the_crossover` — `dayInStep 27` (block 6's last day) and
+     `dayInStep 28` (block 7's first day) are both 10 mg `oldDose`.
+  3. 26 `newDose` and 26 `oldDose` days; block lengths in emission order are
+     `7,6,5,4,3,2,3,4,5,6,7`; dates are contiguous with no gap and no repeat.
+  4. holds: `HoldEvent(stepId, fromDate: 2026-04-10, extraDays: 3)` inserts three days immediately
+     after 04-10 repeating its `dose`, `blockIndex`, `dayInBlock` and `dayInStep` with
+     `isHoldDay true`; the step spans 55 days; `dayInStep` still reaches exactly 52 counting
+     non-hold days only; the day that was 2026-04-11 is now 2026-04-14.
+  5. truncation by flare: a flare on `dayInStep 20` inserts a step whose `startDate` is the flare
+     date, so the running step contributes exactly 19 days, and every day before the flare is
+     **identical field for field** to the pre-flare generation.
+  6. `abandoned_steps_still_generate_their_lived_days` — the truncated step from case 5 with
+     `status: abandoned` still emits its 19 days; cycling `status` through `pending`, `active`,
+     `completed` and `abandoned` changes nothing in the output.
+  7. steady state between steps: a step realised through 2026-05-22 with no successor and
+     `until: 2026-06-30` emits `kind: steadyState` for 05-23…06-30 at that step's `toDose`, with
+     `doseKind newDose`, `blockIndex`/`dayInBlock`/`dayInStep` all `null`, `isHoldDay false`, and
+     `stepIndex` = the step it follows.
+  8. after the final step: a plan that has reached `targetDose` emits `steadyState` at the target
+     for every day up to `until` — never an empty list, which is the state `SPEC.md` §7's "target
+     reached" has to render.
+  9. `until` semantics and guards: `until: null` stops at the last step's end (the golden vector's
+     contract); `until` before `plan.startDate` → `Err(PlanNotStarted(startDate))`;
+     `targetDose > startingDose` → `Err(TargetAboveStart)`.
+  10. `percentage`: `percentage: 10` on a 20 mg `fromDose` with `[5,1]` + halves gives a 2 mg step
+      rounded down to an achievable increment; every day of the hold period is that step's
+      `toDose`, `doseKind newDose`, `blockIndex == null`, `dayInStep` running 1…52. A plan with
+      `method: percentage, percentage: null` → `Err(MissingMethodParameter(TaperMethod.percentage))`
+      — not a throw, and above all not a silent DSNS schedule.
+  11. `fixedMg`: same shape with `fixedStep: 1mg`; `fixedStep: null` →
+      `Err(MissingMethodParameter(TaperMethod.fixedMg))`.
+  12. determinism: two calls with identical inputs compare equal element for element.
+  13. `stepStatusFor`, clock pinned per case: a step starting 2026-04-01 with no holds is `pending`
+      on 03-31, `active` on 04-01 and 05-22, `completed` on 05-23 (`startDate + 52`); with a 3-day
+      hold it is `active` on 05-25 and `completed` on 05-26; a step whose `StepFacts.status` is
+      already `abandoned` reports `abandoned` on every one of those dates.
 - **Details** —
   ```dart
   enum DayKind { step, steadyState }
@@ -432,6 +583,25 @@ block table, the 26/26 split, composition correctness and flare determinism with
 
 - **What** — The arithmetic behind the Progress screen (`SPEC.md` §4.3).
 - **Where** — `lib/core/dsns/cumulative.dart`.
+- **Tests first (TDD)** — `test/core/dsns/cumulative_test.dart`, pure `package:test`, `withClock`
+  for every "today". Write and watch fail, in this order:
+  1. `cumulativeTakenMg([10mg taken, 9mg taken, 9mg not taken]) == 19mg`; an empty list and an
+     all-untaken list both return `Milligrams.zero`. Assert in hundredths.
+  2. `plannedCumulativeMg` over the golden step's 52 days == `26 × 9mg + 26 × 10mg == 494mg`,
+     hand-computed in the test rather than read back from the function.
+  3. `daysOnSteroids(2026-04-01, 2026-04-01) == 1` (inclusive, not 0);
+     `(2026-04-01, 2026-04-30) == 30`; `(2028-02-27, 2028-03-01) == 4` across the leap day.
+  4. `adherence_never_counts_a_day_that_has_not_happened` — 780 `DayPlan`s, 341 taken logs, `today`
+     pinned to day 350: `Adherence(takenCount: 341, plannedCount: 350)`, **not** 780. Move the
+     clock back one day and `plannedCount` is 349. Assert the return carries no streak, no
+     percentage and no "days missed" field.
+  5. `a_flare_preserves_the_cumulative_total` — reuse task 6 case 5's day-30 flare fixture and
+     assert `cumulativeTakenMg` is identical before and after the flare is appended, because a
+     flare only appends facts and never edits a `DoseLog`.
+  6. conservation invariant (`testing-strategy` rule 8): over a seeded fuzz of 200 generated
+     schedules, `plannedCumulativeMg(days)` equals the sum of the per-day doses in hundredths —
+     parts sum to the whole — with the same equality mirrored as a runtime `assert` inside the
+     function itself.
 - **Details** — `cumulativeTakenMg(List<DoseLogFacts>) → Milligrams` sums `actualMg` where
   `taken == true`. `plannedCumulativeMg(List<DayPlan>)`. `daysOnSteroids(LocalDate start, LocalDate
   today) → int` = `today.difference(start) + 1`, inclusive, calendar days.
@@ -453,6 +623,25 @@ block table, the 26/26 split, composition correctness and flare determinism with
 
 - **What** — A test that fails if the domain ever grows a framework dependency.
 - **Where** — `test/core/no_flutter_imports_test.dart`.
+- **Tests first (TDD)** — the deliverable *is* a test, so what gets written first is its **self-test**:
+  plant fixture files under a temp root in `setUp` (`addTearDown` removes it) and assert the walker's
+  report. Pure `package:test` + `dart:io`. Write and watch fail, in this order:
+  1. one planted violation per banned pattern — `package:flutter/material.dart`,
+     `package:flutter_riverpod/flutter_riverpod.dart`, `package:hooks_riverpod/hooks_riverpod.dart`,
+     `package:riverpod/riverpod.dart`, `package:drift/drift.dart`,
+     `package:flutter_test/flutter_test.dart`, `dart:ui` — each in its own fixture file, each
+     asserted to be reported **with file path and line number**. Seven cases; the bare
+     `package:riverpod` one is the hole the four-pattern draft left open, so write it first.
+  2. accumulation: three violations across three files produce **one** failure listing all three,
+     not a throw on the first.
+  3. the encoded exception: `package:timezone/timezone.dart` under
+     `lib/core/notifications/foo.dart` is **not** reported; the identical import under
+     `lib/core/dsns/foo.dart` **is**.
+  4. near-misses that must stay green — the walker matches import directives, not substrings:
+     `package:flutter_lints` named in a `//` comment, the literal string
+     `'package:flutter/material.dart'` inside a Dart string, and a clean file whose *path* contains
+     `drift`.
+  5. the live gate: running the walker over the real `lib/core/` reports zero violations.
 - **Details** — Walk `lib/core/` with `dart:io`, read each `.dart`, accumulate every violation and
   fail once with all of them, naming file and line.
   > **Contract:** the banned list is `CONTRACTS.md` §2, and it is broader than the draft's four
@@ -479,6 +668,24 @@ block table, the 26/26 split, composition correctness and flare determinism with
 
 - **What** — A committed, human-readable dump of a full step, asserted byte for byte.
 - **Where** — `test/core/dsns/golden/step_10mg_to_9mg.json`, `test/core/dsns/golden_vector_test.dart`.
+- **Tests first (TDD), in its strong form** — the committed JSON is **hand-derived from `SPEC.md`
+  §3.1 before the generator runs**, never dumped from the implementation: a golden captured from the
+  code under test only pins whatever that code happened to do. `test/core/dsns/golden_vector_test.dart`,
+  pure `package:test`. Write and watch fail, in this order:
+  1. the 52 hand-written rows deserialise, and `generateSchedule` over the fixture (plan 2026-04-01,
+     10 → 9 mg, target 0, `[5,1]`, halves, DSNS, one step, `until: null`) equals them element for
+     element — compared on the serialised map so a failure prints the offending row, not "lists
+     differ".
+  2. row 1 is `{date: 2026-04-01, kind: step, block: 1, dayInBlock: 1, dayInStep: 1, mg: 9,
+     doseKind: newDose, tablets: [[1, 5mg], [4, 1mg]]}`; rows 2–7 are 10 mg `oldDose` with
+     `tablets: [[2, 5mg]]`; the file holds exactly 26 `newDose` and 26 `oldDose` rows.
+  3. `kind` and `doseKind` are separate keys on every row — a row is `kind: step` **and**
+     `doseKind: oldDose` — so no future refactor can collapse the two axes into one.
+  4. serialisation stability: re-serialising the generated list reproduces the committed bytes
+     exactly — stable key order, two-space indent, trailing newline. This is what makes an
+     unexplained diff in a PR reviewable at all.
+  `tool/regen_golden_vectors.dart` exists for *intentional* changes only; it is never how this file
+  is first created.
 - **Details** — Per `seeded-determinism-and-golden-vectors`: fixture = plan starting 2026-04-01 at
   10 mg, target 0, strengths `[5, 1]`, halves allowed, DSNS method, one step 10 → 9. Serialise the 52
   `DayPlan`s as a JSON array of `{date, kind, block, dayInBlock, dayInStep, mg, doseKind, tablets}`
@@ -494,6 +701,30 @@ block table, the 26/26 split, composition correctness and flare determinism with
 
 - **What** — The invariants from `SPEC.md` §10, proven across the whole input space we care about.
 - **Where** — `test/core/dsns/schedule_properties_test.dart`.
+- **Tests first (TDD) — and these are tests task 6 is written *against*.** The file is numbered
+  separately for organisation, but it belongs in task 6's **red** step, not after its green.
+  Pure `package:test`, `Random(20260421)` pinned and echoed in every `reason:`.
+  Write and watch fail, in this order:
+  1. 1,000 iterations over dose pairs from 0.5–60 mg, random strength subsets of
+     `{0.5,1,2,2.5,5,10,20,25}` and random `allowHalves`: exactly 52 non-hold days; exactly 26 old
+     and 26 new; block lengths `7,6,5,4,3,2,3,4,5,6,7`; the single day leads every block; blocks
+     6→7 give two consecutive old days; dates contiguous with no gaps or repeats; generating twice
+     is identical.
+  2. flare determinism: for `flareDay in 1..52`, apply a flare that day, regenerate 50 times, assert
+     all 50 runs identical **and** every day before the flare date unchanged from the pre-flare
+     generation. The truncated step's fixture sets `status: abandoned`, so this exercises the
+     ignore-`status` rule instead of passing vacuously.
+  3. **the coverage property — the regression test for the steady-state blocker**
+     (`CONTRACTS.md` §5): with `until = lastStep.startDate.addDays(200)`, every date in
+     `[plan.startDate, until]` has **exactly one** `DayPlan`. The oracle is an independent date walk
+     built from `LocalDate.addDays` in the test, compared as a multiset against the emitted dates so
+     a gap *and* a duplicate each fail naming the offending date. Three fixtures: (a) the last step
+     still running, (b) the last step ended 40 days ago with no successor — the "finished Friday,
+     tapped Monday" case, (c) target reached, where every day past the end is `steadyState` at
+     `targetDose`.
+  4. one loop each for `percentage` and `fixedMg`: dates contiguous; dose descends monotonically and
+     clamps at `targetDose`, never below it and never negative; every day is `doseKind: newDose`;
+     no day carries a `blockIndex`.
 - **Details** — Seeded `Random(20260421)` (pinned, printed on failure). 1,000 iterations over dose
   pairs drawn from 0.5–60 mg with random strength sets from `{0.5, 1, 2, 2.5, 5, 10, 20, 25}` and a
   random `allowHalves`. For each:
@@ -519,6 +750,7 @@ block table, the 26/26 split, composition correctness and flare determinism with
 
 ## Definition of done
 
+- [ ] Every TDD task's tests were written first and observed failing before its implementation
 - [ ] `lib/core/units/`, `lib/core/time/`, `lib/core/dsns/`, `lib/core/day_state.dart` exist; the purity gate covers all seven banned packages of `CONTRACTS.md` §2 with the one encoded `package:timezone` exception, and its self-test proves it catches each
 - [ ] `Milligrams`, `LocalDate`, `DayState` and `TaperMethod` are declared here and nowhere else; no `CalendarDate`, no `DoseMg`, no `lib/core/dose.dart`
 - [ ] `DsnsPattern.v1()` reproduces `SPEC.md` §3.1 including the cumulative column

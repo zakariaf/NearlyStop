@@ -93,6 +93,10 @@ history stays at 60/120fps. And a test in CI fails the build if anyone adds a gr
   `schedule_view_state.dart`, and `presentation/widgets/`
   (`schedule_block_group.dart`, `schedule_day_row.dart` wrapping EPIC-07's `DayStateRow`,
   `jump_to_today_button.dart`, `step_switcher_sheet.dart`, `earlier_days_affordance.dart`).
+- **Tests first** — *Scaffold.* Creating the module's files asserts nothing. The layering rule it
+  establishes is verified by the same `tool/check_bans.sh` rule group EPIC-08 task 1 added
+  (`lib/features/*/presentation/widgets/` may not match `package:drift`, `taper_repository`,
+  `WidgetRef`), now covering `lib/features/schedule/` for free.
 - **Details** — Same rule as Today: nothing in `widgets/` sees drift, the repository, or `WidgetRef`.
 - **Acceptance** — `scaffold-feature-module`'s checklist satisfied; module compiles with a stub state.
 
@@ -100,6 +104,37 @@ history stays at 60/120fps. And a test in CI fails the build if anyone adds a gr
 
 - **What** — Model the screen as a list of blocks, each with its header text and its rows.
 - **Where** — `lib/features/schedule/presentation/schedule_view_state.dart`.
+- **Tests first (TDD)** — two files. The block-summary generator and the taken-row join are the two
+  places this task can be *wrong*, and both are pure; neither needs a widget.
+
+  **(a) `test/features/schedule/block_summary_test.dart`** — `flutter_test`, no `pumpWidget`, with
+  `await AppLocalizations.delegate.load(const Locale('en'))` (and `de`). The summary must be read off
+  EPIC-04's `blockTable`, so hardcoding is what these tests kill. For a 10mg → 9mg step:
+  1. block 1 → `l10n.blockSummary(1, '9mg', 6, '10mg')` — *"one day at 9mg, then 6 days at 10mg"*
+  2. block 6 → `l10n.blockSummary(1, '9mg', 1, '10mg')` — the single **new**-dose day still leads
+     (SPEC §3.1's v1 decision); a summary that reads "one day at 10mg, then 1 day at 9mg" here is the
+     "helpful" reordering the test exists to reject
+  3. block 7 → `l10n.blockSummary(1, '10mg', 2, '9mg')` — the halves have inverted, so the **old**
+     dose is now the single day
+  4. block 11 → `l10n.blockSummary(1, '10mg', 6, '9mg')`
+  5. the same four in `de`, including *"ein Tag mit 9 mg, dann 4 Tage mit 10 mg"* for block 3 — the
+     longest-string locale, asserted as text, not as a layout
+  6. seeded fuzz over all 11 blocks × three step doses: the two day-counts in the summary always sum
+     to `blockTable[i].days`, with the block index echoed in `reason:` — the independent oracle is
+     the block table's own `days` column, never the summary builder
+
+  **(b) `test/features/schedule/schedule_view_state_test.dart`** — pure `package:test` (the file is
+  data: `LocalDate`, `Milligrams`, `DayState`, no Flutter):
+  7. `ScheduleDayVm` value equality and `hashCode` over every field, so list diffing is cheap
+  8. `state == taken` with a `DoseLog` requires a non-null recorded source — the constructor asserts
+     it, because a taken row whose labels came from the `DayPlan` is the SPEC §5.2 defect
+  9. the SPEC §5.2 join, as a projection test: build a plan at strengths 5mg+1mg, project, keep the
+     rendered `doseLabel`/`tabletsLabel` of a **past taken** row; change the plan's strengths to
+     2.5mg+1mg, re-project, and assert that row's two strings are **byte-identical** while a
+     **future** row's `tabletsLabel` changes from `'1 × 5mg, 4 × 1mg'` to the new composition
+  10. `blockIndex == null` days land in a trailing `ScheduleBlockVm(blockNumber: null)` titled
+      `l10n.steadyStateTitle` — and every date the generator emitted appears in exactly one block,
+      asserted by counting: `blocks.expand((b) => b.days).length == schedule.length`
 - **Details** —
   ```dart
   final class ScheduleBlockVm {
@@ -163,6 +198,31 @@ history stays at 60/120fps. And a test in CI fails the build if anyone adds a gr
 - **What** — A `StreamNotifier` family keyed by step index.
 - **Where** — `lib/features/schedule/application/schedule_view_provider.dart` (per CONTRACTS §4 the
   notifier and its provider live under `application/`; the widgets stay in `presentation/`).
+- **Tests first (TDD)** — `test/features/schedule/schedule_notifier_test.dart`, `ProviderContainer`
+  tier — never a pumped widget — with a bare-`implements` `FakeTaperRepository` that records calls
+  and can be told to fail, `todayDateProvider.overrideWithValue(LocalDate(2025, 4, 16))` and
+  `clockProvider.overrideWithValue(Clock.fixed(...))`; `addTearDown(container.dispose)`. Write and
+  watch fail, in this order:
+  1. `scheduleViewProvider(2)` (the active step) emits `ScheduleLoaded` whose blocks are 11 and whose
+     `todayLocator` points at block 3, day 1 — day 14 of 52 is block 3's leading day
+  2. `scheduleViewProvider(0)` emits the same shape for a completed step with every row
+     `tickable: false`
+  3. `markTaken(2025-04-14, plannedMg: 1000)` on a past day of the **active** step → the fake records
+     exactly one call with *that day's* `plannedMg`, not today's
+  4. the same call on a day in a **completed** step → `Failure.readOnly`, and the fake records
+     **zero** calls; a silent no-op fails this test
+  5. a **future** day → `Failure.futureDay`, zero calls
+  6. `undoTaken` mirrors 3–5
+  7. reading `scheduleViewProvider(3)` after `(2)` disposes `(2)`'s subscription: a flag set in the
+     fake's stream `onCancel` is true, asserted after `container.refresh`/auto-dispose — a leaked
+     per-step subscription is how this screen becomes slow at step 12
+  8. `generateSchedule` is called **zero** times by this notifier: the fake `derivedScheduleProvider`
+     override counts invocations and the count stays at the one EPIC-06 made
+  9. a snapshot carrying a `HoldEvent` of 5 extra days from 2025-04-16: the five hold rows all have
+     `isHoldDay: true`, they all carry `dayInStep == 14`, and `dayInStep` resumes at 15 on the day
+     after — the "five identical day 14 of 52 rows" bug, pinned
+  10. failure arm: the repository's stream emits `Failure(StorageFailure.io())` → `AsyncError` with
+      the previous `ScheduleLoaded` retained via `copyWithPrevious`
 - **Details** —
   ```dart
   final scheduleViewProvider = StreamNotifierProvider.family<
@@ -199,6 +259,21 @@ history stays at 60/120fps. And a test in CI fails the build if anyone adds a gr
 
 - **What** — Build the scroll view with pinned block headers and bidirectional growth.
 - **Where** — `schedule_screen.dart`, `widgets/schedule_block_group.dart`.
+- **Tests first (TDD)** — `test/features/schedule/schedule_scroll_test.dart`, `flutter_test` widget
+  tier over a `ProviderScope` overriding `scheduleViewProvider` with a fixed `ScheduleLoaded`; no
+  repository. Write and watch fail:
+  1. on first frame — **before any `tester.drag` and with no programmatic scroll call** — today's row
+     is `hitTestable()` and the current block's header is within the top 120 px. This is the whole
+     point of `center:`; a test that scrolls first would pass on a plain `ListView`
+  2. `controller.offset == 0.0` on that first frame, and `position.minScrollExtent < 0` — negative
+     extent is the observable signature of slivers before the center key
+  3. `tester.drag(down 600)` reveals the **previous** block's tail rows; `drag(up 600)` reveals the
+     next block's header — assert by finding a specific date row in each direction
+  4. header pinning is per block: after dragging block 3 fully past the top, the pinned header reads
+     block 4's title, never block 3's over block 4's rows (the bug `SliverMainAxisGroup` fixes)
+  5. `BlockHeaderDelegate.shouldRebuild` returns true when only the text scale changed and false for
+     an identical delegate — at `TextScaler.linear(2.0)` the header is taller and `takeException()`
+     is null
 - **Details** — `CustomScrollView` with a `center:` key placed on the **current block's**
   `SliverMainAxisGroup`. Slivers listed *before* the center sliver grow toward the leading edge and
   are therefore emitted in **reverse order** — this is the real Flutter mechanism for "opens in the
@@ -223,6 +298,28 @@ history stays at 60/120fps. And a test in CI fails the build if anyone adds a gr
 
 - **What** — Render `DayStateRow` with the schedule's data and its tap behaviour.
 - **Where** — `widgets/schedule_day_row.dart`.
+- **Tests first (TDD)** — `test/features/schedule/widgets/schedule_day_row_test.dart`, `flutter_test`
+  widget tier; the row takes a `ScheduleDayVm` and a callback, so no container. Write and watch fail:
+  1. `state: taken, tickable: true` → tapping calls `onToggle(date)` **once** with that row's date;
+     `find.byType(SnackBar)` is `findsNothing` and the inline undo row is present after the toggle
+  2. `tickable: false` (completed step) → `find.descendant(of: row, matching: find.byType(InkWell))`
+     and `GestureDetector` are both `findsNothing`, and the semantics node carries
+     `l10n.pastStepReadOnly` — a dead tap target is the failure mode here, not a missing hint
+  3. each of the four `DayState`s renders a distinct **shape** and a distinct localized **word**:
+     assert the four words are pairwise different strings, so "colour only" cannot pass
+  4. `state: missed` → the resolved border colour **and** the state-word colour both equal
+     `c.stateMissed` in light and in dark; a test asserting `c.danger` is wrong and CONTRACTS §9 says
+     so (EPIC-14 also gates it)
+  5. `isNewDose: true` → the new-dose marker, its glyph and its word are all present
+  6. `isHoldDay: true` → the bracketed tread marker is present, the trailing word is `l10n.held`, and
+     the middle column reads `l10n.heldAtBlock(3)` — the string `'52'` appears nowhere in the row
+  7. `unachievable: true` → `tabletsLabel` is replaced by the warning text plus the alert glyph
+  8. `fa`: the state word is **not** uppercased and carries no letter-spacing; in `en` it is
+  9. row height ≥ 44 at 1.0 and at 2.0; at 2.0 the trailing column is below the middle column
+     (`Column`, not truncated) and `takeException()` is null
+
+  The grayscale golden of all six treatments is written alongside; gate, not driver — it proves the
+  shapes read without colour, but case 3 above is what makes that a *rule* rather than a screenshot.
 - **Details** — The row wraps EPIC-07's `DayStateRow` and `DayStateMarker`; **the marker's diameter,
   the four shapes and the four state colour slots are EPIC-07's** and are not restated here (it is a
   fixed 28 logical px marker, not 26). This epic supplies data, layout around the marker, and tap
@@ -266,6 +363,25 @@ history stays at 60/120fps. And a test in CI fails the build if anyone adds a gr
   **`tool/check_bans.sh`** — the single accumulate-and-fail-once gate EPIC-01 established. Do not
   create `scripts/check_no_calendar.sh`: `tool/` is the script directory and one entry point is the
   convention, so a rule tightened here is not silently missing from a second script.
+- **Tests first (TDD — with an honest caveat)** — this is an **absence-of-a-failure-class** test, and
+  it passes vacuously the moment it is written. Getting a real red step therefore takes a deliberate
+  act, and skipping that act ships a test nobody has ever seen fail.
+  1. `test/features/schedule/no_calendar_grid_test.dart`, `flutter_test`: pump `ScheduleScreen` with
+     the seeded fixture and assert `find.byType(GridView)`, `find.byType(SliverGrid)`,
+     `find.byType(CalendarDatePicker)` and `find.byType(Table)` are each `findsNothing`, and
+     `find.byType(BlockHeader)` is `findsAtLeastNWidgets(2)` — the positive half is what stops the
+     test passing on an empty or crashed screen.
+  2. **Watch it fail on purpose:** add a `GridView(children: [])` to `schedule_screen.dart`, run the
+     test, see red, remove it. Note in the PR that this was done. Without step 2 the test proves
+     nothing at all.
+  3. The `tool/check_bans.sh` rule group gets its own red first: create
+     `test/fixtures/bans/calendar_offender.dart.txt` containing `GridView`, `SliverGrid`,
+     `GridDelegate`, `table_calendar`, `CalendarDatePicker` and `showDatePicker`, run the new rule
+     against that path, assert it exits non-zero and that the message names SPEC §4.2 — then scope
+     the rule to `lib/features/schedule/`. A grep rule that has never matched anything is a grep rule
+     with a typo in it.
+  4. The counter-case: a file under `lib/features/plan/` containing `showDatePicker` leaves the
+     script green. The ban is path-scoped, and date *entry* stays legal.
 - **Details** — Two layers.
   (a) **Widget test:** pump `ScheduleScreen` with a seeded plan and assert
   `find.byType(GridView)`, `find.byType(SliverGrid)`, `find.byType(CalendarDatePicker)`,
@@ -283,6 +399,25 @@ history stays at 60/120fps. And a test in CI fails the build if anyone adds a gr
 
 - **What** — Get back to today from anywhere; browse other steps read-only.
 - **Where** — `widgets/jump_to_today_button.dart`, `widgets/step_switcher_sheet.dart`.
+- **Tests first (TDD)** — `test/features/schedule/jump_and_navigation_test.dart`, `flutter_test`
+  widget tier with a recording `GoRouter` and `scheduleViewProvider` overridden. Write and watch fail:
+  1. on the first frame the jump control is **absent** (`findsNothing`) — today is on screen
+  2. after `tester.drag` past 30 rows it is present; after dragging back it disappears again — both
+     transitions, so a control that appears once and stays fails
+  3. tapping it returns today's row to `hitTestable()`; under `MediaQuery(disableAnimations: true)`
+     the same tap lands in one `pump()` because `resolveMotion` collapses to `jumpTo` — assert the
+     row is visible after a single frame, not after `pumpAndSettle`
+  4. while browsing step 1, the same control first switches back to the active step, then centres
+     today — assert the family argument changed *and* the row is visible
+  5. the switcher sheet lists every step as `'Step 1 · 15mg → 14mg · completed'` in the locale's
+     numerals, and selecting one sets `scheduleViewProvider(that index)` exactly once
+  6. a non-active step shows the `l10n.pastStepReadOnly` strip and its rows have no gesture detectors
+  7. entering at `/schedule?focus=2025-04-12` opens on **that date's step**, its row is
+     `hitTestable()`, and the row is tickable when the step is active
+  8. `/schedule?focus=not-a-date` and a date outside the plan fall back to the active step and today
+     rather than throwing — a deep link is user input
+  9. `find.byIcon(Icons.arrow_forward)` and a grep for `Curves.` under `lib/features/schedule/` both
+     find nothing; the chevron is `Icons.adaptive.*` and the curve comes from `DaybreakMotion`
 - **Details** — Jump-to-today is a small pill button that appears only when today's row is off
   screen; it is driven by a `ScrollController` listener comparing the controller offset against zero
   (with the `center:` key, today's block starts at offset 0, so "today is off screen" is
@@ -309,6 +444,24 @@ history stays at 60/120fps. And a test in CI fails the build if anyone adds a gr
 
 - **What** — Keep a 780-row history smooth.
 - **Where** — `schedule_screen.dart`, `schedule_notifier.dart`.
+- **Tests first (TDD for the structure; a named manual pass for the frame budget)** —
+  `test/features/schedule/schedule_performance_test.dart`, `flutter_test` widget tier. The structural
+  choices that *cause* good frames are assertable; the 16 ms number is not, in a widget test.
+  1. with a 780-day snapshot loaded, `find.byType(ScheduleDayRow)` is ≤ 63 (one step's 52 rows + 11
+     headers' worth of slack), **not** 780 — only the selected step is materialised
+  2. every row carries a `ValueKey(date)`, all keys distinct: collect them and assert
+     `keys.toSet().length == keys.length`
+  3. each block's `SliverList` has a `RepaintBoundary` ancestor, and there is **no** `ClipRRect` or
+     `Opacity` inside any row (`find.descendant` → `findsNothing`) — the per-row raster layers this
+     task exists to avoid
+  4. `SliverChildBuilderDelegate` is constructed with `addAutomaticKeepAlives: false` — read it off
+     the widget and assert it, so the default cannot come back by accident
+  5. after `tester.fling` over a step, the number of `ScheduleDayRow` **element** rebuilds recorded
+     by a counting wrapper stays bounded (no whole-list rebuild per frame)
+
+  The profile-mode fling and its worst-frame number are a **named manual pre-release measurement**
+  (`testing-strategy` rule 11), recorded in the PR — not faked green in CI, where the runner's frame
+  times mean nothing.
 - **Details** — Only the selected step (52 rows + 11 headers) is materialised; other steps are
   reached through the switcher, not by scrolling into them, which keeps the sliver tree bounded and
   makes `center:` arithmetic exact. Rows are `const`-constructible with a stable `ValueKey(date)`;
@@ -324,6 +477,21 @@ history stays at 60/120fps. And a test in CI fails the build if anyone adds a gr
 
 - **What** — Rows and headers that read as sentences.
 - **Where** — `widgets/schedule_day_row.dart`, `widgets/schedule_block_group.dart`.
+- **Tests first (TDD)** — `test/features/schedule/schedule_semantics_test.dart`, `flutter_test` with
+  `SemanticsTester`. The sentences are copy decisions: write them as literals before the tree exists.
+  1. a taken row in `en` is **one** node labelled exactly *"Wednesday 16 April, 9 milligrams, one 5
+     milligram tablet and four 1 milligram tablets, taken"* — assert the node count is 1, so six
+     fragments fails
+  2. today's row prepends *"today"*
+  3. a hold row reads *"Wednesday 16 April, held at 9 milligrams, extra day in block 3, taken"* — the
+     run of five look-alike rows is explained in words, not left mysterious
+  4. the same two sentences in `fa`, from the ARB, with Persian numerals
+  5. `tickable` rows have `isButton`; read-only rows do not, and carry the read-only hint instead
+  6. block headers are `isHeader`: a fixture at step 3 exposes exactly **11** header nodes, so rotor
+     navigation jumps block to block
+  7. ticking a row emits an `isLiveRegion` announcement; untick emits the undo announcement
+  8. `meetsGuideline` for `textContrastGuideline`, `androidTapTargetGuideline`,
+     `iOSTapTargetGuideline` and `labeledTapTargetGuideline`, each at 1.0 **and** 2.0 scale
 - **Details** — Each row is one `Semantics(container: true, button: tickable, label: …)` reading
   *"Wednesday 16 April, 9 milligrams, one 5 milligram tablet and four 1 milligram tablets, taken"*,
   with children excluded. Today's row adds the word "today" first. Block headers are
@@ -340,6 +508,18 @@ history stays at 60/120fps. And a test in CI fails the build if anyone adds a gr
 
 - **What** — Wide-screen and landscape behaviour.
 - **Where** — `schedule_screen.dart`.
+- **Tests first (TDD)** — `test/features/schedule/schedule_adaptive_test.dart`, `flutter_test` widget
+  tier, asserting **both sides** of each breakpoint. Write and watch fail:
+  1. at 839×1000 there is one pane: the step list is absent; at 841×1000 the step list and the block
+     list are siblings and both are `hitTestable()`
+  2. both panes read the same `scheduleViewProvider` instance — selecting a step in the leading pane
+     updates the trailing pane in one frame, with no second container
+  3. at 844×390 (landscape phone, height < 500) the header keeps `pinned: true` and the summary's
+     second line is gone, while the title line remains; `takeException()` is null
+  4. at every width tested, a row's width equals the list's content width — the list is never
+     multi-column, which is a grid by another name (task 6's ban, restated as a layout assertion)
+
+  The 1024×768 and 844×390 goldens are written alongside; gate, not driver.
 - **Details** — Above 840 logical px, `adaptive-layout`'s two-pane Schedule: a step list on the
   leading side, the block list on the trailing side, sharing the same providers. In landscape phone
   (height < 500), the header keeps its pinned behaviour but drops the summary's second line before
@@ -351,6 +531,15 @@ history stays at 60/120fps. And a test in CI fails the build if anyone adds a gr
 
 - **What** — The set that holds the screen.
 - **Where** — `test/features/schedule/`, `test/golden/schedule/`.
+- **Tests first (TDD, for what is left)** — tasks 2–10 already wrote the behavioural suite test-first;
+  this task collects it and must not re-list it. What is new here is a **gate**, not a driver: the
+  goldens across light/dark × en/fa × 1.0/2.0 and the grayscale lane that includes a hold row, all
+  captured with `loadAppFonts`, the pinned clock and `test/fixtures/seeded_taper.dart` at step 3,
+  block 3, day 14 so the frame matches the reference's content. Capture them alongside the widgets
+  and review them; do not pretend a screenshot comparison can be written red first.
+  One genuinely new TDD item: `test/features/schedule/suite_hygiene_test.dart` asserting the schedule
+  suite's own wall time stays inside its budget and that no test in the directory calls
+  `pumpAndSettle` (this screen has an indefinite skeleton shimmer — `testing-strategy` rule 10).
 - **Details** — `_project` unit tests (grouping, block summaries, today locator, tickability, hold
   days, the steady-state group, and the SPEC §5.2 strengths-change join from task 2); widget tests
   for tick/untick/read-only/undo and for the `?focus=<date>` landing; the calendar-ban test from
@@ -363,6 +552,11 @@ history stays at 60/120fps. And a test in CI fails the build if anyone adds a gr
 
 - **What** — Prove the screen against frame 3.
 - **Where** — `parity/ref/03--schedule--{light,dark}--{en,fa}.png`, `parity/app/…`, `parity/sheet.html`.
+- **Tests first** — *Scaffold.* Parity is a **gate, not a driver** — no failing screenshot can be
+  written before the screen exists. The captures and the paired sheet come after task 4 renders, and
+  the standard is `daybreak-visual-parity`'s Tier-1/Tier-2 table judged against the reference PNGs.
+  The one machine-checkable claim in this section — that no cell is a calendar square — is already
+  task 6's test.
 - **Details** — Crop frame 3 at CSS rect `[883, 516, 390, 844]` (PNG `+1766+1032`, 780×1688),
   content-box adjusted for the 54px status bar; capture at 390×844 DPR 2 with the seeded fixture that
   reproduces the reference content: block 2 tail (Mon 14 Apr taken, Tue 15 Apr not ticked), block 3
@@ -400,6 +594,7 @@ Method, tolerances and the PR sheet: `daybreak-visual-parity`.
 
 ## Definition of done
 
+- [ ] Every TDD task's tests were written first and observed failing before its implementation
 - [ ] Days render as a vertical list grouped under pinned `BlockHeader`s — one `SliverMainAxisGroup`
       per block
 - [ ] `no_calendar_grid_test.dart` and the schedule rule group in `tool/check_bans.sh` both run in CI
