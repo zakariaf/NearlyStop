@@ -4,8 +4,8 @@
 /// returns a [Result]. Only genuine bugs throw, and those are caught once by
 /// the global error net installed in `bootstrap()`.
 ///
-/// The void arm is spelled `Result<void, F>` — `const Ok<void, F>(null)`.
-/// There is deliberately no `Unit` type in this codebase, and `tool/check_bans.sh`
+/// The void arm is spelled `Result<void, F>` — `const Ok<void, F>(null)`. There
+/// is deliberately no `Unit` type in this codebase, and `tool/check_bans.sh`
 /// fails the build if one appears under `lib/`.
 library;
 
@@ -32,8 +32,8 @@ abstract class Failure {
 
 /// The outcome of an operation that can fail: either [Ok] or [Err].
 ///
-/// Sealed, so a `switch` covering both arms needs no `default:` and a third
-/// arm could never be added without breaking every call site on purpose.
+/// Sealed, so a `switch` covering both arms needs no `default:` and a third arm
+/// could never be added without breaking every call site on purpose.
 @immutable
 sealed class Result<T, F extends Failure> {
   /// Const base constructor so both arms can be `const`.
