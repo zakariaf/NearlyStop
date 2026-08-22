@@ -1,0 +1,18 @@
+# Per-FILE coverage floors. Not a global percentage — a global gate rewards
+# tests that assert nothing, and the raw number lies upward.
+#
+# Only files where a bug is unrecoverable belong here. Each epic adds its own
+# at the path it actually uses, in the same PR that creates the file.
+#
+#   <path-relative-to-repo-root> <minimum-percent>
+#
+# A listed path that is ABSENT from lcov.info is a FAILURE, never a skip: a
+# rename would otherwise silently disarm the floor on exactly the files SPEC
+# §10 says a bug is unrecoverable in.
+#
+# Owed by EPIC-04: lib/core/dsns/schedule_generator.dart
+#                  lib/core/dsns/tablet_composer.dart
+#                  lib/core/dsns/step_size.dart
+# Owed by EPIC-05: lib/data/taper_repository.dart and the drift migration
+#
+# Seeded empty on purpose — none of those files exist yet.

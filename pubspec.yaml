@@ -1,0 +1,46 @@
+name: nearlystop
+description: >-
+  An offline, account-free planner for an alternating-day steroid taper.
+  No account, no server, no sync, no telemetry, zero network calls.
+publish_to: 'none'
+
+# The store-facing version. EPIC-15 owns bumping it.
+version: 1.0.0+1
+
+environment:
+  # A real range so pub can solve; the exact tested toolchain is recorded in
+  # .flutter-version, which CI reads (dependency-hygiene rule 4). The floor is
+  # 3.10 because that is where dot-shorthands landed — below it the analyzer
+  # rejects language the current stable toolchain emits.
+  sdk: ^3.10.0
+
+# Caret ranges only. pubspec.lock is the pin, and it is committed.
+# Refused by policy, permanently: google_fonts, firebase_*, sentry_flutter, any
+# analytics or crash SDK, http/dio, dynamic_color — each opens a network or a
+# telemetry path in an app whose store listing will claim neither.
+# tool/check_bans.sh and tool/audit-deps.sh make that refusal a gate.
+dependencies:
+  clock: ^1.1.1
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  # State + DI. lib/core/ and lib/data/ import `riverpod` directly; only the
+  # widget layer uses `flutter_riverpod`. VGA's depend_on_referenced_packages
+  # makes an undeclared import an analyzer error under --fatal-infos, so both
+  # are declared.
+  flutter_riverpod: ^3.0.0
+  go_router: ^17.0.0
+  intl: ^0.20.2 # flutter_localizations pins intl exactly; a wider range will not resolve
+  meta: ^1.15.0
+  riverpod: ^3.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  test: ^1.25.0
+  very_good_analysis: ^10.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true # gen-l10n; EPIC-03 adds l10n.yaml and the ARB files
