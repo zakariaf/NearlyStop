@@ -1,0 +1,134 @@
+name: ci
+
+# Every job below maps to a named, release-blocking contract; the contract is
+# stated in a comment above the step that enforces it. A check with no contract
+# behind it is not a gate — it is gate-sprawl, and it does not belong here.
+#
+# WHAT THIS PIPELINE CANNOT PROVE, stated plainly so the manual pass stays
+# load-bearing rather than becoming a chore:
+#   * that the app makes ZERO NETWORK CALLS at runtime. CI proves no banned
+#     import exists in the source graph. The airplane-mode check from a clean
+#     install (SPEC §10) is a manual release artifact and EPIC-15 owns it.
+#   * real-font rendering and on-device layout. Nunito and Vazirmatn shape
+#     differently on a device than on a Linux runner.
+#   * VoiceOver / TalkBack phrasing, and on-device notification delivery.
+# A change touching any of those is not verified by a green run here.
+#
+# NOT YET PRESENT, deliberately: the codegen and drift-schema freshness gates
+# (`build_runner` then `git diff --exit-code`). They land with EPIC-05, which
+# introduces the first generated file. An empty gate that asserts nothing today
+# is worse than a named TODO.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04 # pinned, never -latest: image drift moves the toolchain with no diff to review
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # subosito/flutter-action's `flutter-version-file` parses STRUCTURED files
+      # (pubspec.yaml's environment block, .fvmrc JSON). Our .flutter-version is
+      # a bare version string, so read it here and pass `flutter-version`.
+      - id: toolchain
+        run: echo "version=$(cat .flutter-version)" >> "$GITHUB_OUTPUT"
+      - uses: subosito/flutter-action@v2 # v2 is current; there is no v3
+        with:
+          channel: stable
+          flutter-version: ${{ steps.toolchain.outputs.version }}
+          cache: true
+
+      - run: flutter --version
+      - run: flutter pub get
+
+      # Contract: the lint ruleset is actually ON. A pinned `include:` naming a
+      # file absent from the resolved package emits one warning and then runs
+      # with zero added rules — a green build that checks nothing.
+      - run: bash tool/verify_include_pin.sh
+
+      # Contract: every gate below has been SEEN to fail. A gate that has only
+      # ever been green is a comment. Each self-test asserts both arms.
+      - run: bash tool/verify_include_pin_selftest.sh
+      - run: bash tool/check_bans_selftest.sh
+      - run: bash tool/check_core_purity_selftest.sh
+      - run: bash tool/coverage_floor_selftest.sh
+
+      # Contract: whitespace is not a review topic.
+      - run: dart format --output=none --set-exit-if-changed .
+
+      # Contract: an info is a warning that will be ignored next week.
+      - run: flutter analyze --fatal-infos --fatal-warnings
+
+      # Contract: the offline / no-telemetry / RTL-by-construction / injected-clock
+      # promises. These are properties of the SOURCE GRAPH; a passing test cannot
+      # prove an import is absent, and a grep can.
+      - run: bash tool/check_bans.sh
+
+      # Contract: lib/core/ stays pure Dart, so the domain is testable in
+      # milliseconds without a widget harness (CONTRACTS.md §2).
+      - run: bash tool/check_core_purity.sh
+
+      # Contract: no junk-drawer folder, no barrel in the app package, no
+      # MethodChannel outside services/native/.
+      - run: bash tool/check_structure.sh
+
+      # Contract: caret ranges, a committed lock, and nothing in the transitive
+      # tree that opens a network or telemetry path.
+      - run: bash tool/audit-deps.sh
+
+      # REQUIRED before the suite: `flutter test --coverage` omits files no test
+      # imports, so an untested file contributes zero DENOMINATOR lines and the
+      # number lies upward. The generated file is gitignored.
+      - run: bash tool/coverage_include_untested.sh
+
+      # Contract: randomized ordering is free detection of inter-test state
+      # leakage. Coverage is collected in the SAME run — never a second pass.
+      - run: flutter test --coverage --test-randomize-ordering-seed random --reporter expanded
+
+      # Contract: the handful of files where a bug is unrecoverable stay at
+      # their floor. Coverage as a whole is a published report, never a gate,
+      # and there is deliberately no percentage threshold anywhere in this file.
+      - run: bash tool/coverage_floor.sh
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-lcov
+          path: coverage/lcov.info
+          retention-days: 14
+
+  build:
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - id: toolchain
+        run: echo "version=$(cat .flutter-version)" >> "$GITHUB_OUTPUT"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ steps.toolchain.outputs.version }} # keep == verify's pin
+          cache: true
+      - run: flutter pub get
+
+      # Contract: the app still compiles for a real target. Unsigned on purpose
+      # — no signing secret in this job means there is nothing here to leak.
+      - run: flutter build apk --debug
