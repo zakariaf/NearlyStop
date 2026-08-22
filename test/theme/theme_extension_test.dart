@@ -8,16 +8,19 @@ import 'package:nearlystop/theme/daybreak_elevation.dart';
 import 'package:nearlystop/theme/daybreak_motion.dart';
 import 'package:nearlystop/theme/daybreak_script.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/daybreak_type.dart';
 import 'package:nearlystop/theme/daybreak_typography.dart';
 import 'package:nearlystop/theme/primitives.dart';
 
 void main() {
   final lightTypography = daybreakTypography(
-    DaybreakScript.latin,
+    text: daybreakTextTheme(DaybreakScript.latin, colors: lightDaybreakColors),
+    script: DaybreakScript.latin,
     colors: lightDaybreakColors,
   );
   final darkTypography = daybreakTypography(
-    DaybreakScript.perso,
+    text: daybreakTextTheme(DaybreakScript.perso, colors: darkDaybreakColors),
+    script: DaybreakScript.perso,
     colors: darkDaybreakColors,
   );
 

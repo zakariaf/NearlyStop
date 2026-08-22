@@ -11,6 +11,26 @@ import 'package:nearlystop/theme/daybreak_shapes.dart';
 import 'package:nearlystop/theme/daybreak_type.dart';
 import 'package:nearlystop/theme/daybreak_typography.dart';
 
+/// The shared button silhouette.
+///
+/// A `minimumSize` floor and **no fixed size**: at 200% text scale the label
+/// has to grow the button rather than be clipped by it, which is why
+/// `fixedSize` is stated as null instead of left to a component default.
+ButtonStyle _buttonStyle(TextTheme text) => ButtonStyle(
+  minimumSize: const WidgetStatePropertyAll<Size>(
+    Size(minimumTapTarget, minimumTapTarget),
+  ),
+  fixedSize: const WidgetStatePropertyAll<Size?>(null),
+  padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
+    EdgeInsetsDirectional.symmetric(
+      horizontal: daybreakShapes.s6,
+      vertical: daybreakShapes.s3,
+    ),
+  ),
+  shape: WidgetStatePropertyAll<OutlinedBorder>(daybreakShapes.pillShape()),
+  textStyle: WidgetStatePropertyAll<TextStyle?>(text.labelLarge),
+);
+
 /// The minimum height of any tap target, in logical pixels.
 ///
 /// 48dp is the Material floor and the larger of the two platform minimums (iOS
@@ -46,26 +66,13 @@ ThemeData buildDaybreakTheme(
   final scheme = daybreakColorScheme(brightness, colors);
   final text = daybreakTextTheme(script, colors: colors, boldText: boldText);
   final typography = daybreakTypography(
-    script,
+    text: text,
+    script: script,
     colors: colors,
     boldText: boldText,
   );
 
-  final buttonStyle = ButtonStyle(
-    // A floor, never a fixed size: the label at 200% must grow the button.
-    minimumSize: const WidgetStatePropertyAll<Size>(
-      Size(minimumTapTarget, minimumTapTarget),
-    ),
-    fixedSize: const WidgetStatePropertyAll<Size?>(null),
-    padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
-      EdgeInsetsDirectional.symmetric(
-        horizontal: daybreakShapes.s6,
-        vertical: daybreakShapes.s3,
-      ),
-    ),
-    shape: WidgetStatePropertyAll<OutlinedBorder>(daybreakShapes.pillShape()),
-    textStyle: WidgetStatePropertyAll<TextStyle?>(text.labelLarge),
-  );
+  final buttonStyle = _buttonStyle(text);
 
   return ThemeData(
     useMaterial3: true,

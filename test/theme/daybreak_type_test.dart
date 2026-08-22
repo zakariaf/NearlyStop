@@ -166,7 +166,8 @@ void main() {
 
   test('the app-specific roles carry their font features', () {
     final typography = daybreakTypography(
-      DaybreakScript.latin,
+      text: latin,
+      script: DaybreakScript.latin,
       colors: lightDaybreakColors,
     );
     // 9 -> 10 must not shift the number the user reads every morning.
@@ -182,11 +183,12 @@ void main() {
     expect(typography.overline.fontWeight, FontWeight.w800);
     expect(typography.overline.letterSpacing, greaterThan(0));
 
-    final perso = daybreakTypography(
-      DaybreakScript.perso,
+    final persoTypography = daybreakTypography(
+      text: perso,
+      script: DaybreakScript.perso,
       colors: lightDaybreakColors,
     );
-    expect(perso.overline.letterSpacing, 0);
+    expect(persoTypography.overline.letterSpacing, 0);
   });
 
   test(

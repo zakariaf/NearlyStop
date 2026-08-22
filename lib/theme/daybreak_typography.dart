@@ -8,7 +8,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_script.dart';
-import 'package:nearlystop/theme/daybreak_type.dart';
 
 /// App-specific type roles.
 @immutable
@@ -96,14 +95,17 @@ class DaybreakTypography extends ThemeExtension<DaybreakTypography> {
   int get hashCode => Object.hashAll(_props);
 }
 
-/// Builds the app-specific roles from the same scale as the `TextTheme`, so a
-/// change to the scale reaches both.
-DaybreakTypography daybreakTypography(
-  DaybreakScript script, {
+/// Derives the app-specific roles from an already-built [text] theme.
+///
+/// Takes the `TextTheme` rather than rebuilding it: `buildDaybreakTheme` has
+/// one in hand, and building a second identical one allocates fifteen
+/// `TextStyle`s on every theme rebuild for no gain — and lets the two drift.
+DaybreakTypography daybreakTypography({
+  required TextTheme text,
+  required DaybreakScript script,
   required DaybreakColors colors,
   bool boldText = false,
 }) {
-  final text = daybreakTextTheme(script, colors: colors, boldText: boldText);
   const tabular = <FontFeature>[FontFeature.tabularFigures()];
   final isPerso = script == DaybreakScript.perso;
 
