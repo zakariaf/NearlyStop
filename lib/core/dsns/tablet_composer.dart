@@ -196,6 +196,35 @@ bool isAchievable(
   return false;
 }
 
+/// The largest achievable increment at or below [ceilingHundredths], or `null`.
+///
+/// Lives here, beside the solver, because it is one walk down a single
+/// dynamic-programming table. Asking it through [isAchievable] once per
+/// candidate value rebuilds that table for every value — quadratic in the
+/// ceiling, on the path the step-size rule takes for every dose in the plan.
+int? largestAchievableAtMost(
+  int ceilingHundredths,
+  List<TabletStrength> strengths, {
+  required bool allowHalves,
+}) {
+  if (strengths.isEmpty || ceilingHundredths < 1) return null;
+  final capped = ceilingHundredths > maxComposableHundredths
+      ? maxComposableHundredths
+      : ceilingHundredths;
+  final coins = <int>{for (final s in strengths) s.hundredths}.toList()
+    ..sort((a, b) => b.compareTo(a));
+  final table = _MinTabletTable(coins, capped);
+
+  for (var value = capped; value >= 1; value--) {
+    if (table.isReachable(value)) return value;
+    if (!allowHalves) continue;
+    for (final coin in coins) {
+      if (coin.isEven && table.isReachable(value - coin ~/ 2)) return value;
+    }
+  }
+  return null;
+}
+
 /// `minTablets[value]` for every value up to the target, computed once.
 ///
 /// One table serves the zero-half candidate and every half candidate, because

@@ -67,24 +67,8 @@ Result<List<DayPlan>, DomainFailure> generateSchedule({
   required List<HoldEvent> holds,
   LocalDate? until,
 }) {
-  if (plan.targetDose > plan.startingDose) {
-    return Err(TargetAboveStart(plan.startingDose, plan.targetDose));
-  }
-  if (until != null && until < plan.startDate) {
-    return Err(PlanNotStarted(plan.startDate));
-  }
-  switch (plan.method) {
-    case TaperMethod.dsns:
-      break;
-    case TaperMethod.percentage:
-      if (plan.percentage == null) {
-        return const Err(MissingMethodParameter(TaperMethod.percentage));
-      }
-    case TaperMethod.fixedMg:
-      if (plan.fixedStep == null) {
-        return const Err(MissingMethodParameter(TaperMethod.fixedMg));
-      }
-  }
+  final guard = _validate(plan, until);
+  if (guard != null) return Err(guard);
   if (steps.isEmpty) return const Ok(<DayPlan>[]);
 
   final ordered = [...steps]
@@ -105,77 +89,122 @@ Result<List<DayPlan>, DomainFailure> generateSchedule({
       case Err<List<_ShapeDay>, DomainFailure>(:final failure):
         return Err(failure);
       case Ok<List<_ShapeDay>, DomainFailure>(value: final pattern):
-        final extraByDate = _extraDaysByDate(holds, step.id);
-        var date = step.startDate;
-        var emitted = 0;
-
-        while (emitted < pattern.length) {
-          if (_pastBound(date, nextStart, until)) break;
-          final day = pattern[emitted];
-          days.add(
-            DayPlan(
-              date: date,
-              stepIndex: step.index,
-              kind: DayKind.step,
-              blockIndex: day.blockIndex,
-              dayInBlock: day.dayInBlock,
-              dayInStep: emitted + 1,
-              dose: day.dose,
-              doseKind: day.doseKind,
-              composition: composer.of(day.dose),
-              isHoldDay: false,
-            ),
-          );
-          final extra = extraByDate[date] ?? 0;
-          date = date.addDays(1);
-          emitted++;
-          for (var held = 0; held < extra; held++) {
-            if (_pastBound(date, nextStart, until)) break;
-            days.add(
-              DayPlan(
-                date: date,
-                stepIndex: step.index,
-                kind: DayKind.step,
-                blockIndex: day.blockIndex,
-                dayInBlock: day.dayInBlock,
-                // A hold day repeats the host day's position: it is the same
-                // day of the step, lived twice.
-                dayInStep: emitted,
-                dose: day.dose,
-                doseKind: day.doseKind,
-                composition: composer.of(day.dose),
-                isHoldDay: true,
-              ),
-            );
-            date = date.addDays(1);
-          }
-        }
-
-        // Steady state up to the next step, or up to `until` for the last one.
-        final boundary = nextStart ?? until?.addDays(1);
-        if (boundary != null) {
-          while (date < boundary) {
-            days.add(
-              DayPlan(
-                date: date,
-                stepIndex: step.index,
-                kind: DayKind.steadyState,
-                blockIndex: null,
-                dayInBlock: null,
-                dayInStep: null,
-                dose: step.toDose,
-                doseKind: DoseKind.newDose,
-                composition: composer.of(step.toDose),
-                isHoldDay: false,
-              ),
-            );
-            date = date.addDays(1);
-          }
-        }
+        final after = _emitStepDays(
+          into: days,
+          step: step,
+          pattern: pattern,
+          extraByDate: _extraDaysByDate(holds, step.id),
+          composer: composer,
+          nextStart: nextStart,
+          until: until,
+        );
+        _emitSteadyState(
+          into: days,
+          step: step,
+          composer: composer,
+          from: after,
+          // Up to the next step, or up to `until` for the last one. A null
+          // boundary means "stop at the end of the last step", which is the
+          // contract the golden vector pins.
+          boundary: nextStart ?? until?.addDays(1),
+        );
     }
   }
 
   return Ok(days);
+}
+
+/// The three refusals that are about the plan rather than a step.
+DomainFailure? _validate(TaperPlanFacts plan, LocalDate? until) {
+  if (plan.targetDose > plan.startingDose) {
+    return TargetAboveStart(plan.startingDose, plan.targetDose);
+  }
+  if (until != null && until < plan.startDate) {
+    return PlanNotStarted(plan.startDate);
+  }
+  return switch (plan.method) {
+    TaperMethod.dsns => null,
+    TaperMethod.percentage =>
+      plan.percentage == null
+          ? const MissingMethodParameter(TaperMethod.percentage)
+          : null,
+    TaperMethod.fixedMg =>
+      plan.fixedStep == null
+          ? const MissingMethodParameter(TaperMethod.fixedMg)
+          : null,
+  };
+}
+
+/// Appends one step's days and returns the first date it did not use.
+LocalDate _emitStepDays({
+  required List<DayPlan> into,
+  required StepFacts step,
+  required List<_ShapeDay> pattern,
+  required Map<LocalDate, int> extraByDate,
+  required _CompositionCache composer,
+  required LocalDate? nextStart,
+  required LocalDate? until,
+}) {
+  var date = step.startDate;
+  var emitted = 0;
+
+  DayPlan asDay(_ShapeDay day, LocalDate on, {required bool isHoldDay}) =>
+      DayPlan(
+        date: on,
+        stepIndex: step.index,
+        kind: DayKind.step,
+        blockIndex: day.blockIndex,
+        dayInBlock: day.dayInBlock,
+        // A hold day repeats the host day's position: it is the same day of
+        // the step, lived twice.
+        dayInStep: emitted,
+        dose: day.dose,
+        doseKind: day.doseKind,
+        composition: composer.of(day.dose),
+        isHoldDay: isHoldDay,
+      );
+
+  while (emitted < pattern.length) {
+    if (_pastBound(date, nextStart, until)) break;
+    final day = pattern[emitted];
+    emitted++;
+    into.add(asDay(day, date, isHoldDay: false));
+    final extra = extraByDate[date] ?? 0;
+    date = date.addDays(1);
+    for (var held = 0; held < extra; held++) {
+      if (_pastBound(date, nextStart, until)) break;
+      into.add(asDay(day, date, isHoldDay: true));
+      date = date.addDays(1);
+    }
+  }
+  return date;
+}
+
+/// Fills `[from, boundary)` with steady-state days at the step's new dose.
+void _emitSteadyState({
+  required List<DayPlan> into,
+  required StepFacts step,
+  required _CompositionCache composer,
+  required LocalDate from,
+  required LocalDate? boundary,
+}) {
+  if (boundary == null) return;
+  for (var date = from; date < boundary; date = date.addDays(1)) {
+    into.add(
+      DayPlan(
+        date: date,
+        stepIndex: step.index,
+        kind: DayKind.steadyState,
+        blockIndex: null,
+        dayInBlock: null,
+        dayInStep: null,
+        dose: step.toDose,
+        doseKind: DoseKind.newDose,
+        composition: composer.of(step.toDose),
+        isHoldDay: false,
+      ),
+    );
+  }
 }
 
 /// Where [step] stands on [today].

@@ -7,15 +7,9 @@ import 'package:nearlystop/core/dsns/dsns_failure.dart';
 import 'package:nearlystop/core/dsns/tablet_composer.dart';
 import 'package:nearlystop/core/result.dart';
 import 'package:nearlystop/core/units/milligrams.dart';
-import 'package:nearlystop/core/units/tablet_strength.dart';
 import 'package:test/test.dart';
 
-Milligrams mg(num milligrams) =>
-    Milligrams.fromHundredths((milligrams * 100).round());
-
-List<TabletStrength> held(List<num> strengths) => <TabletStrength>[
-  for (final s in strengths) TabletStrength(mg(s)),
-];
+import '../../fixtures/taper_fixture.dart';
 
 TabletComposition composed(
   num target,

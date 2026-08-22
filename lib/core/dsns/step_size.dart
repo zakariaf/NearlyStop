@@ -89,7 +89,7 @@ Result<StepSuggestion, DomainFailure> suggestStep({
   }
 
   final unclamped =
-      _largestAchievableAtMost(
+      largestAchievableAtMost(
         tenPercent.hundredths,
         strengths,
         allowHalves: allowHalves,
@@ -133,26 +133,9 @@ Milligrams percentageStepSize(
 }) {
   final ceiling = fromDose.hundredths * percent ~/ 100;
   final value =
-      _largestAchievableAtMost(ceiling, strengths, allowHalves: allowHalves) ??
+      largestAchievableAtMost(ceiling, strengths, allowHalves: allowHalves) ??
       _smallestAchievable(strengths, allowHalves: allowHalves);
   return Milligrams.fromHundredths(value);
-}
-
-int? _largestAchievableAtMost(
-  int ceilingHundredths,
-  List<TabletStrength> strengths, {
-  required bool allowHalves,
-}) {
-  for (var value = ceilingHundredths; value >= 1; value--) {
-    if (isAchievable(
-      Milligrams.fromHundredths(value),
-      strengths,
-      allowHalves: allowHalves,
-    )) {
-      return value;
-    }
-  }
-  return null;
 }
 
 /// The smallest increment the held strengths can make: the smallest tablet, or
