@@ -152,11 +152,16 @@ final DaybreakElevation lightDaybreakElevation = DaybreakElevation(
 );
 
 /// Dark elevation — plum-black (`plum01`), never neutral black.
+///
+/// CSS sources, from `design/daybreak-system.html`'s dark override block:
+/// * shadow-1: `0 1px 2px rgba(8,4,6,.45), 0 2px 8px rgba(8,4,6,.35)`
+/// * shadow-2: `0 2px 4px rgba(8,4,6,.45), 0 10px 24px rgba(8,4,6,.45)`
+/// * shadow-3: `0 6px 12px rgba(8,4,6,.5), 0 22px 48px rgba(8,4,6,.55)`
 final DaybreakElevation darkDaybreakElevation = DaybreakElevation(
   level0: const <BoxShadow>[],
-  level1: _stack(Primitives.plum01, const [(1, 2, 0.35), (2, 8, 0.30)]),
-  level2: _stack(Primitives.plum01, const [(2, 4, 0.40), (10, 24, 0.45)]),
-  level3: _stack(Primitives.plum01, const [(6, 12, 0.48), (22, 48, 0.55)]),
+  level1: _stack(Primitives.plum01, const [(1, 2, 0.45), (2, 8, 0.35)]),
+  level2: _stack(Primitives.plum01, const [(2, 4, 0.45), (10, 24, 0.45)]),
+  level3: _stack(Primitives.plum01, const [(6, 12, 0.50), (22, 48, 0.55)]),
   glow: _stack(Primitives.coral66, const [(8, 18, 0.24), (20, 44, 0.18)]),
 );
 
