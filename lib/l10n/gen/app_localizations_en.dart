@@ -52,6 +52,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stateNewDoseDay => 'New dose day';
 
   @override
+  String get stateToday => 'Today';
+
+  @override
   String get stateTaken => 'Taken';
 
   @override
@@ -76,6 +79,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionNextStep => 'Next step';
 
   @override
+  String get actionCancel => 'Cancel';
+
+  @override
+  String get actionClose => 'Close';
+
+  @override
+  String get actionUndo => 'Undo';
+
+  @override
+  String get stateUnavailable => 'Unavailable';
+
+  @override
   String stepOfTotal(int current, int total) {
     return 'Step $current of $total';
   }
@@ -89,6 +104,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String blockOfTotal(int current, int total) {
     return 'Block $current of $total';
   }
+
+  @override
+  String get blockCompleted => 'Completed';
 
   @override
   String blockPattern(String newDose, int oldDays, String oldDose) {

@@ -52,6 +52,9 @@ class AppLocalizationsFa extends AppLocalizations {
   String get stateNewDoseDay => 'روز دوز جدید';
 
   @override
+  String get stateToday => 'امروز';
+
+  @override
   String get stateTaken => 'مصرف شد';
 
   @override
@@ -76,6 +79,18 @@ class AppLocalizationsFa extends AppLocalizations {
   String get actionNextStep => 'گام بعدی';
 
   @override
+  String get actionCancel => 'انصراف';
+
+  @override
+  String get actionClose => 'بستن';
+
+  @override
+  String get actionUndo => 'واگرد';
+
+  @override
+  String get stateUnavailable => 'در دسترس نیست';
+
+  @override
   String stepOfTotal(int current, int total) {
     return 'گام $current از $total';
   }
@@ -89,6 +104,9 @@ class AppLocalizationsFa extends AppLocalizations {
   String blockOfTotal(int current, int total) {
     return 'مرحله $current از $total';
   }
+
+  @override
+  String get blockCompleted => 'تکمیل شد';
 
   @override
   String blockPattern(String newDose, int oldDays, String oldDose) {

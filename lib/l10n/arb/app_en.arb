@@ -62,6 +62,10 @@
     "x-maxChars": 12
   },
   "stateNewDoseDay": "New dose day",
+  "stateToday": "Today",
+  "@stateToday": {
+    "description": "The day-state word on a schedule row for today. Separate from `tabToday` even though English spells them the same: one names a tab, the other is one of four state words read as a sentence by a screen reader, and a locale is free to want different words."
+  },
   "@stateNewDoseDay": {
     "description": "Badge on a day that takes the reduced dose.",
     "x-maxChars": 18
@@ -102,6 +106,22 @@
     "x-maxChars": 16
   },
   "actionNextStep": "Next step",
+  "actionCancel": "Cancel",
+  "@actionCancel": {
+    "description": "The cancel action on a confirmation sheet. Cancelling a destructive action is deliberately the easy path."
+  },
+  "actionClose": "Close",
+  "@actionClose": {
+    "description": "The action on the disclaimer sheet when it is opened to be re-read from Settings, rather than as the first-run gate."
+  },
+  "actionUndo": "Undo",
+  "@actionUndo": {
+    "description": "The action on the app’s one undo surface. Never a SnackBar: it times out before this reader finishes it."
+  },
+  "stateUnavailable": "Unavailable",
+  "@stateUnavailable": {
+    "description": "Appended to a disabled control’s SEMANTICS label. A disabled button that only dims is invisible to a screen reader and to anyone with low contrast vision, so the state is said in words as well."
+  },
   "@actionNextStep": {
     "description": "Begin the next reduction. Enabled only when the current step is complete.",
     "x-maxChars": 26
@@ -137,6 +157,10 @@
     "x-maxChars": 22
   },
   "blockOfTotal": "Block {current} of {total}",
+  "blockCompleted": "Completed",
+  "@blockCompleted": {
+    "description": "The word on a finished block header. Said as a WORD, not only as a green tint: a reader who cannot see the tint still has to know the block is behind them."
+  },
   "@blockOfTotal": {
     "description": "Which of the eleven blocks of the pattern this is.",
     "placeholders": {

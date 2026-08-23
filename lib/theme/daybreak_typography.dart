@@ -132,7 +132,19 @@ DaybreakTypography daybreakTypography({
   );
 
   return DaybreakTypography(
-    doseNumeral: text.displayLarge!.copyWith(fontFeatures: tabular),
+    // SEALED, not merely derived. `copyWith` on a `TextTheme` slot that has
+    // not yet been through Material's own merge leaves `inherit: true` and a
+    // null decoration — so the one number the patient reads every morning
+    // takes its styling from whatever `DefaultTextStyle` happens to be above
+    // it. In debug outside a `Material` that is Flutter's error style, and a
+    // golden capture of the hero card showed a yellow double underline under
+    // the dose. `inherit: false` plus an explicit `TextDecoration.none` means
+    // the numeral is drawn the same way wherever it is mounted.
+    doseNumeral: text.displayLarge!.copyWith(
+      fontFeatures: tabular,
+      inherit: false,
+      decoration: TextDecoration.none,
+    ),
     overline: text.labelSmall!.copyWith(
       fontWeight: overlineWeight,
       fontVariations: <FontVariation>[

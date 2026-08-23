@@ -52,6 +52,9 @@ class AppLocalizationsCkb extends AppLocalizations {
   String get stateNewDoseDay => 'ڕۆژی دۆزی نوێ';
 
   @override
+  String get stateToday => 'ئەمڕۆ';
+
+  @override
   String get stateTaken => 'وەرگیرا';
 
   @override
@@ -76,6 +79,18 @@ class AppLocalizationsCkb extends AppLocalizations {
   String get actionNextStep => 'هەنگاوی داهاتوو';
 
   @override
+  String get actionCancel => 'پاشگەزبوونەوە';
+
+  @override
+  String get actionClose => 'داخستن';
+
+  @override
+  String get actionUndo => 'گەڕاندنەوە';
+
+  @override
+  String get stateUnavailable => 'بەردەست نییە';
+
+  @override
   String stepOfTotal(int current, int total) {
     return 'هەنگاوی $current لە $total';
   }
@@ -89,6 +104,9 @@ class AppLocalizationsCkb extends AppLocalizations {
   String blockOfTotal(int current, int total) {
     return 'بەشی $current لە $total';
   }
+
+  @override
+  String get blockCompleted => 'تەواوبوو';
 
   @override
   String blockPattern(String newDose, int oldDays, String oldDose) {

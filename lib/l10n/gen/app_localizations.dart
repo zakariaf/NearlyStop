@@ -180,6 +180,12 @@ abstract class AppLocalizations {
   /// **'New dose day'**
   String get stateNewDoseDay;
 
+  /// The day-state word on a schedule row for today. Separate from `tabToday` even though English spells them the same: one names a tab, the other is one of four state words read as a sentence by a screen reader, and a locale is free to want different words.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get stateToday;
+
   /// A day whose dose was recorded as taken.
   ///
   /// In en, this message translates to:
@@ -228,6 +234,30 @@ abstract class AppLocalizations {
   /// **'Next step'**
   String get actionNextStep;
 
+  /// The cancel action on a confirmation sheet. Cancelling a destructive action is deliberately the easy path.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get actionCancel;
+
+  /// The action on the disclaimer sheet when it is opened to be re-read from Settings, rather than as the first-run gate.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get actionClose;
+
+  /// The action on the app’s one undo surface. Never a SnackBar: it times out before this reader finishes it.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get actionUndo;
+
+  /// Appended to a disabled control’s SEMANTICS label. A disabled button that only dims is invisible to a screen reader and to anyone with low contrast vision, so the state is said in words as well.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get stateUnavailable;
+
   /// Which reduction the patient is on, out of the plan's total.
   ///
   /// In en, this message translates to:
@@ -245,6 +275,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Block {current} of {total}'**
   String blockOfTotal(int current, int total);
+
+  /// The word on a finished block header. Said as a WORD, not only as a green tint: a reader who cannot see the tint still has to know the block is behind them.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get blockCompleted;
 
   /// The teaching sentence under a block header: the new dose is taken on one day, the old dose on the days between. Word order differs per language, so the counts are ICU branches rather than spliced numbers.
   ///
