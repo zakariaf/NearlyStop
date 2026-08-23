@@ -116,10 +116,6 @@ void main() {
     };
   }
 
-  List<ScheduleDayVm> allDays(ScheduleLoaded loaded) => <ScheduleDayVm>[
-    for (final block in loaded.blocks) ...block.days,
-  ];
-
   group('what it emits', () {
     test(
       'the active step is eleven blocks with today located in one',
@@ -156,8 +152,8 @@ void main() {
       expect(loaded.steps.isActive, isFalse);
       expect(loaded.steps.total, 2);
       expect(loaded.steps.hasNext, isTrue);
-      expect(allDays(loaded), isNotEmpty);
-      expect(allDays(loaded).every((day) => !day.tickable), isTrue);
+      expect(loaded.days, isNotEmpty);
+      expect(loaded.days.every((day) => !day.tickable), isTrue);
       expect(loaded.todayLocator, isNull);
     });
 
@@ -178,7 +174,7 @@ void main() {
               extraDays: 5,
             );
         final loaded = await settled(container, 0);
-        expect(allDays(loaded).where((day) => day.isHoldDay), hasLength(5));
+        expect(loaded.days.where((day) => day.isHoldDay), hasLength(5));
 
         final held = <DayPlan>[
           for (final day in derivedStep(container, 0))
@@ -202,9 +198,9 @@ void main() {
       // alternates, so on the seeded plan the two genuinely differ.
       final container = containerAt(today);
       final loaded = await ready(container);
-      final row = allDays(
-        loaded,
-      ).lastWhere((day) => day.date < today && day.tickable);
+      final row = loaded.days.lastWhere(
+        (day) => day.date < today && day.tickable,
+      );
       final notifier = container.read(scheduleViewProvider(0).notifier);
 
       final refusal = await notifier.markTaken(
@@ -223,9 +219,9 @@ void main() {
     test('undo removes the tick it made', () async {
       final container = containerAt(today);
       final loaded = await ready(container);
-      final row = allDays(
-        loaded,
-      ).lastWhere((day) => day.date < today && day.tickable);
+      final row = loaded.days.lastWhere(
+        (day) => day.date < today && day.tickable,
+      );
       final notifier = container.read(scheduleViewProvider(0).notifier);
 
       await notifier.markTaken(row.date, plannedMg: row.plannedMg);
@@ -244,7 +240,7 @@ void main() {
       // say why rather than looking broken.
       final container = containerAt(today);
       final loaded = await ready(container);
-      final row = allDays(loaded).firstWhere((day) => day.date > today);
+      final row = loaded.days.firstWhere((day) => day.date > today);
       final notifier = container.read(scheduleViewProvider(0).notifier);
 
       expect(
@@ -263,7 +259,7 @@ void main() {
       await ready(container);
       await container.read(taperRepositoryProvider).startNextStep();
       final loaded = await settled(container, 0);
-      final row = allDays(loaded).first;
+      final row = loaded.days.first;
       final notifier = container.read(scheduleViewProvider(0).notifier);
 
       expect(

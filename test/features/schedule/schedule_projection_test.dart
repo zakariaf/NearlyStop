@@ -178,7 +178,7 @@ void main() {
     final loaded = project(schedule: schedule) as ScheduleLoaded;
 
     expect(
-      loaded.blocks.expand((block) => block.days).length,
+      loaded.days.length,
       schedule.length,
     );
     expect(
@@ -234,7 +234,7 @@ void main() {
     ];
 
     final loaded = project(schedule: schedule) as ScheduleLoaded;
-    final days = loaded.blocks.expand((block) => block.days).toList();
+    final days = loaded.days.toList();
 
     expect(days.where((day) => day.isHoldDay), hasLength(5));
     expect(days.first.isHoldDay, isFalse);
@@ -255,7 +255,7 @@ void main() {
 
     expect(loaded.steps.isActive, isFalse);
     expect(
-      loaded.blocks.expand((block) => block.days).every((day) => !day.tickable),
+      loaded.days.every((day) => !day.tickable),
       isTrue,
     );
   });
@@ -267,7 +267,7 @@ void main() {
     ];
 
     final loaded = project(schedule: schedule) as ScheduleLoaded;
-    final days = loaded.blocks.expand((block) => block.days).toList();
+    final days = loaded.days.toList();
 
     expect(days.first.tickable, isTrue);
     expect(days.last.tickable, isFalse);

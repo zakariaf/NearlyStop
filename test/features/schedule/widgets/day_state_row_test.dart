@@ -8,10 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/core/day_state.dart';
 import 'package:nearlystop/features/schedule/presentation/widgets/day_state_marker.dart';
 import 'package:nearlystop/features/schedule/presentation/widgets/day_state_row.dart';
-import 'package:nearlystop/l10n/app_locales.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
-import 'package:nearlystop/theme/daybreak_script.dart';
 
 import '../../../support/contrast.dart';
 import '../../../support/harness.dart';
@@ -25,15 +23,18 @@ void main() {
     DayState.upcoming => l10n.stateUpcoming,
   };
 
-  /// The state word AS RENDERED: uppercase in Latin, untouched in
-  /// Perso-Arabic, exactly as `.sstate` and `daybreak-bilingual-type` have it.
-  String renderedStateWord(
-    AppLocalizations l10n,
-    DayState state, {
-    Locale locale = const Locale('en'),
-  }) => scriptFor(locale) == DaybreakScript.perso
-      ? stateWord(l10n, state)
-      : stateWord(l10n, state).toUpperCase();
+  /// The state word AS RENDERED, straight from the ARB's cased key.
+  ///
+  /// Not `stateWord(...).toUpperCase()`: Dart's casing is locale-blind, which
+  /// is why `check_bans.sh` rejects it in `lib/` — and a test that spells the
+  /// rule differently from the code is a test that agrees with itself.
+  String renderedStateWord(AppLocalizations l10n, DayState state) =>
+      switch (state) {
+        DayState.taken => l10n.stateTakenCaps,
+        DayState.missed => l10n.stateNotTickedCaps,
+        DayState.today => l10n.stateTodayCaps,
+        DayState.upcoming => l10n.stateUpcomingCaps,
+      };
 
   /// The row's painted border, which carries part of the state signal.
   ///
@@ -74,7 +75,9 @@ void main() {
                 dayLabel: 'Thursday 16 April',
                 doseText: '9mg',
                 tabletsText: flagText == null ? '1 × 5mg · 4 × 1mg' : null,
-                stateLabel: stateWord(l10n, state),
+                // The row renders what it is GIVEN: casing is the
+                // caller's, out of the ARB, never `.toUpperCase()`.
+                stateLabel: renderedStateWord(l10n, state),
                 semanticsLabel:
                     'Thursday 16 April, 9 milligrams. '
                     '${stateWord(l10n, state)}.',
@@ -148,7 +151,7 @@ void main() {
                 dayLabel: 'Thursday 16 April',
                 doseText: '9mg',
                 tabletsText: '1 × 5mg',
-                stateLabel: 'Not ticked',
+                stateLabel: 'NOT TICKED',
                 semanticsLabel: 'Thursday 16 April, 9 milligrams. Not ticked.',
               ),
             );
@@ -215,7 +218,7 @@ void main() {
               dayLabel: 'Thursday 16 April',
               doseText: '9mg',
               tabletsText: '1 × 5mg',
-              stateLabel: 'Not ticked',
+              stateLabel: 'NOT TICKED',
               semanticsLabel: 'Thursday 16 April, 9 milligrams. Not ticked.',
             ),
           );
@@ -474,10 +477,8 @@ void main() {
     // so the reference gives it caps and air rather than size.
     final l10n = await pumpRow(tester, state: DayState.taken);
 
-    expect(find.text(l10n.stateTaken.toUpperCase()), findsOneWidget);
-    final word = tester.widget<Text>(
-      find.text(l10n.stateTaken.toUpperCase()),
-    );
+    expect(find.text(l10n.stateTakenCaps), findsOneWidget);
+    final word = tester.widget<Text>(find.text(l10n.stateTakenCaps));
     expect(word.style?.letterSpacing, isNotNull);
     expect(word.style!.letterSpacing! > 0, isTrue);
   });

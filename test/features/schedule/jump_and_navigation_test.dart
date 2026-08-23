@@ -119,10 +119,9 @@ void main() {
     'tapping it brings today back, in ONE frame under reduced motion',
     (tester) async {
       final l10n = await pumpSchedule(tester, disableAnimations: true);
-      final today = fixtureSchedule(l10n: l10n).blocks
-          .expand((block) => block.days)
-          .firstWhere((day) => day.date == fixtureToday)
-          .dayLabel;
+      final today = fixtureSchedule(
+        l10n: l10n,
+      ).days.firstWhere((day) => day.date == fixtureToday).dayLabel;
 
       await dragBy(tester, -2000);
       expect(find.text(today).hitTestable(), findsNothing);
@@ -152,10 +151,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(container.read(shownStepIndexProvider), 1);
-    final today = fixtureSchedule(l10n: l10n).blocks
-        .expand((block) => block.days)
-        .firstWhere((day) => day.date == fixtureToday)
-        .dayLabel;
+    final today = fixtureSchedule(
+      l10n: l10n,
+    ).days.firstWhere((day) => day.date == fixtureToday).dayLabel;
     expect(find.text(today).hitTestable(), findsOneWidget);
   });
 
@@ -209,8 +207,7 @@ void main() {
       focusDates: <LocalDate, int>{const LocalDate(2026, 4, 6): 0},
     );
     await tester.pumpAndSettle();
-    final focused = fixtureSchedule(l10n: l10n).blocks
-        .expand((block) => block.days)
+    final focused = fixtureSchedule(l10n: l10n).days
         .firstWhere((day) => day.date == const LocalDate(2026, 4, 6))
         .dayLabel;
 
@@ -236,10 +233,9 @@ void main() {
     // plan has never heard of.
     for (final focus in <String>['not-a-date', '1999-01-01', '']) {
       final l10n = await pumpSchedule(tester, focus: focus);
-      final today = fixtureSchedule(l10n: l10n).blocks
-          .expand((block) => block.days)
-          .firstWhere((day) => day.date == fixtureToday)
-          .dayLabel;
+      final today = fixtureSchedule(
+        l10n: l10n,
+      ).days.firstWhere((day) => day.date == fixtureToday).dayLabel;
 
       expect(tester.takeException(), isNull, reason: focus);
       expect(find.text(today).hitTestable(), findsOneWidget, reason: focus);

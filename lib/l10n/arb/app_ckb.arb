@@ -125,5 +125,9 @@
   "scheduleNoteState": " {state}.",
   "scheduleNoteUnachievable": " ئەم دۆزە لە قورساییەکانی دەستت دروست نابێت.",
   "scheduleTodaySemantics": "ئەمڕۆ. {day}، {dose} میلیگرام: {breakdown}.{notes}",
-  "tabletSeparator": "، "
+  "tabletSeparator": "، ",
+  "stateTakenCaps": "وەرگیرا",
+  "stateNotTickedCaps": "تۆمار نەکراوە",
+  "stateTodayCaps": "ئەمڕۆ",
+  "stateUpcomingCaps": "داهاتوو"
 }

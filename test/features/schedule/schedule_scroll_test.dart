@@ -48,13 +48,9 @@ void main() {
       tester.state<ScrollableState>(find.byType(Scrollable)).position;
 
   /// The day label the fixture renders for [date].
-  String rowLabel(AppLocalizations l10n, LocalDate date) =>
-      fixtureSchedule(
-            l10n: l10n,
-          ).blocks
-          .expand((block) => block.days)
-          .firstWhere((day) => day.date == date)
-          .dayLabel;
+  String rowLabel(AppLocalizations l10n, LocalDate date) => fixtureSchedule(
+    l10n: l10n,
+  ).days.firstWhere((day) => day.date == date).dayLabel;
 
   testWidgets('the FIRST frame is already on today, with no scroll at all', (
     tester,

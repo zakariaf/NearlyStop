@@ -879,6 +879,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **', '**
   String get tabletSeparator;
+
+  /// The taken word as the Schedule row DISPLAYS it. Upper case in Latin; unchanged in Perso-Arabic, which has no case.
+  ///
+  /// In en, this message translates to:
+  /// **'TAKEN'**
+  String get stateTakenCaps;
+
+  /// The not-ticked word as the Schedule row displays it. See stateTakenCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'NOT TICKED'**
+  String get stateNotTickedCaps;
+
+  /// The today word as the Schedule row displays it. See stateTakenCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'TODAY'**
+  String get stateTodayCaps;
+
+  /// The upcoming word as the Schedule row displays it. See stateTakenCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'UPCOMING'**
+  String get stateUpcomingCaps;
 }
 
 class _AppLocalizationsDelegate

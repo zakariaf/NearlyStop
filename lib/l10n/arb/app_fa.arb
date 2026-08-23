@@ -125,5 +125,9 @@
   "scheduleNoteState": " {state}.",
   "scheduleNoteUnachievable": " این دوز با قرص‌هایی که دارید ساخته نمی‌شود.",
   "scheduleTodaySemantics": "امروز. {day}، {dose} میلی‌گرم: {breakdown}.{notes}",
-  "tabletSeparator": "، "
+  "tabletSeparator": "، ",
+  "stateTakenCaps": "مصرف شد",
+  "stateNotTickedCaps": "ثبت نشده",
+  "stateTodayCaps": "امروز",
+  "stateUpcomingCaps": "پیش‌رو"
 }

@@ -290,11 +290,27 @@ final class ScheduleLoaded extends ScheduleViewState {
   /// The blocks, in order, with a trailing steady-state group when needed.
   final List<ScheduleBlockVm> blocks;
 
+  /// Every day in the step, in order, block boundaries flattened away.
+  ///
+  /// The projection groups; plenty of callers just want the days. Eleven
+  /// places were spelling this out.
+  Iterable<ScheduleDayVm> get days => blocks.expand((block) => block.days);
+
   /// Where [date] sits in these blocks, or null when it is not in this step.
   ///
   /// The list opens centred on whatever this returns, which is today most of
   /// the time and the `?focus=` day when a deep link brought the reader here.
-  (int block, int day)? locate(LocalDate date) {
+  (int block, int day)? locate(LocalDate date) => locateIn(blocks, date);
+
+  /// [locate], for a caller holding the blocks before the state exists.
+  ///
+  /// Static because the projection needs the answer to BUILD the state, and
+  /// two copies of a coordinate search is two chances to disagree about which
+  /// day is today.
+  static (int block, int day)? locateIn(
+    List<ScheduleBlockVm> blocks,
+    LocalDate date,
+  ) {
     for (var block = 0; block < blocks.length; block++) {
       final days = blocks[block].days;
       for (var day = 0; day < days.length; day++) {

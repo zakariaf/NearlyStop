@@ -520,4 +520,16 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get tabletSeparator => '، ';
+
+  @override
+  String get stateTakenCaps => 'مصرف شد';
+
+  @override
+  String get stateNotTickedCaps => 'ثبت نشده';
+
+  @override
+  String get stateTodayCaps => 'امروز';
+
+  @override
+  String get stateUpcomingCaps => 'پیش‌رو';
 }

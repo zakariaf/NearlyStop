@@ -24,13 +24,31 @@ class ScheduleDayRow extends StatelessWidget {
   /// Called with the row's date when a tickable row is tapped.
   final ValueChanged<ScheduleDayVm>? onToggle;
 
-  /// The localized word for a day's state.
+  /// The localized word for a day's state, as a SENTENCE reads it.
+  ///
+  /// This is the one a screen reader speaks. The visible chip uses
+  /// [stateWordDisplay], which the ARB cases separately.
   static String stateWord(AppLocalizations l10n, DayState state) =>
       switch (state) {
         DayState.taken => l10n.stateTaken,
         DayState.missed => l10n.stateNotTicked,
         DayState.today => l10n.stateToday,
         DayState.upcoming => l10n.stateUpcoming,
+      };
+
+  /// The state word as the row DISPLAYS it: cased by the ARB, not by Dart.
+  ///
+  /// `.sstate` is `text-transform: uppercase` in Latin and `none` in
+  /// Perso-Arabic. `String.toUpperCase()` is locale-blind — it is wrong for
+  /// Turkish dotted i and for German ß, and it takes the decision away from
+  /// the translator — so the cased form is its own key, identical to the base
+  /// word in the scripts that have no case.
+  static String stateWordDisplay(AppLocalizations l10n, DayState state) =>
+      switch (state) {
+        DayState.taken => l10n.stateTakenCaps,
+        DayState.missed => l10n.stateNotTickedCaps,
+        DayState.today => l10n.stateTodayCaps,
+        DayState.upcoming => l10n.stateUpcomingCaps,
       };
 
   @override
@@ -49,7 +67,7 @@ class ScheduleDayRow extends StatelessWidget {
       newDoseLabel: day.isNewDose ? l10n.stateNewDoseDay : null,
       isHoldDay: day.isHoldDay,
       holdLabel: day.holdLabel,
-      stateLabel: stateWord(l10n, day.state),
+      stateLabel: stateWordDisplay(l10n, day.state),
       semanticsLabel: _sentence(l10n),
     );
 

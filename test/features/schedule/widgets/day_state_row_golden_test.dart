@@ -60,10 +60,11 @@ String wordFor(String languageCode, DayState state) => languageCode == 'fa'
         DayState.upcoming => 'پیش‌رو',
       }
     : switch (state) {
-        DayState.taken => 'Taken',
-        DayState.missed => 'Not ticked',
-        DayState.today => 'Today',
-        DayState.upcoming => 'Upcoming',
+        // The CASED forms, because that is what `.sstate` shows in Latin.
+        DayState.taken => 'TAKEN',
+        DayState.missed => 'NOT TICKED',
+        DayState.today => 'TODAY',
+        DayState.upcoming => 'UPCOMING',
       };
 
 /// All four states stacked, plus the new-dose channel on `today`.

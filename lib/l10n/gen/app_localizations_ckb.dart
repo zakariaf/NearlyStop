@@ -520,4 +520,16 @@ class AppLocalizationsCkb extends AppLocalizations {
 
   @override
   String get tabletSeparator => '، ';
+
+  @override
+  String get stateTakenCaps => 'وەرگیرا';
+
+  @override
+  String get stateNotTickedCaps => 'تۆمار نەکراوە';
+
+  @override
+  String get stateTodayCaps => 'ئەمڕۆ';
+
+  @override
+  String get stateUpcomingCaps => 'داهاتوو';
 }

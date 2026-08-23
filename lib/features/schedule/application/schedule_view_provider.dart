@@ -365,7 +365,7 @@ class ScheduleNotifier extends StreamNotifier<ScheduleViewState> {
         isActive: isActive,
       ),
       blocks: blocks,
-      todayLocator: _locate(blocks, today),
+      todayLocator: ScheduleLoaded.locateIn(blocks, today),
     );
   }
 
@@ -433,16 +433,6 @@ class ScheduleNotifier extends StreamNotifier<ScheduleViewState> {
     if (days.last.date < today) return BlockStatus.completed;
     if (days.first.date > today) return BlockStatus.upcoming;
     return BlockStatus.current;
-  }
-
-  static (int, int)? _locate(List<ScheduleBlockVm> blocks, LocalDate today) {
-    for (var block = 0; block < blocks.length; block++) {
-      final days = blocks[block].days;
-      for (var day = 0; day < days.length; day++) {
-        if (days[day].date == today) return (block, day);
-      }
-    }
-    return null;
   }
 
   /// One row, joined against what was recorded.

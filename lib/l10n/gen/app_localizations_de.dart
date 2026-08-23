@@ -530,4 +530,16 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tabletSeparator => ', ';
+
+  @override
+  String get stateTakenCaps => 'EINGENOMMEN';
+
+  @override
+  String get stateNotTickedCaps => 'NICHT ABGEHAKT';
+
+  @override
+  String get stateTodayCaps => 'HEUTE';
+
+  @override
+  String get stateUpcomingCaps => 'BEVORSTEHEND';
 }

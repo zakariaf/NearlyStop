@@ -551,10 +551,11 @@ class _StateWord extends StatelessWidget {
         SizedBox(width: shapes.s1),
         Flexible(
           child: Text(
-            // No `toUpperCase()` in Perso-Arabic: the script has no case, and
-            // `toUpperCase` on it is a no-op that still costs a locale-aware
-            // pass over every label on the screen.
-            perso ? label : label.toUpperCase(),
+            // The CASED string comes from the ARB, never from
+            // `.toUpperCase()`: Dart's is locale-blind, and casing is a
+            // translator's call. In Perso-Arabic the cased key is the same
+            // word, because the script has no case.
+            label,
             style: style?.copyWith(
               fontWeight: FontWeight.w800,
               color: color,
