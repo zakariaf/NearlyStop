@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:nearlystop/app.dart';
+import 'package:nearlystop/app/app.dart';
 
 /// The bundled faces, and the OFL text file that licenses each.
 ///

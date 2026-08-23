@@ -1,4 +1,4 @@
-import 'package:nearlystop/bootstrap.dart';
+import 'package:nearlystop/app/bootstrap.dart';
 
 /// Awaited rather than dropped.
 ///

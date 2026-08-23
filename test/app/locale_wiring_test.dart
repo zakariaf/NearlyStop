@@ -8,7 +8,7 @@
 // slightly wrong rather than broken.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nearlystop/app.dart';
+import 'package:nearlystop/app/app.dart';
 import 'package:nearlystop/l10n/app_locales.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 

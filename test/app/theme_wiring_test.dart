@@ -6,7 +6,7 @@
 // that is a defect, not a deferral (CLAUDE.md rule 4).
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nearlystop/app.dart';
+import 'package:nearlystop/app/app.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 
 void main() {
