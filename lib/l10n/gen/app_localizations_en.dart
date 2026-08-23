@@ -641,4 +641,203 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get drugPrednisolone => 'prednisolone';
+
+  @override
+  String get settingsSystemLanguage => 'System';
+
+  @override
+  String get settingsAbout => 'About';
+
+  @override
+  String get settingsAppDescription =>
+      'An offline companion for a slow steroid taper.';
+
+  @override
+  String get settingsVersion => 'Version';
+
+  @override
+  String get settingsViewLicenses => 'View licenses';
+
+  @override
+  String get settingsLicensesTitle => 'Licenses';
+
+  @override
+  String get settingsVersionCopied => 'Version copied';
+
+  @override
+  String get settingsAccessibility => 'Reading and reminders';
+
+  @override
+  String get settingsOn => 'On';
+
+  @override
+  String get settingsOff => 'Off';
+
+  @override
+  String settingsReminderAt(Object time) {
+    return 'On · $time';
+  }
+
+  @override
+  String get settingsBackupNote =>
+      'A copy you keep. Nothing leaves this phone unless you send it.';
+
+  @override
+  String get settingsNotImplemented =>
+      'Not built yet — this arrives with the export release.';
+
+  @override
+  String settingsTextSizeSemantics(Object value) {
+    return 'Text size, $value times';
+  }
+
+  @override
+  String get planNextStep => 'Next step';
+
+  @override
+  String get planSave => 'Save plan';
+
+  @override
+  String get planSaved => 'Plan saved';
+
+  @override
+  String get planDangerZone => 'Danger zone';
+
+  @override
+  String get planDelete => 'Delete plan';
+
+  @override
+  String get planDeleteTitle => 'Delete this plan?';
+
+  @override
+  String planDeleteBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count recorded days',
+      one: '1 recorded day',
+    );
+    return 'Your plan and $_temp0 are removed from this phone. This cannot be undone.';
+  }
+
+  @override
+  String get planDeleteConfirm => 'Delete everything';
+
+  @override
+  String get planExportFirst => 'Export first';
+
+  @override
+  String planCaveat(Object percent, Object dose, Object tenPercent) {
+    return '$percent of $dose is $tenPercent — your doctor’s instruction wins';
+  }
+
+  @override
+  String get planStepOverride => 'Change the step';
+
+  @override
+  String get planStrengthsNote =>
+      'The strengths you actually hold. Edit them to match your box.';
+
+  @override
+  String get planStartDate => 'Start date';
+
+  @override
+  String get planHoldPeriod => 'Days at each dose';
+
+  @override
+  String get planPercentPerStep => 'Percent per step';
+
+  @override
+  String get planFixedStep => 'Step size';
+
+  @override
+  String get planTaperComplete => 'You have reached your target';
+
+  @override
+  String get planReachesTarget => 'This step reaches your target.';
+
+  @override
+  String get planStepNotDue => 'This step is not finished yet';
+
+  @override
+  String get planErrorDoseRequired => 'Enter a dose';
+
+  @override
+  String planErrorDoseUnreadable(Object example) {
+    return 'Use one decimal separator, like $example';
+  }
+
+  @override
+  String get planErrorTargetTooHigh =>
+      'The target must be below the current dose';
+
+  @override
+  String get planErrorDoseTooHigh =>
+      'That is a very high dose — check it is right';
+
+  @override
+  String get planErrorNameRequired => 'Enter the medicine’s name';
+
+  @override
+  String get planErrorNameTooLong => 'Sixty characters at most';
+
+  @override
+  String get planErrorLastStrength => 'Keep at least one strength';
+
+  @override
+  String get planErrorPercent => 'Between 1 and 50';
+
+  @override
+  String get planErrorHoldPeriod => 'At least one day';
+
+  @override
+  String planErrorDoseTooPrecise(Object example) {
+    return 'Doses go to two decimal places, like $example';
+  }
+
+  @override
+  String get planErrorFixedStep =>
+      'More than zero, and no further than your target';
+
+  @override
+  String get planAddStrength => 'Add strength';
+
+  @override
+  String get actionAdd => 'Add';
+
+  @override
+  String get planStrengthValue => 'Tablet strength';
+
+  @override
+  String get settingsTextSizeNormal => 'Normal';
+
+  @override
+  String get settingsTextSizeLarge => 'Large';
+
+  @override
+  String get settingsTextSizeLarger => 'Larger';
+
+  @override
+  String get settingsTextSizeLargest => 'Largest';
+
+  @override
+  String get planStrengthsCaps => 'TABLET STRENGTHS HELD';
+
+  @override
+  String get planMethodCaps => 'METHOD';
+
+  @override
+  String get planNextStepCaps => 'NEXT STEP';
+
+  @override
+  String get planDangerZoneCaps => 'DANGER ZONE';
+
+  @override
+  String get settingsBackupCaps => 'BACKUP';
+
+  @override
+  String get settingsAboutCaps => 'ABOUT';
+
+  @override
+  String get settingsAccessibilityCaps => 'READING AND REMINDERS';
 }

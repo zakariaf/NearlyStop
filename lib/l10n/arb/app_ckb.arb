@@ -145,5 +145,114 @@
   "exportComingSoon": "هەناردەکردن بەم زووانە",
   "exportComingSoonBody": "PDF و خشتەیەک بۆ چاوپێکەوتنەکەت. هێشتا دروست نەکراوە.",
   "chartOverlineCaps": "دۆزەکەت بە درێژایی کات",
-  "drugPrednisolone": "پرێدنیزۆلۆن"
+  "drugPrednisolone": "پرێدنیزۆلۆن",
+  "settingsSystemLanguage": "سیستەم",
+  "settingsAbout": "دەربارە",
+  "settingsAppDescription": "هاوڕێیەکی ئۆفلاین بۆ کەمکردنەوەی هێواشی دۆز.",
+  "settingsVersion": "وەشان",
+  "settingsViewLicenses": "بینینی مۆڵەتەکان",
+  "settingsLicensesTitle": "مۆڵەتەکان",
+  "settingsVersionCopied": "وەشان کۆپی کرا",
+  "settingsAccessibility": "خوێندنەوە و بیرخەرەوەکان",
+  "settingsOn": "کارا",
+  "settingsOff": "ناکارا",
+  "settingsReminderAt": "کارا · {time}",
+  "settingsBackupNote": "کۆپییەک کە خۆت دەیهێڵیتەوە. هیچ شتێک لەم مۆبایلە دەرناچێت مەگەر خۆت بینێریت.",
+  "settingsNotImplemented": "هێشتا دروست نەکراوە — لەگەڵ وەشانی هەناردەکردن دێت.",
+  "settingsTextSizeSemantics": "قەبارەی نووسین، {value} جار",
+  "planNextStep": "هەنگاوی داهاتوو",
+  "planSave": "پاشەکەوتکردنی پلان",
+  "planSaved": "پلان پاشەکەوت کرا",
+  "planDangerZone": "ناوچەی مەترسی",
+  "planDelete": "سڕینەوەی پلان",
+  "planDeleteTitle": "ئەم پلانە بسڕدرێتەوە؟",
+  "planDeleteBody": "پلانەکەت و {count, plural, other{{count} ڕۆژی تۆمارکراو}} لەم مۆبایلە دەسڕدرێنەوە. ئەمە ناگەڕێتەوە.",
+  "planDeleteConfirm": "سڕینەوەی هەموو شتێک",
+  "planExportFirst": "سەرەتا هەناردە بکە",
+  "planCaveat": "{percent}ی {dose} دەکاتە {tenPercent} — ڕێنمایی پزیشکەکەت باڵادەستە",
+  "planStepOverride": "گۆڕینی هەنگاو",
+  "planStrengthsNote": "ئەو قورساییانەی بەڕاستی هەتن. بەپێی سندوقەکەت دەستکاری بکە.",
+  "planStartDate": "بەرواری دەستپێک",
+  "planHoldPeriod": "ڕۆژ بۆ هەر دۆزێک",
+  "planPercentPerStep": "ڕێژە بۆ هەر هەنگاوێک",
+  "planFixedStep": "قەبارەی هەنگاو",
+  "planTaperComplete": "گەیشتوویت بە ئامانجەکەت",
+  "planReachesTarget": "ئەم هەنگاوە دەگاتە ئامانجەکەت.",
+  "planStepNotDue": "ئەم هەنگاوە هێشتا تەواو نەبووە",
+  "planErrorDoseRequired": "دۆز بنووسە",
+  "planErrorDoseUnreadable": "تەنها یەک جیاکەرەوەی دەیی، وەک {example}",
+  "planErrorTargetTooHigh": "ئامانج دەبێت لە دۆزی ئێستا کەمتر بێت",
+  "planErrorDoseTooHigh": "ئەمە دۆزێکی زۆر بەرزە — بیپشکنە",
+  "planErrorNameRequired": "ناوی دەرمانەکە بنووسە",
+  "planErrorNameTooLong": "زۆرترین شەست پیت",
+  "planErrorLastStrength": "لانیکەم یەک قورسایی بهێڵەرەوە",
+  "planErrorPercent": "لە نێوان ١ و ٥٠",
+  "planErrorHoldPeriod": "لانیکەم یەک ڕۆژ",
+  "planErrorDoseTooPrecise": "دۆز تا دوو ژمارەی دەیی، وەک {example}",
+  "@planErrorDoseTooPrecise": {
+    "placeholders": {
+      "example": {}
+    },
+    "description": "Plan screen: a dose finer than a hundredth is flagged, never rounded."
+  },
+  "planErrorFixedStep": "زیاتر لە سفر و نەک زیاتر لە ئامانجەکەت",
+  "@planErrorFixedStep": {
+    "description": "Plan screen: the fixed step must land on or above the target."
+  },
+  "planAddStrength": "زیادکردنی هێزی حەب",
+  "@planAddStrength": {
+    "description": "Plan screen: opens the strength editor."
+  },
+  "actionAdd": "زیادکردن",
+  "@actionAdd": {
+    "description": "Confirms adding an item."
+  },
+  "planStrengthValue": "هێزی حەب",
+  "@planStrengthValue": {
+    "description": "Plan screen: the strength editor’s field label."
+  },
+  "settingsTextSizeNormal": "ئاسایی",
+  "@settingsTextSizeNormal": {
+    "description": "Settings: the text-size slider at its lowest step."
+  },
+  "settingsTextSizeLarge": "گەورە",
+  "@settingsTextSizeLarge": {
+    "description": "Settings: the text-size slider one step up."
+  },
+  "settingsTextSizeLarger": "گەورەتر",
+  "@settingsTextSizeLarger": {
+    "description": "Settings: the text-size slider two steps up."
+  },
+  "settingsTextSizeLargest": "گەورەترین",
+  "@settingsTextSizeLargest": {
+    "description": "Settings: the text-size slider at its highest step."
+  },
+  "planStrengthsCaps": "هێزی حەبەکانی بەردەست",
+  "@planStrengthsCaps": {
+    "description": "The planStrengths heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "planMethodCaps": "شێواز",
+  "@planMethodCaps": {
+    "description": "The planMethod heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "planNextStepCaps": "هەنگاوی داهاتوو",
+  "@planNextStepCaps": {
+    "description": "The planNextStep heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "planDangerZoneCaps": "ناوچەی مەترسی",
+  "@planDangerZoneCaps": {
+    "description": "The planDangerZone heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "settingsBackupCaps": "پاڵپشت",
+  "@settingsBackupCaps": {
+    "description": "The settingsBackup heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "settingsAboutCaps": "دەربارە",
+  "@settingsAboutCaps": {
+    "description": "The settingsAbout heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "settingsAccessibilityCaps": "خوێندنەوە و بیرخەرەوەکان",
+  "@settingsAccessibilityCaps": {
+    "description": "The settingsAccessibility heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  }
 }

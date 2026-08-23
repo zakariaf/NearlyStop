@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nearlystop/app/window_size.dart';
 import 'package:nearlystop/features/progress/application/progress_view_provider.dart';
 import 'package:nearlystop/features/progress/presentation/progress_view_state.dart';
 import 'package:nearlystop/features/progress/presentation/widgets/dose_staircase_chart.dart';
@@ -33,9 +34,6 @@ class ProgressScreen extends ConsumerWidget {
   /// height the chart takes — a page that jumps when data lands tells a reader
   /// who is unsure whether they tapped that they did something.
   static const Key chartSlotKey = Key('progress-chart-slot');
-
-  /// Above this width the chart and the numbers sit side by side.
-  static const double twoPaneBreakpoint = 840;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,8 +71,9 @@ class _Loaded extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final shapes = DaybreakShapes.of(context);
-    final wide =
-        MediaQuery.sizeOf(context).width > ProgressScreen.twoPaneBreakpoint;
+    final wide = WindowSizeClass.forWidth(
+      MediaQuery.sizeOf(context).width,
+    ).isAtLeast(WindowSizeClass.expanded);
 
     final chart = KeyedSubtree(
       key: ProgressScreen.chartSlotKey,

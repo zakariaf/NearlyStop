@@ -105,6 +105,21 @@ ThemeData buildDaybreakTheme(
     switchTheme: SwitchThemeData(
       trackOutlineColor: WidgetStatePropertyAll<Color>(colors.borderStrong),
     ),
+    // A component with no theme slot takes its colours from Material's
+    // derivation of the seed — a palette nobody here chose and the contrast
+    // budget has never measured. The text-size slider is where that showed:
+    // its track rendered as a pale line on a white card, on the one screen
+    // built for readers who cannot see pale lines.
+    sliderTheme: SliderThemeData(
+      activeTrackColor: colors.primaryDeep,
+      inactiveTrackColor: colors.borderStrong,
+      thumbColor: colors.primaryDeep,
+      // No tick marks: ten dots on a four-step scale reads as ten choices,
+      // and the reference frame draws a plain track.
+      activeTickMarkColor: Colors.transparent,
+      inactiveTickMarkColor: Colors.transparent,
+      overlayColor: colors.tintPrimary,
+    ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: colors.surfaceRaised,

@@ -3,16 +3,21 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_tappable.dart';
+import 'package:nearlystop/features/today/presentation/widgets/tablet_breakdown_pill.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
 
 /// One tablet strength the reader either holds or does not.
 ///
-/// **Selection is three signals, never a tint.** A check glyph, `w800`, and a
+/// **Selection is three signals, never a tint.** A tablet glyph, `w800`, and a
 /// 2px ring — so it survives a greyscale printout and a deuteranopic reader —
 /// plus `Semantics(selected:)` for a screen reader. This is the control that
 /// decides which tablets every breakdown in the app is built from; a reader who
 /// misreads it gets the wrong count of the wrong strength every morning.
+///
+/// The glyph is a TABLET, not a tick: every chip in the Plan screen's row is
+/// held — that is what the row is — so a tick on all of them says nothing, and
+/// the reference frame draws the tablet.
 class StrengthChip extends StatelessWidget {
   /// Creates a chip for one strength.
   const StrengthChip({
@@ -26,8 +31,8 @@ class StrengthChip extends StatelessWidget {
   /// Finds the decorated container, for tests that measure the ring.
   static const Key containerKey = Key('strength-chip-container');
 
-  /// The glyph shown when selected.
-  static const IconData selectedGlyph = Icons.check;
+  /// The glyph shown when selected. The same tablet the Today screen uses.
+  static const IconData selectedGlyph = TabletBreakdownPill.glyph;
 
   /// The floor on both sides.
   static const double minSide = 44;

@@ -911,5 +911,260 @@
   "drugPrednisolone": "prednisolone",
   "@drugPrednisolone": {
     "description": "The default drug's name in running text, lower case."
+  },
+  "settingsSystemLanguage": "System",
+  "@settingsSystemLanguage": {
+    "description": "The language option that follows the phone."
+  },
+  "settingsAbout": "About",
+  "@settingsAbout": {
+    "description": "The About card heading."
+  },
+  "settingsAppDescription": "An offline companion for a slow steroid taper.",
+  "@settingsAppDescription": {
+    "description": "One line under the app name."
+  },
+  "settingsVersion": "Version",
+  "@settingsVersion": {
+    "description": "Label beside the version and build number."
+  },
+  "settingsViewLicenses": "View licenses",
+  "@settingsViewLicenses": {
+    "description": "Opens the licences page."
+  },
+  "settingsLicensesTitle": "Licenses",
+  "@settingsLicensesTitle": {
+    "description": "Title of the licences page."
+  },
+  "settingsVersionCopied": "Version copied",
+  "@settingsVersionCopied": {
+    "description": "Confirmation after long-pressing the version."
+  },
+  "settingsAccessibility": "Reading and reminders",
+  "@settingsAccessibility": {
+    "description": "The first settings card heading."
+  },
+  "settingsOn": "On",
+  "@settingsOn": {
+    "description": "A switch that is on."
+  },
+  "settingsOff": "Off",
+  "@settingsOff": {
+    "description": "A switch that is off."
+  },
+  "settingsReminderAt": "On · {time}",
+  "@settingsReminderAt": {
+    "description": "Reminder sublabel with its time.",
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "settingsBackupNote": "A copy you keep. Nothing leaves this phone unless you send it.",
+  "@settingsBackupNote": {
+    "description": "One line under the backup buttons."
+  },
+  "settingsNotImplemented": "Not built yet — this arrives with the export release.",
+  "@settingsNotImplemented": {
+    "description": "Shown when a backup action is not built yet."
+  },
+  "settingsTextSizeSemantics": "Text size, {value} times",
+  "@settingsTextSizeSemantics": {
+    "description": "Screen-reader label for the text-size slider.",
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "planNextStep": "Next step",
+  "@planNextStep": {
+    "description": "Plan screen: planNextStep."
+  },
+  "planSave": "Save plan",
+  "@planSave": {
+    "description": "Plan screen: planSave."
+  },
+  "planSaved": "Plan saved",
+  "@planSaved": {
+    "description": "Plan screen: planSaved."
+  },
+  "planDangerZone": "Danger zone",
+  "@planDangerZone": {
+    "description": "Plan screen: planDangerZone."
+  },
+  "planDelete": "Delete plan",
+  "@planDelete": {
+    "description": "Plan screen: planDelete."
+  },
+  "planDeleteTitle": "Delete this plan?",
+  "@planDeleteTitle": {
+    "description": "Plan screen: planDeleteTitle."
+  },
+  "planDeleteBody": "Your plan and {count, plural, =1{1 recorded day} other{{count} recorded days}} are removed from this phone. This cannot be undone.",
+  "@planDeleteBody": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "340"
+      }
+    },
+    "description": "Plan screen: planDeleteBody."
+  },
+  "planDeleteConfirm": "Delete everything",
+  "@planDeleteConfirm": {
+    "description": "Plan screen: planDeleteConfirm."
+  },
+  "planExportFirst": "Export first",
+  "@planExportFirst": {
+    "description": "Plan screen: planExportFirst."
+  },
+  "planCaveat": "{percent} of {dose} is {tenPercent} — your doctor’s instruction wins",
+  "@planCaveat": {
+    "placeholders": {
+      "percent": {},
+      "dose": {},
+      "tenPercent": {}
+    },
+    "description": "Plan screen: planCaveat."
+  },
+  "planStepOverride": "Change the step",
+  "@planStepOverride": {
+    "description": "Plan screen: planStepOverride."
+  },
+  "planStrengthsNote": "The strengths you actually hold. Edit them to match your box.",
+  "@planStrengthsNote": {
+    "description": "Plan screen: planStrengthsNote."
+  },
+  "planStartDate": "Start date",
+  "@planStartDate": {
+    "description": "Plan screen: planStartDate."
+  },
+  "planHoldPeriod": "Days at each dose",
+  "@planHoldPeriod": {
+    "description": "Plan screen: planHoldPeriod."
+  },
+  "planPercentPerStep": "Percent per step",
+  "@planPercentPerStep": {
+    "description": "Plan screen: planPercentPerStep."
+  },
+  "planFixedStep": "Step size",
+  "@planFixedStep": {
+    "description": "Plan screen: planFixedStep."
+  },
+  "planTaperComplete": "You have reached your target",
+  "@planTaperComplete": {
+    "description": "Plan screen: planTaperComplete."
+  },
+  "planReachesTarget": "This step reaches your target.",
+  "@planReachesTarget": {
+    "description": "Plan screen: planReachesTarget."
+  },
+  "planStepNotDue": "This step is not finished yet",
+  "@planStepNotDue": {
+    "description": "Plan screen: planStepNotDue."
+  },
+  "planErrorDoseRequired": "Enter a dose",
+  "@planErrorDoseRequired": {
+    "description": "Plan screen: planErrorDoseRequired."
+  },
+  "planErrorDoseUnreadable": "Use one decimal separator, like {example}",
+  "@planErrorDoseUnreadable": {
+    "placeholders": {
+      "example": {}
+    },
+    "description": "Plan screen: planErrorDoseUnreadable."
+  },
+  "planErrorTargetTooHigh": "The target must be below the current dose",
+  "@planErrorTargetTooHigh": {
+    "description": "Plan screen: planErrorTargetTooHigh."
+  },
+  "planErrorDoseTooHigh": "That is a very high dose — check it is right",
+  "@planErrorDoseTooHigh": {
+    "description": "Plan screen: planErrorDoseTooHigh."
+  },
+  "planErrorNameRequired": "Enter the medicine’s name",
+  "@planErrorNameRequired": {
+    "description": "Plan screen: planErrorNameRequired."
+  },
+  "planErrorNameTooLong": "Sixty characters at most",
+  "@planErrorNameTooLong": {
+    "description": "Plan screen: planErrorNameTooLong."
+  },
+  "planErrorLastStrength": "Keep at least one strength",
+  "@planErrorLastStrength": {
+    "description": "Plan screen: planErrorLastStrength."
+  },
+  "planErrorPercent": "Between 1 and 50",
+  "@planErrorPercent": {
+    "description": "Plan screen: planErrorPercent."
+  },
+  "planErrorHoldPeriod": "At least one day",
+  "@planErrorHoldPeriod": {
+    "description": "Plan screen: planErrorHoldPeriod."
+  },
+  "planErrorDoseTooPrecise": "Doses go to two decimal places, like {example}",
+  "@planErrorDoseTooPrecise": {
+    "placeholders": {
+      "example": {}
+    },
+    "description": "Plan screen: a dose finer than a hundredth is flagged, never rounded."
+  },
+  "planErrorFixedStep": "More than zero, and no further than your target",
+  "@planErrorFixedStep": {
+    "description": "Plan screen: the fixed step must land on or above the target."
+  },
+  "planAddStrength": "Add strength",
+  "@planAddStrength": {
+    "description": "Plan screen: opens the strength editor."
+  },
+  "actionAdd": "Add",
+  "@actionAdd": {
+    "description": "Confirms adding an item."
+  },
+  "planStrengthValue": "Tablet strength",
+  "@planStrengthValue": {
+    "description": "Plan screen: the strength editor’s field label."
+  },
+  "settingsTextSizeNormal": "Normal",
+  "@settingsTextSizeNormal": {
+    "description": "Settings: the text-size slider at its lowest step."
+  },
+  "settingsTextSizeLarge": "Large",
+  "@settingsTextSizeLarge": {
+    "description": "Settings: the text-size slider one step up."
+  },
+  "settingsTextSizeLarger": "Larger",
+  "@settingsTextSizeLarger": {
+    "description": "Settings: the text-size slider two steps up."
+  },
+  "settingsTextSizeLargest": "Largest",
+  "@settingsTextSizeLargest": {
+    "description": "Settings: the text-size slider at its highest step."
+  },
+  "planStrengthsCaps": "TABLET STRENGTHS HELD",
+  "@planStrengthsCaps": {
+    "description": "The planStrengths heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "planMethodCaps": "METHOD",
+  "@planMethodCaps": {
+    "description": "The planMethod heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "planNextStepCaps": "NEXT STEP",
+  "@planNextStepCaps": {
+    "description": "The planNextStep heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "planDangerZoneCaps": "DANGER ZONE",
+  "@planDangerZoneCaps": {
+    "description": "The planDangerZone heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "settingsBackupCaps": "BACKUP",
+  "@settingsBackupCaps": {
+    "description": "The settingsBackup heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "settingsAboutCaps": "ABOUT",
+  "@settingsAboutCaps": {
+    "description": "The settingsAbout heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "settingsAccessibilityCaps": "READING AND REMINDERS",
+  "@settingsAccessibilityCaps": {
+    "description": "The settingsAccessibility heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
   }
 }

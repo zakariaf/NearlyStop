@@ -69,6 +69,7 @@ jobs:
       - run: bash tool/coverage_floor_selftest.sh
       - run: bash tool/check_raw_values_selftest.sh
       - run: bash tool/check_arb_parity_selftest.sh
+      - run: bash tool/check_forms_selftest.sh
 
       # Contract: the committed generated code IS the generated code. Without
       # this, a stale `.g.dart` compiles fine locally and diverges from
@@ -79,6 +80,14 @@ jobs:
       - run: dart run build_runner build
       - name: generated code is up to date
         run: git diff --exit-code
+
+      # Contract: the version the About card shows IS the version in
+      # pubspec.yaml. Generated rather than read from the platform, because
+      # `package_info_plus` pulls `package:http` into the binary of an app
+      # whose whole premise is that it has no network path.
+      - run: dart run tool/gen_version.dart
+      - name: the generated version is up to date
+        run: git diff --exit-code -- lib/app/app_version.dart
 
       # Contract: the committed generated localizations ARE the ARB files. A
       # stale `lib/l10n/gen/` compiles and runs, serving yesterday's strings.
@@ -116,6 +125,11 @@ jobs:
       # Contract: lib/core/ stays pure Dart, so the domain is testable in
       # milliseconds without a widget harness (CONTRACTS.md §2).
       - run: bash tool/check_core_purity.sh
+
+      # Contract: no leaked controller, one input formatter, and no parse that
+      # skips the locale. All three are source-graph properties: a field that
+      # leaks or reads German 7,5 as a FormatException keeps every test green.
+      - run: bash tool/check_forms.sh
 
       # Contract: no junk-drawer folder, no barrel in the app package, no
       # MethodChannel outside services/native/.

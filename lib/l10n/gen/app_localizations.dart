@@ -1005,6 +1005,354 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'prednisolone'**
   String get drugPrednisolone;
+
+  /// The language option that follows the phone.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get settingsSystemLanguage;
+
+  /// The About card heading.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsAbout;
+
+  /// One line under the app name.
+  ///
+  /// In en, this message translates to:
+  /// **'An offline companion for a slow steroid taper.'**
+  String get settingsAppDescription;
+
+  /// Label beside the version and build number.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get settingsVersion;
+
+  /// Opens the licences page.
+  ///
+  /// In en, this message translates to:
+  /// **'View licenses'**
+  String get settingsViewLicenses;
+
+  /// Title of the licences page.
+  ///
+  /// In en, this message translates to:
+  /// **'Licenses'**
+  String get settingsLicensesTitle;
+
+  /// Confirmation after long-pressing the version.
+  ///
+  /// In en, this message translates to:
+  /// **'Version copied'**
+  String get settingsVersionCopied;
+
+  /// The first settings card heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading and reminders'**
+  String get settingsAccessibility;
+
+  /// A switch that is on.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get settingsOn;
+
+  /// A switch that is off.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get settingsOff;
+
+  /// Reminder sublabel with its time.
+  ///
+  /// In en, this message translates to:
+  /// **'On · {time}'**
+  String settingsReminderAt(Object time);
+
+  /// One line under the backup buttons.
+  ///
+  /// In en, this message translates to:
+  /// **'A copy you keep. Nothing leaves this phone unless you send it.'**
+  String get settingsBackupNote;
+
+  /// Shown when a backup action is not built yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not built yet — this arrives with the export release.'**
+  String get settingsNotImplemented;
+
+  /// Screen-reader label for the text-size slider.
+  ///
+  /// In en, this message translates to:
+  /// **'Text size, {value} times'**
+  String settingsTextSizeSemantics(Object value);
+
+  /// Plan screen: planNextStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Next step'**
+  String get planNextStep;
+
+  /// Plan screen: planSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save plan'**
+  String get planSave;
+
+  /// Plan screen: planSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan saved'**
+  String get planSaved;
+
+  /// Plan screen: planDangerZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Danger zone'**
+  String get planDangerZone;
+
+  /// Plan screen: planDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete plan'**
+  String get planDelete;
+
+  /// Plan screen: planDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this plan?'**
+  String get planDeleteTitle;
+
+  /// Plan screen: planDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan and {count, plural, =1{1 recorded day} other{{count} recorded days}} are removed from this phone. This cannot be undone.'**
+  String planDeleteBody(int count);
+
+  /// Plan screen: planDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete everything'**
+  String get planDeleteConfirm;
+
+  /// Plan screen: planExportFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Export first'**
+  String get planExportFirst;
+
+  /// Plan screen: planCaveat.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent} of {dose} is {tenPercent} — your doctor’s instruction wins'**
+  String planCaveat(Object percent, Object dose, Object tenPercent);
+
+  /// Plan screen: planStepOverride.
+  ///
+  /// In en, this message translates to:
+  /// **'Change the step'**
+  String get planStepOverride;
+
+  /// Plan screen: planStrengthsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The strengths you actually hold. Edit them to match your box.'**
+  String get planStrengthsNote;
+
+  /// Plan screen: planStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get planStartDate;
+
+  /// Plan screen: planHoldPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Days at each dose'**
+  String get planHoldPeriod;
+
+  /// Plan screen: planPercentPerStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Percent per step'**
+  String get planPercentPerStep;
+
+  /// Plan screen: planFixedStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Step size'**
+  String get planFixedStep;
+
+  /// Plan screen: planTaperComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'You have reached your target'**
+  String get planTaperComplete;
+
+  /// Plan screen: planReachesTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'This step reaches your target.'**
+  String get planReachesTarget;
+
+  /// Plan screen: planStepNotDue.
+  ///
+  /// In en, this message translates to:
+  /// **'This step is not finished yet'**
+  String get planStepNotDue;
+
+  /// Plan screen: planErrorDoseRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a dose'**
+  String get planErrorDoseRequired;
+
+  /// Plan screen: planErrorDoseUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'Use one decimal separator, like {example}'**
+  String planErrorDoseUnreadable(Object example);
+
+  /// Plan screen: planErrorTargetTooHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'The target must be below the current dose'**
+  String get planErrorTargetTooHigh;
+
+  /// Plan screen: planErrorDoseTooHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'That is a very high dose — check it is right'**
+  String get planErrorDoseTooHigh;
+
+  /// Plan screen: planErrorNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the medicine’s name'**
+  String get planErrorNameRequired;
+
+  /// Plan screen: planErrorNameTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Sixty characters at most'**
+  String get planErrorNameTooLong;
+
+  /// Plan screen: planErrorLastStrength.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep at least one strength'**
+  String get planErrorLastStrength;
+
+  /// Plan screen: planErrorPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Between 1 and 50'**
+  String get planErrorPercent;
+
+  /// Plan screen: planErrorHoldPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'At least one day'**
+  String get planErrorHoldPeriod;
+
+  /// Plan screen: a dose finer than a hundredth is flagged, never rounded.
+  ///
+  /// In en, this message translates to:
+  /// **'Doses go to two decimal places, like {example}'**
+  String planErrorDoseTooPrecise(Object example);
+
+  /// Plan screen: the fixed step must land on or above the target.
+  ///
+  /// In en, this message translates to:
+  /// **'More than zero, and no further than your target'**
+  String get planErrorFixedStep;
+
+  /// Plan screen: opens the strength editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Add strength'**
+  String get planAddStrength;
+
+  /// Confirms adding an item.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get actionAdd;
+
+  /// Plan screen: the strength editor’s field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Tablet strength'**
+  String get planStrengthValue;
+
+  /// Settings: the text-size slider at its lowest step.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get settingsTextSizeNormal;
+
+  /// Settings: the text-size slider one step up.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get settingsTextSizeLarge;
+
+  /// Settings: the text-size slider two steps up.
+  ///
+  /// In en, this message translates to:
+  /// **'Larger'**
+  String get settingsTextSizeLarger;
+
+  /// Settings: the text-size slider at its highest step.
+  ///
+  /// In en, this message translates to:
+  /// **'Largest'**
+  String get settingsTextSizeLargest;
+
+  /// The planStrengths heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'TABLET STRENGTHS HELD'**
+  String get planStrengthsCaps;
+
+  /// The planMethod heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'METHOD'**
+  String get planMethodCaps;
+
+  /// The planNextStep heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT STEP'**
+  String get planNextStepCaps;
+
+  /// The planDangerZone heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'DANGER ZONE'**
+  String get planDangerZoneCaps;
+
+  /// The settingsBackup heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'BACKUP'**
+  String get settingsBackupCaps;
+
+  /// The settingsAbout heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'ABOUT'**
+  String get settingsAboutCaps;
+
+  /// The settingsAccessibility heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'READING AND REMINDERS'**
+  String get settingsAccessibilityCaps;
 }
 
 class _AppLocalizationsDelegate

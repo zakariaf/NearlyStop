@@ -97,6 +97,68 @@ void main() {
     });
   });
 
+  group('no numeral literal outside lib/l10n', () {
+    // EPIC-03's rule, extended: the Perso-Arabic DECIMAL SEPARATOR is the
+    // character the original class missed, and it is the one that matters
+    // most. A field whose formatter allows a literal `\u066B` while the parser
+    // reads its separator from intl symbol data accepts a keystroke it then
+    // refuses, with nothing on screen to tell the two apart.
+    const offenders = <String, String>{
+      'a digit': "const s = '\u06F5';",
+      'a digit range': "final r = RegExp('[0-9\u0660-\u0669]');",
+      'the decimal separator': "const sep = '\u066B';",
+      'the thousands separator': "const sep = '\u066C';",
+    };
+
+    for (final MapEntry<String, String>(key: what, value: line)
+        in offenders.entries) {
+      test('$what under lib/features turns the build red', () async {
+        write(
+          'lib/features/plan/presentation/planted.dart',
+          '/// Scratch.\n$line\n',
+        );
+
+        final result = await runGate();
+        final output = '${result.stdout}${result.stderr}';
+
+        expect(result.exitCode, 1, reason: what);
+        expect(output, contains('planted.dart'));
+        expect(output, contains('digit table'));
+      });
+    }
+
+    test('the rule has NO exemption, not even for lib/l10n', () async {
+      // The counter-case is a SPELLING, not a directory. `lib/l10n` owns the
+      // character set and still may not type it out: the exemption that used
+      // to sit here protected nothing, because comments are stripped before
+      // matching and the file passed on its own anyway.
+      write(
+        'lib/l10n/planted.dart',
+        "/// Scratch.\nconst sep = '\u066B';\n",
+      );
+
+      final result = await runGate();
+
+      expect(result.exitCode, 1, reason: '${result.stdout}${result.stderr}');
+    });
+
+    test(
+      'the same character named by code point is how it is written',
+      () async {
+        write(
+          'lib/l10n/numeric_input.dart',
+          '/// Scratch.\n'
+              'const int sep = 0x066B;\n'
+              'const List<int> d = <int>[0x06F0];\n',
+        );
+
+        final result = await runGate();
+
+        expect(result.exitCode, 0, reason: '${result.stdout}${result.stderr}');
+      },
+    );
+  });
+
   group('a painter takes a snapshot, not a context', () {
     for (final needle in <String>[
       'BuildContext',

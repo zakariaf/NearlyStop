@@ -31,6 +31,7 @@ class DaybreakButtonSkin extends StatelessWidget {
     this.borderWidth = 0,
     this.shadow = const <BoxShadow>[],
     this.expand = false,
+    this.glyph,
     super.key,
   });
 
@@ -66,6 +67,9 @@ class DaybreakButtonSkin extends StatelessWidget {
 
   /// Whether the button fills its parent's width.
   final bool expand;
+
+  /// An optional leading mark. **Decoration**: the label already says it.
+  final IconData? glyph;
 
   @override
   Widget build(BuildContext context) {
@@ -111,12 +115,36 @@ class DaybreakButtonSkin extends StatelessWidget {
         child: Center(
           heightFactor: 1,
           widthFactor: expand ? null : 1,
-          child: Text(
-            // Never `toUpperCase()`: it no-ops in Persian and shouts in
-            // English.
-            label,
-            textAlign: TextAlign.center,
-            style: textStyle.copyWith(color: enabled ? ink : colors.inkFaint),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              if (glyph case final mark?) ...<Widget>[
+                // EXCLUDED from semantics: the glyph repeats the label, and
+                // "tick, I understand" is the button read to you twice.
+                ExcludeSemantics(
+                  child: Icon(
+                    mark,
+                    size: MediaQuery.textScalerOf(
+                      context,
+                    ).scale(textStyle.fontSize ?? shapes.s5),
+                    color: enabled ? ink : colors.inkFaint,
+                  ),
+                ),
+                SizedBox(width: shapes.s2),
+              ],
+              Flexible(
+                child: Text(
+                  // Never `toUpperCase()`: it no-ops in Persian and shouts in
+                  // English.
+                  label,
+                  textAlign: TextAlign.center,
+                  style: textStyle.copyWith(
+                    color: enabled ? ink : colors.inkFaint,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -131,6 +159,7 @@ class PrimaryPillButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.expand = false,
+    this.glyph,
     super.key,
   });
 
@@ -142,6 +171,9 @@ class PrimaryPillButton extends StatelessWidget {
 
   /// Whether it fills its parent's width.
   final bool expand;
+
+  /// An optional leading mark. **Decoration**: the label already says it.
+  final IconData? glyph;
 
   /// The floor on its height.
   static const double minHeight = 56;
@@ -159,6 +191,7 @@ class PrimaryPillButton extends StatelessWidget {
       ),
       gradient: colors.sunrise,
       expand: expand,
+      glyph: glyph,
     );
   }
 }

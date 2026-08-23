@@ -49,6 +49,23 @@ NumberFormat doseFormat(Locale locale) => numberFormatFor(locale)
 String formatDose(Milligrams dose, Locale locale) =>
     doseFormat(locale).format(dose.hundredths / 100);
 
+/// Renders a plain count — days, a percentage — in [locale]'s digits.
+///
+/// Grouping OFF: a hold period is a count of days, and `1,000` in a field the
+/// user then re-types is a separator they have to delete before it parses.
+String formatWholeNumber(int value, Locale locale) =>
+    (numberFormatFor(locale)..turnOffGrouping()).format(value);
+
+/// Reads a plain count typed in any of the app's digit blocks.
+///
+/// No separators, so no locale needed past the digit fold — which is why this
+/// is not [parseDose] with a flag: a count has no decimal point to get wrong.
+int? parseWholeNumber(String raw) {
+  final ascii = normalizeToAscii(raw.trim());
+  if (ascii.isEmpty) return null;
+  return int.tryParse(ascii);
+}
+
 /// Folds Perso-Arabic digits to ASCII. **Digits only.**
 ///
 /// Folds U+0660–0669 (Arabic-Indic) and U+06F0–06F9 (extended Arabic-Indic) to

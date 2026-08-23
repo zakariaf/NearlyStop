@@ -11,8 +11,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/app/user_preferences_layer.dart';
+import 'package:nearlystop/core/result.dart';
 import 'package:nearlystop/core/settings/app_settings.dart';
 import 'package:nearlystop/data/storage_failure.dart';
+import 'package:nearlystop/features/settings/application/settings_controller.dart';
 import 'package:nearlystop/l10n/app_locales.dart';
 import 'package:nearlystop/providers.dart';
 import 'package:nearlystop/theme/daybreak_theme.dart';
@@ -120,3 +122,80 @@ AppSettings acceptedSettings({String? localeTag, bool highContrast = false}) =>
       localeTag: localeTag,
       highContrast: highContrast,
     );
+
+/// A widget test that tears its provider scope down INSIDE the body.
+///
+/// Drift schedules a zero-duration timer when a query stream is cancelled, and
+/// `testWidgets` asserts no timer is pending — an assertion that runs BEFORE
+/// `addTearDown` callbacks, so unmounting there is too late. The symptom is a
+/// whole file that hangs with no output at all, which is why this is shared
+/// rather than re-derived: the second person to hit it loses an hour.
+void widgetTestWithDatabase(
+  String description,
+  Future<void> Function(WidgetTester) body,
+) {
+  testWidgets(description, (tester) async {
+    await body(tester);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+}
+
+/// Fails if anything on screen scrolls sideways.
+///
+/// Excludes the `Scrollable` a single-line text field builds for itself:
+/// `EditableText` scrolls its own content horizontally, which is how a long
+/// medicine name stays typeable, and has nothing to do with the PAGE scrolling
+/// sideways.
+void expectNoHorizontalScroll(WidgetTester tester) {
+  final inFields = tester
+      .widgetList<Scrollable>(
+        find.descendant(
+          of: find.byType(EditableText),
+          matching: find.byType(Scrollable),
+        ),
+      )
+      .toSet();
+  for (final scrollable in tester.widgetList<Scrollable>(
+    find.byType(Scrollable),
+  )) {
+    if (inFields.contains(scrollable)) continue;
+    expect(
+      scrollable.axisDirection,
+      anyOf(AxisDirection.down, AxisDirection.up),
+      reason: 'a horizontal scroller hides content off the edge',
+    );
+  }
+  expect(tester.takeException(), isNull);
+}
+
+/// A `SettingsController` that reports fixed settings and swallows writes.
+///
+/// Five suites were each declaring their own. A sixth spelling is a sixth
+/// chance to seed something subtly different from what the app produces.
+final class FixedSettingsController extends SettingsController {
+  /// Reports the defaults.
+  FixedSettingsController() : _settings = AppSettings.defaults;
+
+  /// Reports [settings].
+  FixedSettingsController.of(AppSettings settings) : _settings = settings;
+
+  /// A plan-less install past the disclaimer, with the reminder on — so the
+  /// rows are not all sitting at their defaults in a golden.
+  factory FixedSettingsController.seeded() => FixedSettingsController.of(
+    AppSettings.defaults.copyWith(
+      reminderEnabled: true,
+      reminderMinuteOfDay: 8 * 60,
+      disclaimerAcceptedAt: DateTime.utc(2026, 4),
+    ),
+  );
+
+  final AppSettings _settings;
+
+  @override
+  AppSettings build() => _settings;
+
+  @override
+  Future<Result<void, StorageFailure>> setLocaleTag(String? tag) async =>
+      const Ok(null);
+}
