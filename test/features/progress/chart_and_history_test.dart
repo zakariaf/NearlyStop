@@ -10,6 +10,7 @@ import 'package:nearlystop/core/units/milligrams.dart';
 import 'package:nearlystop/features/progress/presentation/progress_view_state.dart';
 import 'package:nearlystop/features/progress/presentation/widgets/dose_history_list.dart';
 import 'package:nearlystop/features/progress/presentation/widgets/dose_staircase_chart.dart';
+import 'package:nearlystop/features/progress/presentation/widgets/dose_staircase_painter.dart';
 
 import '../../support/harness.dart';
 
@@ -197,5 +198,56 @@ void main() {
     await expectLater(tester, meetsGuideline(textContrastGuideline));
     expect(tester.takeException(), isNull);
     handle.dispose();
+  });
+  testWidgets('a flat series does not print the same dose three times', (
+    tester,
+  ) async {
+    // Found on a device, sixteen days into a plan: the taper has not reached
+    // its first crossover, so every tread is 10mg — and the axis said "10mg",
+    // "10mg", "10mg". Three labels that agree tell the reader nothing and look
+    // like a bug on the screen that exists to be evidence.
+    await pumpApp(
+      tester,
+      const DoseStaircaseChart(
+        segments: <DoseSegment>[
+          DoseSegment(
+            startDayIndex: 0,
+            endDayIndex: 15,
+            dose: Milligrams.fromHundredths(1000),
+          ),
+        ],
+        flares: <FlareMark>[],
+        holds: <HoldMark>[],
+        todayDayIndex: 15,
+        todayDose: Milligrams.fromHundredths(1000),
+        axis: ProgressAxis(
+          minDose: Milligrams.fromHundredths(1000),
+          maxDose: Milligrams.fromHundredths(1000),
+          firstLabel: 'Aug 2026',
+          lastLabel: 'Aug 2026',
+        ),
+        summary: 'x',
+        historyRows: <String>['x'],
+        eventCountLabel: 'No flares or holds recorded',
+      ),
+      surfaceSize: const Size(390, 500),
+    );
+
+    final chart = tester.widget<CustomPaint>(
+      find
+          .descendant(
+            of: find.byType(DoseStaircaseChart),
+            matching: find.byType(CustomPaint),
+          )
+          .first,
+    );
+    final painter = chart.painter! as DoseStaircasePainter;
+    expect(
+      painter.labels.doses,
+      hasLength(1),
+      reason: 'a flat series has one dose to name, not three',
+    );
+    // And the two ends of the same month are one label, not two.
+    expect(painter.labels.last.text!.toPlainText(), isEmpty);
   });
 }

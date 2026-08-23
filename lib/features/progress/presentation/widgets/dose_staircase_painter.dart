@@ -380,11 +380,14 @@ class DoseStaircasePainter extends CustomPainter {
 
     for (var index = 0; index < labels.doses.length; index++) {
       final painter = labels.doses[index];
-      final y =
-          plotTop +
-          (size.height - plotTop - plotBottom) *
-              index /
-              (labels.doses.length - 1).clamp(1, 1 << 30);
+      // A single label belongs ON the line it names — a flat series has one
+      // dose, and putting it at the top of an empty plot names nothing.
+      final y = labels.doses.length == 1
+          ? yFor(minDose, size)
+          : plotTop +
+                (size.height - plotTop - plotBottom) *
+                    index /
+                    (labels.doses.length - 1);
       painter.paint(
         canvas,
         Offset(startEdge ? 0 : size.width - painter.width, y - painter.height),
