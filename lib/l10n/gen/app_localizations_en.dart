@@ -79,6 +79,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionNextStep => 'Next step';
 
   @override
+  String get actionCancel => 'Cancel';
+
+  @override
+  String get actionClose => 'Close';
+
+  @override
+  String get actionUndo => 'Undo';
+
+  @override
+  String get stateUnavailable => 'Unavailable';
+
+  @override
   String stepOfTotal(int current, int total) {
     return 'Step $current of $total';
   }

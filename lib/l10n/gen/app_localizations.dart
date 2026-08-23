@@ -234,6 +234,30 @@ abstract class AppLocalizations {
   /// **'Next step'**
   String get actionNextStep;
 
+  /// The cancel action on a confirmation sheet. Cancelling a destructive action is deliberately the easy path.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get actionCancel;
+
+  /// The action on the disclaimer sheet when it is opened to be re-read from Settings, rather than as the first-run gate.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get actionClose;
+
+  /// The action on the app’s one undo surface. Never a SnackBar: it times out before this reader finishes it.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get actionUndo;
+
+  /// Appended to a disabled control’s SEMANTICS label. A disabled button that only dims is invisible to a screen reader and to anyone with low contrast vision, so the state is said in words as well.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get stateUnavailable;
+
   /// Which reduction the patient is on, out of the plan's total.
   ///
   /// In en, this message translates to:

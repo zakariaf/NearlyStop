@@ -79,6 +79,18 @@ class AppLocalizationsCkb extends AppLocalizations {
   String get actionNextStep => 'هەنگاوی داهاتوو';
 
   @override
+  String get actionCancel => 'پاشگەزبوونەوە';
+
+  @override
+  String get actionClose => 'داخستن';
+
+  @override
+  String get actionUndo => 'گەڕاندنەوە';
+
+  @override
+  String get stateUnavailable => 'بەردەست نییە';
+
+  @override
   String stepOfTotal(int current, int total) {
     return 'هەنگاوی $current لە $total';
   }

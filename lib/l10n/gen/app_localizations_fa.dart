@@ -79,6 +79,18 @@ class AppLocalizationsFa extends AppLocalizations {
   String get actionNextStep => 'گام بعدی';
 
   @override
+  String get actionCancel => 'انصراف';
+
+  @override
+  String get actionClose => 'بستن';
+
+  @override
+  String get actionUndo => 'واگرد';
+
+  @override
+  String get stateUnavailable => 'در دسترس نیست';
+
+  @override
   String stepOfTotal(int current, int total) {
     return 'گام $current از $total';
   }
