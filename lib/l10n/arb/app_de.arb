@@ -144,5 +144,6 @@
   "historyHoldRow": "Gehalten bei {dose} Milligramm für {days, plural, =1{1 Tag} other{{days} Tage}} ab {date}",
   "exportComingSoon": "Export kommt als Nächstes",
   "exportComingSoonBody": "Ein PDF und eine Tabelle für Ihren Termin. Noch nicht gebaut.",
-  "chartOverlineCaps": "IHRE DOSIS IM ZEITVERLAUF"
+  "chartOverlineCaps": "IHRE DOSIS IM ZEITVERLAUF",
+  "drugPrednisolone": "Prednisolon"
 }

@@ -144,5 +144,6 @@
   "historyHoldRow": "ڕاگیراوە لە {dose} میلیگرام بۆ ماوەی {days, plural, other{{days} ڕۆژ}} لە {date}",
   "exportComingSoon": "هەناردەکردن بەم زووانە",
   "exportComingSoonBody": "PDF و خشتەیەک بۆ چاوپێکەوتنەکەت. هێشتا دروست نەکراوە.",
-  "chartOverlineCaps": "دۆزەکەت بە درێژایی کات"
+  "chartOverlineCaps": "دۆزەکەت بە درێژایی کات",
+  "drugPrednisolone": "پرێدنیزۆلۆن"
 }

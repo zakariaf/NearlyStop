@@ -638,4 +638,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chartOverlineCaps => 'YOUR DOSE OVER TIME';
+
+  @override
+  String get drugPrednisolone => 'prednisolone';
 }

@@ -625,4 +625,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get chartOverlineCaps => 'دوز شما در طول زمان';
+
+  @override
+  String get drugPrednisolone => 'پردنیزولون';
 }

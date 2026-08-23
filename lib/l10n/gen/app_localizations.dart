@@ -999,6 +999,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'YOUR DOSE OVER TIME'**
   String get chartOverlineCaps;
+
+  /// The default drug's name in running text, lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'prednisolone'**
+  String get drugPrednisolone;
 }
 
 class _AppLocalizationsDelegate

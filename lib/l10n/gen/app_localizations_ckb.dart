@@ -625,4 +625,7 @@ class AppLocalizationsCkb extends AppLocalizations {
 
   @override
   String get chartOverlineCaps => 'دۆزەکەت بە درێژایی کات';
+
+  @override
+  String get drugPrednisolone => 'پرێدنیزۆلۆن';
 }

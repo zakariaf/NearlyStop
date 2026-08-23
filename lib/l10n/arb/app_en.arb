@@ -907,5 +907,9 @@
   "chartOverlineCaps": "YOUR DOSE OVER TIME",
   "@chartOverlineCaps": {
     "description": "The chart overline as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See stateTakenCaps."
+  },
+  "drugPrednisolone": "prednisolone",
+  "@drugPrednisolone": {
+    "description": "The default drug's name in running text, lower case."
   }
 }
