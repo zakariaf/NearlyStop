@@ -145,6 +145,51 @@ void main() {
     );
   });
 
+  test('no table accepts a row without a uid', () async {
+    // Raw SQL, because the Dart companions make `uid` required and so cannot
+    // express the omission. EPIC-13's backup format joins on these ids: a
+    // nullable one would be a row that cannot survive an export/import round
+    // trip, and NOT NULL in the DDL is the only thing that rules it out.
+    final planId = await insertPlan();
+    final stepId = await insertStep(planId);
+    final inserts = <String, String>{
+      'taper_plans':
+          'INSERT INTO taper_plans (start_date, starting_dose, target_dose, '
+          'tablet_strengths, allow_halves, method, created_at) '
+          "VALUES ('2026-04-01', 1000, 0, '500,100', 1, 'dsns', 0)",
+      'steps':
+          'INSERT INTO steps (plan_id, step_index, from_dose, to_dose, '
+          'start_date, status, pattern_version) '
+          "VALUES ($planId, 7, 1000, 900, '2026-04-01', 'active', 1)",
+      'dose_logs':
+          'INSERT INTO dose_logs (plan_id, date, planned_mg, actual_mg, taken) '
+          "VALUES ($planId, '2026-07-01', 1000, 1000, 1)",
+      'flare_events':
+          'INSERT INTO flare_events (plan_id, date, revert_to_dose) '
+          "VALUES ($planId, '2026-07-01', 1000)",
+      'hold_events':
+          'INSERT INTO hold_events (step_id, from_date, extra_days) '
+          "VALUES ($stepId, '2026-07-01', 2)",
+      'settings_rows': 'INSERT INTO settings_rows (id) VALUES (0)',
+    };
+
+    for (final entry in inserts.entries) {
+      await expectLater(
+        db.customStatement(entry.value),
+        throwsA(
+          isA<SqliteException>().having(
+            (e) => e.message,
+            'message',
+            contains('NOT NULL'),
+          ),
+        ),
+        reason:
+            '${entry.key} — a syntax error would also throw, so the '
+            'message has to name the constraint',
+      );
+    }
+  });
+
   test('UNIQUE(planId, date) makes ticking idempotent', () async {
     final planId = await insertPlan();
     for (var i = 0; i < 2; i++) {
