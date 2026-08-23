@@ -207,6 +207,22 @@ add_rule lib code - \
   "a presentation widget may not name WidgetRef, ProviderScope, a Consumer base class or the repository — the screen watches, the widget paints" \
   "lib/features/*/presentation/widgets/*"
 
+# The Schedule screen is never a seven-column month grid (SPEC.md 4.2,
+# `daybreak-components` rule 4). A calendar square has no room for a state
+# shape, a localized state word and 200% text; it forces the eye horizontally
+# across unrelated days; and it teaches "a taper is a month" when a taper is a
+# sequence of blocks — which is precisely the confusion this app exists to
+# remove. Block grouping is the teaching device and it is the product, so the
+# ban gets a gate rather than a convention.
+#
+# Scoped with `only` to the Schedule feature: date ENTRY is legal, and the Plan
+# screen asks for a start date with `showDatePicker`. A repo-wide ban would
+# have to be relitigated the first time someone needed a date field.
+add_rule lib code - \
+  '\b(GridView|SliverGrid|CalendarDatePicker|showDatePicker)\b|GridDelegate|table_calendar' \
+  "the Schedule is never a seven-column month grid — block grouping is the teaching device and the product (SPEC.md 4.2)" \
+  "lib/features/schedule/*"
+
 # Suppressions are line-scoped with a reason. A file-scoped ignore on a rule we
 # deliberately promoted to error leaves every later edit in that file
 # unprotected — exactly the leak the promotion exists to catch.
