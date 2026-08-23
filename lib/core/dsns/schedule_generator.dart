@@ -272,15 +272,33 @@ StepStatus stepStatusFor(
 }) {
   if (step.status == StepStatus.abandoned) return StepStatus.abandoned;
   if (today < step.startDate) return StepStatus.pending;
-  final realised = _walkStep(
-    startDate: step.startDate,
-    patternLength: nominalLength,
-    extraByDate: _extraDaysByDate(holds, step.id),
-  ).length;
+  final realised = realisedStepLength(
+    step,
+    holds,
+    nominalLength: nominalLength,
+  );
   return today >= step.startDate.addDays(realised)
       ? StepStatus.completed
       : StepStatus.active;
 }
+
+/// How many days [step] actually runs for, once its holds are applied.
+///
+/// **The single definition of a step's length**, walked exactly the way
+/// [generateSchedule] walks it. A caller that instead folds
+/// `sum(hold.extraDays)` gets a different answer whenever a hold is anchored to
+/// a date the step never reaches — and then "when does this step end" means one
+/// thing to [stepStatusFor] and another to whoever appends the next step,
+/// leaving orphan days at the old dose in the gap between them.
+int realisedStepLength(
+  StepFacts step,
+  List<HoldEvent> holds, {
+  required int nominalLength,
+}) => _walkStep(
+  startDate: step.startDate,
+  patternLength: nominalLength,
+  extraByDate: _extraDaysByDate(holds, step.id),
+).length;
 
 /// The nominal length of one step under [plan]: 52 for DSNS, the plan's hold
 /// period otherwise.

@@ -18,7 +18,6 @@ import 'package:nearlystop/core/units/tablet_strength.dart';
 import 'package:nearlystop/data/db/app_database.dart' as db;
 import 'package:nearlystop/data/mappers.dart';
 import 'package:nearlystop/data/storage_failure.dart';
-import 'package:sqlite3/common.dart' show SqliteException;
 import 'package:ulid/ulid.dart';
 
 /// Everything `generateSchedule` needs, plus each step's derived status.
@@ -78,6 +77,7 @@ final class TaperPlanDraft {
     required this.stepSize,
     this.percentage,
     this.fixedStep,
+    this.holdPeriodDays = TaperPlanFacts.dsnsHoldPeriodDays,
   });
 
   /// Free text, defaulting to Prednisolone.
@@ -109,6 +109,10 @@ final class TaperPlanDraft {
 
   /// A fixed step, for [TaperMethod.fixedMg].
   final Milligrams? fixedStep;
+
+  /// Days a non-DSNS step holds the new dose. Ignored by [TaperMethod.dsns],
+  /// whose length is the pattern's own 52.
+  final int holdPeriodDays;
 }
 
 /// Reads and writes the taper. **The single write path.**
@@ -245,7 +249,7 @@ final class TaperRepository {
   Future<Result<void, StorageFailure>> markTaken(
     LocalDate date, {
     required Milligrams plannedMg,
-  }) => _write('markTaken', (plan) async {
+  }) => _write((plan) async {
     final takenAt = Value<DateTime>(_clock.now());
     await _db.logDao.upsertLog(
       _freshLog(
@@ -261,6 +265,13 @@ final class TaperRepository {
         taken: const Value<bool>(true),
         takenAt: takenAt,
       ),
+      // Only an UN-ticked row is written. Without this the doses are not
+      // frozen at all: re-ticking a day after the plan's strengths changed
+      // would rewrite what was already swallowed, and Progress's total and
+      // Schedule's past rows would both report a dose that never happened.
+      // A second tap on an already-taken day is then a no-op, which is what
+      // idempotent means.
+      onlyIfNotTaken: true,
     );
   });
 
@@ -269,7 +280,7 @@ final class TaperRepository {
   /// Not a delete: deleting would silently destroy a note the patient wrote on
   /// the same day.
   Future<Result<void, StorageFailure>> undoTaken(LocalDate date) =>
-      _write('undoTaken', (plan) => _db.logDao.clearTaken(plan.id, date));
+      _write((plan) => _db.logDao.clearTaken(plan.id, date));
 
   /// Writes (or clears) the note on [date].
   ///
@@ -281,7 +292,7 @@ final class TaperRepository {
     LocalDate date,
     String? note, {
     required Milligrams plannedMg,
-  }) => _write('setNote', (plan) async {
+  }) => _write((plan) async {
     await _db.logDao.upsertLog(
       _freshLog(
         plan.id,
@@ -328,7 +339,14 @@ final class TaperRepository {
   Future<Result<void, StorageFailure>> recordFlare({
     required LocalDate on,
     required Milligrams revertTo,
-  }) => _write('recordFlare', (plan) async {
+  }) => _write((plan) async {
+    if (on <= plan.startDate) {
+      // `generateSchedule` sorts steps by date and requires the first to sit
+      // exactly on the plan's start. A flare dated on or before it takes that
+      // position, the precondition fails, and every screen renders nothing
+      // with no way back but deleting the plan.
+      throw const _Refused('a flare cannot predate the plan');
+    }
     if (revertTo < plan.targetDose) {
       // Below the target, `nextDose` clamps UP and the step would record a
       // dose increase — which the generator rejects, leaving the plan unable
@@ -372,15 +390,30 @@ final class TaperRepository {
     required int stepId,
     required LocalDate from,
     required int extraDays,
-  }) => _write('recordHold', (plan) async {
+  }) => _write((plan) async {
     if (extraDays <= 0) throw const _Refused('a hold is at least one day');
     final steps = await _db.stepDao.readSteps(plan.id);
-    if (!steps.any((step) => step.id == stepId)) {
+    final target = steps.where((step) => step.id == stepId).firstOrNull;
+    if (target == null) {
       // The FOREIGN KEY only says the step EXISTS. A hold on another plan's
       // step would be written happily and then never read back, because the
       // snapshot's join is scoped by plan — a silent no-op on the one action
       // whose whole purpose is to move dates.
       throw const _Refused('that step does not belong to this plan');
+    }
+    final planFacts = planFactsFrom(plan);
+    final existing = await _db.stepDao.readHoldsForStep(stepId);
+    final length = realisedStepLength(
+      stepFactsFrom(target),
+      existing.map(holdEventFrom).toList(),
+      nominalLength: nominalStepLength(planFacts),
+    );
+    if (from < target.startDate || from >= target.startDate.addDays(length)) {
+      // A hold anchored outside the step it names is invisible to the walk
+      // that derives the step's length, so `stepStatusFor` would still say the
+      // step ends on day 52 while the next step starts 52 + extraDays later —
+      // leaving orphan days at the old dose in the gap.
+      throw const _Refused('a hold has to fall inside the step it extends');
     }
     await _db.stepDao.insertHold(
       db.HoldEventsCompanion.insert(
@@ -402,15 +435,8 @@ final class TaperRepository {
   /// v1 holds at most one plan; a second `savePlan` is [Invariant] and appends
   /// nothing. EPIC-11's recreate flow deletes first.
   Future<Result<void, StorageFailure>> savePlan(TaperPlanDraft draft) async {
-    final refusal = _refuse(draft);
+    final refusal = _refuse(draft, checkStepSize: true);
     if (refusal != null) return Err(refusal);
-    if (draft.stepSize <= Milligrams.zero &&
-        draft.currentDose > draft.targetDose) {
-      // A first step of zero never reaches the target: the plan would sit on
-      // one dose forever with "Start next step" moving it nowhere. Only a
-      // refusal at the write can say why; the row itself reads as valid.
-      return const Err(Invariant('the first step has to reduce the dose'));
-    }
     try {
       await _db.transaction(() async {
         if (await _db.planDao.countPlans() > 0) {
@@ -428,6 +454,7 @@ final class TaperRepository {
             method: draft.method,
             percentage: Value<double?>(draft.percentage?.toDouble()),
             fixedStep: Value<Milligrams?>(draft.fixedStep),
+            holdPeriodDays: Value<int>(draft.holdPeriodDays),
             createdAt: _clock.now(),
           ),
         );
@@ -458,10 +485,34 @@ final class TaperRepository {
   ///
   /// Updates the plan row and **appends no step and touches no `DoseLog`**.
   /// Future days recompose on the next emission because the generator is pure.
+  ///
+  /// The one thing it does touch besides the plan row is the FIRST step's start
+  /// date, and only when the plan's own start moves — see the comment at that
+  /// line. It is refused outright when the new date would not sort before the
+  /// second step.
   Future<Result<void, StorageFailure>> updatePlanFacts(TaperPlanDraft draft) =>
-      _write('updatePlanFacts', (plan) async {
+      _write((plan) async {
+        // `checkStepSize: false`: an edit does not append a step, so the
+        // draft's `stepSize` is not read and refusing on it would reject a
+        // legal edit.
         final refusal = _refuse(draft);
         if (refusal != null) throw _Refused(refusal.detail);
+        if (draft.startDate != plan.startDate) {
+          // `generateSchedule` requires the first step to start exactly on the
+          // plan's start date. Moving the plan and leaving step 0 behind
+          // returns `PlanNotStarted` on every read, forever, and the only way
+          // out is deleting the plan — so the step moves with it.
+          final steps = await _db.stepDao.readSteps(plan.id);
+          if (steps.isNotEmpty) {
+            final second = steps.length > 1 ? steps[1] : null;
+            if (second != null && draft.startDate >= second.startDate) {
+              throw const _Refused(
+                'the new start date is not before the next step',
+              );
+            }
+            await _db.stepDao.updateStartDate(steps.first.id, draft.startDate);
+          }
+        }
         await _db.planDao.updatePlan(
           plan.id,
           db.TaperPlansCompanion(
@@ -474,6 +525,7 @@ final class TaperRepository {
             method: Value<TaperMethod>(draft.method),
             percentage: Value<double?>(draft.percentage?.toDouble()),
             fixedStep: Value<Milligrams?>(draft.fixedStep),
+            holdPeriodDays: Value<int>(draft.holdPeriodDays),
           ),
         );
       });
@@ -484,7 +536,7 @@ final class TaperRepository {
   /// recompose, past logs stay as recorded).
   Future<Result<void, StorageFailure>> updateStrengths(
     List<Milligrams> strengths,
-  ) => _write('updateStrengths', (plan) async {
+  ) => _write((plan) async {
     if (strengths.isEmpty) {
       throw const _Refused('a plan needs at least one tablet strength');
     }
@@ -504,59 +556,55 @@ final class TaperRepository {
   /// early, which would make Hold do nothing — the exact thing `SPEC.md` §5.2
   /// forbids. A computed start in the past is correct: its early days are
   /// immediately backfillable through the `(planId, date)` upsert.
-  Future<Result<void, StorageFailure>> startNextStep() =>
-      _write('startNextStep', (plan) async {
-        final steps = await _db.stepDao.readSteps(plan.id);
-        if (steps.isEmpty) throw const _Refused('no step to follow');
-        final last = steps.last;
-        if (last.toDose <= plan.targetDose) {
-          throw const _Refused('the target is already reached');
-        }
-        final planFacts = planFactsFrom(plan);
-        final holds = await _db.stepDao.readHoldsForStep(last.id);
-        final nominal = nominalStepLength(planFacts);
-        final status = stepStatusFor(
-          stepFactsFrom(last),
-          holds.map(holdEventFrom).toList(),
-          LocalDate.fromDateTime(_clock.now()),
-          nominalLength: nominal,
-        );
-        if (status != StepStatus.completed) {
-          throw const _Refused('the current step is not complete');
-        }
-        final extra = holds.fold(
-          0,
-          (sum, h) => sum + h.extraDays,
-        );
-        await _db.stepDao.updateStatus(last.id, StepStatus.completed);
-        await _db.stepDao.insertStep(
-          db.StepsCompanion.insert(
-            uid: Ulid().toString(),
-            planId: plan.id,
-            stepIndex: last.stepIndex + 1,
-            fromDose: last.toDose,
-            toDose: _toDoseFrom(last.toDose, plan),
-            startDate: last.startDate.addDays(nominal + extra),
-            status: StepStatus.active,
-            patternVersion: const DsnsPattern.v1().version,
-          ),
-        );
-      });
+  Future<Result<void, StorageFailure>> startNextStep() => _write((plan) async {
+    final steps = await _db.stepDao.readSteps(plan.id);
+    if (steps.isEmpty) throw const _Refused('no step to follow');
+    final last = steps.last;
+    if (last.toDose <= plan.targetDose) {
+      throw const _Refused('the target is already reached');
+    }
+    final planFacts = planFactsFrom(plan);
+    final holds = await _db.stepDao.readHoldsForStep(last.id);
+    final nominal = nominalStepLength(planFacts);
+    final status = stepStatusFor(
+      stepFactsFrom(last),
+      holds.map(holdEventFrom).toList(),
+      LocalDate.fromDateTime(_clock.now()),
+      nominalLength: nominal,
+    );
+    if (status != StepStatus.completed) {
+      throw const _Refused('the current step is not complete');
+    }
+    final extra = holds.fold(
+      0,
+      (sum, h) => sum + h.extraDays,
+    );
+    await _db.stepDao.updateStatus(last.id, StepStatus.completed);
+    await _db.stepDao.insertStep(
+      db.StepsCompanion.insert(
+        uid: Ulid().toString(),
+        planId: plan.id,
+        stepIndex: last.stepIndex + 1,
+        fromDose: last.toDose,
+        toDose: _toDoseFrom(last.toDose, plan),
+        startDate: last.startDate.addDays(nominal + extra),
+        status: StepStatus.active,
+        patternVersion: const DsnsPattern.v1().version,
+      ),
+    );
+  });
 
-  /// Deletes the plan and everything that cascades from it.
+  /// Deletes the active plan and everything that cascades from it.
+  ///
+  /// **Takes no id.** No row id ever leaves this layer — `TaperSnapshot` and
+  /// `TaperPlanFacts` carry facts, not surrogate keys — so a screen holding a
+  /// snapshot had no legal way to produce one. It resolves the active plan the
+  /// same way every other mutation does.
   ///
   /// The repository does not prompt: EPIC-11's UI owns the confirmation and the
   /// export-first flow (`SPEC.md` §5.3).
-  Future<Result<void, StorageFailure>> deletePlan(int id) async {
-    try {
-      await _db.transaction(() async {
-        await _db.planDao.deletePlan(id);
-      });
-      return const Ok(null);
-    } on Object catch (error) {
-      return Err(_mapError(error));
-    }
-  }
+  Future<Result<void, StorageFailure>> deletePlan() =>
+      _write((plan) => _db.planDao.deletePlan(plan.id));
 
   /// Why [draft] cannot be stored, or `null` if it can.
   ///
@@ -564,12 +612,20 @@ final class TaperRepository {
   /// a plan that renders nothing on every screen, in the only copy of the
   /// patient's data — and the data layer is where the fact is created, so it is
   /// where the refusal belongs.
-  Invariant? _refuse(TaperPlanDraft draft) {
+  Invariant? _refuse(TaperPlanDraft draft, {bool checkStepSize = false}) {
     if (draft.strengths.isEmpty) {
       return const Invariant('a plan needs at least one tablet strength');
     }
     if (draft.targetDose > draft.currentDose) {
       return const Invariant('the target is above the current dose');
+    }
+    if (checkStepSize &&
+        draft.stepSize <= Milligrams.zero &&
+        draft.currentDose > draft.targetDose) {
+      // A first step of zero never reaches the target: the plan would sit on
+      // one dose forever with "Start next step" moving it nowhere. Only a
+      // refusal at the write can say why; the row itself reads as valid.
+      return const Invariant('the first step has to reduce the dose');
     }
     return switch (draft.method) {
       TaperMethod.dsns => null,
@@ -584,37 +640,72 @@ final class TaperRepository {
     };
   }
 
-  /// The next dose after stepping down from [from], using the plan's own rule.
+  /// The next dose after stepping down from [from], **using the plan's own
+  /// arithmetic**.
+  ///
+  /// Branching on `method` is the whole point. `suggestStep` is the DSNS rule —
+  /// the largest achievable reduction at or under 10% — and applying it to a
+  /// `fixedMg` plan quietly appends a step of a different size than the one the
+  /// patient and their doctor agreed. The app arranges; it does not decide.
   Milligrams _toDoseFrom(Milligrams from, db.TaperPlanRow plan) {
     final strengths = <TabletStrength>[
       for (final mg in plan.tabletStrengths) TabletStrength(mg),
     ];
-    final suggestion = suggestStep(
-      currentDose: from,
-      targetDose: plan.targetDose,
-      strengths: strengths,
-      allowHalves: plan.allowHalves,
-    );
-    final size = switch (suggestion) {
-      Ok<StepSuggestion, DomainFailure>(:final value) => value.suggested,
-      Err<StepSuggestion, DomainFailure>() => Milligrams.zero,
+    final size = switch (plan.method) {
+      TaperMethod.dsns => switch (suggestStep(
+        currentDose: from,
+        targetDose: plan.targetDose,
+        strengths: strengths,
+        allowHalves: plan.allowHalves,
+      )) {
+        Ok<StepSuggestion, DomainFailure>(:final value) => value.suggested,
+        Err<StepSuggestion, DomainFailure>() => Milligrams.zero,
+      },
+      TaperMethod.percentage => _sizeOr(
+        percentageStepSize(
+          from,
+          plan.percentage?.round() ?? 0,
+          strengths,
+          allowHalves: plan.allowHalves,
+        ),
+      ),
+      // Stored as a `Milligrams` column and used verbatim: a fixed step is the
+      // one number the clinician wrote down.
+      TaperMethod.fixedMg => plan.fixedStep ?? Milligrams.zero,
     };
     return nextDose(from, size, plan.targetDose);
   }
 
+  /// The suggested size, or zero when the domain refuses to suggest one.
+  ///
+  /// Zero appends a step that reduces nothing rather than inventing a
+  /// reduction, and `_refuse` has already rejected every draft that can reach
+  /// this — so it is a floor, not a fallback anyone is meant to hit.
+  Milligrams _sizeOr(Result<Milligrams, DomainFailure> size) => switch (size) {
+    Ok<Milligrams, DomainFailure>(:final value) => value,
+    Err<Milligrams, DomainFailure>() => Milligrams.zero,
+  };
+
   /// One transaction, one plan lookup, one typed arm.
+  ///
+  /// Takes no operation name: the only thing that can be missing here is the
+  /// plan, and [NotFound] names the entity.
   ///
   /// The lookup is **inside** the transaction and its row is handed to [body],
   /// so no mutation reads the plan twice and none can act on a plan that was
   /// deleted between the check and the write.
   Future<Result<void, StorageFailure>> _write(
-    String what,
     Future<void> Function(db.TaperPlanRow plan) body,
   ) async {
     try {
       return await _db.transaction(() async {
         final plan = await _db.planDao.readActivePlan();
-        if (plan == null) return Err<void, StorageFailure>(NotFound(what));
+        // The ENTITY, not the operation. A presentation layer routes on
+        // `NotFound('plan')` to the create-a-plan screen; eleven different
+        // spellings, one per method, would match none of them.
+        if (plan == null) {
+          return const Err<void, StorageFailure>(NotFound('plan'));
+        }
         await body(plan);
         return const Ok<void, StorageFailure>(null);
       });
@@ -636,35 +727,7 @@ final class _Refused implements Exception {
 
 /// Converts an engine or rule error into a typed failure.
 ///
-/// The **only** place a drift or sqlite exception is named. Everything above
-/// this line sees a [StorageFailure].
-///
-/// Visible for testing because an error mapper is exactly the code that never
-/// runs until the day it matters: the `DriftWrappedException` arm is not
-/// reachable from any public call this engine version makes, and an untested
-/// mapper turns a single unreadable row into a blanket "storage error".
-@visibleForTesting
-StorageFailure mapStorageFailure(Object error) => _mapError(error);
-
-StorageFailure _mapError(Object error) {
-  // Drift wraps whatever the engine or a converter threw. Unwrap before
-  // classifying, or every converter FormatException reads as an Io failure.
-  var cause = error;
-  while (cause is DriftWrappedException) {
-    final inner = cause.cause;
-    if (inner == null) break;
-    cause = inner;
-  }
-  if (cause is _Refused) return Invariant(cause.detail);
-  if (cause is FormatException) return Corrupt(cause.message);
-  if (cause is SqliteException) {
-    // The low byte of an extended result code is the primary code, and 19 is
-    // SQLITE_CONSTRAINT — covering UNIQUE (2067), CHECK (275), FOREIGN KEY
-    // (787), NOT NULL (1299) and PRIMARY KEY (1555) in one test. Matching the
-    // message text instead breaks the day SQLite rewords it.
-    if (cause.extendedResultCode & 0xFF == 19) {
-      return ConstraintViolation(cause.message);
-    }
-  }
-  return Io(cause);
-}
+/// The `_Refused` arm is the only thing this adds over [storageFailureFrom]:
+/// an app-rule refusal raised inside a transaction so it rolls back.
+StorageFailure _mapError(Object error) =>
+    error is _Refused ? Invariant(error.detail) : storageFailureFrom(error);

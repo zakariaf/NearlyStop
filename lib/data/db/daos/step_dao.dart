@@ -3,6 +3,7 @@ library;
 
 import 'package:drift/drift.dart';
 import 'package:nearlystop/core/dsns/facts.dart';
+import 'package:nearlystop/core/time/local_date.dart';
 import 'package:nearlystop/data/db/app_database.dart';
 import 'package:nearlystop/data/db/tables.dart';
 
@@ -28,10 +29,19 @@ class StepDao extends DatabaseAccessor<AppDatabase> with _$StepDaoMixin {
   /// Called from **inside** the caller's transaction. Both `recordFlare` and
   /// `startNextStep` need it, and a guess is a straight `UNIQUE(planId,
   /// stepIndex)` violation on the most emotionally loaded action in the app.
+  /// A SQL `MAX`, not a fold over decoded rows: this runs inside the caller's
+  /// write transaction, and decoding every step through every converter to
+  /// read one integer means an unreadable column can abort a write that only
+  /// needed a number.
   Future<int> nextStepIndex(int planId) async {
-    final existing = await readSteps(planId);
-    if (existing.isEmpty) return 0;
-    return existing.map((s) => s.stepIndex).reduce((a, b) => a > b ? a : b) + 1;
+    final highest = steps.stepIndex.max();
+    final row =
+        await (selectOnly(steps)
+              ..addColumns(<Expression<Object>>[highest])
+              ..where(steps.planId.equals(planId)))
+            .getSingle();
+    // NULL on an empty table — `max()` over no rows, not a missing column.
+    return (row.read(highest) ?? -1) + 1;
   }
 
   /// Inserts a step and returns its row id.
@@ -47,6 +57,17 @@ class StepDao extends DatabaseAccessor<AppDatabase> with _$StepDaoMixin {
   Future<void> updateStatus(int stepId, StepStatus status) async {
     await (update(steps)..where((t) => t.id.equals(stepId))).write(
       StepsCompanion(status: Value<StepStatus>(status)),
+    );
+  }
+
+  /// Re-anchors a step's start date.
+  ///
+  /// **One caller**: `updatePlanFacts`, when the plan's own start date moves
+  /// and the first step has to move with it or the generator's
+  /// `steps.first.startDate == plan.startDate` precondition fails forever.
+  Future<void> updateStartDate(int stepId, LocalDate startDate) async {
+    await (update(steps)..where((t) => t.id.equals(stepId))).write(
+      StepsCompanion(startDate: Value<LocalDate>(startDate)),
     );
   }
 

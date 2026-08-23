@@ -39,15 +39,20 @@ class LogDao extends DatabaseAccessor<AppDatabase> with _$LogDaoMixin {
   /// [onConflict] is left exactly as it was — which is how a tick preserves the
   /// note, a note preserves the dose, and both preserve the `uid` that
   /// EPIC-13's backup joins on.
+  /// When [onlyIfNotTaken] is set, an existing row that is already ticked is
+  /// left alone entirely — the dose it recorded is a fact about what was
+  /// swallowed, not a value to refresh.
   Future<void> upsertLog(
     DoseLogsCompanion fresh, {
     required DoseLogsCompanion onConflict,
+    bool onlyIfNotTaken = false,
   }) async {
     await into(doseLogs).insert(
       fresh,
       onConflict: DoUpdate<$DoseLogsTable, DoseLogRow>(
         (_) => onConflict,
         target: <Column<Object>>[doseLogs.planId, doseLogs.date],
+        where: onlyIfNotTaken ? (old) => old.taken.equals(false) : null,
       ),
     );
   }

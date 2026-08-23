@@ -123,6 +123,18 @@ class $TaperPlansTable extends TaperPlans
         type: DriftSqlType.int,
         requiredDuringInsert: false,
       ).withConverter<Milligrams?>($TaperPlansTable.$converterfixedStepn);
+  static const VerificationMeta _holdPeriodDaysMeta = const VerificationMeta(
+    'holdPeriodDays',
+  );
+  @override
+  late final GeneratedColumn<int> holdPeriodDays = GeneratedColumn<int>(
+    'hold_period_days',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(52),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<DateTime, int> createdAt =
       GeneratedColumn<int>(
@@ -145,6 +157,7 @@ class $TaperPlansTable extends TaperPlans
     method,
     percentage,
     fixedStep,
+    holdPeriodDays,
     createdAt,
   ];
   @override
@@ -191,6 +204,15 @@ class $TaperPlansTable extends TaperPlans
       context.handle(
         _percentageMeta,
         percentage.isAcceptableOrUnknown(data['percentage']!, _percentageMeta),
+      );
+    }
+    if (data.containsKey('hold_period_days')) {
+      context.handle(
+        _holdPeriodDaysMeta,
+        holdPeriodDays.isAcceptableOrUnknown(
+          data['hold_period_days']!,
+          _holdPeriodDaysMeta,
+        ),
       );
     }
     return context;
@@ -258,6 +280,10 @@ class $TaperPlansTable extends TaperPlans
           data['${effectivePrefix}fixed_step'],
         ),
       ),
+      holdPeriodDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}hold_period_days'],
+      )!,
       createdAt: $TaperPlansTable.$convertercreatedAt.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.int,
@@ -326,6 +352,15 @@ class TaperPlanRow extends DataClass implements Insertable<TaperPlanRow> {
   /// A fixed step size, for [TaperMethod.fixedMg]. A dose, so an INTEGER.
   final Milligrams? fixedStep;
 
+  /// Days a non-DSNS step holds the new dose before the next may begin.
+  ///
+  /// 52 for DSNS, where it is the pattern's own length and cannot be anything
+  /// else. It is a COLUMN because `nominalStepLength` reads it for the other
+  /// two methods: without one a `percentage` plan that runs 14 days reports 52
+  /// on every read, and "Start next step" stays disabled for 38 days after the
+  /// schedule has already reached steady state.
+  final int holdPeriodDays;
+
   /// When the plan was created, as UTC epoch milliseconds.
   final DateTime createdAt;
   const TaperPlanRow({
@@ -340,6 +375,7 @@ class TaperPlanRow extends DataClass implements Insertable<TaperPlanRow> {
     required this.method,
     this.percentage,
     this.fixedStep,
+    required this.holdPeriodDays,
     required this.createdAt,
   });
   @override
@@ -382,6 +418,7 @@ class TaperPlanRow extends DataClass implements Insertable<TaperPlanRow> {
         $TaperPlansTable.$converterfixedStepn.toSql(fixedStep),
       );
     }
+    map['hold_period_days'] = Variable<int>(holdPeriodDays);
     {
       map['created_at'] = Variable<int>(
         $TaperPlansTable.$convertercreatedAt.toSql(createdAt),
@@ -407,6 +444,7 @@ class TaperPlanRow extends DataClass implements Insertable<TaperPlanRow> {
       fixedStep: fixedStep == null && nullToAbsent
           ? const Value.absent()
           : Value(fixedStep),
+      holdPeriodDays: Value(holdPeriodDays),
       createdAt: Value(createdAt),
     );
   }
@@ -430,6 +468,7 @@ class TaperPlanRow extends DataClass implements Insertable<TaperPlanRow> {
       method: serializer.fromJson<TaperMethod>(json['method']),
       percentage: serializer.fromJson<double?>(json['percentage']),
       fixedStep: serializer.fromJson<Milligrams?>(json['fixedStep']),
+      holdPeriodDays: serializer.fromJson<int>(json['holdPeriodDays']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -448,6 +487,7 @@ class TaperPlanRow extends DataClass implements Insertable<TaperPlanRow> {
       'method': serializer.toJson<TaperMethod>(method),
       'percentage': serializer.toJson<double?>(percentage),
       'fixedStep': serializer.toJson<Milligrams?>(fixedStep),
+      'holdPeriodDays': serializer.toJson<int>(holdPeriodDays),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -464,6 +504,7 @@ class TaperPlanRow extends DataClass implements Insertable<TaperPlanRow> {
     TaperMethod? method,
     Value<double?> percentage = const Value.absent(),
     Value<Milligrams?> fixedStep = const Value.absent(),
+    int? holdPeriodDays,
     DateTime? createdAt,
   }) => TaperPlanRow(
     id: id ?? this.id,
@@ -477,6 +518,7 @@ class TaperPlanRow extends DataClass implements Insertable<TaperPlanRow> {
     method: method ?? this.method,
     percentage: percentage.present ? percentage.value : this.percentage,
     fixedStep: fixedStep.present ? fixedStep.value : this.fixedStep,
+    holdPeriodDays: holdPeriodDays ?? this.holdPeriodDays,
     createdAt: createdAt ?? this.createdAt,
   );
   TaperPlanRow copyWithCompanion(TaperPlansCompanion data) {
@@ -502,6 +544,9 @@ class TaperPlanRow extends DataClass implements Insertable<TaperPlanRow> {
           ? data.percentage.value
           : this.percentage,
       fixedStep: data.fixedStep.present ? data.fixedStep.value : this.fixedStep,
+      holdPeriodDays: data.holdPeriodDays.present
+          ? data.holdPeriodDays.value
+          : this.holdPeriodDays,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -520,6 +565,7 @@ class TaperPlanRow extends DataClass implements Insertable<TaperPlanRow> {
           ..write('method: $method, ')
           ..write('percentage: $percentage, ')
           ..write('fixedStep: $fixedStep, ')
+          ..write('holdPeriodDays: $holdPeriodDays, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -538,6 +584,7 @@ class TaperPlanRow extends DataClass implements Insertable<TaperPlanRow> {
     method,
     percentage,
     fixedStep,
+    holdPeriodDays,
     createdAt,
   );
   @override
@@ -555,6 +602,7 @@ class TaperPlanRow extends DataClass implements Insertable<TaperPlanRow> {
           other.method == this.method &&
           other.percentage == this.percentage &&
           other.fixedStep == this.fixedStep &&
+          other.holdPeriodDays == this.holdPeriodDays &&
           other.createdAt == this.createdAt);
 }
 
@@ -570,6 +618,7 @@ class TaperPlansCompanion extends UpdateCompanion<TaperPlanRow> {
   final Value<TaperMethod> method;
   final Value<double?> percentage;
   final Value<Milligrams?> fixedStep;
+  final Value<int> holdPeriodDays;
   final Value<DateTime> createdAt;
   const TaperPlansCompanion({
     this.id = const Value.absent(),
@@ -583,6 +632,7 @@ class TaperPlansCompanion extends UpdateCompanion<TaperPlanRow> {
     this.method = const Value.absent(),
     this.percentage = const Value.absent(),
     this.fixedStep = const Value.absent(),
+    this.holdPeriodDays = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   TaperPlansCompanion.insert({
@@ -597,6 +647,7 @@ class TaperPlansCompanion extends UpdateCompanion<TaperPlanRow> {
     required TaperMethod method,
     this.percentage = const Value.absent(),
     this.fixedStep = const Value.absent(),
+    this.holdPeriodDays = const Value.absent(),
     required DateTime createdAt,
   }) : uid = Value(uid),
        startDate = Value(startDate),
@@ -618,6 +669,7 @@ class TaperPlansCompanion extends UpdateCompanion<TaperPlanRow> {
     Expression<String>? method,
     Expression<double>? percentage,
     Expression<int>? fixedStep,
+    Expression<int>? holdPeriodDays,
     Expression<int>? createdAt,
   }) {
     return RawValuesInsertable({
@@ -632,6 +684,7 @@ class TaperPlansCompanion extends UpdateCompanion<TaperPlanRow> {
       if (method != null) 'method': method,
       if (percentage != null) 'percentage': percentage,
       if (fixedStep != null) 'fixed_step': fixedStep,
+      if (holdPeriodDays != null) 'hold_period_days': holdPeriodDays,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -648,6 +701,7 @@ class TaperPlansCompanion extends UpdateCompanion<TaperPlanRow> {
     Value<TaperMethod>? method,
     Value<double?>? percentage,
     Value<Milligrams?>? fixedStep,
+    Value<int>? holdPeriodDays,
     Value<DateTime>? createdAt,
   }) {
     return TaperPlansCompanion(
@@ -662,6 +716,7 @@ class TaperPlansCompanion extends UpdateCompanion<TaperPlanRow> {
       method: method ?? this.method,
       percentage: percentage ?? this.percentage,
       fixedStep: fixedStep ?? this.fixedStep,
+      holdPeriodDays: holdPeriodDays ?? this.holdPeriodDays,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -714,6 +769,9 @@ class TaperPlansCompanion extends UpdateCompanion<TaperPlanRow> {
         $TaperPlansTable.$converterfixedStepn.toSql(fixedStep.value),
       );
     }
+    if (holdPeriodDays.present) {
+      map['hold_period_days'] = Variable<int>(holdPeriodDays.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<int>(
         $TaperPlansTable.$convertercreatedAt.toSql(createdAt.value),
@@ -736,6 +794,7 @@ class TaperPlansCompanion extends UpdateCompanion<TaperPlanRow> {
           ..write('method: $method, ')
           ..write('percentage: $percentage, ')
           ..write('fixedStep: $fixedStep, ')
+          ..write('holdPeriodDays: $holdPeriodDays, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -3394,6 +3453,7 @@ typedef $$TaperPlansTableCreateCompanionBuilder =
       required TaperMethod method,
       Value<double?> percentage,
       Value<Milligrams?> fixedStep,
+      Value<int> holdPeriodDays,
       required DateTime createdAt,
     });
 typedef $$TaperPlansTableUpdateCompanionBuilder =
@@ -3409,6 +3469,7 @@ typedef $$TaperPlansTableUpdateCompanionBuilder =
       Value<TaperMethod> method,
       Value<double?> percentage,
       Value<Milligrams?> fixedStep,
+      Value<int> holdPeriodDays,
       Value<DateTime> createdAt,
     });
 
@@ -3482,6 +3543,11 @@ class $$TaperPlansTableFilterComposer
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
+  ColumnFilters<int> get holdPeriodDays => $composableBuilder(
+    column: $table.holdPeriodDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnWithTypeConverterFilters<DateTime, DateTime, int> get createdAt =>
       $composableBuilder(
         column: $table.createdAt,
@@ -3553,6 +3619,11 @@ class $$TaperPlansTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get holdPeriodDays => $composableBuilder(
+    column: $table.holdPeriodDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -3614,6 +3685,11 @@ class $$TaperPlansTableAnnotationComposer
   GeneratedColumnWithTypeConverter<Milligrams?, int> get fixedStep =>
       $composableBuilder(column: $table.fixedStep, builder: (column) => column);
 
+  GeneratedColumn<int> get holdPeriodDays => $composableBuilder(
+    column: $table.holdPeriodDays,
+    builder: (column) => column,
+  );
+
   GeneratedColumnWithTypeConverter<DateTime, int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
@@ -3660,6 +3736,7 @@ class $$TaperPlansTableTableManager
                 Value<TaperMethod> method = const Value.absent(),
                 Value<double?> percentage = const Value.absent(),
                 Value<Milligrams?> fixedStep = const Value.absent(),
+                Value<int> holdPeriodDays = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => TaperPlansCompanion(
                 id: id,
@@ -3673,6 +3750,7 @@ class $$TaperPlansTableTableManager
                 method: method,
                 percentage: percentage,
                 fixedStep: fixedStep,
+                holdPeriodDays: holdPeriodDays,
                 createdAt: createdAt,
               ),
           createCompanionCallback:
@@ -3688,6 +3766,7 @@ class $$TaperPlansTableTableManager
                 required TaperMethod method,
                 Value<double?> percentage = const Value.absent(),
                 Value<Milligrams?> fixedStep = const Value.absent(),
+                Value<int> holdPeriodDays = const Value.absent(),
                 required DateTime createdAt,
               }) => TaperPlansCompanion.insert(
                 id: id,
@@ -3701,6 +3780,7 @@ class $$TaperPlansTableTableManager
                 method: method,
                 percentage: percentage,
                 fixedStep: fixedStep,
+                holdPeriodDays: holdPeriodDays,
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0

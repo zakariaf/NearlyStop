@@ -173,6 +173,24 @@ Future<void> seedLog(
   );
 }
 
+/// Rebuilds a [TaperPlanDraft] with a different non-DSNS hold period.
+extension TaperPlanDraftHoldPeriod on TaperPlanDraft {
+  /// Returns this draft with [days] as its hold period.
+  TaperPlanDraft withHoldPeriod(int days) => TaperPlanDraft(
+    drugName: drugName,
+    startDate: startDate,
+    currentDose: currentDose,
+    targetDose: targetDose,
+    strengths: strengths,
+    allowHalves: allowHalves,
+    method: method,
+    stepSize: stepSize,
+    percentage: percentage,
+    fixedStep: fixedStep,
+    holdPeriodDays: days,
+  );
+}
+
 /// Runs `PRAGMA [pragma]` and returns its single integer result.
 Future<int> pragmaValue(AppDatabase db, String pragma) async {
   final rows = await db.customSelect('PRAGMA $pragma').get();

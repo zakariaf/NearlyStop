@@ -22,6 +22,7 @@ TaperPlanFacts planFactsFrom(db.TaperPlanRow row) => TaperPlanFacts(
   method: row.method,
   percentage: row.percentage?.round(),
   fixedStep: row.fixedStep,
+  holdPeriodDays: row.holdPeriodDays,
 );
 
 /// Projects a step row onto the domain's step record.

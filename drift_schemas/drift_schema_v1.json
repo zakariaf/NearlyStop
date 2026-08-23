@@ -166,6 +166,16 @@
             }
           },
           {
+            "name": "hold_period_days",
+            "getter_name": "holdPeriodDays",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('52')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
             "name": "created_at",
             "getter_name": "createdAt",
             "moor_type": "int",
@@ -790,7 +800,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"taper_plans\" (\"id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"uid\" TEXT NOT NULL UNIQUE, \"drug_name\" TEXT NOT NULL DEFAULT 'Prednisolone', \"start_date\" TEXT NOT NULL, \"starting_dose\" INTEGER NOT NULL, \"target_dose\" INTEGER NOT NULL, \"tablet_strengths\" TEXT NOT NULL, \"allow_halves\" INTEGER NOT NULL CHECK (\"allow_halves\" IN (0, 1)), \"method\" TEXT NOT NULL, \"percentage\" REAL NULL, \"fixed_step\" INTEGER NULL, \"created_at\" INTEGER NOT NULL);"
+          "sql": "CREATE TABLE IF NOT EXISTS \"taper_plans\" (\"id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"uid\" TEXT NOT NULL UNIQUE, \"drug_name\" TEXT NOT NULL DEFAULT 'Prednisolone', \"start_date\" TEXT NOT NULL, \"starting_dose\" INTEGER NOT NULL, \"target_dose\" INTEGER NOT NULL, \"tablet_strengths\" TEXT NOT NULL, \"allow_halves\" INTEGER NOT NULL CHECK (\"allow_halves\" IN (0, 1)), \"method\" TEXT NOT NULL, \"percentage\" REAL NULL, \"fixed_step\" INTEGER NULL, \"hold_period_days\" INTEGER NOT NULL DEFAULT 52, \"created_at\" INTEGER NOT NULL);"
         }
       ]
     },

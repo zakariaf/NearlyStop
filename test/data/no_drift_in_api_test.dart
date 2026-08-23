@@ -52,7 +52,7 @@ void main() {
           const Milligrams.fromHundredths(500),
         ]),
         await repository.startNextStep(),
-        await repository.deletePlan(1),
+        await repository.deletePlan(),
       ];
 
       // The snapshot's own fields are domain types too.

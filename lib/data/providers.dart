@@ -3,6 +3,8 @@
 /// `package:riverpod`, not `flutter_riverpod`: nothing here touches a widget.
 library;
 
+import 'dart:async';
+
 import 'package:nearlystop/data/db/app_database.dart';
 import 'package:nearlystop/data/settings_repository.dart';
 import 'package:nearlystop/data/taper_repository.dart';
@@ -37,7 +39,13 @@ final Provider<AppDatabase> databaseProvider = Provider<AppDatabase>((ref) {
 /// share, so a container that goes away always takes its database with it.
 Override databaseOverride(AppDatabase database) =>
     databaseProvider.overrideWith((ref) {
-      ref.onDispose(database.close);
+      // `onDispose` is synchronous and `close()` is not, so the future is
+      // dropped either way. Dropping it DELIBERATELY, with the error handled,
+      // is the difference between "closing is fire-and-forget" and "a throw
+      // from close becomes an unhandled async error with no zone to catch it".
+      // A caller that must know the file is closed — EPIC-13's export —
+      // awaits `close()` itself.
+      ref.onDispose(() => unawaited(database.close().catchError((_) {})));
       return database;
     });
 

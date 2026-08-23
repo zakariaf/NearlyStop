@@ -27,7 +27,20 @@ class PlanDao extends DatabaseAccessor<AppDatabase> with _$PlanDaoMixin {
           .getSingleOrNull();
 
   /// How many plans exist. v1 permits at most one.
-  Future<int> countPlans() async => (await select(taperPlans).get()).length;
+  ///
+  /// A SQL `COUNT`, not `select().get().length`: the latter decodes every row
+  /// through every converter to read a length, inside the write transaction
+  /// `savePlan` runs it in — so a single unreadable column would abort a write
+  /// that only needed a number.
+  Future<int> countPlans() async {
+    final count = taperPlans.id.count();
+    final row =
+        await (selectOnly(taperPlans)..addColumns(<Expression<Object>>[
+              count,
+            ]))
+            .getSingle();
+    return row.read(count)!;
+  }
 
   /// Inserts a plan and returns its row id.
   Future<int> insertPlan(TaperPlansCompanion plan) =>

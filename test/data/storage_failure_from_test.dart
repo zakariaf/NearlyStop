@@ -1,4 +1,4 @@
-// The error mapper, arm by arm.
+// The engine classifier, arm by arm.
 //
 // Every other test reaches it through the engine, which can only produce the
 // arms this drift version happens to throw. The ones it does not — a wrapped
@@ -7,7 +7,6 @@
 import 'package:drift/drift.dart' show DriftWrappedException;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/data/storage_failure.dart';
-import 'package:nearlystop/data/taper_repository.dart';
 import 'package:sqlite3/common.dart' show SqliteException;
 
 void main() {
@@ -20,7 +19,7 @@ void main() {
       trace: StackTrace.empty,
     );
 
-    expect(mapStorageFailure(wrapped), const Corrupt('unknown step status'));
+    expect(storageFailureFrom(wrapped), const Corrupt('unknown step status'));
   });
 
   test('nested wrapping unwraps all the way down', () {
@@ -35,7 +34,7 @@ void main() {
       trace: StackTrace.empty,
     );
 
-    expect(mapStorageFailure(outer), const Corrupt('bad date'));
+    expect(storageFailureFrom(outer), const Corrupt('bad date'));
   });
 
   test('a wrapper with no cause is Io, not an infinite unwrap', () {
@@ -44,7 +43,7 @@ void main() {
       trace: StackTrace.empty,
     );
 
-    expect(mapStorageFailure(empty), isA<Io>());
+    expect(storageFailureFrom(empty), isA<Io>());
   });
 
   test('every SQLITE_CONSTRAINT extended code maps to ConstraintViolation', () {
@@ -62,7 +61,7 @@ void main() {
       final error = SqliteException(code, 'constraint failed');
 
       expect(
-        mapStorageFailure(error),
+        storageFailureFrom(error),
         isA<ConstraintViolation>(),
         reason: 'extended code $code',
       );
@@ -75,13 +74,13 @@ void main() {
     // invalid" path for a disk problem.
     final error = SqliteException(11, 'database disk image is malformed');
 
-    expect(mapStorageFailure(error), isA<Io>());
+    expect(storageFailureFrom(error), isA<Io>());
   });
 
   test('a bare exception is Io and keeps its cause', () {
     const cause = FormatException('not from drift');
 
-    expect(mapStorageFailure(cause), const Corrupt('not from drift'));
-    expect(mapStorageFailure(StateError('closed')), isA<Io>());
+    expect(storageFailureFrom(cause), const Corrupt('not from drift'));
+    expect(storageFailureFrom(StateError('closed')), isA<Io>());
   });
 }

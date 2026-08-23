@@ -1,7 +1,17 @@
 /// Why a storage operation could not be completed.
 library;
 
+import 'package:drift/drift.dart' show DriftWrappedException;
+// The shipping connection runs the engine on a background isolate, and its
+// errors arrive wrapped in `DriftRemoteException` rather than
+// `DriftWrappedException`. The library is marked experimental, but the
+// exception type it publishes is what `NativeDatabase.createInBackground` —
+// the connection this app ships — throws on every engine error, so
+// classifying it is not optional.
+// ignore: experimental_member_use
+import 'package:drift/remote.dart' show DriftRemoteException;
 import 'package:nearlystop/core/result.dart';
+import 'package:sqlite3/common.dart' show SqliteException;
 
 /// The data layer's sealed failure family.
 ///
@@ -97,4 +107,42 @@ final class Invariant extends StorageFailure {
 
   @override
   String get code => 'storage.invariant';
+}
+
+/// Classifies an engine, converter or filesystem error.
+///
+/// **The only place a drift or sqlite exception is named.** Everything above
+/// this line sees a [StorageFailure].
+///
+/// Public rather than `@visibleForTesting` because both repositories call it,
+/// and because an error mapper is exactly the code that never runs until the
+/// day it matters — it earns its own tests.
+StorageFailure storageFailureFrom(Object error) {
+  // Drift wraps whatever the engine or a converter threw, and it wraps it in
+  // TWO different classes: `DriftWrappedException` in-process, and
+  // `DriftRemoteException` across the isolate boundary that
+  // `NativeDatabase.createInBackground` puts the shipping app behind. Missing
+  // the remote one means every constraint violation ON A REAL PHONE reads as a
+  // generic Io failure, while every test — all in-process — says otherwise.
+  var cause = error;
+  while (true) {
+    final inner = switch (cause) {
+      DriftWrappedException(:final cause?) => cause,
+      DriftRemoteException(:final remoteCause) => remoteCause,
+      _ => null,
+    };
+    if (inner == null || identical(inner, cause)) break;
+    cause = inner;
+  }
+  if (cause is FormatException) return Corrupt(cause.message);
+  if (cause is SqliteException) {
+    // The low byte of an extended result code is the primary code, and 19 is
+    // SQLITE_CONSTRAINT — covering UNIQUE (2067), CHECK (275), FOREIGN KEY
+    // (787), NOT NULL (1299) and PRIMARY KEY (1555) in one test. Matching the
+    // message text instead breaks the day SQLite rewords it.
+    if (cause.extendedResultCode & 0xFF == 19) {
+      return ConstraintViolation(cause.message);
+    }
+  }
+  return Io(cause);
 }

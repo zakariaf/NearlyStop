@@ -64,6 +64,15 @@ class TaperPlans extends Table {
   IntColumn get fixedStep =>
       integer().map(const MilligramsConverter()).nullable()();
 
+  /// Days a non-DSNS step holds the new dose before the next may begin.
+  ///
+  /// 52 for DSNS, where it is the pattern's own length and cannot be anything
+  /// else. It is a COLUMN because `nominalStepLength` reads it for the other
+  /// two methods: without one a `percentage` plan that runs 14 days reports 52
+  /// on every read, and "Start next step" stays disabled for 38 days after the
+  /// schedule has already reached steady state.
+  IntColumn get holdPeriodDays => integer().withDefault(const Constant(52))();
+
   /// When the plan was created, as UTC epoch milliseconds.
   IntColumn get createdAt => integer().map(const UtcInstantConverter())();
 }

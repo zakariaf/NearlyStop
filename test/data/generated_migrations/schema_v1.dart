@@ -99,6 +99,15 @@ class TaperPlans extends Table with TableInfo {
     requiredDuringInsert: false,
     $customConstraints: 'NULL',
   );
+  late final GeneratedColumn<int> holdPeriodDays = GeneratedColumn<int>(
+    'hold_period_days',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 52',
+    defaultValue: const CustomExpression('52'),
+  );
   late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
     aliasedName,
@@ -120,6 +129,7 @@ class TaperPlans extends Table with TableInfo {
     method,
     percentage,
     fixedStep,
+    holdPeriodDays,
     createdAt,
   ];
   @override

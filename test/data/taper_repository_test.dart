@@ -94,7 +94,8 @@ void main() {
           plannedMg: mg(9),
         ),
       );
-      expect(failure.what, 'markTaken');
+      // The ENTITY, not the method: a screen routes on `NotFound('plan')`.
+      expect(failure.what, 'plan');
     });
   });
 
@@ -475,7 +476,7 @@ void main() {
         repository.markTaken(const LocalDate(2026, 4, 2), plannedMg: mg(10)),
       );
 
-      await expectOk(repository.deletePlan(1));
+      await expectOk(repository.deletePlan());
 
       final snap = await snapshot();
       expect(snap.plan, isNull);
@@ -516,7 +517,7 @@ void main() {
 
         expect(raised, isA<SqliteException>());
         expect((raised! as SqliteException).extendedResultCode, 2067);
-        expect(mapStorageFailure(raised), isA<ConstraintViolation>());
+        expect(storageFailureFrom(raised), isA<ConstraintViolation>());
       },
     );
 
@@ -577,7 +578,7 @@ void main() {
       await expectOk(repository.savePlan(seededDraft()));
       await db.close();
 
-      final result = await repository.deletePlan(1);
+      final result = await repository.deletePlan();
 
       expect(
         (result as Err<void, StorageFailure>).failure,
@@ -642,6 +643,199 @@ void main() {
       expect(emissions, seenWhileListening, reason: 'no emission after cancel');
     },
   );
+
+  group('the facts a write must not be able to make unreadable', () {
+    // Every case here writes a row `generateSchedule` refuses, in the only
+    // copy of the patient's data, and the plan then renders nothing on every
+    // screen with no way back but deleting it.
+    Future<void> expectGenerates() async {
+      final snap = await snapshot();
+      expect(
+        generateSchedule(
+          plan: snap.plan!,
+          steps: snap.steps,
+          flares: snap.flares,
+          holds: snap.holds,
+        ),
+        isA<Ok<List<DayPlan>, DomainFailure>>(),
+      );
+    }
+
+    test('moving the plan start moves step 0 with it', () async {
+      await expectOk(repository.savePlan(seededDraft()));
+
+      await expectOk(
+        repository.updatePlanFacts(
+          seededDraft(startDate: const LocalDate(2026, 4, 5)),
+        ),
+      );
+
+      final snap = await snapshot();
+      expect(snap.plan!.startDate, const LocalDate(2026, 4, 5));
+      expect(
+        snap.steps.first.startDate,
+        const LocalDate(2026, 4, 5),
+        reason: 'a step left behind fails the generator forever',
+      );
+      await expectGenerates();
+    });
+
+    test('moving the start past the next step is refused', () async {
+      await expectOk(repository.savePlan(seededDraft()));
+      await expectOk(
+        repository.recordFlare(
+          on: const LocalDate(2026, 5, 1),
+          revertTo: mg(10),
+        ),
+      );
+
+      expectErr<Invariant>(
+        await repository.updatePlanFacts(
+          seededDraft(startDate: const LocalDate(2026, 6, 1)),
+        ),
+      );
+
+      final snap = await snapshot();
+      expect(snap.plan!.startDate, const LocalDate(2026, 4, 1));
+      expect(snap.steps.first.startDate, const LocalDate(2026, 4, 1));
+      await expectGenerates();
+    });
+
+    test('a flare on or before the plan start is refused', () async {
+      await expectOk(repository.savePlan(seededDraft()));
+
+      for (final on in <LocalDate>[
+        const LocalDate(2026, 3, 20),
+        const LocalDate(2026, 4, 1),
+      ]) {
+        expectErr<Invariant>(
+          await repository.recordFlare(on: on, revertTo: mg(10)),
+        );
+      }
+
+      expect((await snapshot()).steps, hasLength(1));
+      await expectGenerates();
+    });
+
+    test('a hold anchored outside its step is refused', () async {
+      // Accepted, it is invisible to the walk that derives the step's length,
+      // so `stepStatusFor` and `startNextStep` would disagree about when the
+      // step ends and orphan days at the old dose appear in the gap.
+      await expectOk(repository.savePlan(seededDraft()));
+
+      for (final from in <LocalDate>[
+        const LocalDate(2026, 3, 31), // before it starts
+        const LocalDate(2026, 9, 1), // long past its end
+      ]) {
+        expectErr<Invariant>(
+          await repository.recordHold(stepId: 1, from: from, extraDays: 10),
+        );
+      }
+
+      expect(await db.select(db.holdEvents).get(), isEmpty);
+    });
+  });
+
+  group("the plan's own arithmetic, not always DSNS's", () {
+    test(
+      'a fixedMg plan appends its FIXED step, not a suggested one',
+      () async {
+        // suggestStep is the DSNS rule — largest achievable at or under 10%.
+        // Applying it here appends 17.5 -> 16.0 instead of the 2.5mg the
+        // clinician wrote down. The app arranges; it does not decide.
+        final repo = repoAt(DateTime.utc(2026, 6));
+        await expectOk(
+          repo.savePlan(
+            TaperPlanDraft(
+              drugName: 'Prednisolone',
+              startDate: const LocalDate(2026, 4, 1),
+              currentDose: mg(20),
+              targetDose: Milligrams.zero,
+              strengths: <Milligrams>[mg(5), mg(1)],
+              allowHalves: true,
+              method: TaperMethod.fixedMg,
+              stepSize: mg(2.5),
+              fixedStep: mg(2.5),
+            ),
+          ),
+        );
+
+        await expectOk(repo.startNextStep());
+
+        final steps = await db.stepDao.readSteps(1);
+        expect(steps.first.toDose, mg(17.5));
+        expect(steps.last.fromDose, mg(17.5));
+        expect(steps.last.toDose, mg(15));
+      },
+    );
+
+    test('a percentage plan appends its PERCENTAGE step', () async {
+      final repo = repoAt(DateTime.utc(2026, 6));
+      await expectOk(
+        repo.savePlan(
+          seededDraft(method: TaperMethod.percentage, percentage: 10),
+        ),
+      );
+
+      await expectOk(repo.startNextStep());
+
+      final steps = await db.stepDao.readSteps(1);
+      // 10% of 9mg is 0.9mg; the largest achievable at or under that with
+      // 5mg + 1mg and halves is 0.5mg.
+      expect(steps.last.fromDose, mg(9));
+      expect(steps.last.toDose, mg(8.5));
+    });
+
+    test('holdPeriodDays survives a round trip', () async {
+      // Without a column it resets to the DSNS 52 on every read, and
+      // `nominalStepLength` — whose whole purpose is the non-DSNS arms — reads
+      // exactly that field.
+      await expectOk(
+        repository.savePlan(
+          seededDraft(
+            method: TaperMethod.percentage,
+            percentage: 10,
+          ).withHoldPeriod(14),
+        ),
+      );
+
+      expect((await snapshot()).plan!.holdPeriodDays, 14);
+    });
+  });
+
+  test(
+    'a re-tick after a plan edit does not rewrite what was swallowed',
+    () async {
+      // `actualMg` is frozen at tick time. Progress sums it and Schedule
+      // renders past rows from it, so a later edit must not move a number the
+      // patient already acted on.
+      await expectOk(repository.savePlan(seededDraft()));
+      const day = LocalDate(2026, 4, 2);
+      await expectOk(repository.markTaken(day, plannedMg: mg(9)));
+
+      await expectOk(repository.markTaken(day, plannedMg: mg(8.5)));
+
+      final logs = (await snapshot()).logs;
+      expect(logs, hasLength(1));
+      expect(logs.single.actualMg, mg(9), reason: 'frozen at tick time');
+      expect(logs.single.plannedMg, mg(9));
+    },
+  );
+
+  test('an UN-ticked day does take the new dose when it is ticked', () async {
+    // The other arm: freezing must not stop a day being recorded correctly the
+    // FIRST time, including after an undo.
+    await expectOk(repository.savePlan(seededDraft()));
+    const day = LocalDate(2026, 4, 2);
+    await expectOk(repository.markTaken(day, plannedMg: mg(9)));
+    await expectOk(repository.undoTaken(day));
+
+    await expectOk(repository.markTaken(day, plannedMg: mg(8.5)));
+
+    final logs = (await snapshot()).logs;
+    expect(logs.single.actualMg, mg(8.5));
+    expect(logs.single.taken, isTrue);
+  });
 
   group('watchSnapshot', () {
     test('emits on subscription and after every mutation', () async {

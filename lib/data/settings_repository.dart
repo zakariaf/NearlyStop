@@ -98,14 +98,30 @@ final class SettingsRepository {
       _write(() => _db.settingsDao.ensureRowExists(Ulid().toString()));
 
   /// The settings, re-emitted on every write.
-  Stream<AppSettings> watchSettings() => _db.settingsDao.watchSettings().map(
-    (row) => row == null ? AppSettings.defaults : _from(row),
-  );
+  ///
+  /// Falls back to [AppSettings.defaults] on a read error rather than
+  /// propagating it. These are **preferences**: an unreadable text-scale is a
+  /// cosmetic loss, and every default here is safe. The taper itself goes
+  /// through `TaperRepository`, which types its failures instead — losing a
+  /// dose log silently would be the opposite call.
+  Stream<AppSettings> watchSettings() => _db.settingsDao
+      .watchSettings()
+      .map((row) => row == null ? AppSettings.defaults : _from(row))
+      .handleError((_) {});
 
   /// The settings, read once — the pre-first-paint path.
+  ///
+  /// **Cannot throw.** `bootstrap()` awaits this before the first frame, so an
+  /// exception here is a cold-start crash on a device holding the user's only
+  /// copy of their taper. A corrupt preferences row costs them a theme; it must
+  /// not cost them the app.
   Future<AppSettings> readOnce() async {
-    final row = await _db.settingsDao.readSettingsOnce();
-    return row == null ? AppSettings.defaults : _from(row);
+    try {
+      final row = await _db.settingsDao.readSettingsOnce();
+      return row == null ? AppSettings.defaults : _from(row);
+    } on Object {
+      return AppSettings.defaults;
+    }
   }
 
   /// Turns the daily reminder on or off.
@@ -167,7 +183,10 @@ final class SettingsRepository {
       await _db.transaction(body);
       return const Ok(null);
     } on Object catch (error) {
-      return Err(Io(error));
+      // The same mapper the taper repository uses. Returning `Io` for
+      // everything made three of the five arms unreachable, so a constraint
+      // failure and a full disk were indistinguishable to the caller.
+      return Err(storageFailureFrom(error));
     }
   }
 }
