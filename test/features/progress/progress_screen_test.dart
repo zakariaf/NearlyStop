@@ -25,6 +25,7 @@ import 'package:nearlystop/theme/daybreak_theme.dart';
 import 'package:riverpod/misc.dart' show Override;
 
 import '../../support/harness.dart';
+import 'support/progress_fixture.dart';
 
 void main() {
   const loaded = ProgressLoaded(
@@ -73,7 +74,7 @@ void main() {
       tester,
       const ProgressScreen(),
       overrides: <Override>[
-        progressViewProvider.overrideWith(() => _Fixed(state)),
+        progressViewProvider.overrideWith(() => FixedProgress(state)),
       ],
       surfaceSize: size,
     );
@@ -216,7 +217,8 @@ void main() {
         const ProgressScreen(),
         overrides: <Override>[
           progressViewProvider.overrideWith(
-            () => _Fixed(const AsyncValue<ProgressViewState>.data(loaded)),
+            () =>
+                FixedProgress(const AsyncValue<ProgressViewState>.data(loaded)),
           ),
         ],
         textScaler: TextScaler.linear(scale),
@@ -275,7 +277,8 @@ void main() {
       ProviderScope(
         overrides: <Override>[
           progressViewProvider.overrideWith(
-            () => _Fixed(const AsyncValue<ProgressViewState>.data(loaded)),
+            () =>
+                FixedProgress(const AsyncValue<ProgressViewState>.data(loaded)),
           ),
         ],
         child: MaterialApp.router(
@@ -300,20 +303,4 @@ void main() {
       reason: 'a screen you cannot leave is worse than one you cannot reach',
     );
   });
-}
-
-/// A notifier that emits one fixed state.
-final class _Fixed extends ProgressNotifier {
-  _Fixed(this.fixture);
-
-  final AsyncValue<ProgressViewState> fixture;
-
-  @override
-  Stream<ProgressViewState> build() => switch (fixture) {
-    AsyncData<ProgressViewState>(:final value) =>
-      Stream<ProgressViewState>.value(value),
-    AsyncError<ProgressViewState>(:final error, :final stackTrace) =>
-      Stream<ProgressViewState>.error(error, stackTrace),
-    _ => const Stream<ProgressViewState>.empty(),
-  };
 }

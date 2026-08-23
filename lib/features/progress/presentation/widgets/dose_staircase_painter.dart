@@ -1,6 +1,7 @@
 /// The dose staircase, painted from a value snapshot.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:nearlystop/core/units/milligrams.dart';
 import 'package:nearlystop/features/progress/presentation/progress_view_state.dart';
@@ -31,12 +32,23 @@ class DoseAxisLabels {
   @override
   bool operator ==(Object other) =>
       other is DoseAxisLabels &&
-      other.first.text == first.text &&
-      other.last.text == last.text &&
+      _same(other.first, first) &&
+      _same(other.last, last) &&
       other.doses.length == doses.length;
 
   @override
-  int get hashCode => Object.hash(first.text, last.text, doses.length);
+  int get hashCode =>
+      Object.hash(first.text, first.size, last.text, last.size, doses.length);
+
+  /// Text AND metrics.
+  ///
+  /// The words alone are not enough: at 1.0 → 1.3 the labels say the same
+  /// thing at a different size, and comparing text answers "nothing changed"
+  /// while the chart keeps axis labels laid out for the old scale. Under the
+  /// threshold where it would have become a list, which is the range this
+  /// audience actually lives in.
+  static bool _same(TextPainter a, TextPainter b) =>
+      a.text == b.text && a.size == b.size;
 }
 
 /// Draws the taper as a staircase, with flare and hold marks.
@@ -399,16 +411,7 @@ class DoseStaircasePainter extends CustomPainter {
       oldDelegate.labels != labels ||
       // CONTENTS, not just length. Comparing lengths is the shortcut that
       // leaves a changed chart on screen after a flare rewrites the days.
-      !_listEquals(oldDelegate.segments, segments) ||
-      !_listEquals(oldDelegate.flares, flares) ||
-      !_listEquals(oldDelegate.holds, holds);
-}
-
-bool _listEquals(List<Object?> a, List<Object?> b) {
-  if (identical(a, b)) return true;
-  if (a.length != b.length) return false;
-  for (var i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) return false;
-  }
-  return true;
+      !listEquals(oldDelegate.segments, segments) ||
+      !listEquals(oldDelegate.flares, flares) ||
+      !listEquals(oldDelegate.holds, holds);
 }

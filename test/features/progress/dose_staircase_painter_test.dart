@@ -291,6 +291,32 @@ void main() {
     );
   });
 
+  test('a text-scale change repaints, even though the words did not', () {
+    // `DoseAxisLabels` compares its `TextSpan`s. At 1.0 → 1.3 the words are
+    // identical and the METRICS are not, so equality on text alone answers
+    // "nothing changed" and the chart keeps axis labels laid out for the old
+    // scale — under the threshold where it would have become a list, which is
+    // exactly the range this audience lives in.
+    TextPainter at(double scale) => TextPainter(
+      text: const TextSpan(text: 'Sep 2024', style: TextStyle(fontSize: 11)),
+      textDirection: TextDirection.ltr,
+      textScaler: TextScaler.linear(scale),
+    )..layout();
+
+    final small = DoseAxisLabels(
+      first: at(1),
+      last: at(1),
+      doses: <TextPainter>[at(1)],
+    );
+    final large = DoseAxisLabels(
+      first: at(1.3),
+      last: at(1.3),
+      doses: <TextPainter>[at(1.3)],
+    );
+
+    expect(small, isNot(large));
+  });
+
   test('the stroke clears 3:1 against the card, in light and in dark', () {
     // WCAG 2.1 SC 1.4.11. The stroke is the only mark carrying this screen's
     // primary information and it has no text of its own, so it is a graphical

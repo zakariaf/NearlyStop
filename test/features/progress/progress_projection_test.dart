@@ -292,4 +292,20 @@ void main() {
       }
     }
   });
+  test('the total rounds to the nearest milligram, it does not floor', () {
+    // 780 days of half-milligram steps is 390mg of fractions, and `~/` loses
+    // all of them silently. A total is not a dose to swallow — that is what
+    // rule 5 governs, and why the per-day breakdown is never rounded at all —
+    // but it is a number somebody hands to a rheumatologist.
+    const logs = <DoseLogFacts>[
+      DoseLogFacts(
+        date: start,
+        plannedMg: Milligrams.fromHundredths(1080),
+        actualMg: Milligrams.fromHundredths(1080),
+        taken: true,
+      ),
+    ];
+
+    expect((project(logs: logs) as ProgressLoaded).stats.cumulativeMg, '11');
+  });
 }

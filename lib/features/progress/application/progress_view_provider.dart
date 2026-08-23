@@ -231,9 +231,12 @@ class ProgressNotifier extends StreamNotifier<ProgressViewState> {
     final ticked = adherence(snapshot.logs, days, today);
     return ProgressStats(
       daysOnDrug: numbers.format(onDrug),
-      // The dose formatter, not `format(hundredths / 100)`: it is the one
-      // place that knows this app writes 6842 and not 6842.00.
-      cumulativeMg: numbers.format(total.hundredths ~/ 100),
+      // Rounded to the nearest milligram, not floored. Over 780 days of
+      // half-milligram steps the fractions add up, and `~/` quietly loses
+      // every one of them — on a number somebody hands to a rheumatologist.
+      // This is a TOTAL, not a dose to swallow: CLAUDE.md rule 5 governs the
+      // second, and it is why the per-day breakdown is never rounded at all.
+      cumulativeMg: numbers.format((total.hundredths / 100).round()),
       adherence: l10n.adherenceRatio(
         numbers.format(ticked.takenCount),
         numbers.format(ticked.plannedCount),

@@ -8,7 +8,6 @@ library;
 // told apart by shape; the painter tests pin that as a rule, and this is the
 // picture that shows it.
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:nearlystop/core/units/milligrams.dart';
@@ -18,6 +17,7 @@ import 'package:nearlystop/features/progress/presentation/progress_view_state.da
 import 'package:riverpod/misc.dart' show Override;
 
 import '../../support/harness.dart';
+import 'support/progress_fixture.dart';
 
 /// Saturation zero — the same matrix the EPIC-02 greyscale gate uses.
 const ColorFilter _greyscale = ColorFilter.matrix(<double>[
@@ -103,7 +103,7 @@ void main() {
           : const ProgressScreen(),
       overrides: <Override>[
         progressViewProvider.overrideWith(
-          () => _Fixed(fixtureFor(languageCode)),
+          () => FixedProgress.data(fixtureFor(languageCode)),
         ),
       ],
       locale: Locale(languageCode),
@@ -152,14 +152,4 @@ void main() {
       matchesGoldenFile('goldens/progress_greyscale.png'),
     );
   });
-}
-
-/// A notifier that emits one fixed state.
-final class _Fixed extends ProgressNotifier {
-  _Fixed(this.fixture);
-
-  final ProgressViewState fixture;
-
-  @override
-  Stream<ProgressViewState> build() => Stream<ProgressViewState>.value(fixture);
 }

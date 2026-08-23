@@ -1,7 +1,7 @@
 /// The Progress screen as a staircase, three numbers and a sentence.
 library;
 
-import 'package:meta/meta.dart';
+import 'package:flutter/foundation.dart';
 import 'package:nearlystop/core/dsns/day_plan.dart';
 import 'package:nearlystop/core/units/milligrams.dart';
 
@@ -382,10 +382,10 @@ final class ProgressLoaded extends ProgressViewState {
       other.encouragement == encouragement &&
       other.eventCountLabel == eventCountLabel &&
       other.chartSummary == chartSummary &&
-      _listEquals(other.segments, segments) &&
-      _listEquals(other.flares, flares) &&
-      _listEquals(other.holds, holds) &&
-      _listEquals(other.historyRows, historyRows);
+      listEquals(other.segments, segments) &&
+      listEquals(other.flares, flares) &&
+      listEquals(other.holds, holds) &&
+      listEquals(other.historyRows, historyRows);
 
   @override
   int get hashCode => Object.hash(
@@ -402,14 +402,4 @@ final class ProgressLoaded extends ProgressViewState {
     chartSummary,
     Object.hashAll(historyRows),
   );
-}
-
-/// Element-wise list equality, so this file needs no dependency to be tested.
-bool _listEquals(List<Object?> a, List<Object?> b) {
-  if (identical(a, b)) return true;
-  if (a.length != b.length) return false;
-  for (var i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) return false;
-  }
-  return true;
 }
