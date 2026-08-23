@@ -308,4 +308,45 @@ void main() {
       }
     }
   });
+
+  group('the slider is a Daybreak control, not a ColorScheme leftover', () {
+    // A component with no theme slot takes its colours from Material's
+    // derivation of the seed — which is a palette nobody in this project
+    // chose, and which the contrast budget has never measured. The text-size
+    // slider is the one this reached: its track rendered as a pale line the
+    // audience it exists for cannot see.
+    for (final brightness in Brightness.values) {
+      test('${brightness.name}: every track colour is a token', () {
+        final theme = buildDaybreakTheme(brightness, DaybreakScript.latin);
+        final colors = theme.extension<DaybreakColors>()!;
+        final slider = theme.sliderTheme;
+
+        expect(slider.activeTrackColor, colors.primaryDeep);
+        expect(slider.thumbColor, colors.primaryDeep);
+        expect(slider.inactiveTrackColor, colors.borderStrong);
+        // No tick marks: ten dots on a five-step scale is clutter the
+        // reference frame does not have, and it reads as ten choices.
+        expect(slider.activeTickMarkColor, Colors.transparent);
+        expect(slider.inactiveTickMarkColor, Colors.transparent);
+      });
+
+      test('${brightness.name}: the track is visible against the card', () {
+        // WCAG 2.1 SC 1.4.11: a control's boundary needs 3:1. A slider whose
+        // range you cannot see is a slider whose position means nothing.
+        final theme = buildDaybreakTheme(brightness, DaybreakScript.latin);
+        final colors = theme.extension<DaybreakColors>()!;
+
+        for (final track in <Color>[
+          theme.sliderTheme.activeTrackColor!,
+          theme.sliderTheme.inactiveTrackColor!,
+        ]) {
+          expect(
+            contrastRatio(track, colors.surface),
+            greaterThanOrEqualTo(3),
+            reason: '$track on ${colors.surface}',
+          );
+        }
+      });
+    }
+  });
 }
