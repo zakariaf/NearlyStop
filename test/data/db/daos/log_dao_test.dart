@@ -1,9 +1,6 @@
 // LogDao against a real engine.
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nearlystop/core/dsns/facts.dart';
 import 'package:nearlystop/core/time/local_date.dart';
-import 'package:nearlystop/core/units/milligrams.dart';
 import 'package:nearlystop/data/db/app_database.dart';
 
 import '../../../support/db_harness.dart';
@@ -14,32 +11,11 @@ void main() {
 
   setUp(() async {
     db = openTestDatabase();
-    planId = await db.planDao.insertPlan(
-      TaperPlansCompanion.insert(
-        uid: 'plan-1',
-        startDate: const LocalDate(2026, 4, 1),
-        startingDose: mg(10),
-        targetDose: Milligrams.zero,
-        tabletStrengths: <Milligrams>[mg(5), mg(1)],
-        allowHalves: true,
-        method: TaperMethod.dsns,
-        createdAt: DateTime.utc(2026),
-      ),
-    );
+    planId = await seedPlan(db);
   });
 
   Future<void> log(LocalDate date, {bool taken = true, String? note}) =>
-      db.logDao.upsertLog(
-        DoseLogsCompanion.insert(
-          uid: 'log-${date.toIso8601()}',
-          planId: planId,
-          date: date,
-          plannedMg: mg(10),
-          actualMg: mg(10),
-          taken: taken,
-          note: Value<String?>(note),
-        ),
-      );
+      seedLog(db, planId, date, taken: taken, note: note);
 
   test('readLogs answers oldest first', () async {
     for (final day in <int>[16, 9, 21]) {
@@ -71,17 +47,4 @@ void main() {
       expect(rows.single.taken, isFalse);
     },
   );
-
-  test('readLog answers for one date and null for another', () async {
-    await log(const LocalDate(2026, 4, 16));
-
-    expect(
-      await db.logDao.readLog(planId, const LocalDate(2026, 4, 16)),
-      isA<DoseLogRow>(),
-    );
-    expect(
-      await db.logDao.readLog(planId, const LocalDate(2026, 4, 17)),
-      isNull,
-    );
-  });
 }

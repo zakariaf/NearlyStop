@@ -8,6 +8,7 @@ library;
 import 'dart:io';
 
 import 'package:clock/clock.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/core/dsns/facts.dart';
@@ -89,6 +90,88 @@ TaperPlanDraft seededDraft({
   percentage: percentage,
   fixedStep: fixedStep,
 );
+
+/// Inserts a plan through the DAO and returns its row id.
+///
+/// Shared because four test files were each declaring their own copy, and a
+/// column added to `TaperPlans` would have had to be added to all four.
+Future<int> seedPlan(
+  AppDatabase db, {
+  String uid = 'plan-1',
+  DateTime? createdAt,
+  LocalDate startDate = const LocalDate(2026, 4, 1),
+  Milligrams? startingDose,
+  Milligrams targetDose = Milligrams.zero,
+  List<Milligrams>? strengths,
+  bool allowHalves = true,
+  TaperMethod method = TaperMethod.dsns,
+}) => db.planDao.insertPlan(
+  TaperPlansCompanion.insert(
+    uid: uid,
+    startDate: startDate,
+    startingDose: startingDose ?? mg(10),
+    targetDose: targetDose,
+    tabletStrengths: strengths ?? <Milligrams>[mg(5), mg(1)],
+    allowHalves: allowHalves,
+    method: method,
+    createdAt: createdAt ?? DateTime.utc(2026),
+  ),
+);
+
+/// Inserts a step through the DAO and returns its row id.
+Future<int> seedStep(
+  AppDatabase db,
+  int planId, {
+  int index = 0,
+  String? uid,
+  Milligrams? fromDose,
+  Milligrams? toDose,
+  LocalDate startDate = const LocalDate(2026, 4, 1),
+  StepStatus status = StepStatus.active,
+}) => db.stepDao.insertStep(
+  StepsCompanion.insert(
+    uid: uid ?? 'step-$index',
+    planId: planId,
+    stepIndex: index,
+    fromDose: fromDose ?? mg(10),
+    toDose: toDose ?? mg(9),
+    startDate: startDate,
+    status: status,
+    patternVersion: 1,
+  ),
+);
+
+/// Writes a dose log through the DAO, replacing the row if the date repeats.
+///
+/// Seeding wants "make this row look like this"; the repository's own writes
+/// deliberately narrow the conflict set, and those paths are tested through
+/// the repository rather than here.
+Future<void> seedLog(
+  AppDatabase db,
+  int planId,
+  LocalDate date, {
+  String? uid,
+  Milligrams? plannedMg,
+  Milligrams? actualMg,
+  bool taken = true,
+  DateTime? takenAt,
+  String? note,
+}) {
+  final row = DoseLogsCompanion.insert(
+    uid: uid ?? 'log-${date.toIso8601()}',
+    planId: planId,
+    date: date,
+    plannedMg: plannedMg ?? mg(10),
+    actualMg: actualMg ?? plannedMg ?? mg(10),
+    taken: taken,
+    takenAt: Value<DateTime?>(takenAt),
+    note: Value<String?>(note),
+  );
+  return db.logDao.upsertLog(
+    row,
+    onConflict: row.copyWith(uid: const Value<String>.absent()),
+  );
+}
 
 /// Runs `PRAGMA [pragma]` and returns its single integer result.
 Future<int> pragmaValue(AppDatabase db, String pragma) async {

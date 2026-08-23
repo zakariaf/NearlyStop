@@ -3,7 +3,6 @@
 // this file wants.
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nearlystop/core/dsns/facts.dart';
 import 'package:nearlystop/core/time/local_date.dart';
 import 'package:nearlystop/core/units/milligrams.dart';
 import 'package:nearlystop/data/db/app_database.dart';
@@ -15,17 +14,10 @@ void main() {
 
   setUp(() => db = openTestDatabase());
 
-  Future<int> insertPlan(String uid, int createdAt) => db.planDao.insertPlan(
-    TaperPlansCompanion.insert(
-      uid: uid,
-      startDate: const LocalDate(2026, 4, 1),
-      startingDose: mg(10),
-      targetDose: Milligrams.zero,
-      tabletStrengths: <Milligrams>[mg(5), mg(1)],
-      allowHalves: true,
-      method: TaperMethod.dsns,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(createdAt, isUtc: true),
-    ),
+  Future<int> insertPlan(String uid, int createdAt) => seedPlan(
+    db,
+    uid: uid,
+    createdAt: DateTime.fromMillisecondsSinceEpoch(createdAt, isUtc: true),
   );
 
   test(

@@ -2,7 +2,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/core/dsns/facts.dart';
 import 'package:nearlystop/core/time/local_date.dart';
-import 'package:nearlystop/core/units/milligrams.dart';
 import 'package:nearlystop/data/db/app_database.dart';
 
 import '../../../support/db_harness.dart';
@@ -13,32 +12,10 @@ void main() {
 
   setUp(() async {
     db = openTestDatabase();
-    planId = await db.planDao.insertPlan(
-      TaperPlansCompanion.insert(
-        uid: 'plan-1',
-        startDate: const LocalDate(2026, 4, 1),
-        startingDose: mg(10),
-        targetDose: Milligrams.zero,
-        tabletStrengths: <Milligrams>[mg(5), mg(1)],
-        allowHalves: true,
-        method: TaperMethod.dsns,
-        createdAt: DateTime.utc(2026),
-      ),
-    );
+    planId = await seedPlan(db);
   });
 
-  Future<int> insertStep(int index) => db.stepDao.insertStep(
-    StepsCompanion.insert(
-      uid: 'step-$index',
-      planId: planId,
-      stepIndex: index,
-      fromDose: mg(10),
-      toDose: mg(9),
-      startDate: const LocalDate(2026, 4, 1),
-      status: StepStatus.active,
-      patternVersion: 1,
-    ),
-  );
+  Future<int> insertStep(int index) => seedStep(db, planId, index: index);
 
   test('nextStepIndex is 0 on an empty table and max + 1 after', () async {
     // A guess here is a straight UNIQUE(planId, stepIndex) violation on the
@@ -105,30 +82,12 @@ void main() {
 
   test('watchHolds excludes holds belonging to another plan', () async {
     final mineStepId = await insertStep(0);
-    final otherPlanId = await db.planDao.insertPlan(
-      TaperPlansCompanion.insert(
-        uid: 'plan-2',
-        startDate: const LocalDate(2026, 4, 1),
-        startingDose: mg(10),
-        targetDose: Milligrams.zero,
-        tabletStrengths: <Milligrams>[mg(5)],
-        allowHalves: false,
-        method: TaperMethod.dsns,
-        createdAt: DateTime.utc(2026, 1, 2),
-      ),
+    final otherPlanId = await seedPlan(
+      db,
+      uid: 'plan-2',
+      createdAt: DateTime.utc(2026, 1, 2),
     );
-    final otherStepId = await db.stepDao.insertStep(
-      StepsCompanion.insert(
-        uid: 'other-step',
-        planId: otherPlanId,
-        stepIndex: 0,
-        fromDose: mg(10),
-        toDose: mg(9),
-        startDate: const LocalDate(2026, 4, 1),
-        status: StepStatus.active,
-        patternVersion: 1,
-      ),
-    );
+    final otherStepId = await seedStep(db, otherPlanId, uid: 'other-step');
     for (final (uid, stepId) in <(String, int)>[
       ('mine', mineStepId),
       ('theirs', otherStepId),

@@ -41,7 +41,6 @@ void main() {
   test('a wrapper with no cause is Io, not an infinite unwrap', () {
     final empty = DriftWrappedException(
       message: 'no cause',
-      cause: null,
       trace: StackTrace.empty,
     );
 

@@ -91,26 +91,19 @@ void main() {
         ),
       );
       for (var i = 0; i < 60; i++) {
-        final date = const LocalDate(2026, 4, 1).addDays(i);
-        await db.logDao.upsertLog(
-          DoseLogsCompanion.insert(
-            uid: 'log-$i',
-            planId: planId,
-            date: date,
-            plannedMg: i.isEven ? mg(10) : mg(9),
-            actualMg: i.isEven ? mg(10) : mg(9),
-            taken: i % 7 != 0,
-            takenAt: Value<DateTime?>(
-              i % 7 == 0 ? null : fixedNow.add(Duration(days: i)),
-            ),
-            note: Value<String?>(
-              switch (i) {
-                3 => 'dizzy',
-                41 => 'much better',
-                _ => null,
-              },
-            ),
-          ),
+        await seedLog(
+          db,
+          planId,
+          const LocalDate(2026, 4, 1).addDays(i),
+          uid: 'log-$i',
+          plannedMg: i.isEven ? mg(10) : mg(9),
+          taken: i % 7 != 0,
+          takenAt: i % 7 == 0 ? null : fixedNow.add(Duration(days: i)),
+          note: switch (i) {
+            3 => 'dizzy',
+            41 => 'much better',
+            _ => null,
+          },
         );
       }
       await db.planDao.insertFlare(

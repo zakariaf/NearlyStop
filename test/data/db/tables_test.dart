@@ -7,7 +7,6 @@ import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/core/dsns/facts.dart';
 import 'package:nearlystop/core/time/local_date.dart';
-import 'package:nearlystop/core/units/milligrams.dart';
 import 'package:nearlystop/data/db/app_database.dart';
 import 'package:sqlite3/sqlite3.dart' show SqliteException;
 
@@ -19,35 +18,14 @@ void main() {
   setUp(() => db = openTestDatabase());
 
   Future<int> insertPlan({String uid = 'plan-1', int createdAt = 0}) =>
-      db.planDao.insertPlan(
-        TaperPlansCompanion.insert(
-          uid: uid,
-          startDate: const LocalDate(2026, 4, 1),
-          startingDose: mg(10),
-          targetDose: Milligrams.zero,
-          tabletStrengths: <Milligrams>[mg(5), mg(1)],
-          allowHalves: true,
-          method: TaperMethod.dsns,
-          createdAt: DateTime.fromMillisecondsSinceEpoch(
-            createdAt,
-            isUtc: true,
-          ),
-        ),
+      seedPlan(
+        db,
+        uid: uid,
+        createdAt: DateTime.fromMillisecondsSinceEpoch(createdAt, isUtc: true),
       );
 
   Future<int> insertStep(int planId, {int index = 0, String uid = 'step-1'}) =>
-      db.stepDao.insertStep(
-        StepsCompanion.insert(
-          uid: uid,
-          planId: planId,
-          stepIndex: index,
-          fromDose: mg(10),
-          toDose: mg(9),
-          startDate: const LocalDate(2026, 4, 1),
-          status: StepStatus.active,
-          patternVersion: 1,
-        ),
-      );
+      seedStep(db, planId, index: index, uid: uid);
 
   test('foreign_keys is ON — every cascade below is decorative without it', () {
     // SQLite defaults it to 0 PER CONNECTION and silently no-ops FK actions.
@@ -60,16 +38,7 @@ void main() {
     final stepId = await insertStep(planId);
     await insertStep(planId, index: 1, uid: 'step-2');
     for (var i = 0; i < 3; i++) {
-      await db.logDao.upsertLog(
-        DoseLogsCompanion.insert(
-          uid: 'log-$i',
-          planId: planId,
-          date: LocalDate(2026, 4, i + 1),
-          plannedMg: mg(10),
-          actualMg: mg(10),
-          taken: true,
-        ),
-      );
+      await seedLog(db, planId, LocalDate(2026, 4, i + 1), uid: 'log-$i');
     }
     await db.planDao.insertFlare(
       FlareEventsCompanion.insert(
@@ -108,16 +77,7 @@ void main() {
 
     await expectDuplicate('TaperPlans', () => insertPlan(createdAt: 1));
     await expectDuplicate('Steps', () => insertStep(planId, index: 9));
-    await db.logDao.upsertLog(
-      DoseLogsCompanion.insert(
-        uid: 'log-1',
-        planId: planId,
-        date: const LocalDate(2026, 4, 1),
-        plannedMg: mg(10),
-        actualMg: mg(10),
-        taken: true,
-      ),
-    );
+    await seedLog(db, planId, const LocalDate(2026, 4, 1), uid: 'log-1');
     await expectDuplicate(
       'DoseLogs',
       () => db
@@ -188,15 +148,12 @@ void main() {
   test('UNIQUE(planId, date) makes ticking idempotent', () async {
     final planId = await insertPlan();
     for (var i = 0; i < 2; i++) {
-      await db.logDao.upsertLog(
-        DoseLogsCompanion.insert(
-          uid: 'log-1',
-          planId: planId,
-          date: const LocalDate(2026, 4, 1),
-          plannedMg: mg(10),
-          actualMg: mg(10),
-          taken: i == 1,
-        ),
+      await seedLog(
+        db,
+        planId,
+        const LocalDate(2026, 4, 1),
+        uid: 'log-1',
+        taken: i == 1,
       );
     }
     final rows = await db.select(db.doseLogs).get();

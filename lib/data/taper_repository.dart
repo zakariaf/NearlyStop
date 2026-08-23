@@ -239,24 +239,27 @@ final class TaperRepository {
   /// derive a date from `now()`. `actualMg` is set to [plannedMg] and then
   /// frozen — that is what lets Progress sum it and Schedule render a past row
   /// honestly after the strengths change.
+  ///
+  /// `note` is not in the conflict set, so ticking a day never erases what the
+  /// patient wrote on it.
   Future<Result<void, StorageFailure>> markTaken(
     LocalDate date, {
     required Milligrams plannedMg,
-  }) => _write('markTaken', (planId) async {
-    final existing = await _db.logDao.readLog(planId, date);
+  }) => _write('markTaken', (plan) async {
+    final takenAt = Value<DateTime>(_clock.now());
     await _db.logDao.upsertLog(
-      db.DoseLogsCompanion.insert(
-        uid: existing?.uid ?? Ulid().toString(),
-        planId: planId,
-        date: date,
+      _freshLog(
+        plan.id,
+        date,
         plannedMg: plannedMg,
-        actualMg: plannedMg,
         taken: true,
-        takenAt: Value<DateTime>(_clock.now()),
-        note: Value<String?>(existing?.note),
-        id: existing == null
-            ? const Value<int>.absent()
-            : Value<int>(existing.id),
+        takenAt: takenAt,
+      ),
+      onConflict: db.DoseLogsCompanion(
+        plannedMg: Value<Milligrams>(plannedMg),
+        actualMg: Value<Milligrams>(plannedMg),
+        taken: const Value<bool>(true),
+        takenAt: takenAt,
       ),
     );
   });
@@ -266,50 +269,51 @@ final class TaperRepository {
   /// Not a delete: deleting would silently destroy a note the patient wrote on
   /// the same day.
   Future<Result<void, StorageFailure>> undoTaken(LocalDate date) =>
-      _write('undoTaken', (planId) async {
-        final existing = await _db.logDao.readLog(planId, date);
-        if (existing == null) return;
-        await _db.logDao.upsertLog(
-          db.DoseLogsCompanion.insert(
-            uid: existing.uid,
-            planId: planId,
-            date: date,
-            plannedMg: existing.plannedMg,
-            actualMg: existing.actualMg,
-            taken: false,
-            takenAt: const Value<DateTime?>(null),
-            note: Value<String?>(existing.note),
-            id: Value<int>(existing.id),
-          ),
-        );
-      });
+      _write('undoTaken', (plan) => _db.logDao.clearTaken(plan.id, date));
 
   /// Writes (or clears) the note on [date].
   ///
   /// Takes [plannedMg] for the same NOT NULL reason [markTaken] does: the very
-  /// first note on an un-ticked day has to be able to create the row.
+  /// first note on an un-ticked day has to be able to create the row. On a day
+  /// that already has one, only the note is written — the recorded dose and
+  /// the tick are facts a note must not disturb.
   Future<Result<void, StorageFailure>> setNote(
     LocalDate date,
     String? note, {
     required Milligrams plannedMg,
-  }) => _write('setNote', (planId) async {
-    final existing = await _db.logDao.readLog(planId, date);
+  }) => _write('setNote', (plan) async {
     await _db.logDao.upsertLog(
-      db.DoseLogsCompanion.insert(
-        uid: existing?.uid ?? Ulid().toString(),
-        planId: planId,
-        date: date,
-        plannedMg: existing?.plannedMg ?? plannedMg,
-        actualMg: existing?.actualMg ?? plannedMg,
-        taken: existing?.taken ?? false,
-        takenAt: Value<DateTime?>(existing?.takenAt),
+      _freshLog(
+        plan.id,
+        date,
+        plannedMg: plannedMg,
         note: Value<String?>(note),
-        id: existing == null
-            ? const Value<int>.absent()
-            : Value<int>(existing.id),
       ),
+      onConflict: db.DoseLogsCompanion(note: Value<String?>(note)),
     );
   });
+
+  /// The row a day gets when it does not have one yet.
+  ///
+  /// One place, so a column added to `DoseLogs` is supplied by every path that
+  /// can create a row rather than by whichever two of the three remembered.
+  db.DoseLogsCompanion _freshLog(
+    int planId,
+    LocalDate date, {
+    required Milligrams plannedMg,
+    bool taken = false,
+    Value<DateTime?> takenAt = const Value<DateTime?>.absent(),
+    Value<String?> note = const Value<String?>.absent(),
+  }) => db.DoseLogsCompanion.insert(
+    uid: Ulid().toString(),
+    planId: planId,
+    date: date,
+    plannedMg: plannedMg,
+    actualMg: plannedMg,
+    taken: taken,
+    takenAt: takenAt,
+    note: note,
+  );
 
   /// Records a flare: go back to [revertTo], starting [on].
   ///
@@ -324,9 +328,7 @@ final class TaperRepository {
   Future<Result<void, StorageFailure>> recordFlare({
     required LocalDate on,
     required Milligrams revertTo,
-  }) => _write('recordFlare', (planId) async {
-    final plan = await _db.planDao.readActivePlan();
-    if (plan == null) throw const _Refused('no plan');
+  }) => _write('recordFlare', (plan) async {
     if (revertTo < plan.targetDose) {
       // Below the target, `nextDose` clamps UP and the step would record a
       // dose increase — which the generator rejects, leaving the plan unable
@@ -334,11 +336,11 @@ final class TaperRepository {
       // fact that cannot be read back.
       throw const _Refused('a flare cannot revert below the plan target');
     }
-    final steps = await _db.stepDao.readSteps(planId);
+    final steps = await _db.stepDao.readSteps(plan.id);
     await _db.planDao.insertFlare(
       db.FlareEventsCompanion.insert(
         uid: Ulid().toString(),
-        planId: planId,
+        planId: plan.id,
         date: on,
         revertToDose: revertTo,
       ),
@@ -351,8 +353,8 @@ final class TaperRepository {
     await _db.stepDao.insertStep(
       db.StepsCompanion.insert(
         uid: Ulid().toString(),
-        planId: planId,
-        stepIndex: await _db.stepDao.nextStepIndex(planId),
+        planId: plan.id,
+        stepIndex: await _db.stepDao.nextStepIndex(plan.id),
         fromDose: revertTo,
         toDose: _toDoseFrom(revertTo, plan),
         startDate: on,
@@ -370,7 +372,7 @@ final class TaperRepository {
     required int stepId,
     required LocalDate from,
     required int extraDays,
-  }) => _write('recordHold', (planId) async {
+  }) => _write('recordHold', (plan) async {
     if (extraDays <= 0) throw const _Refused('a hold is at least one day');
     await _db.stepDao.insertHold(
       db.HoldEventsCompanion.insert(
@@ -443,12 +445,12 @@ final class TaperRepository {
   /// Updates the plan row and **appends no step and touches no `DoseLog`**.
   /// Future days recompose on the next emission because the generator is pure.
   Future<Result<void, StorageFailure>> updatePlanFacts(TaperPlanDraft draft) =>
-      _write('updatePlanFacts', (planId) async {
+      _write('updatePlanFacts', (plan) async {
         if (draft.strengths.isEmpty) {
           throw const _Refused('a plan needs at least one tablet strength');
         }
         await _db.planDao.updatePlan(
-          planId,
+          plan.id,
           db.TaperPlansCompanion(
             drugName: Value<String>(draft.drugName),
             startDate: Value<LocalDate>(draft.startDate),
@@ -469,12 +471,12 @@ final class TaperRepository {
   /// recompose, past logs stay as recorded).
   Future<Result<void, StorageFailure>> updateStrengths(
     List<Milligrams> strengths,
-  ) => _write('updateStrengths', (planId) async {
+  ) => _write('updateStrengths', (plan) async {
     if (strengths.isEmpty) {
       throw const _Refused('a plan needs at least one tablet strength');
     }
     await _db.planDao.updatePlan(
-      planId,
+      plan.id,
       db.TaperPlansCompanion(
         tabletStrengths: Value<List<Milligrams>>(strengths),
       ),
@@ -490,10 +492,8 @@ final class TaperRepository {
   /// forbids. A computed start in the past is correct: its early days are
   /// immediately backfillable through the `(planId, date)` upsert.
   Future<Result<void, StorageFailure>> startNextStep() =>
-      _write('startNextStep', (planId) async {
-        final plan = await _db.planDao.readActivePlan();
-        if (plan == null) throw const _Refused('no plan');
-        final steps = await _db.stepDao.readSteps(planId);
+      _write('startNextStep', (plan) async {
+        final steps = await _db.stepDao.readSteps(plan.id);
         if (steps.isEmpty) throw const _Refused('no step to follow');
         final last = steps.last;
         if (last.toDose <= plan.targetDose) {
@@ -519,7 +519,7 @@ final class TaperRepository {
         await _db.stepDao.insertStep(
           db.StepsCompanion.insert(
             uid: Ulid().toString(),
-            planId: planId,
+            planId: plan.id,
             stepIndex: last.stepIndex + 1,
             fromDose: last.toDose,
             toDose: _toDoseFrom(last.toDose, plan),
@@ -564,17 +564,21 @@ final class TaperRepository {
   }
 
   /// One transaction, one plan lookup, one typed arm.
+  ///
+  /// The lookup is **inside** the transaction and its row is handed to [body],
+  /// so no mutation reads the plan twice and none can act on a plan that was
+  /// deleted between the check and the write.
   Future<Result<void, StorageFailure>> _write(
     String what,
-    Future<void> Function(int planId) body,
+    Future<void> Function(db.TaperPlanRow plan) body,
   ) async {
     try {
-      final plan = await _db.planDao.readActivePlan();
-      if (plan == null) return Err(NotFound(what));
-      await _db.transaction(() async {
-        await body(plan.id);
+      return await _db.transaction(() async {
+        final plan = await _db.planDao.readActivePlan();
+        if (plan == null) return Err<void, StorageFailure>(NotFound(what));
+        await body(plan);
+        return const Ok<void, StorageFailure>(null);
       });
-      return const Ok(null);
     } on Object catch (error) {
       return Err(_mapError(error));
     }
