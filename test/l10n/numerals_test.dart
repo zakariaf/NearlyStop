@@ -128,6 +128,54 @@ void main() {
     });
   });
 
+  group('the way a person actually types a dose', () {
+    // Every one of these was rejected as malformed by the first
+    // implementation, which compared the input against a canonical
+    // re-rendering. "10.0" is how the pack is printed; "9.50" is how a
+    // pharmacist writes it; ".5" is how anyone in a hurry types it. Telling a
+    // 78-year-old that the number on their own box is not a number is not a
+    // small defect.
+    test('a trailing zero is a dose', () {
+      expect(okOf(parseDose('10.0', _en)), mg(1000));
+      expect(okOf(parseDose('9.50', _en)), mg(950));
+      expect(okOf(parseDose('0.50', _en)), mg(50));
+      expect(okOf(parseDose('7,50', _de)), mg(750));
+      expect(okOf(parseDose('۹٫۰', _fa)), mg(900));
+    });
+
+    test('a leading zero, and a bare decimal point, are doses', () {
+      expect(okOf(parseDose('09', _en)), mg(900));
+      expect(okOf(parseDose('.5', _en)), mg(50));
+      expect(okOf(parseDose('0.25', _en)), mg(25));
+    });
+
+    test('surrounding whitespace is a typo, not a rejection', () {
+      expect(okOf(parseDose('  9  ', _en)), mg(900));
+    });
+
+    test('this parser and Milligrams.parse accept the same things', () {
+      // Two parsers for one dose field with different accept sets is how a
+      // value the Plan screen stores becomes a value the Plan screen cannot
+      // read back. In `en` the notations coincide, so they must agree exactly.
+      for (final raw in <String>[
+        '9',
+        '10.0',
+        '9.50',
+        '0.25',
+        '.5',
+        '09',
+        '0',
+        '60',
+      ]) {
+        expect(
+          parseDose(raw, _en),
+          Milligrams.parse(raw),
+          reason: 'parseDose and Milligrams.parse disagree on "$raw"',
+        );
+      }
+    });
+  });
+
   group('normalizeToAscii is a DIGIT normalizer, not a separator one', () {
     test('it folds both Perso-Arabic blocks and their separators', () {
       expect(normalizeToAscii('۱٫۵'), '1.5');
@@ -155,12 +203,15 @@ void main() {
       errOf<InvalidDoseFormat>(parseDose('١٢abc', kurdishSorani));
     });
 
-    test('non-finite', () {
-      // A digit string too large for a double. `1e400` is NOT the case to use:
-      // `NumberFormat` has no exponent in `decimalPattern`, so it is rejected
-      // as malformed — correctly — long before it can be infinite.
+    test('an unbounded digit run is bounded, not infinite', () {
+      // There is no NonFiniteDose arm, and there should not be: the domain's
+      // parser caps the whole part at six digits, so a 400-digit string is a
+      // malformed dose long before it could become a double at all. That cap
+      // is the reason no `double` appears anywhere in this path.
       errOf<InvalidDoseFormat>(parseDose('1e400', _en));
-      errOf<NonFiniteDose>(parseDose('1${'0' * 400}', _en));
+      errOf<InvalidDoseFormat>(parseDose('1${'0' * 400}', _en));
+      errOf<InvalidDoseFormat>(parseDose('1234567', _en));
+      expect(okOf(parseDose('999999', _en)), mg(99999900));
     });
 
     test('above the plan ceiling', () {

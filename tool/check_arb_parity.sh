@@ -8,6 +8,10 @@ set -uo pipefail
 # in review. A renamed placeholder is worse: it breaks that translation at
 # RUNTIME, long after anyone is looking.
 #
+# The expected locale set is spelled out in the script rather than read from
+# the directory, for the same reason: a gate that derives its expectations from
+# the thing it is checking cannot fail.
+#
 # Usage: bash tool/check_arb_parity.sh [ARB_DIR]
 arb_dir="${1:-lib/l10n/arb}"
 template="$arb_dir/app_en.arb"
@@ -44,6 +48,23 @@ def branches(value):
 template = load(template_path)
 keys = [k for k in template if not k.startswith('@')]
 problems = []
+
+# The FILE SET, before any key comparison. Iterating whatever happens to be on
+# disk can only ever see a missing key, never a missing LOCALE: delete
+# app_fa.arb entirely and the loop simply has one fewer file to compare, prints
+# OK, and a Persian phone throws on its first frame because
+# `AppLocalizations.of` is non-nullable and the delegate no longer supports fa.
+expected = {'en', 'de', 'fa', 'ckb'}
+present = {
+    name[len('app_'):-len('.arb')]
+    for name in os.listdir(arb_dir)
+    if name.startswith('app_') and name.endswith('.arb')
+}
+for missing in sorted(expected - present):
+    problems.append(f'app_{missing}.arb is MISSING — kSupportedLocales still '
+                    'advertises it')
+for extra in sorted(present - expected):
+    problems.append(f'app_{extra}.arb is not one of the shipped locales')
 
 for name in sorted(os.listdir(arb_dir)):
     if not name.endswith('.arb') or name == 'app_en.arb':

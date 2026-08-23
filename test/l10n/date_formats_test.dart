@@ -42,6 +42,37 @@ void main() {
     expect(formatDayLabel(fixture, _de), 'Mi., 16. Apr.');
   });
 
+  test('every locale label carries the WEEKDAY', () {
+    // The Schedule screen exists to answer "which day am I on" inside a 52-day
+    // pattern that ignores weeks. A label without the weekday answers the one
+    // question the screen is for — and Persian was the only locale missing it.
+    for (final locale in kSupportedLocales) {
+      final label = formatDayLabel(fixture, locale);
+      final withoutWeekday = formatDayLabel(fixture, locale).split(
+        RegExp('[،,]'),
+      );
+
+      expect(
+        withoutWeekday.length,
+        greaterThan(1),
+        reason: '${locale.toLanguageTag()} label "$label" has no weekday',
+      );
+    }
+    // 2025-04-16 is a Wednesday, in each locale's own word for it. Spaces are
+    // squeezed before comparing: `shamsi_date` spells the Persian weekday
+    // `چهار شنبه` and the design mockup writes `چهارشنبه`. Both are correct
+    // Persian; pinning one orthography here would fail the day the package
+    // changes its mind about a space. EPIC-14's parity pass settles which one
+    // ships.
+    String squeezed(Locale locale) =>
+        formatDayLabel(fixture, locale).replaceAll(' ', '');
+
+    expect(formatDayLabel(fixture, _en), startsWith('Wed'));
+    expect(formatDayLabel(fixture, _de), startsWith('Mi'));
+    expect(squeezed(_fa), contains('چهارشنبه'));
+    expect(squeezed(kurdishSorani), contains('چوارشەممە'));
+  });
+
   test('fa is Jalali, 27 Farvardin 1404, in Persian digits', () {
     // 1 Farvardin 1404 fell on 2025-03-21, so 2025-04-16 is day 27.
     final label = formatDayLabel(fixture, _fa);

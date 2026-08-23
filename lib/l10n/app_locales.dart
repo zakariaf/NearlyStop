@@ -17,10 +17,15 @@ const Locale kurdishSorani = Locale.fromSubtags(
 );
 
 /// The four locales, in preference order. English is the fallback.
-final List<Locale> kSupportedLocales = <Locale>[
-  const Locale('en'),
-  const Locale('de'),
-  const Locale('fa'),
+///
+/// `const`: it is handed straight to `MaterialApp.supportedLocales` and
+/// iterated by five test files, so a growable list would let any caller change
+/// which locales the whole app resolves against, from anywhere, with no
+/// compile error.
+const List<Locale> kSupportedLocales = <Locale>[
+  Locale('en'),
+  Locale('de'),
+  Locale('fa'),
   kurdishSorani,
 ];
 
@@ -30,7 +35,19 @@ final List<Locale> kSupportedLocales = <Locale>[
 /// `basicLocaleListResolution` will not map it to `ckb` on its own — a bare
 /// language match against a different language code is not something it is
 /// allowed to invent. So we invent it, here, once, where it is testable.
+///
+/// **`ku-Latn` is deliberately excluded.** Latin-script Kurdish is Kurmanji —
+/// Northern Kurdish, a different language, which this app does not ship.
+/// Aliasing it would hand that user Sorani text in a script they may not read,
+/// with the whole interface mirrored to right-to-left. It falls back instead.
 const Map<String, String> _languageAliases = <String, String>{'ku': 'ckb'};
+
+/// The script subtag that makes an aliased language ours.
+///
+/// `null` means the device said nothing about script, which for `ku` is the
+/// common Android case and is taken as Sorani.
+bool _aliasApplies(Locale locale) =>
+    locale.scriptCode == null || locale.scriptCode == 'Arab';
 
 /// Resolves the OS's preference list to exactly one supported locale.
 ///
@@ -43,14 +60,23 @@ const Map<String, String> _languageAliases = <String, String>{'ku': 'ckb'};
 Locale resolveAppLocale(List<Locale> preferred) {
   final canonical = <Locale>[
     for (final locale in preferred)
-      Locale.fromSubtags(
-        languageCode:
-            _languageAliases[locale.languageCode] ?? locale.languageCode,
-        scriptCode: locale.scriptCode,
-        // Country is dropped rather than passed through: `de-CH` and `ckb-IQ`
-        // are the same app, and keeping the subtag only gives
-        // `basicLocaleListResolution` a chance to prefer a worse match.
-      ),
+      if (_languageAliases.containsKey(locale.languageCode) &&
+          _aliasApplies(locale))
+        // The alias also drops the script subtag: carrying the device's own
+        // through would produce e.g. `ckb-Latn`, which matches nothing and
+        // then falls back for the wrong reason.
+        Locale.fromSubtags(
+          languageCode: _languageAliases[locale.languageCode]!,
+          scriptCode: 'Arab',
+        )
+      else if (!_languageAliases.containsKey(locale.languageCode))
+        Locale.fromSubtags(
+          languageCode: locale.languageCode,
+          scriptCode: locale.scriptCode,
+          // Country is dropped rather than passed through: `de-CH` and
+          // `ckb-IQ` are the same app, and keeping the subtag only gives
+          // `basicLocaleListResolution` a chance to prefer a worse match.
+        ),
   ];
   return basicLocaleListResolution(canonical, kSupportedLocales);
 }
@@ -71,12 +97,16 @@ DaybreakScript scriptFor(Locale locale) => switch (locale.languageCode) {
 /// `isSupported` returns true, and the global ones return false for `ckb`
 /// anyway — but ordering them after would mean relying on that, and each `ckb`
 /// delegate is inert for every other locale precisely so this order is safe.
-List<LocalizationsDelegate<Object>> get kAppLocalizationsDelegates =>
+/// `const`, not a getter: this is read from `build()`, which now runs on every
+/// locale, bold-text, high-contrast and platform-brightness change, and a
+/// getter allocated a fresh seven-element list each time. Every delegate here
+/// is const-constructible.
+const List<LocalizationsDelegate<Object>> kAppLocalizationsDelegates =
     <LocalizationsDelegate<Object>>[
       AppLocalizations.delegate,
-      const CkbMaterialLocalizationsDelegate(),
-      const CkbCupertinoLocalizationsDelegate(),
-      const CkbWidgetsLocalizationsDelegate(),
+      CkbMaterialLocalizationsDelegate(),
+      CkbCupertinoLocalizationsDelegate(),
+      CkbWidgetsLocalizationsDelegate(),
       GlobalMaterialLocalizations.delegate,
       GlobalWidgetsLocalizations.delegate,
       GlobalCupertinoLocalizations.delegate,

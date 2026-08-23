@@ -336,18 +336,23 @@ DART
 expect_clean "the same digits in a comment pass — the gate strips comments"
 rm -f "$scratch"
 
-echo "case 12g: the digit ban exempts the file that documents the block"
-if ! grep -q "'۰۱۲۳۴۵۶۷۸۹'" lib/l10n/number_formats.dart 2>/dev/null; then
-  pass "number_formats.dart carries the documented block and still passes"
+echo "case 12g: the file that documents the block needs no exemption"
+# It carries the digits only inside a `//` comment, and the gate strips
+# comments, so it passes the rule on its own terms. This case exists because an
+# earlier version of the self-test asserted the OPPOSITE of what it printed —
+# a negated grep that reported ok precisely when the block was absent.
+if awk -f tool/strip_comments.awk lib/l10n/number_formats.dart \
+  | grep -qE '[۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩]'; then
+  bad "number_formats.dart has Perso-Arabic digits in CODE, not just comments"
 else
-  bad "number_formats.dart was expected to carry the block only in a comment"
+  pass "number_formats.dart carries the block in comments only"
 fi
 run_gate
 if [ "$code" -ne 0 ]; then
   bad "the real tree fails the digit ban (exit $code)"
   echo "$out" | sed 's/^/         /'
 else
-  pass "the real tree passes, so the exemption resolves"
+  pass "the real tree passes with no exemption for it"
 fi
 
 echo "case 13: the gate works from an arbitrary ROOT, not just the repo root"

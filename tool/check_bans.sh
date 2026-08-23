@@ -158,10 +158,14 @@ add_rule lib code - \
 # digits and then someone writes `.` between them, producing `۱.۵` — a Persian
 # number with a Latin decimal point, which no Persian reader parses as 1.5.
 # `numberFormatFor(locale)` reads the separators from intl's symbol data along
-# with the digits. `lib/l10n/number_formats.dart` is exempt: its doc comment
-# names the U+06Fx block it is documenting, and comments are stripped before
-# matching anyway — the exemption covers the const declarations beside them.
-add_rule lib code 'lib/l10n/number_formats.dart' \
+# with the digits.
+#
+# **No exemption.** One was written for `lib/l10n/number_formats.dart`, on the
+# theory that its doc comment names the U+06Fx block — but comments are
+# stripped before matching, so the file passes on its own and the exemption
+# protected nothing. An exemption that has never been needed is a hole waiting
+# for the day it is.
+add_rule lib code - \
   '[۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩]' \
   "never hand-roll a digit table — numberFormatFor(locale) carries the digits AND the separators"
 

@@ -42,9 +42,13 @@ void registerFontLicenses() {
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
   registerFontLicenses();
-  // `DateFormat('de')` throws on first use without this. It loads `intl`'s
-  // symbol data for every locale, so it has to happen before the first frame
-  // rather than lazily on the screen that first shows a date.
-  await initializeDateFormatting();
+  // `DateFormat('de')` throws on first use without this — but the ZERO-ARG
+  // form materialises the symbol tables for every locale `intl` ships, on the
+  // blocking path before the first frame, for an app with four locales. Only
+  // `en` and `de` reach `DateFormat` at all: `fa` goes through `shamsi_date`
+  // and `ckb` is composed from the ARB (see lib/l10n/date_formats.dart).
+  for (final locale in <String>['en', 'de']) {
+    await initializeDateFormatting(locale);
+  }
   runApp(const ProviderScope(child: NearlyStopApp()));
 }

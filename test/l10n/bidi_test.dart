@@ -88,6 +88,37 @@ void main() {
     }
   });
 
+  test('a JOIN of two isolated runs still gets its outer isolate', () {
+    // The tablet breakdown is built by joining per-tablet parts, each of which
+    // may already be isolated. `startsWith(LRI) && endsWith(PDI)` is true of
+    // the concatenation too — so the outer isolate the caller asked for was
+    // silently skipped, and the whole run reordered inside a Perso-Arabic
+    // sentence: the wrong count against the wrong strength.
+    final joined = isolateLtr('1 \u00d7 5mg') + isolateLtr('4 \u00d7 1mg');
+
+    final wrapped = isolateLtr(joined);
+
+    expect(wrapped, '\u2066$joined\u2069');
+    expect(stripIsolates(wrapped), '1 \u00d7 5mg4 \u00d7 1mg');
+  });
+
+  test('stripIsolates removes the LEGACY controls and the marks too', () {
+    // A medicine name pasted from a web page or a PDF commonly carries LRM,
+    // RLM or a stray embedding. Invisible in review, they reach the drift row
+    // and EPIC-13's CSV field and break equality on search.
+    const contaminated =
+        '\u200ePrednisolone\u200f \u202b5mg\u202c \u202d10\u202e';
+
+    final cleaned = stripIsolates(contaminated);
+
+    expect(cleaned, 'Prednisolone 5mg 10');
+    for (final rune in cleaned.runes) {
+      expect(rune, isNot(inInclusiveRange(0x200E, 0x200F)));
+      expect(rune, isNot(inInclusiveRange(0x202A, 0x202E)));
+      expect(rune, isNot(inInclusiveRange(0x2066, 0x2069)));
+    }
+  });
+
   test('isolating an already-isolated value does not double up', () {
     // The realistic misuse: a caller isolates at the view layer and a helper
     // isolated it already.

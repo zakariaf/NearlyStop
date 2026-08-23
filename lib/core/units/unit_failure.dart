@@ -93,24 +93,6 @@ final class DoseNotHalvable extends UnitFailure {
   ];
 }
 
-/// The input parsed to infinity or NaN.
-///
-/// `1e400` is a finite string and an infinite double. Left unchecked it reaches
-/// the hundredths conversion and overflows into a number nobody typed.
-final class NonFiniteDose extends UnitFailure {
-  /// Records that [input] is not a finite quantity.
-  const NonFiniteDose(this.input);
-
-  /// The rejected text, exactly as received.
-  final String input;
-
-  @override
-  String get code => 'unit.non_finite_dose';
-
-  @override
-  List<Object?> get props => <Object?>[input];
-}
-
 /// The input is larger than the plan allows.
 ///
 /// A ceiling is a plan-level fact, not a property of the unit — a typo of `100`

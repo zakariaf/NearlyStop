@@ -54,17 +54,37 @@ String formatDayLabel(LocalDate date, Locale locale) =>
 String _jalaliLabel(LocalDate date, Locale locale) {
   final jalali = Jalali.fromDateTime(date.toUtcMidnight());
   final day = _localizedInt(jalali.day, locale);
-  return '$day ${jalali.formatter.mN}';
+  // The WEEKDAY is not optional. This label answers "which day am I on" on a
+  // screen whose whole subject is a 52-day pattern that ignores weeks, and
+  // Persian was the one locale rendering it without one.
+  return '${jalali.formatter.wN}، $day ${jalali.formatter.mN}';
 }
 
 String _kurdishLabel(LocalDate date, Locale locale) {
-  final l10n = lookupAppLocalizations(locale);
+  final names = _kurdishNames(locale);
   final bridged = date.toUtcMidnight();
   // `DateTime.weekday` is 1 for Monday, and the ARB list is Monday-first.
-  final weekday = l10n.ckbWeekdayNames.split('|')[bridged.weekday - 1];
-  final month = l10n.ckbMonthNames.split('|')[bridged.month - 1];
+  final weekday = names.weekdays[bridged.weekday - 1];
+  final month = names.months[bridged.month - 1];
   return '$weekday، ${_localizedInt(bridged.day, locale)} $month';
 }
+
+/// The two pipe-separated ARB lists, split once instead of once per row.
+///
+/// A Schedule scrolling a 780-day taper calls [formatDayLabel] for every
+/// visible row on every frame; splitting a 7-element and a 12-element list each
+/// time, to read one entry out of each, is work the screen does not need to do.
+({List<String> weekdays, List<String> months}) _kurdishNames(Locale locale) =>
+    _kurdishNameCache.putIfAbsent(locale.toLanguageTag(), () {
+      final l10n = lookupAppLocalizations(locale);
+      return (
+        weekdays: List<String>.unmodifiable(l10n.ckbWeekdayNames.split('|')),
+        months: List<String>.unmodifiable(l10n.ckbMonthNames.split('|')),
+      );
+    });
+
+final Map<String, ({List<String> weekdays, List<String> months})>
+_kurdishNameCache = <String, ({List<String> weekdays, List<String> months})>{};
 
 /// An integer in the locale's own digits.
 ///

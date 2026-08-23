@@ -28,6 +28,30 @@ void main() {
       ckbArab,
     ),
 
+    // Kurmanji — Northern Kurdish, written in LATIN. A different language from
+    // Sorani, and one this app does not ship. Aliasing it to `ckb` hands the
+    // user Sorani text in a script they may not read, with the whole UI
+    // mirrored to RTL.
+    'ku-Latn is Kurmanji and falls back, NOT to Sorani': (
+      <Locale>[
+        const Locale.fromSubtags(languageCode: 'ku', scriptCode: 'Latn'),
+      ],
+      const Locale('en'),
+    ),
+    'ku-Arab is Sorani': (
+      <Locale>[
+        const Locale.fromSubtags(languageCode: 'ku', scriptCode: 'Arab'),
+      ],
+      ckbArab,
+    ),
+    'ku-Latn then de picks de, not the alias': (
+      <Locale>[
+        const Locale.fromSubtags(languageCode: 'ku', scriptCode: 'Latn'),
+        const Locale('de'),
+      ],
+      const Locale('de'),
+    ),
+
     // Country and script noise a real device produces.
     'ckb-IQ ignores the country': (
       <Locale>[const Locale('ckb', 'IQ')],

@@ -49,23 +49,6 @@ NumberFormat doseFormat(Locale locale) => numberFormatFor(locale)
 String formatDose(Milligrams dose, Locale locale) =>
     doseFormat(locale).format(dose.hundredths / 100);
 
-/// The format that reads text **after** [normalizeToAscii] has run.
-///
-/// Not the same as [numberFormatFor], and the difference is load-bearing:
-/// `NumberFormat.decimalPattern('fa').parse('1.5')` **throws**, because the
-/// Persian format expects `٫` (U+066B) as its decimal separator and an ASCII
-/// point is not it. Normalization has already turned every Perso-Arabic digit
-/// into ASCII, `٫` into `.` and dropped `٬` — so what reaches the parser for
-/// `fa` and `ckb` is plain English notation, and the English format is what
-/// reads it.
-///
-/// German is untouched by normalization (it uses ASCII separators already), so
-/// it keeps its own format and its comma decimal.
-NumberFormat _parseFormatFor(Locale locale) => switch (locale.languageCode) {
-  'fa' || 'ckb' => NumberFormat.decimalPattern('en'),
-  _ => numberFormatFor(locale),
-};
-
 /// Folds Perso-Arabic digits to ASCII. **Digits only.**
 ///
 /// Folds U+0660–0669 (Arabic-Indic) and U+06F0–06F9 (extended Arabic-Indic) to
@@ -95,6 +78,34 @@ String normalizeToAscii(String input) {
   return buffer.toString();
 }
 
+/// Rewrites [ascii] from [locale]'s notation into plain `1234.5` form.
+///
+/// Returns `null` when the grouping separators are not where this locale puts
+/// them — which is what keeps English `7,5` a rejection rather than 75. The
+/// rule is the ordinary one: a group separator has one to three digits before
+/// it, exactly three after it, and never appears past the decimal point.
+String? _toPlainDecimal(String ascii, Locale locale) {
+  final symbols = numberFormatFor(locale).symbols;
+  final decimal = symbols.DECIMAL_SEP;
+  final group = symbols.GROUP_SEP;
+
+  final parts = ascii.split(decimal);
+  if (parts.length > 2) return null;
+  final whole = parts.first;
+  final fraction = parts.length == 2 ? parts[1] : '';
+  if (fraction.contains(group)) return null;
+
+  if (whole.contains(group)) {
+    final groups = whole.split(group);
+    if (groups.first.isEmpty || groups.first.length > 3) return null;
+    for (final chunk in groups.skip(1)) {
+      if (chunk.length != 3) return null;
+    }
+  }
+  final digitsOnly = whole.replaceAll(group, '');
+  return fraction.isEmpty ? digitsOnly : '$digitsOnly.$fraction';
+}
+
 /// Parses user text as a dose, in [locale]'s own number conventions.
 ///
 /// Digits first (Perso-Arabic → ASCII), separators second (`intl`'s symbol
@@ -106,54 +117,45 @@ String normalizeToAscii(String input) {
 /// `CLAUDE.md` rule 5 both say an unrepresentable dose is flagged and that
 /// silently rounding one is the single unforgivable bug, so the contract wins
 /// and EPIC-04's [DoseTooPrecise] is the answer.
+///
+/// The shape is deliberately **fold, then delegate** — not parse-and-validate.
+/// An earlier version re-rendered the parsed value and compared it against the
+/// input, which rejected `10.0`, `9.50`, `.5` and `09` as malformed: every one
+/// of those is how a real person writes a dose, and `10.0` is how the pack is
+/// printed.
 Result<Milligrams, UnitFailure> parseDose(
   String raw,
   Locale locale, {
   Milligrams? ceiling,
 }) {
-  final trimmed = raw.trim();
-  if (trimmed.isEmpty) return Err(InvalidDoseFormat(raw));
+  final ascii = normalizeToAscii(raw.trim());
+  final plain = _toPlainDecimal(ascii, locale);
+  if (plain == null) return Err(InvalidDoseFormat(raw));
 
-  final ascii = normalizeToAscii(trimmed);
-  final num value;
-  try {
-    value = _parseFormatFor(locale).parse(ascii);
-  } on FormatException {
-    return Err(InvalidDoseFormat(raw));
-  }
-
-  // Ordered deliberately. A non-finite value has no meaningful rendering, so
-  // it cannot survive to the round-trip check below and be reported as a
-  // formatting problem; and a negative one is a clearer failure than "this is
-  // not how your locale writes a number".
-  if (value.isNaN || value.isInfinite) return Err(NonFiniteDose(raw));
-  if (value < 0) return Err(NegativeDose(raw));
-
-  // `NumberFormat.parse` is lenient about a grouping separator sitting where a
-  // decimal belongs — `7,5` in `en` parses to **75**. Re-rendering the parsed
-  // value and comparing catches it: a string this locale would never have
-  // produced is not a dose in this locale.
-  //
-  // The comparison is at FULL precision, not the two-digit display precision,
-  // and on both sides normalized to ASCII digits. Comparing the display
-  // rendering would reject `0.255` here as a malformed number, when the honest
-  // answer is that it is a well-formed number too fine to represent — and the
-  // two failures send the user to different fixes.
-  final canonical = numberFormatFor(locale)
-    ..maximumFractionDigits = 10
-    ..minimumFractionDigits = 0;
-  if (normalizeToAscii(canonical.format(value)) != normalizeToAscii(trimmed)) {
-    return Err(InvalidDoseFormat(raw));
-  }
-
-  final scaled = value * 100;
-  final hundredths = scaled.round();
-  // Two decimal places exactly. `9.005` is not representable in hundredths, and
-  // the honest answer is to say so.
-  if ((scaled - hundredths).abs() > 1e-9) return Err(DoseTooPrecise(raw));
-
-  if (ceiling != null && hundredths > ceiling.hundredths) {
-    return Err(DoseAboveCeiling(raw, ceiling.hundredths));
-  }
-  return Ok(Milligrams.fromHundredths(hundredths));
+  // `Milligrams.parse` is the domain's parser and the ONLY one. It is integer
+  // arithmetic end to end — no `double` in a dose path — it caps the whole part
+  // so an unbounded digit run returns a failure instead of throwing, and it
+  // already distinguishes `DoseTooPrecise` from `NegativeDose` from
+  // `InvalidDoseFormat`. Re-deriving any of that here is how the Plan screen
+  // ends up able to store a value it cannot read back.
+  final parsed = Milligrams.parse(plain);
+  return switch (parsed) {
+    Err<Milligrams, UnitFailure>() => Err(_reword(parsed, raw)),
+    Ok<Milligrams, UnitFailure>(:final value) =>
+      ceiling != null && value > ceiling
+          ? Err(DoseAboveCeiling(raw, ceiling.hundredths))
+          : Ok(value),
+  };
 }
+
+/// Re-labels a domain failure with the text the USER typed.
+///
+/// `Milligrams.parse` saw the ASCII-folded form; quoting that back at someone
+/// who typed `۹٫۵` would be quoting a string they never wrote.
+UnitFailure _reword(Err<Milligrams, UnitFailure> failure, String raw) =>
+    switch (failure.failure) {
+      InvalidDoseFormat() => InvalidDoseFormat(raw),
+      DoseTooPrecise() => DoseTooPrecise(raw),
+      NegativeDose() => NegativeDose(raw),
+      final UnitFailure other => other,
+    };

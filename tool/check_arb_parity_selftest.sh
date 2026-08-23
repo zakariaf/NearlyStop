@@ -119,6 +119,15 @@ json.dump(d, open(p, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
 PY
 expect_clean 'dropping one and rewording other passes — that is translation'
 
+echo "case 6: a DELETED locale, which iterating the directory cannot see"
+reset
+rm -f "$work/app_fa.arb"
+expect_flagged "a missing locale file is named" "app_fa.arb" "MISSING"
+
+reset
+cp "$work/app_de.arb" "$work/app_it.arb"
+expect_flagged "a locale the app does not ship is flagged" "app_it.arb"
+
 if [ "$failures" -ne 0 ]; then
   echo "check_arb_parity_selftest: $failures case(s) failed"
   exit 1

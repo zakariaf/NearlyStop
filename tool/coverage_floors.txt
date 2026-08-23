@@ -41,7 +41,12 @@ lib/data/taper_repository.dart 99
 # EPIC-03 — the localization edge. `number_formats.dart` is where a ten-fold
 # dosing error lives if it lives anywhere: a Persian keyboard emits `1٫5`, and
 # a normalizer that folds digits but not separators makes that 15.
-lib/l10n/number_formats.dart 100
+# 98 rather than 100 for exactly one line: the catch-all arm of `_reword`'s
+# switch. `Milligrams.parse` returns only InvalidDoseFormat, DoseTooPrecise and
+# NegativeDose, so the fourth arm exists because the switch is exhaustive over
+# the sealed `UnitFailure` family, not because any input reaches it. If this
+# drops below 98, a real branch went untested.
+lib/l10n/number_formats.dart 98
 lib/l10n/date_formats.dart 100
 lib/l10n/bidi.dart 100
 lib/l10n/app_locales.dart 100
