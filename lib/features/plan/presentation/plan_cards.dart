@@ -22,42 +22,6 @@ import 'package:nearlystop/l10n/number_formats.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
 
-/// A card on the Plan screen.
-///
-/// A thin naming layer over [DaybreakCard]: the surface, the radius, the
-/// shadow and the overline treatment are shared with Settings, because the
-/// reference frames show the same card on both screens.
-class PlanCard extends StatelessWidget {
-  /// Creates the card.
-  const PlanCard({
-    required this.children,
-    this.heading,
-    this.headingCaps,
-    super.key,
-  });
-
-  /// The card's heading in sentence case, already localized.
-  final String? heading;
-
-  /// The same heading upper-cased by the translator, for Latin scripts.
-  final String? headingCaps;
-
-  /// Its contents.
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: EdgeInsetsDirectional.only(
-      bottom: DaybreakShapes.of(context).s4,
-    ),
-    child: DaybreakCard(
-      overline: heading,
-      overlineCaps: headingCaps,
-      children: children,
-    ),
-  );
-}
-
 /// Drug, current dose, target.
 class PlanSummaryCard extends StatelessWidget {
   /// Creates the card.
@@ -86,7 +50,7 @@ class PlanSummaryCard extends StatelessWidget {
   final PlanFieldErrorCallback onFieldError;
 
   @override
-  Widget build(BuildContext context) => PlanCard(
+  Widget build(BuildContext context) => DaybreakCard(
     children: <Widget>[
       PlanEditForm(
         draft: draft,
@@ -136,9 +100,9 @@ class _PlanStrengthsCardState extends State<PlanStrengthsCard> {
     final l10n = widget.l10n;
     final draft = widget.draft;
 
-    return PlanCard(
-      heading: l10n.planStrengths,
-      headingCaps: l10n.planStrengthsCaps,
+    return DaybreakCard(
+      overline: l10n.planStrengths,
+      overlineCaps: l10n.planStrengthsCaps,
       children: <Widget>[
         // A `Wrap`, never a horizontal scroller: a strength hidden off the
         // edge is a strength the person believes they do not have.
@@ -290,9 +254,9 @@ class PlanMethodCard extends StatelessWidget {
   final PlanFieldErrorCallback onFieldError;
 
   @override
-  Widget build(BuildContext context) => PlanCard(
-    heading: l10n.planMethod,
-    headingCaps: l10n.planMethodCaps,
+  Widget build(BuildContext context) => DaybreakCard(
+    overline: l10n.planMethod,
+    overlineCaps: l10n.planMethodCaps,
     children: <Widget>[
       MethodSegmentedControl(
         value: draft.method,
@@ -359,16 +323,16 @@ class PlanNextStepCard extends StatelessWidget {
     final state = preview;
 
     if (state == null || state.isComplete) {
-      return PlanCard(
-        heading: l10n.planNextStep,
-        headingCaps: l10n.planNextStepCaps,
+      return DaybreakCard(
+        overline: l10n.planNextStep,
+        overlineCaps: l10n.planNextStepCaps,
         children: <Widget>[Text(l10n.planTaperComplete)],
       );
     }
 
-    return PlanCard(
-      heading: l10n.planNextStep,
-      headingCaps: l10n.planNextStepCaps,
+    return DaybreakCard(
+      overline: l10n.planNextStep,
+      overlineCaps: l10n.planNextStepCaps,
       children: <Widget>[
         // A `Wrap`, not a `Row`. At the largest OS text size `10mg → 9mg` at
         // headlineLarge is 42pt wider than a 390pt phone, and a `Row` answers
@@ -544,9 +508,9 @@ class PlanDangerZone extends StatelessWidget {
   final VoidCallback? onConfirmed;
 
   @override
-  Widget build(BuildContext context) => PlanCard(
-    heading: l10n.planDangerZone,
-    headingCaps: l10n.planDangerZoneCaps,
+  Widget build(BuildContext context) => DaybreakCard(
+    overline: l10n.planDangerZone,
+    overlineCaps: l10n.planDangerZoneCaps,
     children: <Widget>[
       DestructiveButton(
         label: l10n.planDelete,

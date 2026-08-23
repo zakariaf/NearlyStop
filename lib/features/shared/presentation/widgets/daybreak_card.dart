@@ -23,6 +23,7 @@ class DaybreakCard extends StatelessWidget {
     this.overline,
     this.overlineCaps,
     this.padding,
+    this.gap,
     super.key,
   }) : assert(
          (overline == null) == (overlineCaps == null),
@@ -50,6 +51,13 @@ class DaybreakCard extends StatelessWidget {
   /// each row own its own inset, so a divider reaches both edges.
   final EdgeInsetsGeometry? padding;
 
+  /// The gap below the card. Defaults to `s4`.
+  ///
+  /// Owned here rather than by each caller: every card in this app is one item
+  /// in a vertical list, and two screens spelling the same gap out separately
+  /// is how the two lists end up rhythmically different.
+  final double? gap;
+
   @override
   Widget build(BuildContext context) {
     final colors = DaybreakColors.of(context);
@@ -57,40 +65,45 @@ class DaybreakCard extends StatelessWidget {
     final perso =
         scriptFor(Localizations.localeOf(context)) == DaybreakScript.perso;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.all(Radius.circular(shapes.radiusLg)),
-        boxShadow: DaybreakElevation.of(context).level1,
-      ),
-      child: Padding(
-        padding: padding ?? EdgeInsetsDirectional.all(shapes.s4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            if (overline case final plain?) ...<Widget>[
-              Padding(
-                // The inset a full-bleed card still owes its heading: rows
-                // pad themselves, the title has nothing to pad it.
-                padding: padding == null
-                    ? EdgeInsets.zero
-                    : EdgeInsetsDirectional.only(
-                        start: shapes.s4,
-                        top: shapes.s4,
-                      ),
-                child: Semantics(
-                  header: true,
-                  child: Text(
-                    perso ? plain : overlineCaps!,
-                    style: DaybreakTypography.of(context).overline,
+    return Padding(
+      padding: EdgeInsetsDirectional.only(bottom: gap ?? shapes.s4),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.all(Radius.circular(shapes.radiusLg)),
+          boxShadow: DaybreakElevation.of(context).level1,
+        ),
+        child: Padding(
+          padding: padding ?? EdgeInsetsDirectional.all(shapes.s4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              if (overline case final plain?) ...<Widget>[
+                Padding(
+                  // The inset a full-bleed card still owes its heading. A
+                  // default-padded card has already inset it; one that passed
+                  // `EdgeInsets.zero` so its rows reach both edges has not,
+                  // and the title has no row to pad it.
+                  padding: padding == null
+                      ? EdgeInsets.zero
+                      : EdgeInsetsDirectional.only(
+                          start: shapes.s4,
+                          top: shapes.s4,
+                        ),
+                  child: Semantics(
+                    header: true,
+                    child: Text(
+                      perso ? plain : overlineCaps!,
+                      style: DaybreakTypography.of(context).overline,
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: shapes.s3),
+                SizedBox(height: shapes.s3),
+              ],
+              ...children,
             ],
-            ...children,
-          ],
+          ),
         ),
       ),
     );

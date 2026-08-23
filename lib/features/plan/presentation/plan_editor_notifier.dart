@@ -263,6 +263,29 @@ class PlanEditorNotifier extends Notifier<PlanDraft> {
     };
   }
 
+  /// The step Step 0 takes, by the method the reader CHOSE.
+  ///
+  /// `stepSize` decides Step 0's `toDose`, and Step 0 is the whole schedule
+  /// until the next one starts. Sizing it with the DSNS engine on a percentage
+  /// plan hands somebody a first step they did not choose — silently, because
+  /// the row that results reads as perfectly valid. Each arm is EPIC-04's own
+  /// arithmetic; nothing here recomputes a step size.
+  Milligrams? _firstStep() => switch (state.method) {
+    TaperMethod.dsns => preview()?.suggested,
+    TaperMethod.fixedMg => state.fixedStep,
+    TaperMethod.percentage => switch (percentageStepSize(
+      state.currentDose,
+      state.effectivePercentage,
+      <TabletStrength>[
+        for (final strength in state.strengths) TabletStrength(strength),
+      ],
+      allowHalves: state.allowHalves,
+    )) {
+      Ok<Milligrams, DomainFailure>(:final value) => value,
+      Err<Milligrams, DomainFailure>() => null,
+    },
+  };
+
   /// Writes the draft. **The only path to storage.**
   ///
   /// EPIC-05's `savePlan` inserts `Step 0` in the same transaction when the
@@ -271,7 +294,7 @@ class PlanEditorNotifier extends Notifier<PlanDraft> {
   /// and Progress all render empty for ever. What this method owns is passing
   /// the suggested-or-overridden step size into the draft it hands over.
   Future<Result<void, StorageFailure>> save() async {
-    final step = state.stepOverride ?? preview()?.suggested;
+    final step = state.stepOverride ?? _firstStep();
     if (step == null || step.hundredths <= 0) {
       return const Err(Io('no achievable step for these strengths'));
     }

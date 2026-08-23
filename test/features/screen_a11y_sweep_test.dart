@@ -15,18 +15,10 @@
 // runs alongside it: every `RenderParagraph` in the tree, checked against the
 // one rule the palette states outright — `primary` #F97350 measures 2.76:1 and
 // is decorative-only, never a label.
-import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:nearlystop/app/derived_schedule_provider.dart';
-import 'package:nearlystop/app/locale_providers.dart';
-import 'package:nearlystop/core/result.dart';
-import 'package:nearlystop/core/settings/app_settings.dart';
-import 'package:nearlystop/data/providers.dart';
-import 'package:nearlystop/data/storage_failure.dart';
-import 'package:nearlystop/data/taper_repository.dart';
 import 'package:nearlystop/features/plan/presentation/plan_screen.dart';
 import 'package:nearlystop/features/settings/application/settings_controller.dart';
 import 'package:nearlystop/features/settings/presentation/settings_screen.dart';
@@ -106,17 +98,6 @@ void expectTextMeetsAA(WidgetTester tester, Brightness brightness) {
 void main() {
   setUpAll(initializeDateFormatting);
 
-  List<Override> planOverrides(Locale locale) => <Override>[
-    taperSnapshotProvider.overrideWith(
-      (ref) => Stream<Result<TaperSnapshot, StorageFailure>>.value(
-        Ok<TaperSnapshot, StorageFailure>(seededSnapshot()),
-      ),
-    ),
-    todayDateProvider.overrideWithValue(seededToday),
-    clockProvider.overrideWithValue(Clock.fixed(seededNow)),
-    resolvedLocaleProvider.overrideWithValue(locale),
-  ];
-
   final screens =
       <
         String,
@@ -127,12 +108,14 @@ void main() {
       >{
         'Plan': (
           build: (_) => const PlanScreen(),
-          overrides: planOverrides,
+          overrides: (locale) => seededPlanOverrides(locale: locale),
         ),
         'Settings': (
           build: (_) => const SettingsScreen(),
           overrides: (locale) => <Override>[
-            settingsControllerProvider.overrideWith(_Seeded.new),
+            settingsControllerProvider.overrideWith(
+              FixedSettingsController.seeded,
+            ),
           ],
         ),
         'Welcome': (
@@ -199,17 +182,4 @@ void main() {
       }
     }
   }
-}
-
-final class _Seeded extends SettingsController {
-  @override
-  AppSettings build() => AppSettings.defaults.copyWith(
-    reminderEnabled: true,
-    reminderMinuteOfDay: 8 * 60,
-    disclaimerAcceptedAt: DateTime.utc(2026, 4),
-  );
-
-  @override
-  Future<Result<void, StorageFailure>> setLocaleTag(String? tag) async =>
-      const Ok(null);
 }

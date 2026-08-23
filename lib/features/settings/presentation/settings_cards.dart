@@ -21,6 +21,7 @@ import 'package:nearlystop/features/settings/application/settings_view_state.dar
 import 'package:nearlystop/features/settings/presentation/settings_screen.dart';
 import 'package:nearlystop/features/settings/presentation/widgets/settings_rows.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
+import 'package:nearlystop/features/shared/presentation/widgets/daybreak_card.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_sheet.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/glyph_tile.dart';
 import 'package:nearlystop/l10n/app_locales.dart';
@@ -61,9 +62,10 @@ class AccessibilityCard extends ConsumerWidget {
     final controller = ref.read(settingsControllerProvider.notifier);
     final minute = settings.reminderMinuteOfDay;
 
-    return SettingsCard(
-      heading: l10n.settingsAccessibility,
-      headingCaps: l10n.settingsAccessibilityCaps,
+    return DaybreakCard(
+      overline: l10n.settingsAccessibility,
+      overlineCaps: l10n.settingsAccessibilityCaps,
+      padding: EdgeInsets.zero,
       children: <Widget>[
         SettingsRow(
           glyph: Icons.notifications_none,
@@ -261,7 +263,8 @@ class LanguageCard extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final selection = languageSelectionFor(settings.localeTag);
 
-    return SettingsCard(
+    return DaybreakCard(
+      padding: EdgeInsets.zero,
       children: <Widget>[
         SettingsRow(
           key: rowKey,
@@ -483,9 +486,10 @@ class _BackupCardState extends ConsumerState<BackupCard> {
       onPressed: _run,
     );
 
-    return SettingsCard(
-      heading: l10n.settingsBackup,
-      headingCaps: l10n.settingsBackupCaps,
+    return DaybreakCard(
+      overline: l10n.settingsBackup,
+      overlineCaps: l10n.settingsBackupCaps,
+      padding: EdgeInsets.zero,
       children: <Widget>[
         Padding(
           padding: EdgeInsetsDirectional.all(shapes.s4),
@@ -542,9 +546,10 @@ class AboutCard extends ConsumerWidget {
     // has no network path.
     const version = kAppVersionLabel;
 
-    return SettingsCard(
-      heading: l10n.settingsAbout,
-      headingCaps: l10n.settingsAboutCaps,
+    return DaybreakCard(
+      overline: l10n.settingsAbout,
+      overlineCaps: l10n.settingsAboutCaps,
+      padding: EdgeInsets.zero,
       children: <Widget>[
         SettingsRow(
           glyph: Icons.medication_outlined,

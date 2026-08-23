@@ -17,9 +17,17 @@
 /// the prose.
 library;
 
+import 'package:clock/clock.dart';
+import 'package:flutter/widgets.dart';
+import 'package:nearlystop/app/derived_schedule_provider.dart';
+import 'package:nearlystop/app/locale_providers.dart';
 import 'package:nearlystop/core/dsns/facts.dart';
+import 'package:nearlystop/core/result.dart';
 import 'package:nearlystop/core/time/local_date.dart';
+import 'package:nearlystop/data/providers.dart';
+import 'package:nearlystop/data/storage_failure.dart';
 import 'package:nearlystop/data/taper_repository.dart';
+import 'package:riverpod/misc.dart' show Override;
 
 import 'taper_fixture.dart' as domain;
 
@@ -56,3 +64,20 @@ TaperSnapshot seededSnapshot({
   holds: holds,
   statusByStepId: <int, StepStatus>{seededStep.id: StepStatus.active},
 );
+
+/// The overrides a screen needs to render [seededSnapshot] deterministically.
+///
+/// The snapshot, not a database: a golden or a sweep must not depend on
+/// drift's stream timing, and three suites spelling the same four overrides
+/// out is three chances to pin a different clock than the fixture's.
+List<Override> seededPlanOverrides({Locale locale = const Locale('en')}) =>
+    <Override>[
+      taperSnapshotProvider.overrideWith(
+        (ref) => Stream<Result<TaperSnapshot, StorageFailure>>.value(
+          Ok<TaperSnapshot, StorageFailure>(seededSnapshot()),
+        ),
+      ),
+      todayDateProvider.overrideWithValue(seededToday),
+      clockProvider.overrideWithValue(Clock.fixed(seededNow)),
+      resolvedLocaleProvider.overrideWithValue(locale),
+    ];

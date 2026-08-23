@@ -12,17 +12,9 @@ library;
 // Written straight into `parity/`, not into a `goldens/` folder: these are
 // evidence attached to a pull request, not a regression gate. Regenerate with
 // `--update-goldens` when the screens change.
-import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:nearlystop/app/derived_schedule_provider.dart';
-import 'package:nearlystop/app/locale_providers.dart';
-import 'package:nearlystop/core/result.dart';
-import 'package:nearlystop/core/settings/app_settings.dart';
-import 'package:nearlystop/data/providers.dart';
-import 'package:nearlystop/data/storage_failure.dart';
-import 'package:nearlystop/data/taper_repository.dart';
 import 'package:nearlystop/features/plan/presentation/plan_screen.dart';
 import 'package:nearlystop/features/settings/application/settings_controller.dart';
 import 'package:nearlystop/features/settings/presentation/settings_screen.dart';
@@ -39,20 +31,11 @@ void main() {
   setUpAll(initializeDateFormatting);
 
   for (final tag in <String>['de', 'ckb']) {
-    testWidgets('plan_$tag', (tester) async {
+    widgetTestWithDatabase('plan_$tag', (tester) async {
       await pumpApp(
         tester,
         const PlanScreen(),
-        overrides: <Override>[
-          taperSnapshotProvider.overrideWith(
-            (ref) => Stream<Result<TaperSnapshot, StorageFailure>>.value(
-              Ok<TaperSnapshot, StorageFailure>(seededSnapshot()),
-            ),
-          ),
-          todayDateProvider.overrideWithValue(seededToday),
-          clockProvider.overrideWithValue(Clock.fixed(seededNow)),
-          resolvedLocaleProvider.overrideWithValue(Locale(tag)),
-        ],
+        overrides: seededPlanOverrides(locale: Locale(tag)),
         locale: Locale(tag),
         surfaceSize: const Size(390, 1500),
       );
@@ -62,9 +45,6 @@ void main() {
         find.byType(PlanScreen),
         matchesGoldenFile('$_out/app--05-plan--light-$tag.png'),
       );
-
-      await tester.pumpWidget(const SizedBox.shrink());
-      await tester.pumpAndSettle();
     });
 
     testWidgets('settings_$tag', (tester) async {
@@ -72,7 +52,9 @@ void main() {
         tester,
         const SettingsScreen(),
         overrides: <Override>[
-          settingsControllerProvider.overrideWith(_Seeded.new),
+          settingsControllerProvider.overrideWith(
+            FixedSettingsController.seeded,
+          ),
         ],
         locale: Locale(tag),
         surfaceSize: const Size(390, 1200),
@@ -112,17 +94,4 @@ void main() {
       );
     });
   }
-}
-
-final class _Seeded extends SettingsController {
-  @override
-  AppSettings build() => AppSettings.defaults.copyWith(
-    reminderEnabled: true,
-    reminderMinuteOfDay: 8 * 60,
-    disclaimerAcceptedAt: DateTime.utc(2026, 4),
-  );
-
-  @override
-  Future<Result<void, StorageFailure>> setLocaleTag(String? tag) async =>
-      const Ok(null);
 }

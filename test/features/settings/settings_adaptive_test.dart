@@ -7,9 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:nearlystop/app/window_size.dart';
-import 'package:nearlystop/core/result.dart';
-import 'package:nearlystop/core/settings/app_settings.dart';
-import 'package:nearlystop/data/storage_failure.dart';
 import 'package:nearlystop/features/settings/application/settings_controller.dart';
 import 'package:nearlystop/features/settings/presentation/settings_cards.dart';
 import 'package:nearlystop/features/settings/presentation/settings_screen.dart';
@@ -25,7 +22,7 @@ void main() {
       tester,
       const SettingsScreen(),
       overrides: <Override>[
-        settingsControllerProvider.overrideWith(_Fixed.new),
+        settingsControllerProvider.overrideWith(FixedSettingsController.new),
       ],
       surfaceSize: size,
     );
@@ -67,33 +64,7 @@ void main() {
         'scrolls sideways', (tester) async {
       await pumpAt(tester, size);
 
-      final inFields = tester
-          .widgetList<Scrollable>(
-            find.descendant(
-              of: find.byType(EditableText),
-              matching: find.byType(Scrollable),
-            ),
-          )
-          .toSet();
-      for (final scrollable in tester.widgetList<Scrollable>(
-        find.byType(Scrollable),
-      )) {
-        if (inFields.contains(scrollable)) continue;
-        expect(
-          scrollable.axisDirection,
-          anyOf(AxisDirection.down, AxisDirection.up),
-        );
-      }
-      expect(tester.takeException(), isNull);
+      expectNoHorizontalScroll(tester);
     });
   }
-}
-
-final class _Fixed extends SettingsController {
-  @override
-  AppSettings build() => AppSettings.defaults;
-
-  @override
-  Future<Result<void, StorageFailure>> setLocaleTag(String? tag) async =>
-      const Ok(null);
 }

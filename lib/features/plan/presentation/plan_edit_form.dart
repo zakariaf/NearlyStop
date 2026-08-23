@@ -44,7 +44,20 @@ enum PlanField {
   fixedStep,
 
   /// Days a non-DSNS step holds the new dose.
-  holdPeriod,
+  holdPeriod;
+
+  /// Whether this field is on screen for [method].
+  ///
+  /// **Derived, never remembered.** A verdict left behind by an abandoned
+  /// method is a field nobody can see and nobody can fix: the reader switches
+  /// away from a fixed step they mistyped, nothing on screen is red, and Save
+  /// stays dead with no explanation.
+  bool appliesTo(TaperMethod method) => switch (this) {
+    PlanField.drugName || PlanField.currentDose || PlanField.targetDose => true,
+    PlanField.percentage => method == TaperMethod.percentage,
+    PlanField.fixedStep => method == TaperMethod.fixedMg,
+    PlanField.holdPeriod => method != TaperMethod.dsns,
+  };
 }
 
 /// Reports [field]'s localized error, or null now that it reads back.

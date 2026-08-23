@@ -288,4 +288,75 @@ void main() {
     );
     expect(sortedStrengths(<Milligrams>[]), isEmpty);
   });
+
+  group('the first step is sized by the CHOSEN method', () {
+    // `stepSize` decides Step 0's `toDose`, and Step 0 is the whole schedule
+    // for the first 52 days. Sizing it with the DSNS engine on a percentage
+    // plan gives somebody a first step they did not choose — silently, because
+    // the row that results reads as perfectly valid.
+    Future<StepFacts> firstStepFor(
+      ProviderContainer container,
+      PlanDraft Function(PlanDraft) edit,
+    ) async {
+      container.read(planEditorProvider.notifier).edit(edit);
+      final result = await container.read(planEditorProvider.notifier).save();
+      expect(result, isA<Ok<void, StorageFailure>>());
+      final snapshot = await snapshotOf(container);
+      return snapshot.steps.single;
+    }
+
+    PlanDraft tenToZero(PlanDraft draft) => draft.copyWith(
+      currentDose: const Milligrams.fromHundredths(1000),
+      targetDose: Milligrams.zero,
+      strengths: <Milligrams>[
+        const Milligrams.fromHundredths(500),
+        const Milligrams.fromHundredths(100),
+      ],
+      allowHalves: false,
+    );
+
+    test('DSNS steps by the community suggestion, 1mg', () async {
+      final step = await firstStepFor(containerAt(), tenToZero);
+
+      expect(step.toDose, const Milligrams.fromHundredths(900));
+    });
+
+    test('percentage steps by ITS percentage, not by the DSNS one', () async {
+      // 20% of 10mg is 2mg, and 2mg is two 1mg tablets. The DSNS engine would
+      // have said 1mg — the two answers differ, which is the point.
+      final step = await firstStepFor(
+        containerAt(),
+        (draft) => tenToZero(
+          draft,
+        ).copyWith(method: TaperMethod.percentage, percentage: 20),
+      );
+
+      expect(step.toDose, const Milligrams.fromHundredths(800));
+    });
+
+    test('fixed-mg steps by ITS step', () async {
+      final step = await firstStepFor(
+        containerAt(),
+        (draft) => tenToZero(draft).copyWith(
+          method: TaperMethod.fixedMg,
+          fixedStep: const Milligrams.fromHundredths(300),
+        ),
+      );
+
+      expect(step.toDose, const Milligrams.fromHundredths(700));
+    });
+
+    test('an override wins over every method', () async {
+      final step = await firstStepFor(
+        containerAt(),
+        (draft) => tenToZero(draft).copyWith(
+          method: TaperMethod.percentage,
+          percentage: 20,
+          stepOverride: const Milligrams.fromHundredths(500),
+        ),
+      );
+
+      expect(step.toDose, const Milligrams.fromHundredths(500));
+    });
+  });
 }

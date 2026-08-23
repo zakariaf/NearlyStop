@@ -11,9 +11,6 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:nearlystop/core/result.dart';
-import 'package:nearlystop/core/settings/app_settings.dart';
-import 'package:nearlystop/data/storage_failure.dart';
 import 'package:nearlystop/features/settings/application/settings_controller.dart';
 import 'package:nearlystop/features/settings/presentation/settings_cards.dart';
 import 'package:nearlystop/features/settings/presentation/settings_screen.dart';
@@ -34,7 +31,9 @@ void main() {
       tester,
       const SettingsScreen(),
       overrides: <Override>[
-        settingsControllerProvider.overrideWith(_Seeded.new),
+        settingsControllerProvider.overrideWith(
+          FixedSettingsController.seeded,
+        ),
       ],
       locale: Locale(languageCode),
       brightness: brightness,
@@ -83,18 +82,4 @@ void main() {
       matchesGoldenFile('goldens/settings_language_picker_fa.png'),
     );
   });
-}
-
-/// The reminder on, a chosen language, so the rows are not all at defaults.
-final class _Seeded extends SettingsController {
-  @override
-  AppSettings build() => AppSettings.defaults.copyWith(
-    reminderEnabled: true,
-    reminderMinuteOfDay: 8 * 60,
-    disclaimerAcceptedAt: DateTime.utc(2026, 4),
-  );
-
-  @override
-  Future<Result<void, StorageFailure>> setLocaleTag(String? tag) async =>
-      const Ok(null);
 }

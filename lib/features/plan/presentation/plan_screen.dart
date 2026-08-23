@@ -48,8 +48,14 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
   /// during a build, which is exactly when the answer is needed.
   final Map<PlanField, String?> _fieldErrors = <PlanField, String?>{};
 
-  /// Whether every field that has spoken reads back.
-  bool get _fieldsRead => _fieldErrors.values.every((error) => error == null);
+  /// Whether every field the CURRENT method shows reads back.
+  ///
+  /// Filtered by `appliesTo` rather than cleared on a method change: a map
+  /// that has to be pruned is a map somebody forgets to prune, and the symptom
+  /// — Save dead, nothing red — is invisible in review.
+  bool _fieldsRead(TaperMethod method) => _fieldErrors.entries
+      .where((entry) => entry.key.appliesTo(method))
+      .every((entry) => entry.value == null);
 
   void _reportFieldError(PlanField field, String? error) {
     if (_fieldErrors[field] == error && _fieldErrors.containsKey(field)) return;
@@ -175,7 +181,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
             // a very high dose" — leaves it enabled: 120mg is a real starting
             // dose for giant cell arteritis, and refusing it would tell
             // somebody with a prescription that their own dose is impossible.
-            onPressed: _fieldsRead ? _save : null,
+            onPressed: _fieldsRead(draft.method) ? _save : null,
           ),
           SizedBox(height: shapes.s6),
           PlanDangerZone(
