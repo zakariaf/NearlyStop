@@ -9,10 +9,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/app/app.dart';
 import 'package:nearlystop/core/settings/app_settings.dart';
 import 'package:nearlystop/features/settings/application/settings_controller.dart';
-import 'package:nearlystop/providers.dart';
 import 'package:nearlystop/routing/app_router.dart';
 import 'package:nearlystop/routing/routes.dart';
-import 'package:riverpod/misc.dart' show Override;
+
+import '../support/harness.dart';
 
 /// Every location a user or a deep link can name.
 const allLocations = <String>[
@@ -27,15 +27,9 @@ const allLocations = <String>[
 void main() {
   ProviderContainer containerWith({required bool accepted}) {
     final container = ProviderContainer(
-      overrides: <Override>[
-        bootstrapSettingsProvider.overrideWithValue(
-          accepted
-              ? AppSettings.defaults.copyWith(
-                  disclaimerAcceptedAt: DateTime.utc(2026),
-                )
-              : AppSettings.defaults,
-        ),
-      ],
+      overrides: launchOverrides(
+        settings: accepted ? acceptedSettings() : AppSettings.defaults,
+      ),
     );
     addTearDown(container.dispose);
     return container;

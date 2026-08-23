@@ -10,7 +10,10 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nearlystop/app/app.dart';
+import 'package:nearlystop/core/settings/app_settings.dart';
 import 'package:nearlystop/l10n/app_locales.dart';
+import 'package:nearlystop/providers.dart';
 import 'package:nearlystop/theme/daybreak_theme.dart';
 import 'package:riverpod/misc.dart' show Override;
 
@@ -64,4 +67,55 @@ Future<void> pumpApp(
       ),
     ),
   );
+}
+
+/// The overrides a launched app needs, in one place.
+///
+/// `bootstrapSettingsProvider` throws by default — deliberately, so no screen
+/// can render the wrong theme and never notice. That makes it required in
+/// every test that pumps the app, and five files were each spelling the same
+/// override out. A sixth spelling is a sixth chance to seed something subtly
+/// different from what the launch actually produces.
+List<Override> launchOverrides({
+  AppSettings? settings,
+  Object? bootstrapFailure,
+}) => <Override>[
+  bootstrapSettingsProvider.overrideWithValue(settings ?? AppSettings.defaults),
+  bootstrapErrorProvider.overrideWithValue(bootstrapFailure),
+];
+
+/// Settings past the disclaimer gate, so the shell is what renders.
+///
+/// Without an acceptance timestamp every route redirects to `/welcome`, and a
+/// test that meant to exercise a screen silently exercises the gate instead.
+AppSettings acceptedSettings({String? localeTag, bool highContrast = false}) =>
+    AppSettings.defaults.copyWith(
+      disclaimerAcceptedAt: DateTime.utc(2026),
+      localeTag: localeTag,
+      highContrast: highContrast,
+    );
+
+/// Pumps the real [NearlyStopApp] and hands back its container.
+///
+/// The container is **not** torn down here. Two suites pump twice in one test,
+/// and registering a teardown per pump nests one `runAsync` inside another,
+/// which `flutter_test` refuses — so disposal is the caller's, once per test.
+Future<ProviderContainer> pumpNearlyStopApp(
+  WidgetTester tester, {
+  List<Override> overrides = const <Override>[],
+  Size? surfaceSize,
+}) async {
+  if (surfaceSize != null) {
+    tester.view.physicalSize = surfaceSize * tester.view.devicePixelRatio;
+    addTearDown(tester.view.resetPhysicalSize);
+  }
+  final container = ProviderContainer(overrides: overrides);
+  await tester.pumpWidget(
+    UncontrolledProviderScope(
+      container: container,
+      child: const NearlyStopApp(),
+    ),
+  );
+  await tester.pumpAndSettle();
+  return container;
 }

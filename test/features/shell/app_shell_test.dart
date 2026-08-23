@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/app/app.dart';
-import 'package:nearlystop/core/settings/app_settings.dart';
-import 'package:nearlystop/providers.dart';
 import 'package:nearlystop/routing/app_router.dart';
 import 'package:nearlystop/routing/routes.dart';
-import 'package:riverpod/misc.dart' show Override;
+
+import '../../support/harness.dart';
 
 void main() {
   final openContainers = <ProviderContainer>[];
@@ -30,15 +29,10 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
 
     final container = ProviderContainer(
-      overrides: <Override>[
-        bootstrapSettingsProvider.overrideWithValue(
-          AppSettings.defaults.copyWith(
-            disclaimerAcceptedAt: DateTime.utc(2026),
-            localeTag: locale.languageCode,
-          ),
-        ),
-        bootstrapErrorProvider.overrideWithValue(bootstrapFailure),
-      ],
+      overrides: launchOverrides(
+        settings: acceptedSettings(localeTag: locale.languageCode),
+        bootstrapFailure: bootstrapFailure,
+      ),
     );
     // Tracked, not torn down here. Two tests below pump twice — the
     // breakpoint pair and the two-locale a11y sweep — and registering a
