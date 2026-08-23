@@ -622,4 +622,7 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get exportComingSoonBody =>
       'یک PDF و یک صفحه‌گسترده برای قرار ملاقات شما. هنوز ساخته نشده است.';
+
+  @override
+  String get chartOverlineCaps => 'دوز شما در طول زمان';
 }

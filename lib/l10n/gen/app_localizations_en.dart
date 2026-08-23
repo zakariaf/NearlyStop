@@ -635,4 +635,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get exportComingSoonBody =>
       'A PDF and a spreadsheet for your appointment. Not built yet.';
+
+  @override
+  String get chartOverlineCaps => 'YOUR DOSE OVER TIME';
 }

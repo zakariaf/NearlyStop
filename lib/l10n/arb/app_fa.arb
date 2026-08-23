@@ -143,5 +143,6 @@
   "historyFlareRow": "عود در {date}، بازگشت به {dose} میلی‌گرم",
   "historyHoldRow": "توقف در {dose} میلی‌گرم به مدت {days, plural, other{{days} روز}} از {date}",
   "exportComingSoon": "خروجی گرفتن به‌زودی",
-  "exportComingSoonBody": "یک PDF و یک صفحه‌گسترده برای قرار ملاقات شما. هنوز ساخته نشده است."
+  "exportComingSoonBody": "یک PDF و یک صفحه‌گسترده برای قرار ملاقات شما. هنوز ساخته نشده است.",
+  "chartOverlineCaps": "دوز شما در طول زمان"
 }

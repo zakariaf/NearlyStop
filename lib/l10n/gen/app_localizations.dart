@@ -993,6 +993,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A PDF and a spreadsheet for your appointment. Not built yet.'**
   String get exportComingSoonBody;
+
+  /// The chart overline as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See stateTakenCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR DOSE OVER TIME'**
+  String get chartOverlineCaps;
 }
 
 class _AppLocalizationsDelegate

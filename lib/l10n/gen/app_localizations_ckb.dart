@@ -622,4 +622,7 @@ class AppLocalizationsCkb extends AppLocalizations {
   @override
   String get exportComingSoonBody =>
       'PDF و خشتەیەک بۆ چاوپێکەوتنەکەت. هێشتا دروست نەکراوە.';
+
+  @override
+  String get chartOverlineCaps => 'دۆزەکەت بە درێژایی کات';
 }

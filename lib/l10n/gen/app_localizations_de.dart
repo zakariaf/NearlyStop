@@ -637,4 +637,7 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get exportComingSoonBody =>
       'Ein PDF und eine Tabelle für Ihren Termin. Noch nicht gebaut.';
+
+  @override
+  String get chartOverlineCaps => 'IHRE DOSIS IM ZEITVERLAUF';
 }

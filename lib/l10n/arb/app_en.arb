@@ -903,5 +903,9 @@
   "exportComingSoonBody": "A PDF and a spreadsheet for your appointment. Not built yet.",
   "@exportComingSoonBody": {
     "description": "Body of the placeholder export screen."
+  },
+  "chartOverlineCaps": "YOUR DOSE OVER TIME",
+  "@chartOverlineCaps": {
+    "description": "The chart overline as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See stateTakenCaps."
   }
 }
