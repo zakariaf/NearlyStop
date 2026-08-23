@@ -517,4 +517,7 @@ class AppLocalizationsFa extends AppLocalizations {
   ) {
     return 'امروز. $day، $dose میلی‌گرم: $breakdown.$notes';
   }
+
+  @override
+  String get tabletSeparator => '، ';
 }

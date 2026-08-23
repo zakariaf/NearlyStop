@@ -517,4 +517,7 @@ class AppLocalizationsCkb extends AppLocalizations {
   ) {
     return 'ئەمڕۆ. $day، $dose میلیگرام: $breakdown.$notes';
   }
+
+  @override
+  String get tabletSeparator => '، ';
 }

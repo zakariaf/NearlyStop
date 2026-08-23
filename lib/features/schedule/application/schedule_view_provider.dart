@@ -473,7 +473,7 @@ class ScheduleNotifier extends StreamNotifier<ScheduleViewState> {
 
     final tablets = switch (composition) {
       Ok<TabletComposition, DomainFailure>(:final value) => (
-        text: _composition(value, locale),
+        text: _composition(value, locale, l10n),
         unachievable: false,
       ),
       Err<TabletComposition, DomainFailure>() => (
@@ -531,14 +531,21 @@ class ScheduleNotifier extends StreamNotifier<ScheduleViewState> {
     return DayState.upcoming;
   }
 
-  static String _composition(TabletComposition composition, Locale locale) {
+  static String _composition(
+    TabletComposition composition,
+    Locale locale,
+    AppLocalizations l10n,
+  ) {
     final parts = <String>[
       for (final count in composition.counts)
         _tabletPart(count.count, count.strength, locale),
       if (composition.half case final half?)
         '½ × ${formatDose(half.strength, locale)}mg',
     ];
-    return isolateLtr(parts.join(' · '));
+    // The separator comes from the ARB: frame 3's `.stab` uses a comma, and
+    // in Perso-Arabic that comma is U+060C. Isolated as a unit so the whole
+    // breakdown keeps its LTR order inside an RTL sentence.
+    return isolateLtr(parts.join(l10n.tabletSeparator));
   }
 
   /// "4 × 1mg" — a count, a multiplication sign, a strength.

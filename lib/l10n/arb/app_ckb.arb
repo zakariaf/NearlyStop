@@ -124,5 +124,6 @@
   "scheduleNoteHeldNoBlock": " ڕاگیراوە، ڕۆژێکی زیادە.",
   "scheduleNoteState": " {state}.",
   "scheduleNoteUnachievable": " ئەم دۆزە لە قورساییەکانی دەستت دروست نابێت.",
-  "scheduleTodaySemantics": "ئەمڕۆ. {day}، {dose} میلیگرام: {breakdown}.{notes}"
+  "scheduleTodaySemantics": "ئەمڕۆ. {day}، {dose} میلیگرام: {breakdown}.{notes}",
+  "tabletSeparator": "، "
 }

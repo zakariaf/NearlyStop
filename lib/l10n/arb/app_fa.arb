@@ -124,5 +124,6 @@
   "scheduleNoteHeldNoBlock": " نگه‌داشته شده، یک روز اضافه.",
   "scheduleNoteState": " {state}.",
   "scheduleNoteUnachievable": " این دوز با قرص‌هایی که دارید ساخته نمی‌شود.",
-  "scheduleTodaySemantics": "امروز. {day}، {dose} میلی‌گرم: {breakdown}.{notes}"
+  "scheduleTodaySemantics": "امروز. {day}، {dose} میلی‌گرم: {breakdown}.{notes}",
+  "tabletSeparator": "، "
 }

@@ -141,14 +141,13 @@ class ScheduleDayRowTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final shapes = DaybreakShapes.of(context);
+    // VERTICAL only. Frame 3 insets the whole list by `s5` and gives the row
+    // its own `s3/s4` padding inside that; a second horizontal `s4` here
+    // costs 32pt of row, which is the difference between "1 × 5mg, 4 × 1mg"
+    // on one line and on two.
     return Padding(
       key: measureKey,
-      padding: EdgeInsetsDirectional.fromSTEB(
-        shapes.s4,
-        shapes.s1,
-        shapes.s4,
-        shapes.s1,
-      ),
+      padding: EdgeInsetsDirectional.symmetric(vertical: shapes.s1),
       child: ScheduleDayRow(day: day, onToggle: onToggle),
     );
   }
@@ -231,12 +230,7 @@ class _EarlierHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final shapes = DaybreakShapes.of(context);
     return Padding(
-      padding: EdgeInsetsDirectional.fromSTEB(
-        shapes.s4,
-        shapes.s3,
-        shapes.s4,
-        shapes.s2,
-      ),
+      padding: EdgeInsetsDirectional.only(top: shapes.s3, bottom: shapes.s2),
       child: ScheduleBlockGroup.headerFor(context, block, compact: compact),
     );
   }

@@ -18,6 +18,7 @@ import 'package:nearlystop/core/units/tablet_strength.dart';
 import 'package:nearlystop/data/taper_repository.dart';
 import 'package:nearlystop/features/schedule/application/schedule_view_provider.dart';
 import 'package:nearlystop/features/schedule/presentation/schedule_view_state.dart';
+import 'package:nearlystop/l10n/bidi.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 
 void main() {
@@ -312,6 +313,27 @@ void main() {
       ),
       const ScheduleNoPlan(),
     );
+  });
+
+  test('the tablet breakdown is separated the way frame 3 separates it', () {
+    // Tier-1 parity, and locale-dependent. The reference's `.stab` reads
+    // "1 × 5mg, 4 × 1mg" with a comma — the Today hero's `.tablets` is the
+    // one that uses a middot, and the two are different elements on different
+    // screens. In Persian the comma is U+060C, which is exactly why the
+    // separator comes out of the ARB rather than out of this file.
+    final schedule = <DayPlan>[
+      dayWith(
+        date: today,
+        blockIndex: 3,
+        dose: const Milligrams.fromHundredths(900),
+      ),
+    ];
+
+    final loaded = project(schedule: schedule) as ScheduleLoaded;
+
+    // Wrapped in the LTR isolate EPIC-03 puts round a breakdown, which is
+    // invisible here and load-bearing in `fa`.
+    expect(_rowFor(loaded, today).tabletsLabel, isolateLtr('1 × 5mg, 4 × 1mg'));
   });
 }
 

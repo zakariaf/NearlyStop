@@ -68,8 +68,12 @@ class BlockHeader extends StatelessWidget {
   final String? completedLabel;
 
   /// The title's style, shared with the delegate's measurement.
+  ///
+  /// `--fs-body` (17), from `.blockhead .bh-txt b`. It is a LABEL on a group,
+  /// not a page heading: at `titleLarge` (24) the header stops reading as a
+  /// divider and the sentence under it wraps to two lines at 390pt.
   static TextStyle titleStyle(BuildContext context) =>
-      Theme.of(context).textTheme.titleLarge!.copyWith(
+      Theme.of(context).textTheme.bodyMedium!.copyWith(
         fontWeight: FontWeight.w800,
         color: DaybreakColors.of(context).ink,
       );
@@ -77,9 +81,9 @@ class BlockHeader extends StatelessWidget {
   /// The summary's style, shared with the delegate's measurement.
   ///
   /// `ink`, not `inkMuted`: the reference sets `.bh-txt` to full `ink`, and
-  /// this is the teaching sentence rather than a caption.
+  /// this is the teaching sentence rather than a caption. `--fs-label` (15).
   static TextStyle summaryStyle(BuildContext context) =>
-      Theme.of(context).textTheme.bodyMedium!.copyWith(
+      Theme.of(context).textTheme.bodySmall!.copyWith(
         fontWeight: FontWeight.w700,
         color: DaybreakColors.of(context).ink,
       );

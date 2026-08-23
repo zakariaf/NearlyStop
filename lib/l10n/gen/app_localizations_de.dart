@@ -527,4 +527,7 @@ class AppLocalizationsDe extends AppLocalizations {
   ) {
     return 'Heute. $day, $dose Milligramm: $breakdown.$notes';
   }
+
+  @override
+  String get tabletSeparator => ', ';
 }

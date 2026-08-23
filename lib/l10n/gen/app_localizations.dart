@@ -873,6 +873,12 @@ abstract class AppLocalizations {
     Object breakdown,
     Object notes,
   );
+
+  /// Between tablet groups in the Schedule row's breakdown; U+060C in Perso-Arabic.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get tabletSeparator;
 }
 
 class _AppLocalizationsDelegate

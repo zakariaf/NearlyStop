@@ -14,6 +14,7 @@ import 'package:nearlystop/features/schedule/presentation/widgets/block_header.d
 import 'package:nearlystop/features/schedule/presentation/widgets/schedule_day_row.dart';
 import 'package:nearlystop/features/schedule/presentation/widgets/step_switcher_sheet.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
+import 'package:nearlystop/theme/daybreak_shapes.dart';
 
 import '../../support/harness.dart';
 import 'support/schedule_fixture.dart';
@@ -137,6 +138,33 @@ void main() {
           .toList();
       expect(tops.toSet(), hasLength(tops.length), reason: '$size');
     }
+  });
+
+  testWidgets('a row spans the inset, and the breakdown does not wrap', (
+    tester,
+  ) async {
+    // Frame 3 insets the whole list by `s5` and gives the row its own `s3/s4`
+    // padding INSIDE that. A second `s4` between the two costs 32pt of row —
+    // and 32pt is the difference between "1 × 5mg, 4 × 1mg" on one line and
+    // on two, for the app's most ordinary breakdown.
+    await pumpAt(tester, const Size(390, 844));
+    final shapes = DaybreakShapes.of(
+      tester.element(find.byType(ScheduleDayRow).first),
+    );
+
+    final row = tester.getSize(find.byType(ScheduleDayRow).first);
+    expect(row.width, 390 - shapes.s5 * 2);
+
+    final breakdown = find.textContaining('×').first;
+    final rendered = tester.getSize(breakdown);
+    final unwrapped = tester
+        .renderObject<RenderBox>(breakdown)
+        .getMaxIntrinsicWidth(double.infinity);
+    expect(
+      rendered.width,
+      greaterThanOrEqualTo(unwrapped - 0.5),
+      reason: 'the breakdown wrapped',
+    );
   });
 
   testWidgets('two panes at 200% do not clip the teaching sentence', (

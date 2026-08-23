@@ -124,5 +124,6 @@
   "scheduleNoteHeldNoBlock": " Gehalten, ein zusätzlicher Tag.",
   "scheduleNoteState": " {state}.",
   "scheduleNoteUnachievable": " Diese Dosis lässt sich aus Ihren Tabletten nicht zusammenstellen.",
-  "scheduleTodaySemantics": "Heute. {day}, {dose} Milligramm: {breakdown}.{notes}"
+  "scheduleTodaySemantics": "Heute. {day}, {dose} Milligramm: {breakdown}.{notes}",
+  "tabletSeparator": ", "
 }

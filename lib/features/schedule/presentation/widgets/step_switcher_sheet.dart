@@ -8,6 +8,7 @@ import 'package:nearlystop/features/schedule/presentation/widgets/day_state_row.
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_sheet.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
+import 'package:nearlystop/theme/daybreak_elevation.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
 
 /// The app-bar control that opens the step switcher.
@@ -31,13 +32,51 @@ class StepSwitcherButton extends StatelessWidget {
   /// Opens the sheet.
   final VoidCallback onPressed;
 
+  /// The reference's `.iconbtn`: a 44pt bordered circle, not a bare glyph.
+  static const double side = 44;
+
   @override
-  Widget build(BuildContext context) => IconButton(
-    key: buttonKey,
-    onPressed: onPressed,
-    tooltip: tooltip,
-    icon: Icon(Icons.adaptive.arrow_forward),
-  );
+  Widget build(BuildContext context) {
+    final colors = DaybreakColors.of(context);
+    final shapes = DaybreakShapes.of(context);
+    final elevation = DaybreakElevation.of(context);
+
+    return Padding(
+      padding: EdgeInsetsDirectional.only(end: shapes.s3),
+      child: Semantics(
+        button: true,
+        label: tooltip,
+        child: SizedBox.square(
+          dimension: side,
+          child: Material(
+            color: colors.surface,
+            shape: CircleBorder(
+              side: BorderSide(
+                color: colors.border,
+                width: shapes.hairlineWidth,
+              ),
+            ),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: elevation.level1,
+              ),
+              child: InkWell(
+                key: buttonKey,
+                onTap: onPressed,
+                customBorder: const CircleBorder(),
+                child: Icon(
+                  Icons.adaptive.arrow_forward,
+                  size: 20,
+                  color: colors.ink,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// Lists every step and resolves to the one chosen, or null.
