@@ -115,7 +115,7 @@ void main() {
     // 684200 hundredths is 6,842mg. The separator is never hand-typed: `de`
     // groups with a dot, `fa` with its own, and asserting a literal would pin
     // this app's idea of German rather than ICU's.
-    final logs = <DoseLogFacts>[
+    const logs = <DoseLogFacts>[
       DoseLogFacts(
         date: start,
         plannedMg: Milligrams.fromHundredths(684200),
