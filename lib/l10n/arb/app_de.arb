@@ -9,7 +9,7 @@
   "tabSchedule": "Plan",
   "tabProgress": "Verlauf",
   "tabPlan": "Therapie",
-  "tabSettings": "Einstellungen",
+  "tabSettings": "Optionen",
   "doseWithUnit": "{dose} mg",
   "milligramUnit": "mg",
   "stateNewDoseDay": "Neuer Dosistag",

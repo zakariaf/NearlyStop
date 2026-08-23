@@ -38,7 +38,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tabPlan => 'Therapie';
 
   @override
-  String get tabSettings => 'Einstellungen';
+  String get tabSettings => 'Optionen';
 
   @override
   String doseWithUnit(String dose) {

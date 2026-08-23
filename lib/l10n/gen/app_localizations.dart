@@ -132,31 +132,31 @@ abstract class AppLocalizations {
   /// **'Everything stays on this phone. No account, no internet.'**
   String get welcomeOffline;
 
-  /// Bottom navigation label for the home screen.
+  /// Bottom navigation label for the home screen. Slot: .tab in design/daybreak-screens.html — 390px frame, 8px tabbar padding each side, five flex:1 tabs, so ~74.8px, and the label renders at --fs-caption 14px.
   ///
   /// In en, this message translates to:
   /// **'Today'**
   String get tabToday;
 
-  /// Bottom navigation label for the block list.
+  /// Bottom navigation label for the block list. Same .tab slot as tabToday.
   ///
   /// In en, this message translates to:
   /// **'Schedule'**
   String get tabSchedule;
 
-  /// Bottom navigation label for the statistics screen.
+  /// Bottom navigation label for the statistics screen. Same .tab slot as tabToday.
   ///
   /// In en, this message translates to:
   /// **'Progress'**
   String get tabProgress;
 
-  /// Bottom navigation label for the taper plan form.
+  /// Bottom navigation label for the taper plan form. Same .tab slot as tabToday.
   ///
   /// In en, this message translates to:
   /// **'Plan'**
   String get tabPlan;
 
-  /// Bottom navigation label for app settings.
+  /// Bottom navigation label for app settings. Same .tab slot as tabToday.
   ///
   /// In en, this message translates to:
   /// **'Settings'**
