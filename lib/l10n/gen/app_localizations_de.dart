@@ -433,4 +433,58 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get backfillAction => 'Jetzt abhaken';
+
+  @override
+  String blockSummary(
+    int leadCount,
+    Object leadDose,
+    int restCount,
+    Object restDose,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      leadCount,
+      locale: localeName,
+      other: '$leadCount Tage mit $leadDose',
+      one: 'ein Tag mit $leadDose',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      restCount,
+      locale: localeName,
+      other: '$restCount Tage mit $restDose',
+      one: '1 Tag mit $restDose',
+    );
+    return '$_temp0, dann $_temp1';
+  }
+
+  @override
+  String steadyStateTitle(Object dose) {
+    return 'Bleibt bei $dose';
+  }
+
+  @override
+  String get held => 'Pausiert';
+
+  @override
+  String heldAtBlock(int block) {
+    return 'Pausiert bei Block $block';
+  }
+
+  @override
+  String get pastStepReadOnly =>
+      'Dieser Schritt ist abgeschlossen und kann nicht geändert werden';
+
+  @override
+  String get jumpToToday => 'Zu heute springen';
+
+  @override
+  String get futureDayNotYet =>
+      'Ein Tag in der Zukunft kann nicht abgehakt werden';
+
+  @override
+  String get stepSwitcherTitle => 'Schritt auswählen';
+
+  @override
+  String stepRangeLabel(int index, int total, Object from, Object to) {
+    return 'Schritt $index von $total — $from auf $to';
+  }
 }

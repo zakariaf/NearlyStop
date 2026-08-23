@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nearlystop/app/derived_schedule_provider.dart';
 import 'package:nearlystop/app/locale_providers.dart';
+import 'package:nearlystop/app/retry_policy.dart';
 import 'package:nearlystop/core/dsns/day_plan.dart';
 import 'package:nearlystop/core/dsns/dsns_failure.dart';
 import 'package:nearlystop/core/dsns/facts.dart';
@@ -24,7 +25,11 @@ import 'package:nearlystop/l10n/number_formats.dart';
 
 /// Today's screen state.
 final StreamNotifierProvider<TodayNotifier, TodayViewState> todayViewProvider =
-    StreamNotifierProvider<TodayNotifier, TodayViewState>(TodayNotifier.new);
+    StreamNotifierProvider<TodayNotifier, TodayViewState>(
+      TodayNotifier.new,
+      // A refused derivation is a fact about the plan, not a flaky read.
+      retry: retryTransientOnly,
+    );
 
 /// Composes today's date, the derived schedule and the logs into one value.
 ///
@@ -45,13 +50,19 @@ class TodayNotifier extends StreamNotifier<TodayViewState> {
     final locale = ref.watch(resolvedLocaleProvider);
     final repository = ref.watch(taperRepositoryProvider);
 
-    final days = switch (schedule) {
-      Ok<List<DayPlan>, Failure>(:final value) => value,
-      // A derivation failure is not an empty schedule. The stream below still
-      // has to produce something, and `TodayNoPlan` is the honest answer: we
-      // cannot say what to take, so we do not say anything about a dose.
-      Err<List<DayPlan>, Failure>() => const <DayPlan>[],
-    };
+    final List<DayPlan> days;
+    switch (schedule) {
+      case Ok<List<DayPlan>, Failure>(:final value):
+        days = value;
+      // A REFUSAL, not an empty schedule. Collapsing it to `const []` made it
+      // indistinguishable from "derived nothing yet", and the mid-load guard
+      // below then filtered the emission away for ever — the skeleton stayed
+      // up on the screen this population opens every morning, with no timeout
+      // behind it. Surfacing the failure is the honest answer: we cannot say
+      // what to take, so we say that, loudly.
+      case Err<List<DayPlan>, Failure>(:final failure):
+        return Stream<TodayViewState>.error(failure);
+    }
 
     return repository
         .watchSnapshot()

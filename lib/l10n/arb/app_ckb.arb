@@ -108,5 +108,14 @@
   "errorTitle": "لە خوێندنەوەی پلانەکەت هەڵەیەک ڕوویدا",
   "errorRetry": "دووبارە هەوڵ بدە",
   "actionNotNow": "ئێستا نا",
-  "backfillAction": "ئێستا تۆماریان بکە"
+  "backfillAction": "ئێستا تۆماریان بکە",
+  "blockSummary": "{leadCount, plural, other{{leadCount} ڕۆژ بە {leadDose}}}، پاشان {restCount, plural, other{{restCount} ڕۆژ بە {restDose}}}",
+  "steadyStateTitle": "جێگیر لەسەر {dose}",
+  "held": "وەستێنراو",
+  "heldAtBlock": "وەستێنراو لە بلۆکی {block}",
+  "pastStepReadOnly": "ئەم هەنگاوە تەواوبووە و ناگۆڕدرێت",
+  "jumpToToday": "بازدان بۆ ئەمڕۆ",
+  "futureDayNotYet": "ناتوانیت ڕۆژێک تۆمار بکەیت کە هێشتا نەهاتووە",
+  "stepSwitcherTitle": "هەنگاوێک هەڵبژێرە",
+  "stepRangeLabel": "هەنگاوی {index} لە {total} — {from} بۆ {to}"
 }

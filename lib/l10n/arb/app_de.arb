@@ -108,5 +108,14 @@
   "errorTitle": "Beim Lesen Ihres Plans ist etwas schiefgelaufen",
   "errorRetry": "Erneut versuchen",
   "actionNotNow": "Jetzt nicht",
-  "backfillAction": "Jetzt abhaken"
+  "backfillAction": "Jetzt abhaken",
+  "blockSummary": "{leadCount, plural, =1{ein Tag mit {leadDose}} other{{leadCount} Tage mit {leadDose}}}, dann {restCount, plural, =1{1 Tag mit {restDose}} other{{restCount} Tage mit {restDose}}}",
+  "steadyStateTitle": "Bleibt bei {dose}",
+  "held": "Pausiert",
+  "heldAtBlock": "Pausiert bei Block {block}",
+  "pastStepReadOnly": "Dieser Schritt ist abgeschlossen und kann nicht geändert werden",
+  "jumpToToday": "Zu heute springen",
+  "futureDayNotYet": "Ein Tag in der Zukunft kann nicht abgehakt werden",
+  "stepSwitcherTitle": "Schritt auswählen",
+  "stepRangeLabel": "Schritt {index} von {total} — {from} auf {to}"
 }

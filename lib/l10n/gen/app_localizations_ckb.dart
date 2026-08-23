@@ -427,4 +427,54 @@ class AppLocalizationsCkb extends AppLocalizations {
 
   @override
   String get backfillAction => 'ئێستا تۆماریان بکە';
+
+  @override
+  String blockSummary(
+    int leadCount,
+    Object leadDose,
+    int restCount,
+    Object restDose,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      leadCount,
+      locale: localeName,
+      other: '$leadCount ڕۆژ بە $leadDose',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      restCount,
+      locale: localeName,
+      other: '$restCount ڕۆژ بە $restDose',
+    );
+    return '$_temp0، پاشان $_temp1';
+  }
+
+  @override
+  String steadyStateTitle(Object dose) {
+    return 'جێگیر لەسەر $dose';
+  }
+
+  @override
+  String get held => 'وەستێنراو';
+
+  @override
+  String heldAtBlock(int block) {
+    return 'وەستێنراو لە بلۆکی $block';
+  }
+
+  @override
+  String get pastStepReadOnly => 'ئەم هەنگاوە تەواوبووە و ناگۆڕدرێت';
+
+  @override
+  String get jumpToToday => 'بازدان بۆ ئەمڕۆ';
+
+  @override
+  String get futureDayNotYet => 'ناتوانیت ڕۆژێک تۆمار بکەیت کە هێشتا نەهاتووە';
+
+  @override
+  String get stepSwitcherTitle => 'هەنگاوێک هەڵبژێرە';
+
+  @override
+  String stepRangeLabel(int index, int total, Object from, Object to) {
+    return 'هەنگاوی $index لە $total — $from بۆ $to';
+  }
 }

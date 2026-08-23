@@ -15,6 +15,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:nearlystop/app/derived_schedule_provider.dart';
 import 'package:nearlystop/app/locale_providers.dart';
+import 'package:nearlystop/core/dsns/day_plan.dart';
+import 'package:nearlystop/core/dsns/dsns_failure.dart';
 import 'package:nearlystop/core/dsns/facts.dart';
 import 'package:nearlystop/core/result.dart';
 import 'package:nearlystop/core/time/local_date.dart';
@@ -284,4 +286,36 @@ void main() {
       }
     },
   );
+  test('a REFUSED derivation is surfaced, never waited on forever', () async {
+    // The same hole EPIC-09 found on Schedule, in the screen the person opens
+    // every morning. The mid-load guard reads "a plan with nothing derived yet
+    // is still loading", which is indistinguishable from "the generator
+    // refused" — so the emission is filtered away, the skeleton stays up, and
+    // nothing times out. The comment above the `Err` arm claimed `TodayNoPlan`
+    // was the honest answer; the guard below it made sure that answer was
+    // never reached.
+    final container = ProviderContainer(
+      overrides: <Override>[
+        databaseProvider.overrideWithValue(holder.database),
+        todayDateProvider.overrideWithValue(today),
+        clockProvider.overrideWithValue(
+          Clock.fixed(DateTime.utc(2026, 4, 16, 8)),
+        ),
+        resolvedLocaleProvider.overrideWithValue(const Locale('en')),
+        derivedScheduleProvider.overrideWithValue(
+          const Err<List<DayPlan>, Failure>(
+            PlanNotStarted(LocalDate(2026, 4, 1)),
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    await container.read(taperRepositoryProvider).savePlan(seededDraft());
+    container.listen(todayViewProvider, (_, _) {}, onError: (_, _) {});
+
+    await expectLater(
+      container.read(todayViewProvider.future),
+      throwsA(isA<PlanNotStarted>()),
+    );
+  });
 }

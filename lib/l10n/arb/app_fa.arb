@@ -108,5 +108,14 @@
   "errorTitle": "در خواندن برنامه شما مشکلی پیش آمد",
   "errorRetry": "دوباره تلاش کنید",
   "actionNotNow": "حالا نه",
-  "backfillAction": "اکنون ثبت کن"
+  "backfillAction": "اکنون ثبت کن",
+  "blockSummary": "{leadCount, plural, other{{leadCount} روز با {leadDose}}}، سپس {restCount, plural, other{{restCount} روز با {restDose}}}",
+  "steadyStateTitle": "ثابت روی {dose}",
+  "held": "متوقف",
+  "heldAtBlock": "متوقف در بلوک {block}",
+  "pastStepReadOnly": "این گام تمام شده و قابل تغییر نیست",
+  "jumpToToday": "پرش به امروز",
+  "futureDayNotYet": "روزی که هنوز نرسیده را نمی‌توان ثبت کرد",
+  "stepSwitcherTitle": "انتخاب گام",
+  "stepRangeLabel": "گام {index} از {total} — {from} به {to}"
 }
