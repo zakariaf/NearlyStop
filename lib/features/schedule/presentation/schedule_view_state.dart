@@ -1,7 +1,7 @@
 /// The Schedule screen as blocks, not days.
 library;
 
-import 'package:meta/meta.dart';
+import 'package:flutter/foundation.dart';
 import 'package:nearlystop/core/day_state.dart';
 import 'package:nearlystop/core/dsns/facts.dart';
 import 'package:nearlystop/core/time/local_date.dart';
@@ -137,7 +137,7 @@ final class ScheduleDayVm {
 
   @override
   bool operator ==(Object other) =>
-      other is ScheduleDayVm && _listEquals(other._props, _props);
+      other is ScheduleDayVm && listEquals(other._props, _props);
 
   @override
   int get hashCode => Object.hashAll(_props);
@@ -177,7 +177,7 @@ final class ScheduleBlockVm {
       other.title == title &&
       other.summary == summary &&
       other.status == status &&
-      _listEquals(other.days, days);
+      listEquals(other.days, days);
 
   @override
   int get hashCode =>
@@ -331,18 +331,8 @@ final class ScheduleLoaded extends ScheduleViewState {
       other is ScheduleLoaded &&
       other.steps == steps &&
       other.todayLocator == todayLocator &&
-      _listEquals(other.blocks, blocks);
+      listEquals(other.blocks, blocks);
 
   @override
   int get hashCode => Object.hash(steps, todayLocator, Object.hashAll(blocks));
-}
-
-/// Element-wise list equality, so this file needs no dependency to be tested.
-bool _listEquals(List<Object?> a, List<Object?> b) {
-  if (identical(a, b)) return true;
-  if (a.length != b.length) return false;
-  for (var i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) return false;
-  }
-  return true;
 }

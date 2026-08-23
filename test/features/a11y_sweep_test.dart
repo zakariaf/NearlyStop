@@ -239,7 +239,6 @@ Widget _banner() => const BackfillBanner(
 );
 
 Widget _statBlock() => const ProgressStatBlock(
-  overline: 'Adherence',
   value: '341',
   unit: 'taken 341 of 350 days',
 );

@@ -129,5 +129,21 @@
   "stateTakenCaps": "EINGENOMMEN",
   "stateNotTickedCaps": "NICHT ABGEHAKT",
   "stateTodayCaps": "HEUTE",
-  "stateUpcomingCaps": "BEVORSTEHEND"
+  "stateUpcomingCaps": "BEVORSTEHEND",
+  "chartOverline": "Ihre Dosis im Zeitverlauf",
+  "daysOnDrugLabel": "Tage mit {medicine}",
+  "holdsRecorded": "{count, plural, =1{1 Pause erfasst} other{{count} Pausen erfasst}}",
+  "flaresAndHoldsRecorded": "{flares, plural, =1{1 Schub} other{{flares} Schübe}} und {holds, plural, =1{1 Pause}other{{holds} Pausen}} erfasst",
+  "noEventsRecorded": "Keine Schübe oder Pausen erfasst",
+  "sameAsStart": "Sie bleiben stabil bei Ihrer Anfangsdosis.",
+  "chartSummary": "Diagramm: Ihre Dosis sank von {from} Milligramm im {fromMonth} auf {to} Milligramm im {toMonth}{events}.",
+  "chartSummaryEvents": ", mit {events}",
+  "doseHistoryTitle": "Dosisverlauf als Liste",
+  "historySegmentRow": "{dose} Milligramm ab {date} für {days, plural, =1{1 Tag} other{{days} Tage}}",
+  "historyFlareRow": "Schub am {date}, zurück auf {dose} Milligramm",
+  "historyHoldRow": "Gehalten bei {dose} Milligramm für {days, plural, =1{1 Tag} other{{days} Tage}} ab {date}",
+  "exportComingSoon": "Export kommt als Nächstes",
+  "exportComingSoonBody": "Ein PDF und eine Tabelle für Ihren Termin. Noch nicht gebaut.",
+  "chartOverlineCaps": "IHRE DOSIS IM ZEITVERLAUF",
+  "drugPrednisolone": "Prednisolon"
 }

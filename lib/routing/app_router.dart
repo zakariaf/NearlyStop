@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nearlystop/core/settings/app_settings.dart';
 import 'package:nearlystop/features/plan/presentation/plan_screen.dart';
+import 'package:nearlystop/features/progress/presentation/export_placeholder_screen.dart';
 import 'package:nearlystop/features/progress/presentation/progress_screen.dart';
 import 'package:nearlystop/features/schedule/presentation/schedule_screen.dart';
 import 'package:nearlystop/features/settings/application/settings_controller.dart';
@@ -110,6 +111,16 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: Routes.progress,
                 builder: (context, state) => const ProgressScreen(),
+                routes: <RouteBase>[
+                  // A real route, reachable by deep link as well as by tap.
+                  // EPIC-13 replaces the screen; the door is built here so
+                  // that epic only fills it.
+                  GoRoute(
+                    path: 'export',
+                    builder: (context, state) =>
+                        const ExportPlaceholderScreen(),
+                  ),
+                ],
               ),
             ],
           ),

@@ -129,5 +129,21 @@
   "stateTakenCaps": "مصرف شد",
   "stateNotTickedCaps": "ثبت نشده",
   "stateTodayCaps": "امروز",
-  "stateUpcomingCaps": "پیش‌رو"
+  "stateUpcomingCaps": "پیش‌رو",
+  "chartOverline": "دوز شما در طول زمان",
+  "daysOnDrugLabel": "روز مصرف {medicine}",
+  "holdsRecorded": "{count, plural, other{{count} توقف ثبت شده}}",
+  "flaresAndHoldsRecorded": "{flares, plural, other{{flares} عود}} و {holds, plural, other{{holds} توقف}} ثبت شده",
+  "noEventsRecorded": "هیچ عود یا توقفی ثبت نشده است",
+  "sameAsStart": "شما در همان دوز شروع پایدار هستید.",
+  "chartSummary": "نمودار: دوز شما از {from} میلی‌گرم در {fromMonth} به {to} میلی‌گرم در {toMonth} رسید{events}.",
+  "chartSummaryEvents": "، با {events}",
+  "doseHistoryTitle": "تاریخچه دوز به‌صورت فهرست",
+  "historySegmentRow": "{dose} میلی‌گرم از {date} به مدت {days, plural, other{{days} روز}}",
+  "historyFlareRow": "عود در {date}، بازگشت به {dose} میلی‌گرم",
+  "historyHoldRow": "توقف در {dose} میلی‌گرم به مدت {days, plural, other{{days} روز}} از {date}",
+  "exportComingSoon": "خروجی گرفتن به‌زودی",
+  "exportComingSoonBody": "یک PDF و یک صفحه‌گسترده برای قرار ملاقات شما. هنوز ساخته نشده است.",
+  "chartOverlineCaps": "دوز شما در طول زمان",
+  "drugPrednisolone": "پردنیزولون"
 }

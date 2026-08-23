@@ -91,6 +91,38 @@ abstract final class DaybreakGradients {
     colors: <Color>[Color(0xFF3B2B31), Primitives.plum15],
   );
 
+  /// The chart's stroke (light).
+  ///
+  /// Flat `primaryDeep` rather than a coral ramp: this stroke is the only mark
+  /// carrying the Progress screen's information and it has no text of its own,
+  /// so WCAG 2.1 SC 1.4.11 asks it for 3:1 against the card at EVERY point.
+  /// `primary` measures 2.76:1 on the light wash and is decorative-only.
+  static const LinearGradient chartLineLight = LinearGradient(
+    colors: <Color>[Primitives.coral43, Primitives.coral43],
+  );
+
+  /// The chart's stroke (dark).
+  static const LinearGradient chartLineDark = LinearGradient(
+    colors: <Color>[Primitives.coral70, Primitives.coral70],
+  );
+
+  /// The area under the chart's stroke (light).
+  ///
+  /// Decoration: it carries no information, so `primary` at 30% is legitimate
+  /// here even though it is not legitimate as the stroke.
+  static const LinearGradient chartFillLight = LinearGradient(
+    begin: AlignmentDirectional.topCenter,
+    end: AlignmentDirectional.bottomCenter,
+    colors: <Color>[Color(0x4DF97350), Color(0x0AFFC470)],
+  );
+
+  /// The area under the chart's stroke (dark).
+  static const LinearGradient chartFillDark = LinearGradient(
+    begin: AlignmentDirectional.topCenter,
+    end: AlignmentDirectional.bottomCenter,
+    colors: <Color>[Color(0x4DFF8A6B), Color(0x0AFFC470)],
+  );
+
   /// The stop of [gradient] that gives [foreground] its **lowest** contrast.
   ///
   /// A ratio against a gradient is only meaningful at its worst stop, and the

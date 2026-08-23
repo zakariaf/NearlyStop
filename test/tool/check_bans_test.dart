@@ -97,6 +97,55 @@ void main() {
     });
   });
 
+  group('a painter takes a snapshot, not a context', () {
+    for (final needle in <String>[
+      'BuildContext',
+      'Theme.of',
+      'MediaQuery',
+      'Localizations',
+    ]) {
+      test('$needle in a painter turns the build red', () async {
+        write(
+          'lib/features/progress/presentation/widgets/planted_painter.dart',
+          '/// Scratch.\nfinal x = $needle;\n',
+        );
+
+        final result = await runGate();
+
+        expect(result.exitCode, 1, reason: needle);
+        expect(
+          '${result.stdout}${result.stderr}',
+          contains('planted_painter'),
+        );
+      });
+    }
+
+    test('the painter’s own dartdoc may say the words', () async {
+      // The rule is comment-stripped. A gate that fires on the documentation
+      // explaining it is a gate somebody deletes.
+      write(
+        'lib/features/progress/presentation/widgets/documented_painter.dart',
+        '/// Takes a snapshot: no BuildContext, no Theme.of, no MediaQuery.\n'
+            'final x = 1;\n',
+      );
+
+      final result = await runGate();
+
+      expect(result.exitCode, 0, reason: '${result.stdout}${result.stderr}');
+    });
+
+    test('an ordinary widget may still take a BuildContext', () async {
+      write(
+        'lib/features/progress/presentation/widgets/ordinary.dart',
+        '/// Scratch.\nfinal x = BuildContext;\n',
+      );
+
+      final result = await runGate();
+
+      expect(result.exitCode, 0, reason: '${result.stdout}${result.stderr}');
+    });
+  });
+
   test('a clean tree passes with nothing to say', () async {
     write('lib/features/schedule/presentation/fine.dart', '/// Scratch.\n');
 

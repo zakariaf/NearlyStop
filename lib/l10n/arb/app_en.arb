@@ -798,5 +798,118 @@
   "stateUpcomingCaps": "UPCOMING",
   "@stateUpcomingCaps": {
     "description": "The upcoming word as the Schedule row displays it. See stateTakenCaps."
+  },
+  "chartOverline": "Your dose over time",
+  "@chartOverline": {
+    "description": "Overline above the dose chart."
+  },
+  "daysOnDrugLabel": "days on {medicine}",
+  "@daysOnDrugLabel": {
+    "description": "Label under the days-on-drug stat.",
+    "placeholders": {
+      "medicine": {}
+    }
+  },
+  "holdsRecorded": "{count, plural, =1{1 hold recorded} other{{count} holds recorded}}",
+  "@holdsRecorded": {
+    "description": "Hold count under the chart.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "flaresAndHoldsRecorded": "{flares, plural, =1{1 flare} other{{flares} flares}} and {holds, plural, =1{1 hold}other{{holds} holds}} recorded",
+  "@flaresAndHoldsRecorded": {
+    "description": "Both counts under the chart, when both are non-zero.",
+    "placeholders": {
+      "flares": {
+        "type": "int",
+        "example": "2"
+      },
+      "holds": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "noEventsRecorded": "No flares or holds recorded",
+  "@noEventsRecorded": {
+    "description": "Shown under the chart when there are neither flares nor holds."
+  },
+  "sameAsStart": "You are steady at the dose you started on.",
+  "@sameAsStart": {
+    "description": "Encouragement when the dose has not changed. Never \"0mg lower\"."
+  },
+  "chartSummary": "Chart: your dose fell from {from} milligrams in {fromMonth} to {to} milligrams in {toMonth}{events}.",
+  "@chartSummary": {
+    "description": "The chart as one sentence, for a screen reader.",
+    "placeholders": {
+      "from": {},
+      "fromMonth": {},
+      "to": {},
+      "toMonth": {},
+      "events": {}
+    }
+  },
+  "chartSummaryEvents": ", with {events}",
+  "@chartSummaryEvents": {
+    "description": "The chart summary's trailing clause. Empty when there are no events.",
+    "placeholders": {
+      "events": {}
+    }
+  },
+  "doseHistoryTitle": "Dose history as a list",
+  "@doseHistoryTitle": {
+    "description": "Heading of the chart's non-visual equivalent."
+  },
+  "historySegmentRow": "{dose} milligrams from {date} for {days, plural, =1{1 day} other{{days} days}}",
+  "@historySegmentRow": {
+    "description": "One tread, as a sentence.",
+    "placeholders": {
+      "dose": {},
+      "date": {},
+      "days": {
+        "type": "int",
+        "example": "52"
+      }
+    }
+  },
+  "historyFlareRow": "Flare on {date}, back to {dose} milligrams",
+  "@historyFlareRow": {
+    "description": "One flare, as a sentence.",
+    "placeholders": {
+      "date": {},
+      "dose": {}
+    }
+  },
+  "historyHoldRow": "Held at {dose} milligrams for {days, plural, =1{1 day} other{{days} days}} from {date}",
+  "@historyHoldRow": {
+    "description": "One hold, as a sentence.",
+    "placeholders": {
+      "dose": {},
+      "days": {
+        "type": "int",
+        "example": "5"
+      },
+      "date": {}
+    }
+  },
+  "exportComingSoon": "Export is coming next",
+  "@exportComingSoon": {
+    "description": "Heading of the placeholder export screen."
+  },
+  "exportComingSoonBody": "A PDF and a spreadsheet for your appointment. Not built yet.",
+  "@exportComingSoonBody": {
+    "description": "Body of the placeholder export screen."
+  },
+  "chartOverlineCaps": "YOUR DOSE OVER TIME",
+  "@chartOverlineCaps": {
+    "description": "The chart overline as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See stateTakenCaps."
+  },
+  "drugPrednisolone": "prednisolone",
+  "@drugPrednisolone": {
+    "description": "The default drug's name in running text, lower case."
   }
 }

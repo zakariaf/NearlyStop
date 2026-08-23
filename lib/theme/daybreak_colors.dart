@@ -53,6 +53,8 @@ class DaybreakColors extends ThemeExtension<DaybreakColors> {
     required this.stateNewDose,
     required this.sunrise,
     required this.wash,
+    required this.chartLine,
+    required this.chartFill,
   });
 
   /// The page ground behind every surface.
@@ -190,6 +192,17 @@ class DaybreakColors extends ThemeExtension<DaybreakColors> {
   /// The page wash behind a scrolling surface.
   final LinearGradient wash;
 
+  /// The Progress chart's stroke.
+  ///
+  /// **A graphical object that carries information**, so WCAG 2.1 SC 1.4.11
+  /// asks it for 3:1 against the card at every stop. That is why it is
+  /// `primaryDeep` and not `primary`, which measures 2.76:1 on the light wash
+  /// and is decorative-only. Pinned by a unit test in the progress suite.
+  final LinearGradient chartLine;
+
+  /// The area under the chart's stroke. Decoration; no contrast rule.
+  final LinearGradient chartFill;
+
   /// Reads the palette out of [context].
   ///
   /// **Asserts** rather than falling back: a fallback ships a palette no
@@ -237,6 +250,8 @@ class DaybreakColors extends ThemeExtension<DaybreakColors> {
     Color? stateNewDose,
     LinearGradient? sunrise,
     LinearGradient? wash,
+    LinearGradient? chartLine,
+    LinearGradient? chartFill,
   }) {
     return DaybreakColors(
       bg: bg ?? this.bg,
@@ -270,6 +285,8 @@ class DaybreakColors extends ThemeExtension<DaybreakColors> {
       stateNewDose: stateNewDose ?? this.stateNewDose,
       sunrise: sunrise ?? this.sunrise,
       wash: wash ?? this.wash,
+      chartLine: chartLine ?? this.chartLine,
+      chartFill: chartFill ?? this.chartFill,
     );
   }
 
@@ -325,6 +342,8 @@ class DaybreakColors extends ThemeExtension<DaybreakColors> {
       // LinearGradient whenever both inputs are LinearGradients.
       sunrise: LinearGradient.lerp(sunrise, other.sunrise, t)!,
       wash: LinearGradient.lerp(wash, other.wash, t)!,
+      chartLine: LinearGradient.lerp(chartLine, other.chartLine, t)!,
+      chartFill: LinearGradient.lerp(chartFill, other.chartFill, t)!,
     );
   }
 
@@ -410,6 +429,8 @@ const DaybreakColors lightDaybreakColors = DaybreakColors(
   stateNewDose: Primitives.amber42,
   sunrise: DaybreakGradients.sunriseLight,
   wash: DaybreakGradients.washLight,
+  chartLine: DaybreakGradients.chartLineLight,
+  chartFill: DaybreakGradients.chartFillLight,
 );
 
 /// The dark palette.
@@ -451,6 +472,8 @@ const DaybreakColors darkDaybreakColors = DaybreakColors(
   stateNewDose: Primitives.amber83,
   sunrise: DaybreakGradients.sunriseDark,
   wash: DaybreakGradients.washDark,
+  chartLine: DaybreakGradients.chartLineDark,
+  chartFill: DaybreakGradients.chartFillDark,
 );
 
 /// The light high-contrast palette.
