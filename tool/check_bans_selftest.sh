@@ -9,12 +9,13 @@ cd "$(dirname "$0")/.."
 gate=tool/check_bans.sh
 scratch=lib/features/_bans_scratch.dart
 scratch2=lib/features/_bans_scratch_two.dart
+data_scratch=lib/data/_bans_scratch.dart
 clock=lib/core/time/clock.dart
 clock_backup=".clock.bak"
 failures=0
 
 cleanup() {
-  rm -f "$scratch" "$scratch2"
+  rm -f "$scratch" "$scratch2" "$data_scratch"
   [ -f "$clock_backup" ] && mv "$clock_backup" "$clock"
   return 0
 }
@@ -250,6 +251,43 @@ elif ! grep -qi 'cannot enter' <<<"$out"; then
 else
   pass "a bad ROOT exits non-zero and says so"
 fi
+
+echo "case 12b: drift stays behind lib/data/"
+cat >"$scratch" <<'DART'
+import 'package:drift/drift.dart';
+
+/// Scratch.
+void scratch() {}
+DART
+expect_flagged "a package:drift import outside lib/data/ is flagged" \
+  "$scratch" "drift lives behind lib/data/"
+rm -f "$scratch"
+
+cat >"$data_scratch" <<'DART'
+import 'package:drift/drift.dart';
+
+/// Scratch.
+void scratch() {}
+DART
+run_gate
+if [ "$code" -ne 0 ]; then
+  bad "the identical import inside lib/data/ should be exempt (exit $code)"
+  echo "$out" | sed 's/^/         /'
+else
+  pass "the identical import inside lib/data/ is exempt — the glob resolves"
+fi
+rm -f "$data_scratch"
+
+echo "case 12c: drift_dev never reaches the shipping compile path"
+cat >"$data_scratch" <<'DART'
+import 'package:drift_dev/api/migrations.dart';
+
+/// Scratch.
+void scratch() {}
+DART
+expect_flagged "a package:drift_dev import is flagged even inside lib/data/" \
+  "$data_scratch" "dev dependency"
+rm -f "$data_scratch"
 
 echo "case 13: the gate works from an arbitrary ROOT, not just the repo root"
 alt="$(mktemp -d)"

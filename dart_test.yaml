@@ -7,3 +7,7 @@ tags:
     # the code is a gate that gets switched off. EPIC-14 owns the pinned-runner
     # golden sweep; until then these are a local, human-reviewed check.
     skip: false
+  migration:
+    # The schema-ladder lane. Its own tag so CI can run it separately from the
+    # fast unit lane and a failure names the ceremony rather than "some test".
+    skip: false

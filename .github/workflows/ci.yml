@@ -14,10 +14,10 @@ name: ci
 #   * VoiceOver / TalkBack phrasing, and on-device notification delivery.
 # A change touching any of those is not verified by a green run here.
 #
-# NOT YET PRESENT, deliberately: the codegen and drift-schema freshness gates
-# (`build_runner` then `git diff --exit-code`). They land with EPIC-05, which
-# introduces the first generated file. An empty gate that asserts nothing today
-# is worse than a named TODO.
+# Also not proven here: that a real upgrade over a previously INSTALLED build
+# works. There is no previous release to upgrade from at v1.0.0; the migration
+# lane below exercises the ladder against a synthetic v2 fixture instead, and
+# EPIC-15 records the install-and-upgrade check as a v1.1 gate.
 
 on:
   push:
@@ -69,6 +69,26 @@ jobs:
       - run: bash tool/coverage_floor_selftest.sh
       - run: bash tool/check_raw_values_selftest.sh
 
+      # Contract: the committed generated code IS the generated code. Without
+      # this, a stale `.g.dart` compiles fine locally and diverges from
+      # `tables.dart` silently — and the divergence surfaces as data loss on
+      # someone's phone, not as a red test. Generated files are committed on
+      # purpose: the alternative makes every clone run codegen before it can
+      # run a test.
+      - run: dart run build_runner build
+      - name: generated code is up to date
+        run: git diff --exit-code
+
+      # Contract: the schema dump, the migration ladder and the verifier
+      # helpers all describe the SAME schema. `drift_dev schema dump` snapshots
+      # whatever the code currently declares, so a table edited after the dump
+      # was taken is a lie the ladder then carries forever.
+      - run: dart run drift_dev schema dump lib/data/db/app_database.dart drift_schemas/
+      - run: dart run drift_dev schema steps drift_schemas/ lib/data/db/schema_versions.dart
+      - run: dart run drift_dev schema generate drift_schemas/ test/data/generated_migrations/
+      - name: drift schema artefacts are up to date
+        run: git diff --exit-code
+
       # Contract: whitespace is not a review topic.
       - run: dart format --output=none --set-exit-if-changed .
 
@@ -109,7 +129,13 @@ jobs:
       #
       # `@Tags` is a LIBRARY-level annotation, so the claims the goldens
       # illustrate live in their own untagged files — which DO run here.
-      - run: flutter test --coverage --test-randomize-ordering-seed random --exclude-tags golden --reporter expanded
+      - run: flutter test --coverage --test-randomize-ordering-seed random --exclude-tags "golden || migration" --reporter expanded
+
+      # Contract: the upgrade ceremony works before an upgrade is needed. Its
+      # own lane, because it opens real files, runs the generated ladder, and a
+      # failure here means "the migration is broken" rather than "some test is
+      # red".
+      - run: flutter test --tags migration --reporter expanded
 
       # Contract: a calendar date is a calendar date in every timezone. Dart
       # cannot change the process's local zone in-process, so the only way to
