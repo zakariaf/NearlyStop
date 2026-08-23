@@ -30,22 +30,35 @@ fi
 # Generated files are exempt.
 GEN_RE='\.g\.dart$|\.freezed\.dart$|\.gr\.dart$'
 
-# Banned raw-value patterns in feature/shared UI code. `Colors.`/`Curves.` are
+# Banned raw-value patterns in feature/shared UI code.
+#
+# `EdgeInsetsDirectional.` is deliberately NOT matched: it is the sanctioned
+# form, and a regex that ate it would make every component uneditable while
+# also banning the RTL discipline the app depends on. The pattern is anchored
+# so `EdgeInsets.` matches and `EdgeInsetsDirectional.` does not.
+# `Colors.`/`Curves.` are
 # anchored with a non-identifier lookbehind so custom reads like `AppColors.of`
 # or `MyCurves.foo` do not trip the gate.
-PATTERNS='Color\(0x|Color\.fromARGB\(|Color\.fromRGBO\(|(^|[^A-Za-z0-9_])Colors\.|(^|[^A-Za-z0-9_])Curves\.|Duration\(milliseconds:|Duration\(seconds:|BorderRadius\.circular\([0-9]|Radius\.circular\([0-9]|fontSize:[[:space:]]*[0-9]|fontFamily:[[:space:]]*.[A-Za-z]|ColorScheme\.fromSeed\('
+PATTERNS='Color\(0x|Color\.fromARGB\(|Color\.fromRGBO\(|(^|[^A-Za-z0-9_])Colors\.|(^|[^A-Za-z0-9_])Curves\.|Duration\(milliseconds:|Duration\(seconds:|BorderRadius\.circular\([0-9]|Radius\.circular\([0-9]|fontSize:[[:space:]]*[0-9]|fontFamily:[[:space:]]*.[A-Za-z]|ColorScheme\.fromSeed\(|BoxShadow\(|LinearGradient\(|RadialGradient\(|SweepGradient\(|(^|[^A-Za-z0-9_])EdgeInsets\.'
 
 # Legitimate exceptions. Neutralized (stripped) BEFORE the ban scan — not used to
 # drop the whole line — so a banned value elsewhere on the same line still fails
 # (e.g. `x ? Colors.transparent : Color(0xFFAA0000)` must not slip through).
-ALLOW_STRIP='s/Colors\.transparent//g; s/Duration\.zero//g'
+ALLOW_STRIP='s/Colors\.transparent//g; s/Duration\.zero//g; s/EdgeInsets\.zero//g'
 
 fail=0
 while IFS= read -r -d '' f; do
   # `lib/theme/`, NOT `*/theme/*`: a feature-local `lib/features/x/theme/`
   # folder is a natural name, and the wildcard would disarm the whole gate for
   # every file inside it.
-  case "$f" in lib/theme/*) continue ;; esac
+  #
+  # Both shapes, because the target is sometimes `lib` (so `find` yields
+  # `lib/theme/...`) and sometimes an absolute root (so it yields
+  # `/tmp/xyz/lib/theme/...`). Matching only the first meant the exemption
+  # silently stopped applying under any other root, and lib/theme/ itself
+  # failed the gate that exists to protect it. Neither pattern matches a
+  # feature-local `lib/features/x/theme/`.
+  case "$f" in lib/theme/*|*/lib/theme/*) continue ;; esac
   if printf '%s\n' "$f" | grep -qE "$GEN_RE"; then continue; fi
 
   # Comments are stripped first — this file's own rule list contains every
