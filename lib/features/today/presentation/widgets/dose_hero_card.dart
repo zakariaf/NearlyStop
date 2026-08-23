@@ -4,6 +4,7 @@ library;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
 import 'package:nearlystop/features/today/presentation/widgets/sunrise_arc_painter.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_elevation.dart';
@@ -150,12 +151,15 @@ class DoseHeroCard extends StatelessWidget {
                 ),
               ),
               SizedBox(height: shapes.s4),
-              _TakenAction(
-                label: takenLabel,
-                isTaken: isTaken,
-                onTaken: onTaken,
-                colors: colors,
-                shapes: shapes,
+              // `liveRegion` on the wrapper only: the confirmation is spoken
+              // when the state flips, while the button keeps its own node so a
+              // screen reader still has something named to activate.
+              Semantics(
+                liveRegion: isTaken,
+                child: TakenButton(
+                  label: takenLabel,
+                  onPressed: isTaken ? null : onTaken,
+                ),
               ),
             ],
           ),
@@ -277,54 +281,6 @@ class _Arc extends StatelessWidget {
           sweep: math.pi,
           progress: 1,
         ),
-      ),
-    ),
-  );
-}
-
-class _TakenAction extends StatelessWidget {
-  const _TakenAction({
-    required this.label,
-    required this.isTaken,
-    required this.onTaken,
-    required this.colors,
-    required this.shapes,
-  });
-
-  final String label;
-  final bool isTaken;
-  final VoidCallback onTaken;
-  final DaybreakColors colors;
-  final DaybreakShapes shapes;
-
-  /// 88, not 48.
-  ///
-  /// This is pressed by a 74-year-old with a tremor, half awake, one-handed,
-  /// roughly 780 times. The platform minimum is a floor for anything; this is
-  /// the app's single most important target.
-  static const double _height = 88;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    // NOT `label:` here, and the child `Text` is NOT excluded. The button
-    // builds its own node from its child, and labelling the wrapper instead
-    // left that node tappable and nameless — a screen reader announces
-    // "button" and the user has no idea what it does. `liveRegion` stays, so
-    // the confirmation is spoken when the state flips.
-    liveRegion: isTaken,
-    child: SizedBox(
-      width: double.infinity,
-      height: _height,
-      child: FilledButton(
-        onPressed: isTaken ? null : onTaken,
-        style: FilledButton.styleFrom(
-          backgroundColor: colors.surface,
-          foregroundColor: colors.primaryDeep,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(shapes.radiusPill)),
-          ),
-        ),
-        child: Text(label),
       ),
     ),
   );

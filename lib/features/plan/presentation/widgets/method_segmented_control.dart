@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:nearlystop/core/dsns/facts.dart';
+import 'package:nearlystop/features/shared/presentation/widgets/daybreak_tappable.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_elevation.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
@@ -115,41 +116,34 @@ class MethodSegment extends StatelessWidget {
     final shapes = DaybreakShapes.of(context);
     final elevation = DaybreakElevation.of(context);
 
-    return Semantics(
-      container: true,
-      button: true,
+    return DaybreakTappable(
+      semanticsLabel: label,
+      selected: selected,
       // The group is what makes a screen reader say "1 of 3" rather than
       // reading three unrelated buttons.
       inMutuallyExclusiveGroup: true,
-      selected: selected,
-      label: label,
-      child: ExcludeSemantics(
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap,
-          child: Container(
-            constraints: const BoxConstraints(minHeight: minHeight),
-            padding: EdgeInsetsDirectional.symmetric(
-              horizontal: shapes.s3,
-              vertical: shapes.s2,
-            ),
-            decoration: BoxDecoration(
-              // Selection is a RAISED TILE plus weight, not a tint: both
-              // survive greyscale, and the tile survives it best.
-              color: selected ? colors.surface : null,
-              borderRadius: BorderRadius.all(Radius.circular(shapes.radiusSm)),
-              boxShadow: selected ? elevation.level1 : elevation.level0,
-            ),
-            child: Center(
-              heightFactor: 1,
-              child: Text(
-                label,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                  color: selected ? colors.ink : colors.inkMuted,
-                ),
-              ),
+      onPressed: onTap,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: minHeight),
+        padding: EdgeInsetsDirectional.symmetric(
+          horizontal: shapes.s3,
+          vertical: shapes.s2,
+        ),
+        decoration: BoxDecoration(
+          // Selection is a RAISED TILE plus weight, not a tint: both survive
+          // greyscale, and the tile survives it best.
+          color: selected ? colors.surface : null,
+          borderRadius: BorderRadius.all(Radius.circular(shapes.radiusSm)),
+          boxShadow: selected ? elevation.level1 : elevation.level0,
+        ),
+        child: Center(
+          heightFactor: 1,
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+              color: selected ? colors.ink : colors.inkMuted,
             ),
           ),
         ),

@@ -51,7 +51,7 @@ class ProgressStatBlock extends StatelessWidget {
           decoration: BoxDecoration(
             color: colors.surfaceRaised,
             borderRadius: BorderRadius.all(Radius.circular(shapes.radiusLg)),
-            boxShadow: elevationOf(context),
+            boxShadow: DaybreakElevation.of(context).level1,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,8 +89,4 @@ class ProgressStatBlock extends StatelessWidget {
       ),
     );
   }
-
-  /// The block's shadow stack.
-  List<BoxShadow> elevationOf(BuildContext context) =>
-      DaybreakElevation.of(context).level1;
 }

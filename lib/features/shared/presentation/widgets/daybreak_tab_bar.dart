@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:nearlystop/features/shared/presentation/widgets/daybreak_tappable.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
 
@@ -130,40 +131,33 @@ class DaybreakTabDestination extends StatelessWidget {
     final shapes = DaybreakShapes.of(context);
     final ink = selected ? colors.primaryDeep : colors.inkMuted;
 
-    return Semantics(
-      container: true,
-      button: true,
-      inMutuallyExclusiveGroup: true,
+    return DaybreakTappable(
+      semanticsLabel: destination.label,
       selected: selected,
-      label: destination.label,
-      child: ExcludeSemantics(
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              minWidth: minWidth,
-              minHeight: minHeight,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                _iconCapsule(colors, shapes, ink),
-                SizedBox(height: shapes.s1),
-                Flexible(
-                  child: Text(
-                    destination.label,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                      color: ink,
-                    ),
-                  ),
+      inMutuallyExclusiveGroup: true,
+      onPressed: onTap,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minWidth: minWidth,
+          minHeight: minHeight,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            _iconCapsule(colors, shapes, ink),
+            SizedBox(height: shapes.s1),
+            Flexible(
+              child: Text(
+                destination.label,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  color: ink,
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

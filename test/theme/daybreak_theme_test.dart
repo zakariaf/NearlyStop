@@ -269,4 +269,43 @@ void main() {
       isEmpty,
     );
   });
+
+  test('doseNumeral does not inherit its styling from the tree', () {
+    // The one number the patient reads every morning for 780 days, and the
+    // one CLAUDE.md rule 5 is about not getting wrong. Built as
+    // `displayLarge.copyWith(...)`, it came out `inherit: true` with a null
+    // decoration — so whatever `DefaultTextStyle` happened to be ambient
+    // decided how the dose was drawn. In debug outside a `Material` that is
+    // Flutter's error style: a yellow double underline UNDER THE DOSE, which
+    // is what a real golden capture showed.
+    //
+    // `displayLarge` itself is `inherit: false` with `decoration: none`; the
+    // derivation was losing both.
+    for (final brightness in Brightness.values) {
+      for (final script in DaybreakScript.values) {
+        final theme = buildDaybreakTheme(brightness, script);
+        final numeral = theme.extension<DaybreakTypography>()!.doseNumeral;
+
+        expect(
+          numeral.inherit,
+          isFalse,
+          reason: '$brightness/$script: the dose numeral inherits',
+        );
+        expect(
+          numeral.decoration,
+          TextDecoration.none,
+          reason:
+              '$brightness/$script: the dose numeral has no fixed '
+              'decoration, so an ambient one reaches it',
+        );
+        // It is still the display role with tabular figures — the fix must not
+        // have replaced the style rather than sealing it.
+        expect(numeral.fontSize, theme.textTheme.displayLarge!.fontSize);
+        expect(
+          numeral.fontFeatures,
+          contains(const FontFeature.tabularFigures()),
+        );
+      }
+    }
+  });
 }

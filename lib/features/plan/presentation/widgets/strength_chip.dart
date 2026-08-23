@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:nearlystop/features/shared/presentation/widgets/daybreak_tappable.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
 
@@ -52,55 +53,46 @@ class StrengthChip extends StatelessWidget {
     final shapes = DaybreakShapes.of(context);
     final text = Theme.of(context).textTheme;
 
-    return Semantics(
-      container: true,
-      button: true,
+    return DaybreakTappable(
+      semanticsLabel: label,
       selected: selected,
-      label: label,
-      child: ExcludeSemantics(
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => onSelected(value),
-          child: Container(
-            key: containerKey,
-            constraints: const BoxConstraints(
-              minWidth: minSide,
-              minHeight: minSide,
-            ),
-            padding: EdgeInsetsDirectional.symmetric(
-              horizontal: shapes.s4,
-              vertical: shapes.s2,
-            ),
-            decoration: BoxDecoration(
-              color: selected ? colors.tintPrimary : colors.surfaceRaised,
-              borderRadius: BorderRadius.all(
-                Radius.circular(shapes.radiusPill),
+      onPressed: () => onSelected(value),
+      child: Container(
+        key: containerKey,
+        constraints: const BoxConstraints(
+          minWidth: minSide,
+          minHeight: minSide,
+        ),
+        padding: EdgeInsetsDirectional.symmetric(
+          horizontal: shapes.s4,
+          vertical: shapes.s2,
+        ),
+        decoration: BoxDecoration(
+          color: selected ? colors.tintPrimary : colors.surfaceRaised,
+          borderRadius: BorderRadius.all(Radius.circular(shapes.radiusPill)),
+          border: Border.all(
+            color: selected ? colors.borderStrong : colors.border,
+            width: selected ? 2 : shapes.hairlineWidth,
+          ),
+        ),
+        child: Center(
+          heightFactor: 1,
+          widthFactor: 1,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              if (selected) ...<Widget>[
+                Icon(selectedGlyph, size: 18, color: colors.primaryDeep),
+                SizedBox(width: shapes.s1),
+              ],
+              Text(
+                label,
+                style: text.titleMedium?.copyWith(
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  color: colors.ink,
+                ),
               ),
-              border: Border.all(
-                color: selected ? colors.borderStrong : colors.border,
-                width: selected ? 2 : shapes.hairlineWidth,
-              ),
-            ),
-            child: Center(
-              heightFactor: 1,
-              widthFactor: 1,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  if (selected) ...<Widget>[
-                    Icon(selectedGlyph, size: 18, color: colors.primaryDeep),
-                    SizedBox(width: shapes.s1),
-                  ],
-                  Text(
-                    label,
-                    style: text.titleMedium?.copyWith(
-                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                      color: colors.ink,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            ],
           ),
         ),
       ),

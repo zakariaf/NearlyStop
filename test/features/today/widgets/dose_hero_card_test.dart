@@ -5,6 +5,7 @@
 // never shrinks, and an action that cannot fire twice.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
 import 'package:nearlystop/features/today/presentation/widgets/dose_hero_card.dart';
 import 'package:nearlystop/features/today/presentation/widgets/sunrise_arc_painter.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
@@ -204,6 +205,28 @@ void main() {
   ) async {
     await pumpCard(tester);
 
-    expect(tester.getSize(find.byType(FilledButton)).height, 88);
+    expect(tester.getSize(find.byType(TakenButton)).height, 88);
+  });
+
+  testWidgets('the Taken action GROWS at 200%, it does not clip', (
+    tester,
+  ) async {
+    // 88 is a FLOOR, not a height. Pinned as a fixed `height:` the label
+    // overflows the moment the reader turns text up — on the one control this
+    // app exists to be pressed. Recipe 4's `TakenButton` owns this; the hero
+    // card had its own `FilledButton` from before that existed, with the wrong
+    // ink slot, no shadow, no haptic and no press scale.
+    await pumpCard(tester);
+    final small = tester.getSize(find.byType(TakenButton)).height;
+    expect(small, greaterThanOrEqualTo(88));
+
+    await pumpCard(tester, textScaler: const TextScaler.linear(2));
+
+    expect(
+      tester.getSize(find.byType(TakenButton)).height,
+      greaterThanOrEqualTo(tester.getSize(find.text('Taken')).height),
+      reason: 'the label was clipped by a fixed height',
+    );
+    expect(tester.takeException(), isNull);
   });
 }
