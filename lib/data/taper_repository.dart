@@ -374,6 +374,14 @@ final class TaperRepository {
     required int extraDays,
   }) => _write('recordHold', (plan) async {
     if (extraDays <= 0) throw const _Refused('a hold is at least one day');
+    final steps = await _db.stepDao.readSteps(plan.id);
+    if (!steps.any((step) => step.id == stepId)) {
+      // The FOREIGN KEY only says the step EXISTS. A hold on another plan's
+      // step would be written happily and then never read back, because the
+      // snapshot's join is scoped by plan — a silent no-op on the one action
+      // whose whole purpose is to move dates.
+      throw const _Refused('that step does not belong to this plan');
+    }
     await _db.stepDao.insertHold(
       db.HoldEventsCompanion.insert(
         uid: Ulid().toString(),

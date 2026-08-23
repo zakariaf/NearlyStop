@@ -16,6 +16,7 @@ import 'package:nearlystop/core/units/milligrams.dart';
 import 'package:nearlystop/data/db/app_database.dart';
 import 'package:nearlystop/data/storage_failure.dart';
 import 'package:nearlystop/data/taper_repository.dart';
+import 'package:sqlite3/common.dart' show SqliteException;
 
 import '../support/db_harness.dart';
 
@@ -147,6 +148,25 @@ void main() {
       expect(await db.select(db.taperPlans).get(), hasLength(1));
       expect(await db.select(db.steps).get(), hasLength(1));
     });
+  });
+
+  test("a hold on a step that is not this plan's is refused", () async {
+    // The FOREIGN KEY only says the step exists. Without the ownership check
+    // the row is written and then never read back, because the snapshot's
+    // join is plan-scoped — Hold would appear to do nothing.
+    await expectOk(repository.savePlan(seededDraft()));
+    final orphanPlan = await seedPlan(db, uid: 'plan-2', createdAt: fixedNow);
+    final orphanStep = await seedStep(db, orphanPlan, uid: 'orphan-step');
+
+    expectErr<Invariant>(
+      await repository.recordHold(
+        stepId: orphanStep,
+        from: const LocalDate(2026, 4, 10),
+        extraDays: 3,
+      ),
+    );
+
+    expect(await db.select(db.holdEvents).get(), isEmpty);
   });
 
   group('a draft the generator would refuse is refused at the write', () {
@@ -424,28 +444,37 @@ void main() {
 
   group('failure mapping, driven by the real engine', () {
     test(
-      'a constraint the engine refuses surfaces as ConstraintViolation',
+      "the engine's own UNIQUE violation is typed, not thrown",
       () async {
-        // A hold on a step that does not exist. The engine raises
-        // SQLITE_CONSTRAINT_FOREIGNKEY (787) — the same `& 0xFF == 19` family
-        // as the UNIQUE (2067) `tables_test` pins — and the repository has to
-        // type it rather than let a `SqliteException` escape into a provider.
-        // (`UNIQUE(plan_id, date)` is unreachable through the public API by
-        // design: every log write is an upsert against exactly that index.)
+        // Caught from a REAL write, not a constructed exception. No public
+        // repository method reaches this any more — every write that could
+        // violate a constraint is refused in Dart first — so the honest shape
+        // is: force the engine to raise, then assert the mapper types what it
+        // actually raised. `map_storage_failure_test` covers the other codes.
         await expectOk(repository.savePlan(seededDraft()));
+        await seedLog(db, 1, const LocalDate(2026, 4, 2), uid: 'first');
 
-        final result = await repository.recordHold(
-          stepId: 9999,
-          from: const LocalDate(2026, 4, 10),
-          extraDays: 2,
-        );
+        Object? raised;
+        try {
+          await db
+              .into(db.doseLogs)
+              .insert(
+                DoseLogsCompanion.insert(
+                  uid: 'second',
+                  planId: 1,
+                  date: const LocalDate(2026, 4, 2),
+                  plannedMg: mg(10),
+                  actualMg: mg(10),
+                  taken: true,
+                ),
+              );
+        } on Object catch (error) {
+          raised = error;
+        }
 
-        expect(result, isA<Err<void, StorageFailure>>());
-        expect(
-          (result as Err<void, StorageFailure>).failure,
-          isA<ConstraintViolation>(),
-        );
-        expect(await db.select(db.holdEvents).get(), isEmpty);
+        expect(raised, isA<SqliteException>());
+        expect((raised! as SqliteException).extendedResultCode, 2067);
+        expect(mapStorageFailure(raised), isA<ConstraintViolation>());
       },
     );
 
