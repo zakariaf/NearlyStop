@@ -8,6 +8,7 @@ import 'package:nearlystop/core/time/local_date.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/backfill_banner.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/confirm_sheet.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
+import 'package:nearlystop/features/shared/presentation/widgets/error_panel.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/taper_empty_state.dart';
 import 'package:nearlystop/features/today/application/today_view_provider.dart';
 import 'package:nearlystop/features/today/presentation/today_view_state.dart';
@@ -48,7 +49,7 @@ class TodayScreen extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         child: switch (view) {
-          AsyncError<TodayViewState>() => _ErrorPanel(
+          AsyncError<TodayViewState>() => ErrorPanel(
             title: l10n.errorTitle,
             retryLabel: l10n.errorRetry,
             onRetry: () => ref.invalidate(todayViewProvider),
@@ -322,48 +323,6 @@ class _Skeleton extends StatelessWidget {
 }
 
 /// A read failed. Says so, and offers one way forward.
-class _ErrorPanel extends StatelessWidget {
-  const _ErrorPanel({
-    required this.title,
-    required this.retryLabel,
-    required this.onRetry,
-  });
-
-  final String title;
-  final String retryLabel;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = DaybreakColors.of(context);
-    final shapes = DaybreakShapes.of(context);
-    return Padding(
-      padding: EdgeInsetsDirectional.all(shapes.s5),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Icon(Icons.cloud_off_outlined, size: 44, color: colors.inkFaint),
-          SizedBox(height: shapes.s4),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: colors.ink,
-            ),
-          ),
-          SizedBox(height: shapes.s5),
-          SecondaryButton(
-            label: retryLabel,
-            expand: true,
-            onPressed: onRetry,
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 /// The taper reached its target.
 class _FinishCard extends StatelessWidget {
