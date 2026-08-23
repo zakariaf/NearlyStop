@@ -440,6 +440,20 @@ class TodayNotifier extends StreamNotifier<TodayViewState> {
           // most likely to want.
           ..sort((a, b) => b.index.compareTo(a.index));
 
+    // Sorted by index so "the step after this one" is findable, which is what
+    // says when a step actually ENDED. A step that was held ran longer than 52
+    // days, and a label built from the nominal length tells the reader they
+    // were on that dose over dates they were not — while they are choosing a
+    // dose to go back to from exactly these labels.
+    final byIndex = <StepFacts>[...snapshot.steps]
+      ..sort((a, b) => a.index.compareTo(b.index));
+    LocalDate endOf(StepFacts step) {
+      for (final other in byIndex) {
+        if (other.index == step.index + 1) return other.startDate;
+      }
+      return step.startDate.addDays(_stepLength);
+    }
+
     final candidates = <FlareCandidate>[
       for (final step in completed)
         FlareCandidate(
@@ -447,7 +461,7 @@ class TodayNotifier extends StreamNotifier<TodayViewState> {
           label: l10n.flareDateRange(
             _dose(step.fromDose, locale, l10n),
             formatDayLabel(step.startDate, locale),
-            formatDayLabel(step.startDate.addDays(_stepLength), locale),
+            formatDayLabel(endOf(step), locale),
           ),
         ),
     ];
@@ -476,6 +490,23 @@ class TodayNotifier extends StreamNotifier<TodayViewState> {
     );
   }
 
+  /// What the hold sheet calls the thing being held.
+  ///
+  /// On a steady-state day `blockIndex` is null, and `?? 1` printed "Block 1
+  /// of 11" — the FIRST block, on a day that is past the last one. The reader
+  /// opening that sheet was told they were somewhere they were not, on the
+  /// screen asking them to decide about it. With no block, the STEP is the
+  /// honest unit.
+  static String _blockLabel(
+    DayPlan day,
+    StepFacts step,
+    AppLocalizations l10n,
+  ) {
+    final block = day.blockIndex;
+    if (block == null) return l10n.stepOfTotal(step.index + 1, step.index + 1);
+    return l10n.blockOfTotal(block, _blockCount);
+  }
+
   /// Null when no step is running — there is nothing to hold.
   static HoldPrompt? _holdPrompt(
     TaperSnapshot snapshot,
@@ -490,7 +521,7 @@ class TodayNotifier extends StreamNotifier<TodayViewState> {
         stepId: step.id,
         // `blockOfTotal` takes ints and does its own locale-aware number
         // formatting, so the digits are right without being formatted twice.
-        blockLabel: l10n.blockOfTotal(today.blockIndex ?? 1, _blockCount),
+        blockLabel: _blockLabel(today, step, l10n),
         defaultExtraDays: 7,
         minExtraDays: 1,
         maxExtraDays: 28,

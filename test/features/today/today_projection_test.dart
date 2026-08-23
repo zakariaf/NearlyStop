@@ -21,6 +21,7 @@ import 'package:nearlystop/data/taper_repository.dart';
 import 'package:nearlystop/features/today/application/today_view_provider.dart';
 import 'package:nearlystop/features/today/presentation/today_view_state.dart';
 import 'package:nearlystop/l10n/bidi.dart';
+import 'package:nearlystop/l10n/date_formats.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 
 void main() {
@@ -30,6 +31,7 @@ void main() {
     TabletStrength.fromHundredths(100),
   ];
 
+  const enLocale = Locale('en');
   late AppLocalizations en;
   late AppLocalizations fa;
 
@@ -412,5 +414,57 @@ void main() {
 
     expect(after, before);
     expect(after.hundredths, 5 * 900);
+  });
+
+  test('the hold prompt does not invent a block number', () {
+    // On a steady-state day `blockIndex` is null. `blockIndex ?? 1` prints
+    // "Block 1 of 11" — the FIRST block, on a day that is past the last one.
+    // The reader opening the hold sheet is told they are somewhere they are
+    // not, on the screen that asks them to make a decision about it.
+    final state = project(
+      schedule: <DayPlan>[
+        dayWith(kind: DayKind.steadyState, blockIndex: null, dayInStep: null),
+      ],
+    );
+
+    final hold = (state as TodayDose).hold;
+    expect(hold, isNotNull);
+    expect(
+      hold!.blockLabel,
+      isNot(en.blockOfTotal(1, 11)),
+      reason: 'it claimed block 1 on a day with no block',
+    );
+  });
+
+  test("a flare candidate's date range does not assume 52 days", () {
+    // A step that was HELD ran longer than 52 days, and a candidate labelled
+    // with the nominal length tells the reader they were on that dose over
+    // dates they were not. They are choosing a dose to go back to from these
+    // labels.
+    final state = project(
+      schedule: <DayPlan>[dayWith()],
+      snapshot: snapshotWith(
+        steps: <StepFacts>[
+          stepWith(status: StepStatus.completed),
+          stepWith(
+            id: 2,
+            index: 1,
+            from: const Milligrams.fromHundredths(900),
+            to: const Milligrams.fromHundredths(850),
+            // The next step began 70 days later, not 52: the first was held.
+            start: const LocalDate(2026, 6, 12),
+          ),
+        ],
+      ),
+    );
+
+    final candidate = (state as TodayDose).flare.candidates.firstWhere(
+      (candidate) => candidate.dose == const Milligrams.fromHundredths(1000),
+    );
+    expect(
+      candidate.label,
+      contains(formatDayLabel(const LocalDate(2026, 6, 12), enLocale)),
+      reason: 'the range ended at the nominal 52 days, not where it really did',
+    );
   });
 }

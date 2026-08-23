@@ -116,18 +116,15 @@ class _TodayBody extends ConsumerWidget {
     final wide =
         MediaQuery.sizeOf(context).width >= TodayScreen.sideBySideBreakpoint;
 
-    final hero = DoseHeroCard(
-      doseText: state.doseAmount,
-      unitText: state.doseUnit,
-      tabletsText: state.tablets,
+    final hero = _hero(
+      l10n: l10n,
+      notifier: notifier,
+      doseAmount: state.doseAmount,
+      doseUnit: state.doseUnit,
+      tablets: state.tablets,
       unachievableMessage: state.unachievableMessage,
-      dayKindLabel: l10n.stateNewDoseDay,
-      isNewDoseDay: state.isNewDoseDay,
-      semanticsLabel: _heroSentence(l10n, state),
-      takenLabel: state.taken ? l10n.stateTaken : l10n.markTaken,
-      isTaken: state.taken,
-      onTaken: notifier.markTakenToday,
-      onUndo: notifier.undoLast,
+      isNewDose: state.isNewDoseDay,
+      taken: state.taken,
     );
 
     final rest = <Widget>[
@@ -236,24 +233,16 @@ class _StepFinishedBody extends ConsumerWidget {
         // The hero STAYS. Day 53 carries a real dose at the step's `toDose`,
         // and a screen that showed only "start the next step" would leave the
         // reader with nothing to take today.
-        DoseHeroCard(
-          doseText: state.doseAmount,
-          unitText: state.doseUnit,
-          tabletsText: state.tablets,
+        _hero(
+          l10n: l10n,
+          notifier: notifier,
+          doseAmount: state.doseAmount,
+          doseUnit: state.doseUnit,
+          tablets: state.tablets,
           unachievableMessage: state.unachievableMessage,
-          dayKindLabel: l10n.stateNewDoseDay,
-          isNewDoseDay: false,
-          semanticsLabel: _heroSentenceFor(
-            l10n,
-            state.doseAmount,
-            state.tablets ?? state.unachievableMessage ?? '',
-            isNewDose: false,
-            taken: state.taken,
-          ),
-          takenLabel: state.taken ? l10n.stateTaken : l10n.markTaken,
-          isTaken: state.taken,
-          onTaken: notifier.markTakenToday,
-          onUndo: notifier.undoLast,
+          // Never a new-dose day: the alternation is over.
+          isNewDose: false,
+          taken: state.taken,
         ),
         SizedBox(height: padding),
         Text(
@@ -416,17 +405,42 @@ class _FinishCard extends StatelessWidget {
   }
 }
 
-/// The hero as one sentence, on a new-dose day or not.
-String _heroSentence(AppLocalizations l10n, TodayDose state) =>
-    _heroSentenceFor(
-      l10n,
-      state.doseAmount,
-      state.tablets ?? state.unachievableMessage ?? '',
-      isNewDose: state.isNewDoseDay,
-      taken: state.taken,
-    );
+/// The hero, built the same way for both variants that carry a dose.
+///
+/// Day 53 is a real day with a real dose, so `TodayStepFinished` renders the
+/// same card `TodayDose` does — and two near-copies of a nine-argument
+/// constructor is two places for the semantics sentence to drift.
+DoseHeroCard _hero({
+  required AppLocalizations l10n,
+  required TodayNotifier notifier,
+  required String doseAmount,
+  required String doseUnit,
+  required String? tablets,
+  required String? unachievableMessage,
+  required bool isNewDose,
+  required bool taken,
+}) => DoseHeroCard(
+  doseText: doseAmount,
+  unitText: doseUnit,
+  tabletsText: tablets,
+  unachievableMessage: unachievableMessage,
+  dayKindLabel: l10n.stateNewDoseDay,
+  isNewDoseDay: isNewDose,
+  semanticsLabel: _heroSentence(
+    l10n,
+    doseAmount,
+    tablets ?? unachievableMessage ?? '',
+    isNewDose: isNewDose,
+    taken: taken,
+  ),
+  takenLabel: taken ? l10n.stateTaken : l10n.markTaken,
+  isTaken: taken,
+  onTaken: notifier.markTakenToday,
+  onUndo: notifier.undoLast,
+);
 
-String _heroSentenceFor(
+/// The hero as one sentence: new-dose day, ordinary day, or already taken.
+String _heroSentence(
   AppLocalizations l10n,
   String dose,
   String breakdown, {
