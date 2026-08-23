@@ -313,6 +313,43 @@ DART
 expect_flagged "a planted .toUpperCase() is flagged" "$scratch" "casing belongs in the ARB"
 rm -f "$scratch"
 
+echo "case 12f: no hand-rolled digit tables"
+cat >"$scratch" <<'DART'
+/// Scratch.
+const faDigits = <String>['\u06F0', '\u06F1', '\u06F2'];
+DART
+expect_clean "escaped code points are not a digit TABLE the eye can misread"
+
+printf '/// Scratch.\nconst faDigits = <String>[%s];\n' \
+  "'\u06F0','\u06F1','\u06F2'" >/dev/null
+cat >"$scratch" <<'DART'
+/// Scratch.
+const faDigits = '۰۱۲۳۴۵۶۷۸۹';
+DART
+expect_flagged "a literal Persian digit table is flagged" \
+  "$scratch" "never hand-roll a digit table"
+
+cat >"$scratch" <<'DART'
+/// Scratch. The Arabic-Indic block ٠١٢ is wrong for fa, says this COMMENT.
+const note = 'ok';
+DART
+expect_clean "the same digits in a comment pass — the gate strips comments"
+rm -f "$scratch"
+
+echo "case 12g: the digit ban exempts the file that documents the block"
+if ! grep -q "'۰۱۲۳۴۵۶۷۸۹'" lib/l10n/number_formats.dart 2>/dev/null; then
+  pass "number_formats.dart carries the documented block and still passes"
+else
+  bad "number_formats.dart was expected to carry the block only in a comment"
+fi
+run_gate
+if [ "$code" -ne 0 ]; then
+  bad "the real tree fails the digit ban (exit $code)"
+  echo "$out" | sed 's/^/         /'
+else
+  pass "the real tree passes, so the exemption resolves"
+fi
+
 echo "case 13: the gate works from an arbitrary ROOT, not just the repo root"
 alt="$(mktemp -d)"
 mkdir -p "$alt/lib/features"

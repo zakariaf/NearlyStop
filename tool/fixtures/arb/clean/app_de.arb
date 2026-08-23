@@ -1,0 +1,6 @@
+{
+  "@@locale": "de",
+  "greeting": "Hallo",
+  "takenDays": "{count, plural, =1{1 Tag} other{{count} Tage}}",
+  "stepOf": "Schritt {current} von {total}"
+}

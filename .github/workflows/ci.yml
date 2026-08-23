@@ -68,6 +68,7 @@ jobs:
       - run: bash tool/check_core_purity_selftest.sh
       - run: bash tool/coverage_floor_selftest.sh
       - run: bash tool/check_raw_values_selftest.sh
+      - run: bash tool/check_arb_parity_selftest.sh
 
       # Contract: the committed generated code IS the generated code. Without
       # this, a stale `.g.dart` compiles fine locally and diverges from
@@ -78,6 +79,12 @@ jobs:
       - run: dart run build_runner build
       - name: generated code is up to date
         run: git diff --exit-code
+
+      # Contract: the committed generated localizations ARE the ARB files. A
+      # stale `lib/l10n/gen/` compiles and runs, serving yesterday's strings.
+      - run: flutter gen-l10n
+      - name: generated localizations are up to date
+        run: git diff --exit-code -- lib/l10n/gen/
 
       # Contract: the schema dump, the migration ladder and the verifier
       # helpers all describe the SAME schema. `drift_dev schema dump` snapshots
@@ -99,6 +106,12 @@ jobs:
       # promises. These are properties of the SOURCE GRAPH; a passing test cannot
       # prove an import is absent, and a grep can.
       - run: bash tool/check_bans.sh
+
+      # Contract: every locale carries exactly the template's keys, with the
+      # same placeholders and the same ICU branch shapes. A missing key ships
+      # English inside a German app and is invisible in review; a renamed
+      # placeholder breaks that translation at RUNTIME.
+      - run: bash tool/check_arb_parity.sh
 
       # Contract: lib/core/ stays pure Dart, so the domain is testable in
       # milliseconds without a widget harness (CONTRACTS.md §2).

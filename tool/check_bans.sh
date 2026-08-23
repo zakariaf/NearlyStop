@@ -154,6 +154,17 @@ add_rule lib code - \
   '\.toUpperCase\(\)' \
   "casing belongs in the ARB string — .toUpperCase() no-ops on Perso-Arabic and bypasses the translator on Latin"
 
+# A hand-written digit table gets the SEPARATOR wrong. `'۰۱۲۳۴۵۶۷۸۹'[d]` maps
+# digits and then someone writes `.` between them, producing `۱.۵` — a Persian
+# number with a Latin decimal point, which no Persian reader parses as 1.5.
+# `numberFormatFor(locale)` reads the separators from intl's symbol data along
+# with the digits. `lib/l10n/number_formats.dart` is exempt: its doc comment
+# names the U+06Fx block it is documenting, and comments are stripped before
+# matching anyway — the exemption covers the const declarations beside them.
+add_rule lib code 'lib/l10n/number_formats.dart' \
+  '[۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩]' \
+  "never hand-roll a digit table — numberFormatFor(locale) carries the digits AND the separators"
+
 # Suppressions are line-scoped with a reason. A file-scoped ignore on a rule we
 # deliberately promoted to error leaves every later edit in that file
 # unprotected — exactly the leak the promotion exists to catch.
