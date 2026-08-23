@@ -9,6 +9,42 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/features/settings/application/settings_view_state.dart';
 
 void main() {
+  group('the text size reads as a WORD, not a multiplier', () {
+    // "1" tells a 75-year-old nothing about what they are choosing, and "1.4×"
+    // tells them less. The reference frame says "Large".
+    const cases = <(double, TextSizeName)>[
+      (1, TextSizeName.normal),
+      (1.1, TextSizeName.normal),
+      (1.2, TextSizeName.large),
+      (1.4, TextSizeName.large),
+      (1.5, TextSizeName.larger),
+      (1.7, TextSizeName.larger),
+      (1.8, TextSizeName.largest),
+      (2, TextSizeName.largest),
+    ];
+
+    for (final (scale, expected) in cases) {
+      test('$scale is ${expected.name}', () {
+        expect(textSizeNameFor(scale), expected);
+      });
+    }
+
+    test('every band is reachable from the slider', () {
+      // A band no slider position can produce is a name nobody will ever see,
+      // and the way that happens is a boundary written above the maximum.
+      final reached = <TextSizeName>{
+        for (var step = 0; step <= 10; step++)
+          textSizeNameFor(quantiseTextScale(1 + step * 0.1)),
+      };
+      expect(reached, TextSizeName.values.toSet());
+    });
+
+    test('out of range still names something', () {
+      expect(textSizeNameFor(0.5), TextSizeName.normal);
+      expect(textSizeNameFor(9), TextSizeName.largest);
+    });
+  });
+
   test('a reminder time round-trips through every minute of the day', () {
     // Minutes since LOCAL midnight, never a `DateTime` and never a UTC
     // instant: EPIC-12 needs a wall clock and a rule, and a stored instant

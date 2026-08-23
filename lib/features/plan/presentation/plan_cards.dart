@@ -9,142 +9,53 @@ import 'package:flutter/material.dart';
 import 'package:nearlystop/core/dsns/facts.dart';
 import 'package:nearlystop/core/units/milligrams.dart';
 import 'package:nearlystop/features/plan/presentation/next_step_view_state.dart';
+import 'package:nearlystop/features/plan/presentation/plan_edit_form.dart';
 import 'package:nearlystop/features/plan/presentation/plan_editor_notifier.dart';
 import 'package:nearlystop/features/plan/presentation/widgets/method_segmented_control.dart';
 import 'package:nearlystop/features/plan/presentation/widgets/strength_chip.dart';
+import 'package:nearlystop/features/plan/presentation/widgets/strength_editor_sheet.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/confirm_sheet.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
+import 'package:nearlystop/features/shared/presentation/widgets/daybreak_card.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/l10n/number_formats.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
-import 'package:nearlystop/theme/daybreak_elevation.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
 
 /// A card on the Plan screen.
+///
+/// A thin naming layer over [DaybreakCard]: the surface, the radius, the
+/// shadow and the overline treatment are shared with Settings, because the
+/// reference frames show the same card on both screens.
 class PlanCard extends StatelessWidget {
   /// Creates the card.
-  const PlanCard({required this.children, this.heading, super.key});
+  const PlanCard({
+    required this.children,
+    this.heading,
+    this.headingCaps,
+    super.key,
+  });
 
-  /// The card's heading, already localized.
+  /// The card's heading in sentence case, already localized.
   final String? heading;
+
+  /// The same heading upper-cased by the translator, for Latin scripts.
+  final String? headingCaps;
 
   /// Its contents.
   final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) {
-    final colors = DaybreakColors.of(context);
-    final shapes = DaybreakShapes.of(context);
-
-    return Padding(
-      padding: EdgeInsetsDirectional.only(bottom: shapes.s4),
-      child: Container(
-        padding: EdgeInsetsDirectional.all(shapes.s4),
-        decoration: BoxDecoration(
-          color: colors.surfaceRaised,
-          borderRadius: BorderRadius.all(Radius.circular(shapes.radiusLg)),
-          boxShadow: DaybreakElevation.of(context).level1,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            if (heading case final title?) ...<Widget>[
-              Semantics(
-                header: true,
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: colors.ink,
-                  ),
-                ),
-              ),
-              SizedBox(height: shapes.s3),
-            ],
-            ...children,
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// One label-and-value line.
-class PlanRowItem extends StatelessWidget {
-  /// Creates the row.
-  const PlanRowItem({
-    required this.label,
-    required this.value,
-    this.sublabel,
-    super.key,
-  });
-
-  /// What it is, already localized.
-  final String label;
-
-  /// Its value, already formatted.
-  final String value;
-
-  /// An optional second line under the label.
-  final String? sublabel;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = DaybreakColors.of(context);
-    final shapes = DaybreakShapes.of(context);
-    final text = Theme.of(context).textTheme;
-
-    return Padding(
-      padding: EdgeInsetsDirectional.only(bottom: shapes.s2),
-      child: Semantics(
-        container: true,
-        label: '$label $value',
-        child: ExcludeSemantics(
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text(
-                      label,
-                      style: text.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: colors.ink,
-                      ),
-                    ),
-                    if (sublabel case final second?)
-                      Text(
-                        second,
-                        style: text.bodySmall?.copyWith(
-                          color: colors.inkMuted,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              // A `Row` with a flexible label, not `Alignment.centerRight`:
-              // the value belongs at the reading END, which is the left edge
-              // in Persian and the right in English.
-              SizedBox(width: shapes.s3),
-              Text(
-                value,
-                style: text.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: colors.ink,
-                  fontFeatures: const <FontFeature>[
-                    FontFeature.tabularFigures(),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsetsDirectional.only(
+      bottom: DaybreakShapes.of(context).s4,
+    ),
+    child: DaybreakCard(
+      overline: heading,
+      overlineCaps: headingCaps,
+      children: children,
+    ),
+  );
 }
 
 /// Drug, current dose, target.
@@ -154,6 +65,8 @@ class PlanSummaryCard extends StatelessWidget {
     required this.draft,
     required this.locale,
     required this.l10n,
+    required this.onChanged,
+    required this.onFieldError,
     super.key,
   });
 
@@ -166,28 +79,28 @@ class PlanSummaryCard extends StatelessWidget {
   /// The strings.
   final AppLocalizations l10n;
 
+  /// Hands back the edited draft.
+  final ValueChanged<PlanDraft> onChanged;
+
+  /// Hands back each field's current verdict.
+  final PlanFieldErrorCallback onFieldError;
+
   @override
   Widget build(BuildContext context) => PlanCard(
     children: <Widget>[
-      PlanRowItem(
-        label: draft.drugName,
-        sublabel: l10n.planMedicine,
-        value: '',
+      PlanEditForm(
+        draft: draft,
+        locale: locale,
+        l10n: l10n,
+        onChanged: onChanged,
+        onFieldError: onFieldError,
       ),
-      PlanRowItem(
-        label: l10n.planCurrentDose,
-        value: _dose(draft.currentDose),
-      ),
-      PlanRowItem(label: l10n.planTarget, value: _dose(draft.targetDose)),
     ],
   );
-
-  String _dose(Milligrams dose) =>
-      '${formatDose(dose, locale)}${l10n.milligramUnit}';
 }
 
 /// The strengths held, and whether they can be split.
-class PlanStrengthsCard extends StatelessWidget {
+class PlanStrengthsCard extends StatefulWidget {
   /// Creates the card.
   const PlanStrengthsCard({
     required this.draft,
@@ -210,12 +123,22 @@ class PlanStrengthsCard extends StatelessWidget {
   final ValueChanged<PlanDraft> onChanged;
 
   @override
+  State<PlanStrengthsCard> createState() => _PlanStrengthsCardState();
+}
+
+class _PlanStrengthsCardState extends State<PlanStrengthsCard> {
+  String? _refusal;
+
+  @override
   Widget build(BuildContext context) {
     final colors = DaybreakColors.of(context);
     final shapes = DaybreakShapes.of(context);
+    final l10n = widget.l10n;
+    final draft = widget.draft;
 
     return PlanCard(
       heading: l10n.planStrengths,
+      headingCaps: l10n.planStrengthsCaps,
       children: <Widget>[
         // A `Wrap`, never a horizontal scroller: a strength hidden off the
         // edge is a strength the person believes they do not have.
@@ -223,15 +146,35 @@ class PlanStrengthsCard extends StatelessWidget {
           spacing: shapes.s2,
           runSpacing: shapes.s2,
           children: <Widget>[
-            for (final strength in draft.strengths)
+            // BIGGEST FIRST, which is the order the box reads in and the order
+            // the reference frame shows. The domain sorts ascending — it
+            // deduplicates for storage — and rendering that order puts the
+            // tablet somebody reaches for first at the end of the row.
+            for (final strength in draft.strengths.reversed)
               StrengthChip(
-                label: '${formatDose(strength, locale)}${l10n.milligramUnit}',
+                label:
+                    '${formatDose(strength, widget.locale)}'
+                    '${l10n.milligramUnit}',
                 value: '${strength.hundredths}',
                 selected: true,
                 onSelected: (_) => _remove(strength),
               ),
           ],
         ),
+        if (_refusal case final message?) ...<Widget>[
+          SizedBox(height: shapes.s2),
+          // Announced, not merely painted: a refusal a screen reader cannot
+          // reach is a chip that silently would not go away.
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              message,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: colors.danger),
+            ),
+          ),
+        ],
         SizedBox(height: shapes.s2),
         Text(
           l10n.planStrengthsNote,
@@ -240,21 +183,41 @@ class PlanStrengthsCard extends StatelessWidget {
           ).textTheme.bodySmall?.copyWith(color: colors.inkMuted),
         ),
         SizedBox(height: shapes.s3),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TertiaryButton(label: l10n.planAddStrength, onPressed: _add),
+        ),
+        SizedBox(height: shapes.s3),
         Row(
           children: <Widget>[
             Expanded(
-              child: Text(
-                l10n.planAllowHalves,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: colors.ink,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    l10n.planAllowHalves,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colors.ink,
+                    ),
+                  ),
+                  // Which way it is set, in a word. A switch alone is a shape
+                  // whose meaning depends on which end the knob is at, and
+                  // that reading is the one this audience finds hardest.
+                  Text(
+                    draft.allowHalves ? l10n.settingsOn : l10n.settingsOff,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colors.inkMuted),
+                  ),
+                ],
               ),
             ),
             Switch(
               value: draft.allowHalves,
               onChanged: (value) =>
-                  onChanged(draft.copyWith(allowHalves: value)),
+                  widget.onChanged(draft.copyWith(allowHalves: value)),
             ),
           ],
         ),
@@ -264,14 +227,36 @@ class PlanStrengthsCard extends StatelessWidget {
 
   /// Removing the LAST strength is refused: with none held, every dose is
   /// unachievable and the app can only say so.
+  ///
+  /// Refused **out loud**. Silently ignoring the tap leaves the reader
+  /// pressing a chip that will not go away with nothing to tell them why.
   void _remove(Milligrams strength) {
-    if (draft.strengths.length <= 1) return;
-    onChanged(
-      draft.copyWith(
+    if (widget.draft.strengths.length <= 1) {
+      setState(() => _refusal = widget.l10n.planErrorLastStrength);
+      return;
+    }
+    setState(() => _refusal = null);
+    widget.onChanged(
+      widget.draft.copyWith(
         strengths: <Milligrams>[
-          for (final held in draft.strengths)
+          for (final held in widget.draft.strengths)
             if (held != strength) held,
         ],
+      ),
+    );
+  }
+
+  Future<void> _add() async {
+    final added = await showStrengthEditor(
+      context: context,
+      locale: widget.locale,
+      l10n: widget.l10n,
+    );
+    if (added == null || !mounted) return;
+    setState(() => _refusal = null);
+    widget.onChanged(
+      widget.draft.copyWith(
+        strengths: <Milligrams>[...widget.draft.strengths, added],
       ),
     );
   }
@@ -282,13 +267,18 @@ class PlanMethodCard extends StatelessWidget {
   /// Creates the card.
   const PlanMethodCard({
     required this.draft,
+    required this.locale,
     required this.l10n,
     required this.onChanged,
+    required this.onFieldError,
     super.key,
   });
 
   /// The draft being edited.
   final PlanDraft draft;
+
+  /// The app's locale, for the numerals.
+  final Locale locale;
 
   /// The strings.
   final AppLocalizations l10n;
@@ -296,9 +286,13 @@ class PlanMethodCard extends StatelessWidget {
   /// Hands back the edited draft.
   final ValueChanged<PlanDraft> onChanged;
 
+  /// Hands back each field's current verdict.
+  final PlanFieldErrorCallback onFieldError;
+
   @override
   Widget build(BuildContext context) => PlanCard(
     heading: l10n.planMethod,
+    headingCaps: l10n.planMethodCaps,
     children: <Widget>[
       MethodSegmentedControl(
         value: draft.method,
@@ -308,6 +302,13 @@ class PlanMethodCard extends StatelessWidget {
           TaperMethod.fixedMg: l10n.methodFixed,
         },
         onChanged: (method) => onChanged(draft.copyWith(method: method)),
+      ),
+      PlanMethodFields(
+        draft: draft,
+        locale: locale,
+        l10n: l10n,
+        onChanged: onChanged,
+        onFieldError: onFieldError,
       ),
     ],
   );
@@ -360,14 +361,23 @@ class PlanNextStepCard extends StatelessWidget {
     if (state == null || state.isComplete) {
       return PlanCard(
         heading: l10n.planNextStep,
+        headingCaps: l10n.planNextStepCaps,
         children: <Widget>[Text(l10n.planTaperComplete)],
       );
     }
 
     return PlanCard(
       heading: l10n.planNextStep,
+      headingCaps: l10n.planNextStepCaps,
       children: <Widget>[
-        Row(
+        // A `Wrap`, not a `Row`. At the largest OS text size `10mg → 9mg` at
+        // headlineLarge is 42pt wider than a 390pt phone, and a `Row` answers
+        // that by clipping the dose the reader is heading FOR. Wrapping costs
+        // a line; shrinking or clipping costs the number.
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: shapes.s2,
+          runSpacing: shapes.s1,
           children: <Widget>[
             Text(
               _dose(state.from),
@@ -376,10 +386,8 @@ class PlanNextStepCard extends StatelessWidget {
                 color: colors.ink,
               ),
             ),
-            SizedBox(width: shapes.s2),
             // Mirrors itself in RTL, where the taper reads right to left.
             Icon(Icons.adaptive.arrow_forward, color: colors.primaryDeep),
-            SizedBox(width: shapes.s2),
             Text(
               _dose(state.to),
               style: Theme.of(context).textTheme.headlineLarge?.copyWith(
@@ -538,6 +546,7 @@ class PlanDangerZone extends StatelessWidget {
   @override
   Widget build(BuildContext context) => PlanCard(
     heading: l10n.planDangerZone,
+    headingCaps: l10n.planDangerZoneCaps,
     children: <Widget>[
       DestructiveButton(
         label: l10n.planDelete,

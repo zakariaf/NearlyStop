@@ -187,5 +187,72 @@
   "planErrorNameTooLong": "Höchstens sechzig Zeichen",
   "planErrorLastStrength": "Mindestens eine Stärke behalten",
   "planErrorPercent": "Zwischen 1 und 50",
-  "planErrorHoldPeriod": "Mindestens ein Tag"
+  "planErrorHoldPeriod": "Mindestens ein Tag",
+  "planErrorDoseTooPrecise": "Dosen haben höchstens zwei Nachkommastellen, wie {example}",
+  "@planErrorDoseTooPrecise": {
+    "placeholders": {
+      "example": {}
+    },
+    "description": "Plan screen: a dose finer than a hundredth is flagged, never rounded."
+  },
+  "planErrorFixedStep": "Größer als null und nicht über Ihr Ziel hinaus",
+  "@planErrorFixedStep": {
+    "description": "Plan screen: the fixed step must land on or above the target."
+  },
+  "planAddStrength": "Stärke hinzufügen",
+  "@planAddStrength": {
+    "description": "Plan screen: opens the strength editor."
+  },
+  "actionAdd": "Hinzufügen",
+  "@actionAdd": {
+    "description": "Confirms adding an item."
+  },
+  "planStrengthValue": "Tablettenstärke",
+  "@planStrengthValue": {
+    "description": "Plan screen: the strength editor’s field label."
+  },
+  "settingsTextSizeNormal": "Normal",
+  "@settingsTextSizeNormal": {
+    "description": "Settings: the text-size slider at its lowest step."
+  },
+  "settingsTextSizeLarge": "Groß",
+  "@settingsTextSizeLarge": {
+    "description": "Settings: the text-size slider one step up."
+  },
+  "settingsTextSizeLarger": "Größer",
+  "@settingsTextSizeLarger": {
+    "description": "Settings: the text-size slider two steps up."
+  },
+  "settingsTextSizeLargest": "Am größten",
+  "@settingsTextSizeLargest": {
+    "description": "Settings: the text-size slider at its highest step."
+  },
+  "planStrengthsCaps": "VORHANDENE STÄRKEN",
+  "@planStrengthsCaps": {
+    "description": "The planStrengths heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "planMethodCaps": "METHODE",
+  "@planMethodCaps": {
+    "description": "The planMethod heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "planNextStepCaps": "NÄCHSTER SCHRITT",
+  "@planNextStepCaps": {
+    "description": "The planNextStep heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "planDangerZoneCaps": "GEFAHRENZONE",
+  "@planDangerZoneCaps": {
+    "description": "The planDangerZone heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "settingsBackupCaps": "SICHERUNG",
+  "@settingsBackupCaps": {
+    "description": "The settingsBackup heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "settingsAboutCaps": "ÜBER",
+  "@settingsAboutCaps": {
+    "description": "The settingsAbout heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "settingsAccessibilityCaps": "LESEN UND ERINNERUNGEN",
+  "@settingsAccessibilityCaps": {
+    "description": "The settingsAccessibility heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  }
 }

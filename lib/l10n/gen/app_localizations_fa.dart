@@ -772,4 +772,54 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get planErrorHoldPeriod => 'دست‌کم یک روز';
+
+  @override
+  String planErrorDoseTooPrecise(Object example) {
+    return 'دوز تا دو رقم اعشار، مانند $example';
+  }
+
+  @override
+  String get planErrorFixedStep => 'بیشتر از صفر و نه فراتر از هدف شما';
+
+  @override
+  String get planAddStrength => 'افزودن دوز قرص';
+
+  @override
+  String get actionAdd => 'افزودن';
+
+  @override
+  String get planStrengthValue => 'دوز قرص';
+
+  @override
+  String get settingsTextSizeNormal => 'عادی';
+
+  @override
+  String get settingsTextSizeLarge => 'بزرگ';
+
+  @override
+  String get settingsTextSizeLarger => 'بزرگ‌تر';
+
+  @override
+  String get settingsTextSizeLargest => 'بزرگ‌ترین';
+
+  @override
+  String get planStrengthsCaps => 'قرص‌های موجود';
+
+  @override
+  String get planMethodCaps => 'روش';
+
+  @override
+  String get planNextStepCaps => 'گام بعدی';
+
+  @override
+  String get planDangerZoneCaps => 'ناحیه خطر';
+
+  @override
+  String get settingsBackupCaps => 'پشتیبان';
+
+  @override
+  String get settingsAboutCaps => 'درباره';
+
+  @override
+  String get settingsAccessibilityCaps => 'خواندن و یادآوری‌ها';
 }

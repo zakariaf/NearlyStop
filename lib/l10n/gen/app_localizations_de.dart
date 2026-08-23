@@ -791,4 +791,55 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get planErrorHoldPeriod => 'Mindestens ein Tag';
+
+  @override
+  String planErrorDoseTooPrecise(Object example) {
+    return 'Dosen haben höchstens zwei Nachkommastellen, wie $example';
+  }
+
+  @override
+  String get planErrorFixedStep =>
+      'Größer als null und nicht über Ihr Ziel hinaus';
+
+  @override
+  String get planAddStrength => 'Stärke hinzufügen';
+
+  @override
+  String get actionAdd => 'Hinzufügen';
+
+  @override
+  String get planStrengthValue => 'Tablettenstärke';
+
+  @override
+  String get settingsTextSizeNormal => 'Normal';
+
+  @override
+  String get settingsTextSizeLarge => 'Groß';
+
+  @override
+  String get settingsTextSizeLarger => 'Größer';
+
+  @override
+  String get settingsTextSizeLargest => 'Am größten';
+
+  @override
+  String get planStrengthsCaps => 'VORHANDENE STÄRKEN';
+
+  @override
+  String get planMethodCaps => 'METHODE';
+
+  @override
+  String get planNextStepCaps => 'NÄCHSTER SCHRITT';
+
+  @override
+  String get planDangerZoneCaps => 'GEFAHRENZONE';
+
+  @override
+  String get settingsBackupCaps => 'SICHERUNG';
+
+  @override
+  String get settingsAboutCaps => 'ÜBER';
+
+  @override
+  String get settingsAccessibilityCaps => 'LESEN UND ERINNERUNGEN';
 }

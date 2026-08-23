@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:nearlystop/app/app_version.dart';
 import 'package:nearlystop/core/result.dart';
 import 'package:nearlystop/core/settings/app_settings.dart';
 import 'package:nearlystop/data/storage_failure.dart';
@@ -12,7 +13,6 @@ import 'package:nearlystop/features/settings/presentation/settings_screen.dart';
 import 'package:nearlystop/features/settings/presentation/widgets/settings_rows.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:riverpod/misc.dart' show Override;
 
 import '../../support/harness.dart';
@@ -23,13 +23,6 @@ void main() {
   /// The localizations the pumped screen is using.
   AppLocalizations l10nOf(WidgetTester tester) =>
       AppLocalizations.of(tester.element(find.byType(SettingsScreen)));
-
-  final info = PackageInfo(
-    appName: 'NearlyStop',
-    packageName: 'com.buzzjective.nearlystop',
-    version: '1.0.0',
-    buildNumber: '7',
-  );
 
   Future<AppLocalizations> pumpSettings(
     WidgetTester tester, {
@@ -44,7 +37,6 @@ void main() {
       const SettingsScreen(),
       overrides: <Override>[
         settingsControllerProvider.overrideWith(() => _Fixed(settings)),
-        packageInfoProvider.overrideWith((ref) => info),
       ],
       locale: locale,
       textScaler: textScaler,
@@ -53,6 +45,22 @@ void main() {
     await tester.pumpAndSettle();
     return l10n;
   }
+
+  testWidgets('the text size row names the size, never a multiplier', (
+    tester,
+  ) async {
+    final l10n = await pumpSettings(
+      tester,
+      settings: AppSettings.defaults.copyWith(textScale: 1.4),
+    );
+
+    expect(find.text(l10n.settingsTextSizeLarge), findsOneWidget);
+    expect(
+      find.text('1.4'),
+      findsNothing,
+      reason: 'a multiplier is a number the reader has to translate',
+    );
+  });
 
   testWidgets('every row clears 44, and every switch reads as a sentence', (
     tester,
@@ -241,12 +249,15 @@ void main() {
   });
 
   testWidgets('About shows a real version, as one sentence', (tester) async {
+    // The generated constant, not a fixture: the row's whole job is telling
+    // somebody reporting a problem which build they are on, and a test that
+    // stubbed the version would pass on a build that showed the wrong one.
     final handle = tester.ensureSemantics();
     final l10n = await pumpSettings(tester);
 
-    expect(find.text('1.0.0 (7)'), findsOneWidget);
+    expect(find.text(kAppVersionLabel), findsOneWidget);
     expect(
-      find.bySemanticsLabel('${l10n.settingsVersion} 1.0.0 (7)'),
+      find.bySemanticsLabel('${l10n.settingsVersion} $kAppVersionLabel'),
       findsOneWidget,
     );
     handle.dispose();

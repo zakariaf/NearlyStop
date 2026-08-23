@@ -1257,6 +1257,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'At least one day'**
   String get planErrorHoldPeriod;
+
+  /// Plan screen: a dose finer than a hundredth is flagged, never rounded.
+  ///
+  /// In en, this message translates to:
+  /// **'Doses go to two decimal places, like {example}'**
+  String planErrorDoseTooPrecise(Object example);
+
+  /// Plan screen: the fixed step must land on or above the target.
+  ///
+  /// In en, this message translates to:
+  /// **'More than zero, and no further than your target'**
+  String get planErrorFixedStep;
+
+  /// Plan screen: opens the strength editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Add strength'**
+  String get planAddStrength;
+
+  /// Confirms adding an item.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get actionAdd;
+
+  /// Plan screen: the strength editor’s field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Tablet strength'**
+  String get planStrengthValue;
+
+  /// Settings: the text-size slider at its lowest step.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get settingsTextSizeNormal;
+
+  /// Settings: the text-size slider one step up.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get settingsTextSizeLarge;
+
+  /// Settings: the text-size slider two steps up.
+  ///
+  /// In en, this message translates to:
+  /// **'Larger'**
+  String get settingsTextSizeLarger;
+
+  /// Settings: the text-size slider at its highest step.
+  ///
+  /// In en, this message translates to:
+  /// **'Largest'**
+  String get settingsTextSizeLargest;
+
+  /// The planStrengths heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'TABLET STRENGTHS HELD'**
+  String get planStrengthsCaps;
+
+  /// The planMethod heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'METHOD'**
+  String get planMethodCaps;
+
+  /// The planNextStep heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT STEP'**
+  String get planNextStepCaps;
+
+  /// The planDangerZone heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'DANGER ZONE'**
+  String get planDangerZoneCaps;
+
+  /// The settingsBackup heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'BACKUP'**
+  String get settingsBackupCaps;
+
+  /// The settingsAbout heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'ABOUT'**
+  String get settingsAboutCaps;
+
+  /// The settingsAccessibility heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'READING AND REMINDERS'**
+  String get settingsAccessibilityCaps;
 }
 
 class _AppLocalizationsDelegate

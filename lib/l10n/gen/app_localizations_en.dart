@@ -789,4 +789,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planErrorHoldPeriod => 'At least one day';
+
+  @override
+  String planErrorDoseTooPrecise(Object example) {
+    return 'Doses go to two decimal places, like $example';
+  }
+
+  @override
+  String get planErrorFixedStep =>
+      'More than zero, and no further than your target';
+
+  @override
+  String get planAddStrength => 'Add strength';
+
+  @override
+  String get actionAdd => 'Add';
+
+  @override
+  String get planStrengthValue => 'Tablet strength';
+
+  @override
+  String get settingsTextSizeNormal => 'Normal';
+
+  @override
+  String get settingsTextSizeLarge => 'Large';
+
+  @override
+  String get settingsTextSizeLarger => 'Larger';
+
+  @override
+  String get settingsTextSizeLargest => 'Largest';
+
+  @override
+  String get planStrengthsCaps => 'TABLET STRENGTHS HELD';
+
+  @override
+  String get planMethodCaps => 'METHOD';
+
+  @override
+  String get planNextStepCaps => 'NEXT STEP';
+
+  @override
+  String get planDangerZoneCaps => 'DANGER ZONE';
+
+  @override
+  String get settingsBackupCaps => 'BACKUP';
+
+  @override
+  String get settingsAboutCaps => 'ABOUT';
+
+  @override
+  String get settingsAccessibilityCaps => 'READING AND REMINDERS';
 }

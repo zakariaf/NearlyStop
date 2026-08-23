@@ -4,15 +4,10 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nearlystop/app/window_size.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_tab_bar.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/providers.dart';
-
-/// The width at which a bottom bar becomes a side rail.
-///
-/// `SPEC.md` §5.4 requires landscape to work: people prop tablets on kitchen
-/// tables, and a bottom bar there wastes the short dimension.
-const double kRailBreakpoint = 600;
 
 /// The tab bar and the branch's body.
 ///
@@ -66,7 +61,12 @@ class _AppShellState extends ConsumerState<AppShell> {
         selectedIcon: Icons.settings,
       ),
     ];
-    final isWide = MediaQuery.sizeOf(context).width >= kRailBreakpoint;
+    // The shared vocabulary: a bottom bar below `medium`, a side rail from it
+    // up. The Plan and Progress screens read their two-up decision off the
+    // same enum, so the two cannot be tuned apart.
+    final isWide = WindowSizeClass.forWidth(
+      MediaQuery.sizeOf(context).width,
+    ).isAtLeast(WindowSizeClass.medium);
     final failure = ref.watch(bootstrapErrorProvider);
 
     final body = Column(

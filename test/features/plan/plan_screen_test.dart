@@ -13,6 +13,7 @@ import 'package:nearlystop/data/providers.dart';
 import 'package:nearlystop/data/storage_failure.dart';
 import 'package:nearlystop/data/taper_repository.dart';
 import 'package:nearlystop/features/plan/presentation/plan_cards.dart';
+import 'package:nearlystop/features/plan/presentation/plan_edit_form.dart';
 import 'package:nearlystop/features/plan/presentation/plan_editor_notifier.dart';
 import 'package:nearlystop/features/plan/presentation/plan_screen.dart';
 import 'package:nearlystop/features/plan/presentation/widgets/method_segmented_control.dart';
@@ -121,11 +122,58 @@ void main() {
     await tester.tap(find.byType(PrimaryPillButton));
     await tester.pumpAndSettle();
 
+    // ON SCREEN, not merely in the tree. The Save button sits at the bottom of
+    // a long scrolling form; a confirmation rendered at the top of it is a
+    // confirmation the reader who just tapped Save never sees — the tap looks
+    // like it did nothing.
     expect(find.text(l10n.planSaved), findsOneWidget);
+    final notice = tester.getRect(find.byKey(PlanScreen.noticeKey));
+    final viewport = tester.getRect(find.byType(Scaffold));
+    expect(
+      notice.overlaps(viewport),
+      isTrue,
+      reason: 'the confirmation must be where the finger just was',
+    );
     final saved = snapshotOf(tester)!;
     expect(saved.plan, isNotNull);
     expect(saved.steps, hasLength(1));
     expect(saved.steps.single.index, 0);
+  });
+
+  planTest('Save is dead while a field cannot be READ, and only then', (
+    tester,
+  ) async {
+    // Tall enough that the whole form is BUILT: a `ListView` does not build
+    // what is off-screen, so a shorter surface would make this test measure
+    // the viewport rather than the button.
+    final l10n = await pumpPlan(tester, size: const Size(390, 2600));
+
+    PrimaryPillButton save() => tester.widget<PrimaryPillButton>(
+      find.widgetWithText(PrimaryPillButton, l10n.planSave),
+    );
+
+    expect(save().onPressed, isNotNull);
+
+    await tester.enterText(find.byKey(PlanEditForm.currentDoseKey), '1.2.3');
+    await tester.pump();
+    expect(
+      save().onPressed,
+      isNull,
+      reason:
+          'saving text the app cannot read would store the OLD dose '
+          'while the field shows a different number',
+    );
+
+    await tester.enterText(find.byKey(PlanEditForm.currentDoseKey), '9.5');
+    await tester.pump();
+    expect(save().onPressed, isNotNull);
+
+    // A warning is not a refusal: 120mg is a real starting dose for giant
+    // cell arteritis.
+    await tester.enterText(find.byKey(PlanEditForm.currentDoseKey), '120');
+    await tester.pump();
+    expect(find.text(l10n.planErrorDoseTooHigh), findsOneWidget);
+    expect(save().onPressed, isNotNull);
   });
 
   planTest('the caveat shows exactly when the engine says it diverges', (

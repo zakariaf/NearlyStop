@@ -773,4 +773,54 @@ class AppLocalizationsCkb extends AppLocalizations {
 
   @override
   String get planErrorHoldPeriod => 'لانیکەم یەک ڕۆژ';
+
+  @override
+  String planErrorDoseTooPrecise(Object example) {
+    return 'دۆز تا دوو ژمارەی دەیی، وەک $example';
+  }
+
+  @override
+  String get planErrorFixedStep => 'زیاتر لە سفر و نەک زیاتر لە ئامانجەکەت';
+
+  @override
+  String get planAddStrength => 'زیادکردنی هێزی حەب';
+
+  @override
+  String get actionAdd => 'زیادکردن';
+
+  @override
+  String get planStrengthValue => 'هێزی حەب';
+
+  @override
+  String get settingsTextSizeNormal => 'ئاسایی';
+
+  @override
+  String get settingsTextSizeLarge => 'گەورە';
+
+  @override
+  String get settingsTextSizeLarger => 'گەورەتر';
+
+  @override
+  String get settingsTextSizeLargest => 'گەورەترین';
+
+  @override
+  String get planStrengthsCaps => 'هێزی حەبەکانی بەردەست';
+
+  @override
+  String get planMethodCaps => 'شێواز';
+
+  @override
+  String get planNextStepCaps => 'هەنگاوی داهاتوو';
+
+  @override
+  String get planDangerZoneCaps => 'ناوچەی مەترسی';
+
+  @override
+  String get settingsBackupCaps => 'پاڵپشت';
+
+  @override
+  String get settingsAboutCaps => 'دەربارە';
+
+  @override
+  String get settingsAccessibilityCaps => 'خوێندنەوە و بیرخەرەوەکان';
 }

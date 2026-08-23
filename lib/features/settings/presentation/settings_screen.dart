@@ -9,16 +9,9 @@ import 'package:nearlystop/features/settings/presentation/settings_cards.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 /// The app's version and build, read once.
 ///
-/// A provider so a widget test can hand it a fixed value: a screen that shells
-/// out to a plugin in `build` cannot be tested at all, and the version string
-/// is the first thing somebody reads out when they report a lost plan.
-final FutureProvider<PackageInfo> packageInfoProvider =
-    FutureProvider<PackageInfo>((ref) => PackageInfo.fromPlatform());
-
 /// Backup, before EPIC-13 fills it in.
 ///
 /// Wired to a stub that reports "not built yet" rather than left as a dead
@@ -36,6 +29,9 @@ class SettingsScreen extends ConsumerStatefulWidget {
   /// A settings row 1200px wide puts its control a hand's width from its
   /// label. 640 is the reading measure the rest of the app uses.
   static const double maxContentWidth = 640;
+
+  /// Finds the reading column, so its width is assertable.
+  static const Key contentKey = Key('settings-content');
 
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
@@ -64,6 +60,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       body: Align(
         alignment: AlignmentDirectional.topCenter,
         child: ConstrainedBox(
+          key: SettingsScreen.contentKey,
           constraints: const BoxConstraints(
             maxWidth: SettingsScreen.maxContentWidth,
           ),

@@ -2,67 +2,48 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:nearlystop/features/shared/presentation/widgets/daybreak_card.dart';
+import 'package:nearlystop/features/shared/presentation/widgets/glyph_tile.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
-import 'package:nearlystop/theme/daybreak_elevation.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
 
 /// A card of settings rows, with a heading.
+///
+/// A thin naming layer over [DaybreakCard]: the surface, the radius, the
+/// shadow and the overline treatment are shared with the Plan screen, because
+/// the reference frames show the same card on both.
 class SettingsCard extends StatelessWidget {
   /// Creates the card.
-  const SettingsCard({required this.children, this.heading, super.key});
+  const SettingsCard({
+    required this.children,
+    this.heading,
+    this.headingCaps,
+    super.key,
+  });
 
-  /// The card's heading, already localized. Omitted on the first card, which
-  /// the screen title already names.
+  /// The card's heading in sentence case, already localized.
   final String? heading;
+
+  /// The same heading upper-cased by the translator, for Latin scripts.
+  final String? headingCaps;
 
   /// The rows.
   final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) {
-    final colors = DaybreakColors.of(context);
-    final shapes = DaybreakShapes.of(context);
-
-    return Padding(
-      padding: EdgeInsetsDirectional.only(bottom: shapes.s4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          if (heading case final title?) ...<Widget>[
-            Padding(
-              padding: EdgeInsetsDirectional.only(
-                start: shapes.s2,
-                bottom: shapes.s2,
-              ),
-              child: Semantics(
-                header: true,
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: colors.inkMuted,
-                  ),
-                ),
-              ),
-            ),
-          ],
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: colors.surfaceRaised,
-              borderRadius: BorderRadius.all(Radius.circular(shapes.radiusLg)),
-              boxShadow: DaybreakElevation.of(context).level1,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: children,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsetsDirectional.only(
+      bottom: DaybreakShapes.of(context).s4,
+    ),
+    child: DaybreakCard(
+      overline: heading,
+      overlineCaps: headingCaps,
+      // Zero, so a divider reaches both edges: each row owns its own inset,
+      // and a card-level pad would leave a hairline floating in white.
+      padding: EdgeInsets.zero,
+      children: children,
+    ),
+  );
 }
 
 /// One settings row: a glyph, a title, a sublabel and a trailing control.
@@ -116,7 +97,7 @@ class SettingsRow extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          Icon(glyph, size: 22, color: colors.primaryDeep),
+          GlyphTile(glyph: glyph),
           SizedBox(width: shapes.s3),
           Expanded(
             child: Column(

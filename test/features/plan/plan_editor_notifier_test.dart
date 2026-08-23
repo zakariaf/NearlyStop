@@ -144,7 +144,7 @@ void main() {
 
       expect(
         await container.read(planEditorProvider.notifier).save(),
-        isA<Ok>(),
+        isA<Ok<void, StorageFailure>>(),
       );
 
       final saved = await snapshotOf(container);

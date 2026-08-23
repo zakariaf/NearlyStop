@@ -16,6 +16,47 @@ import 'package:nearlystop/theme/daybreak_motion.dart';
 import '../../../support/harness.dart';
 
 void main() {
+  testWidgets('a pill may carry a leading glyph, and it is decoration', (
+    tester,
+  ) async {
+    // The reference's accept action is "✓ I understand". The glyph repeats
+    // what the label already says, so it must NOT reach the semantics tree —
+    // "tick, I understand" is the button read twice.
+    final handle = tester.ensureSemantics();
+    await pumpApp(
+      tester,
+      Material(
+        child: Center(
+          child: PrimaryPillButton(
+            label: 'I understand',
+            glyph: Icons.check,
+            onPressed: () {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.check), findsOneWidget);
+    expect(
+      tester.getSemantics(find.byType(PrimaryPillButton)).label,
+      'I understand',
+    );
+    handle.dispose();
+  });
+
+  testWidgets('a pill without a glyph draws none', (tester) async {
+    await pumpApp(
+      tester,
+      Material(
+        child: Center(
+          child: PrimaryPillButton(label: 'Save plan', onPressed: () {}),
+        ),
+      ),
+    );
+
+    expect(find.byType(Icon), findsNothing);
+  });
+
   const confirmRequest = ConfirmRequest(
     title: 'Delete this plan?',
     body: 'Your history and your total are kept.',

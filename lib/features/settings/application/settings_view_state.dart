@@ -35,6 +35,43 @@ double quantiseTextScale(double raw) {
   return (bounded * 10).round() / 10;
 }
 
+/// The text size, as a word.
+///
+/// The reference frame says "Large", not "1.4". A multiplier is a number the
+/// reader has to translate into an experience; the whole audience for this row
+/// is people for whom that translation is the hard part.
+enum TextSizeName {
+  /// The OS size, unchanged.
+  normal(kMinTextScaleSetting),
+
+  /// A step up.
+  large(1.2),
+
+  /// Two steps up.
+  larger(1.5),
+
+  /// As large as the app goes on its own.
+  largest(1.8);
+
+  const TextSizeName(this.from);
+
+  /// The smallest scale that carries this name.
+  final double from;
+}
+
+/// The name for [scale].
+///
+/// Clamps at both ends rather than returning null: a slider cannot produce a
+/// value outside its own range, but a stored setting written by an older
+/// build can, and an unnamed size would render blank.
+TextSizeName textSizeNameFor(double scale) {
+  var result = TextSizeName.normal;
+  for (final candidate in TextSizeName.values) {
+    if (scale >= candidate.from) result = candidate;
+  }
+  return result;
+}
+
 /// What the language row can be set to.
 ///
 /// Each option names itself **in its own script**. Never transliterated: the

@@ -18,6 +18,19 @@ import 'package:nearlystop/data/taper_repository.dart';
 import 'package:nearlystop/features/plan/domain/default_strengths.dart';
 import 'package:nearlystop/features/plan/presentation/next_step_view_state.dart';
 
+/// The percentage a percentage taper starts at.
+///
+/// SPEC §11.3's default. Kept out of the field so the draft can say "not
+/// chosen yet" — a stored 10 the reader never typed is a decision the app made
+/// on their behalf and then hid.
+const int kDefaultPercentage = 10;
+
+/// The largest percentage step the app will accept.
+///
+/// Half the dose in one step is not a taper; past this the field is refusing a
+/// typo, not a plan.
+const int kMaxPercentagePerStep = 50;
+
 /// The editable facts, plus the step override.
 ///
 /// A draft is **never** the persisted row. Mutating it writes nothing; `save`
@@ -73,6 +86,9 @@ final class PlanDraft {
 
   /// The step the user chose instead of the suggestion. **Wins** (SPEC §3.2).
   final Milligrams? stepOverride;
+
+  /// [percentage], or the default when the reader has not chosen one.
+  int get effectivePercentage => percentage ?? kDefaultPercentage;
 
   /// This draft with the named fields replaced.
   PlanDraft copyWith({
@@ -283,8 +299,13 @@ class PlanEditorNotifier extends Notifier<PlanDraft> {
       allowHalves: state.allowHalves,
       method: state.method,
       stepSize: step,
-      percentage: state.percentage,
-      fixedStep: state.fixedStep,
+      // Only the CHOSEN method's arithmetic is written. A fixed step left over
+      // from a method the reader abandoned would sit in the row looking like
+      // part of the plan, and `nominalStepLength` would read it back.
+      percentage: state.method == TaperMethod.percentage
+          ? state.effectivePercentage
+          : null,
+      fixedStep: state.method == TaperMethod.fixedMg ? state.fixedStep : null,
       holdPeriodDays: state.holdPeriodDays,
     );
 

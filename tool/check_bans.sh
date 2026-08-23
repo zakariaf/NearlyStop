@@ -162,7 +162,10 @@ add_rule lib code - \
 # digits and then someone writes `.` between them, producing `۱.۵` — a Persian
 # number with a Latin decimal point, which no Persian reader parses as 1.5.
 # `numberFormatFor(locale)` reads the separators from intl's symbol data along
-# with the digits.
+# with the digits. The SEPARATORS ٫ and ٬ are in the class too: a formatter
+# that allows a literal ٫ while the parser reads its separator from symbol
+# data accepts a keystroke it then refuses, and the person retyping it cannot
+# see any difference.
 #
 # **No exemption.** One was written for `lib/l10n/number_formats.dart`, on the
 # theory that its doc comment names the U+06Fx block — but comments are
@@ -170,7 +173,7 @@ add_rule lib code - \
 # protected nothing. An exemption that has never been needed is a hole waiting
 # for the day it is.
 add_rule lib code - \
-  '[۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩]' \
+  '[۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩٫٬]' \
   "never hand-roll a digit table — numberFormatFor(locale) carries the digits AND the separators"
 
 # Route paths live in lib/routing/routes.dart and nowhere else. A '/today'

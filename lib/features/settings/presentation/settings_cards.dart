@@ -7,12 +7,12 @@
 library;
 
 import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:nearlystop/app/app_version.dart';
 import 'package:nearlystop/app/locale_providers.dart';
 import 'package:nearlystop/core/result.dart';
 import 'package:nearlystop/core/settings/app_settings.dart';
@@ -22,6 +22,7 @@ import 'package:nearlystop/features/settings/presentation/settings_screen.dart';
 import 'package:nearlystop/features/settings/presentation/widgets/settings_rows.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_sheet.dart';
+import 'package:nearlystop/features/shared/presentation/widgets/glyph_tile.dart';
 import 'package:nearlystop/l10n/app_locales.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/l10n/number_formats.dart';
@@ -30,7 +31,6 @@ import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_script.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
 import 'package:nearlystop/theme/daybreak_theme.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 /// A write through EPIC-06's controller, with the message to show if it fails.
 typedef SettingsWrite =
@@ -63,6 +63,7 @@ class AccessibilityCard extends ConsumerWidget {
 
     return SettingsCard(
       heading: l10n.settingsAccessibility,
+      headingCaps: l10n.settingsAccessibilityCaps,
       children: <Widget>[
         SettingsRow(
           glyph: Icons.notifications_none,
@@ -144,6 +145,15 @@ class TextSizeRow extends ConsumerWidget {
   /// How to write.
   final SettingsWrite onWrite;
 
+  /// The current size, in the reader's own words.
+  String _sizeName(AppLocalizations l10n, double value) =>
+      switch (textSizeNameFor(value)) {
+        TextSizeName.normal => l10n.settingsTextSizeNormal,
+        TextSizeName.large => l10n.settingsTextSizeLarge,
+        TextSizeName.larger => l10n.settingsTextSizeLarger,
+        TextSizeName.largest => l10n.settingsTextSizeLargest,
+      };
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
@@ -164,7 +174,7 @@ class TextSizeRow extends ConsumerWidget {
         children: <Widget>[
           Row(
             children: <Widget>[
-              Icon(Icons.format_size, size: 22, color: colors.primaryDeep),
+              const GlyphTile(glyph: Icons.format_size),
               SizedBox(width: shapes.s3),
               Expanded(
                 child: Text(
@@ -176,13 +186,10 @@ class TextSizeRow extends ConsumerWidget {
                 ),
               ),
               Text(
-                numbers.format(value),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colors.inkMuted,
-                  fontFeatures: const <FontFeature>[
-                    FontFeature.tabularFigures(),
-                  ],
-                ),
+                _sizeName(l10n, value),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: colors.inkMuted),
               ),
             ],
           ),
@@ -478,6 +485,7 @@ class _BackupCardState extends ConsumerState<BackupCard> {
 
     return SettingsCard(
       heading: l10n.settingsBackup,
+      headingCaps: l10n.settingsBackupCaps,
       children: <Widget>[
         Padding(
           padding: EdgeInsetsDirectional.all(shapes.s4),
@@ -528,15 +536,15 @@ class AboutCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final info = ref.watch(packageInfoProvider);
-    final version = switch (info) {
-      AsyncData<PackageInfo>(:final value) =>
-        '${value.version} (${value.buildNumber})',
-      _ => '',
-    };
+    // A build-time constant, generated from `pubspec.yaml`. Reading it back
+    // off the platform would cost `package_info_plus`, which pulls
+    // `package:http` into the binary of an app whose whole premise is that it
+    // has no network path.
+    const version = kAppVersionLabel;
 
     return SettingsCard(
       heading: l10n.settingsAbout,
+      headingCaps: l10n.settingsAboutCaps,
       children: <Widget>[
         SettingsRow(
           glyph: Icons.medication_outlined,
@@ -552,15 +560,13 @@ class AboutCard extends ConsumerWidget {
           // Long-press to copy: it is the first thing somebody has to read out
           // when they report a lost plan, and reading a build number aloud
           // over the phone is how it gets written down wrong.
-          onTap: version.isEmpty
-              ? null
-              : () async {
-                  await Clipboard.setData(ClipboardData(text: version));
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-                    SnackBar(content: Text(l10n.settingsVersionCopied)),
-                  );
-                },
+          onTap: () async {
+            await Clipboard.setData(const ClipboardData(text: version));
+            if (!context.mounted) return;
+            ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+              SnackBar(content: Text(l10n.settingsVersionCopied)),
+            );
+          },
         ),
         const SettingsDivider(),
         SettingsRow(

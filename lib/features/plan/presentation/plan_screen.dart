@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nearlystop/app/derived_schedule_provider.dart';
 import 'package:nearlystop/app/locale_providers.dart';
+import 'package:nearlystop/app/window_size.dart';
 import 'package:nearlystop/core/dsns/facts.dart';
 import 'package:nearlystop/core/dsns/schedule_generator.dart';
 import 'package:nearlystop/core/result.dart';
@@ -13,6 +14,7 @@ import 'package:nearlystop/data/providers.dart';
 import 'package:nearlystop/data/storage_failure.dart';
 import 'package:nearlystop/data/taper_repository.dart';
 import 'package:nearlystop/features/plan/presentation/plan_cards.dart';
+import 'package:nearlystop/features/plan/presentation/plan_edit_form.dart';
 import 'package:nearlystop/features/plan/presentation/plan_editor_notifier.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/confirm_sheet.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
@@ -29,9 +31,6 @@ class PlanScreen extends ConsumerStatefulWidget {
   /// Creates the screen.
   const PlanScreen({super.key});
 
-  /// Above this width the cards go two-up.
-  static const double twoPaneBreakpoint = 840;
-
   /// Finds the save/failure notice.
   static const Key noticeKey = Key('plan-notice');
 
@@ -41,6 +40,21 @@ class PlanScreen extends ConsumerStatefulWidget {
 
 class _PlanScreenState extends ConsumerState<PlanScreen> {
   String? _notice;
+
+  /// What each field last said, keyed by field.
+  ///
+  /// The Save button is derived from this rather than from a stored `bool`:
+  /// `FormState.validate()` calls `setState` on every field and so cannot run
+  /// during a build, which is exactly when the answer is needed.
+  final Map<PlanField, String?> _fieldErrors = <PlanField, String?>{};
+
+  /// Whether every field that has spoken reads back.
+  bool get _fieldsRead => _fieldErrors.values.every((error) => error == null);
+
+  void _reportFieldError(PlanField field, String? error) {
+    if (_fieldErrors[field] == error && _fieldErrors.containsKey(field)) return;
+    setState(() => _fieldErrors[field] = error);
+  }
 
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context);
@@ -89,10 +103,21 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       _ => null,
     };
     final preview = editor.preview();
-    final wide =
-        MediaQuery.sizeOf(context).width > PlanScreen.twoPaneBreakpoint;
+    // The shared vocabulary, not a literal: the shell picks its rail off the
+    // same enum, and two hand-tuned numbers drift the first time one is
+    // changed. `isAtLeast` is inclusive on purpose — a 840pt tablet IS the
+    // expanded class, and `>` would leave that exact device one-up.
+    final wide = WindowSizeClass.forWidth(
+      MediaQuery.sizeOf(context).width,
+    ).isAtLeast(WindowSizeClass.expanded);
 
-    final summary = PlanSummaryCard(draft: draft, locale: locale, l10n: l10n);
+    final summary = PlanSummaryCard(
+      draft: draft,
+      locale: locale,
+      l10n: l10n,
+      onChanged: (next) => editor.edit((_) => next),
+      onFieldError: _reportFieldError,
+    );
     final strengths = PlanStrengthsCard(
       draft: draft,
       locale: locale,
@@ -101,8 +126,10 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     );
     final method = PlanMethodCard(
       draft: draft,
+      locale: locale,
       l10n: l10n,
       onChanged: (next) => editor.edit((_) => next),
+      onFieldError: _reportFieldError,
     );
     final nextStep = PlanNextStepCard(
       preview: preview,
@@ -120,8 +147,6 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       body: ListView(
         padding: EdgeInsetsDirectional.all(shapes.s5),
         children: <Widget>[
-          if (_notice case final message?)
-            PlanNotice(message: message, key: PlanScreen.noticeKey),
           if (wide)
             IntrinsicHeight(
               child: Row(
@@ -137,10 +162,20 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
           method,
           nextStep,
           SizedBox(height: shapes.s4),
+          // Beside the button that produced it, not at the top of the list.
+          // Save sits at the bottom of a long scrolling form; a confirmation
+          // rendered above the first card is one the reader who just tapped it
+          // never sees, and the tap reads as having done nothing.
+          if (_notice case final message?)
+            PlanNotice(message: message, key: PlanScreen.noticeKey),
           PrimaryPillButton(
             label: l10n.planSave,
             expand: true,
-            onPressed: _save,
+            // Disabled only while a field cannot be READ. A warning — "that is
+            // a very high dose" — leaves it enabled: 120mg is a real starting
+            // dose for giant cell arteritis, and refusing it would tell
+            // somebody with a prescription that their own dose is impossible.
+            onPressed: _fieldsRead ? _save : null,
           ),
           SizedBox(height: shapes.s6),
           PlanDangerZone(

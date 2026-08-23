@@ -1099,5 +1099,72 @@
   "planErrorHoldPeriod": "At least one day",
   "@planErrorHoldPeriod": {
     "description": "Plan screen: planErrorHoldPeriod."
+  },
+  "planErrorDoseTooPrecise": "Doses go to two decimal places, like {example}",
+  "@planErrorDoseTooPrecise": {
+    "placeholders": {
+      "example": {}
+    },
+    "description": "Plan screen: a dose finer than a hundredth is flagged, never rounded."
+  },
+  "planErrorFixedStep": "More than zero, and no further than your target",
+  "@planErrorFixedStep": {
+    "description": "Plan screen: the fixed step must land on or above the target."
+  },
+  "planAddStrength": "Add strength",
+  "@planAddStrength": {
+    "description": "Plan screen: opens the strength editor."
+  },
+  "actionAdd": "Add",
+  "@actionAdd": {
+    "description": "Confirms adding an item."
+  },
+  "planStrengthValue": "Tablet strength",
+  "@planStrengthValue": {
+    "description": "Plan screen: the strength editor’s field label."
+  },
+  "settingsTextSizeNormal": "Normal",
+  "@settingsTextSizeNormal": {
+    "description": "Settings: the text-size slider at its lowest step."
+  },
+  "settingsTextSizeLarge": "Large",
+  "@settingsTextSizeLarge": {
+    "description": "Settings: the text-size slider one step up."
+  },
+  "settingsTextSizeLarger": "Larger",
+  "@settingsTextSizeLarger": {
+    "description": "Settings: the text-size slider two steps up."
+  },
+  "settingsTextSizeLargest": "Largest",
+  "@settingsTextSizeLargest": {
+    "description": "Settings: the text-size slider at its highest step."
+  },
+  "planStrengthsCaps": "TABLET STRENGTHS HELD",
+  "@planStrengthsCaps": {
+    "description": "The planStrengths heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "planMethodCaps": "METHOD",
+  "@planMethodCaps": {
+    "description": "The planMethod heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "planNextStepCaps": "NEXT STEP",
+  "@planNextStepCaps": {
+    "description": "The planNextStep heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "planDangerZoneCaps": "DANGER ZONE",
+  "@planDangerZoneCaps": {
+    "description": "The planDangerZone heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "settingsBackupCaps": "BACKUP",
+  "@settingsBackupCaps": {
+    "description": "The settingsBackup heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "settingsAboutCaps": "ABOUT",
+  "@settingsAboutCaps": {
+    "description": "The settingsAbout heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "settingsAccessibilityCaps": "READING AND REMINDERS",
+  "@settingsAccessibilityCaps": {
+    "description": "The settingsAccessibility heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
   }
 }

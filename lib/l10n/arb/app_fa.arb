@@ -187,5 +187,72 @@
   "planErrorNameTooLong": "حداکثر شصت نویسه",
   "planErrorLastStrength": "دست‌کم یک قرص نگه دارید",
   "planErrorPercent": "بین ۱ تا ۵۰",
-  "planErrorHoldPeriod": "دست‌کم یک روز"
+  "planErrorHoldPeriod": "دست‌کم یک روز",
+  "planErrorDoseTooPrecise": "دوز تا دو رقم اعشار، مانند {example}",
+  "@planErrorDoseTooPrecise": {
+    "placeholders": {
+      "example": {}
+    },
+    "description": "Plan screen: a dose finer than a hundredth is flagged, never rounded."
+  },
+  "planErrorFixedStep": "بیشتر از صفر و نه فراتر از هدف شما",
+  "@planErrorFixedStep": {
+    "description": "Plan screen: the fixed step must land on or above the target."
+  },
+  "planAddStrength": "افزودن دوز قرص",
+  "@planAddStrength": {
+    "description": "Plan screen: opens the strength editor."
+  },
+  "actionAdd": "افزودن",
+  "@actionAdd": {
+    "description": "Confirms adding an item."
+  },
+  "planStrengthValue": "دوز قرص",
+  "@planStrengthValue": {
+    "description": "Plan screen: the strength editor’s field label."
+  },
+  "settingsTextSizeNormal": "عادی",
+  "@settingsTextSizeNormal": {
+    "description": "Settings: the text-size slider at its lowest step."
+  },
+  "settingsTextSizeLarge": "بزرگ",
+  "@settingsTextSizeLarge": {
+    "description": "Settings: the text-size slider one step up."
+  },
+  "settingsTextSizeLarger": "بزرگ‌تر",
+  "@settingsTextSizeLarger": {
+    "description": "Settings: the text-size slider two steps up."
+  },
+  "settingsTextSizeLargest": "بزرگ‌ترین",
+  "@settingsTextSizeLargest": {
+    "description": "Settings: the text-size slider at its highest step."
+  },
+  "planStrengthsCaps": "قرص‌های موجود",
+  "@planStrengthsCaps": {
+    "description": "The planStrengths heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "planMethodCaps": "روش",
+  "@planMethodCaps": {
+    "description": "The planMethod heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "planNextStepCaps": "گام بعدی",
+  "@planNextStepCaps": {
+    "description": "The planNextStep heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "planDangerZoneCaps": "ناحیه خطر",
+  "@planDangerZoneCaps": {
+    "description": "The planDangerZone heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "settingsBackupCaps": "پشتیبان",
+  "@settingsBackupCaps": {
+    "description": "The settingsBackup heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "settingsAboutCaps": "درباره",
+  "@settingsAboutCaps": {
+    "description": "The settingsAbout heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "settingsAccessibilityCaps": "خواندن و یادآوری‌ها",
+  "@settingsAccessibilityCaps": {
+    "description": "The settingsAccessibility heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  }
 }
