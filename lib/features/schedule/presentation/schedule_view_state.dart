@@ -30,12 +30,14 @@ final class ScheduleDayVm {
     required this.date,
     required this.dayLabel,
     required this.doseLabel,
+    required this.spokenDose,
     required this.tabletsLabel,
     required this.unachievable,
     required this.state,
     required this.isNewDose,
     required this.isHoldDay,
     required this.holdLabel,
+    required this.holdBlockNumber,
     required this.tickable,
     required this.plannedMg,
     required this.recordedSource,
@@ -60,6 +62,14 @@ final class ScheduleDayVm {
 
   /// "9mg".
   final String doseLabel;
+
+  /// "9" — the amount without its unit, in the locale's numerals.
+  ///
+  /// The screen reader's sentence says "9 milligrams", not "9mg milligrams"
+  /// and not "nine em gee". Today's screen made the same call, and two
+  /// spellings of one dose across two screens is a difference a reader tries
+  /// to explain.
+  final String spokenDose;
 
   /// "1 × 5mg · 4 × 1mg", or the unachievable message.
   final String tabletsLabel;
@@ -87,6 +97,13 @@ final class ScheduleDayVm {
   /// job is making the structure legible.
   final String? holdLabel;
 
+  /// The block a hold day extends, or null when it extends no block.
+  ///
+  /// Carried as a NUMBER as well as a label because the screen reader's
+  /// sentence frames it differently from the visible chip, and re-parsing the
+  /// chip's text to get the digit back would be a locale bug waiting.
+  final int? holdBlockNumber;
+
   /// Whether this row can be ticked: the active step, and not in the future.
   final bool tickable;
 
@@ -105,12 +122,14 @@ final class ScheduleDayVm {
     date,
     dayLabel,
     doseLabel,
+    spokenDose,
     tabletsLabel,
     unachievable,
     state,
     isNewDose,
     isHoldDay,
     holdLabel,
+    holdBlockNumber,
     tickable,
     plannedMg,
     recordedSource,

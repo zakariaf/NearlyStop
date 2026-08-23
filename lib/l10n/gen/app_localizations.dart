@@ -821,6 +821,58 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Step {index} of {total} — {from} to {to}'**
   String stepRangeLabel(int index, int total, Object from, Object to);
+
+  /// One schedule row as one sentence, for the screen reader.
+  ///
+  /// In en, this message translates to:
+  /// **'{day}, {dose} milligrams: {breakdown}.{notes}'**
+  String scheduleDaySemantics(
+    Object day,
+    Object dose,
+    Object breakdown,
+    Object notes,
+  );
+
+  /// Clause marking a new-dose day.
+  ///
+  /// In en, this message translates to:
+  /// **' New dose day.'**
+  String get scheduleNoteNewDose;
+
+  /// Clause explaining a hold day inside a block.
+  ///
+  /// In en, this message translates to:
+  /// **' Held, an extra day in block {block}.'**
+  String scheduleNoteHeld(int block);
+
+  /// Clause explaining a hold day with no block.
+  ///
+  /// In en, this message translates to:
+  /// **' Held, an extra day.'**
+  String get scheduleNoteHeldNoBlock;
+
+  /// Clause carrying the day state word.
+  ///
+  /// In en, this message translates to:
+  /// **' {state}.'**
+  String scheduleNoteState(Object state);
+
+  /// Clause warning the dose cannot be made.
+  ///
+  /// In en, this message translates to:
+  /// **' This dose cannot be made from the tablets you hold.'**
+  String get scheduleNoteUnachievable;
+
+  /// Today's schedule row as one sentence; it says so first.
+  ///
+  /// In en, this message translates to:
+  /// **'Today. {day}, {dose} milligrams: {breakdown}.{notes}'**
+  String scheduleTodaySemantics(
+    Object day,
+    Object dose,
+    Object breakdown,
+    Object notes,
+  );
 }
 
 class _AppLocalizationsDelegate

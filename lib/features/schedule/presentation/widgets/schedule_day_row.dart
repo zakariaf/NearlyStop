@@ -53,29 +53,62 @@ class ScheduleDayRow extends StatelessWidget {
       semanticsLabel: _sentence(l10n),
     );
 
-    if (!tickable) {
-      return Semantics(
-        hint: l10n.pastStepReadOnly,
-        child: row,
-      );
-    }
-
-    return Material(
-      type: MaterialType.transparency,
-      child: InkWell(
-        onTap: () => onToggle!(day),
-        borderRadius: BorderRadius.all(Radius.circular(shapes.radiusMd)),
-        child: row,
+    // ONE semantics node, built here rather than by the component: the row is
+    // read as one sentence, and six fragments per day is 312 rotor stops over
+    // a 52-day step. The `InkWell`'s own node is excluded and its tap is
+    // re-declared on the container.
+    return Semantics(
+      container: true,
+      button: tickable,
+      label: _sentence(l10n),
+      hint: tickable ? null : l10n.pastStepReadOnly,
+      onTap: tickable ? () => onToggle!(day) : null,
+      child: ExcludeSemantics(
+        child: tickable
+            ? Material(
+                type: MaterialType.transparency,
+                child: InkWell(
+                  onTap: () => onToggle!(day),
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(shapes.radiusMd),
+                  ),
+                  child: row,
+                ),
+              )
+            : row,
       ),
     );
   }
 
-  String _sentence(AppLocalizations l10n) => <String>[
-    day.dayLabel,
-    day.doseLabel,
-    day.tabletsLabel,
-    ?day.holdLabel,
-    if (day.isNewDose) l10n.stateNewDoseDay,
-    stateWord(l10n, day.state),
-  ].join(', ');
+  /// The row as one sentence, framed by the ARB and never concatenated here.
+  ///
+  /// Each clause is its own localized fragment with its own punctuation, so
+  /// Persian and Kurdish get their own comma and their own word order rather
+  /// than English's joined with a separator.
+  String _sentence(AppLocalizations l10n) {
+    // TWO frames, not a prefix pasted on: "Today" leads the sentence, and
+    // which end of a sentence leads is the locale's decision, not this file's.
+    final frame = day.state == DayState.today
+        ? l10n.scheduleTodaySemantics
+        : l10n.scheduleDaySemantics;
+    return frame(
+      day.dayLabel,
+      day.spokenDose,
+      day.tabletsLabel,
+      <String>[
+        if (day.isNewDose) l10n.scheduleNoteNewDose,
+        if (day.isHoldDay) _heldNote(l10n),
+        if (day.unachievable) l10n.scheduleNoteUnachievable,
+        l10n.scheduleNoteState(stateWord(l10n, day.state)),
+      ].join(),
+    );
+  }
+
+  /// The hold clause, with the block number when there is one.
+  String _heldNote(AppLocalizations l10n) {
+    final block = day.holdBlockNumber;
+    return block == null
+        ? l10n.scheduleNoteHeldNoBlock
+        : l10n.scheduleNoteHeld(block);
+  }
 }

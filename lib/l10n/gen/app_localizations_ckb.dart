@@ -477,4 +477,44 @@ class AppLocalizationsCkb extends AppLocalizations {
   String stepRangeLabel(int index, int total, Object from, Object to) {
     return 'هەنگاوی $index لە $total — $from بۆ $to';
   }
+
+  @override
+  String scheduleDaySemantics(
+    Object day,
+    Object dose,
+    Object breakdown,
+    Object notes,
+  ) {
+    return '$day، $dose میلیگرام: $breakdown.$notes';
+  }
+
+  @override
+  String get scheduleNoteNewDose => ' ڕۆژی دۆزی نوێ.';
+
+  @override
+  String scheduleNoteHeld(int block) {
+    return ' ڕاگیراوە، ڕۆژێکی زیادە لە بەشی $block.';
+  }
+
+  @override
+  String get scheduleNoteHeldNoBlock => ' ڕاگیراوە، ڕۆژێکی زیادە.';
+
+  @override
+  String scheduleNoteState(Object state) {
+    return ' $state.';
+  }
+
+  @override
+  String get scheduleNoteUnachievable =>
+      ' ئەم دۆزە لە قورساییەکانی دەستت دروست نابێت.';
+
+  @override
+  String scheduleTodaySemantics(
+    Object day,
+    Object dose,
+    Object breakdown,
+    Object notes,
+  ) {
+    return 'ئەمڕۆ. $day، $dose میلیگرام: $breakdown.$notes';
+  }
 }

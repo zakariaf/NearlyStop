@@ -487,4 +487,44 @@ class AppLocalizationsDe extends AppLocalizations {
   String stepRangeLabel(int index, int total, Object from, Object to) {
     return 'Schritt $index von $total — $from auf $to';
   }
+
+  @override
+  String scheduleDaySemantics(
+    Object day,
+    Object dose,
+    Object breakdown,
+    Object notes,
+  ) {
+    return '$day, $dose Milligramm: $breakdown.$notes';
+  }
+
+  @override
+  String get scheduleNoteNewDose => ' Tag der neuen Dosis.';
+
+  @override
+  String scheduleNoteHeld(int block) {
+    return ' Gehalten, ein zusätzlicher Tag in Block $block.';
+  }
+
+  @override
+  String get scheduleNoteHeldNoBlock => ' Gehalten, ein zusätzlicher Tag.';
+
+  @override
+  String scheduleNoteState(Object state) {
+    return ' $state.';
+  }
+
+  @override
+  String get scheduleNoteUnachievable =>
+      ' Diese Dosis lässt sich aus Ihren Tabletten nicht zusammenstellen.';
+
+  @override
+  String scheduleTodaySemantics(
+    Object day,
+    Object dose,
+    Object breakdown,
+    Object notes,
+  ) {
+    return 'Heute. $day, $dose Milligramm: $breakdown.$notes';
+  }
 }

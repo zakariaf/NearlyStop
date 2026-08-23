@@ -730,5 +730,53 @@
       "from": {},
       "to": {}
     }
+  },
+  "scheduleDaySemantics": "{day}, {dose} milligrams: {breakdown}.{notes}",
+  "@scheduleDaySemantics": {
+    "description": "One schedule row as one sentence, for the screen reader.",
+    "placeholders": {
+      "day": {},
+      "dose": {},
+      "breakdown": {},
+      "notes": {}
+    }
+  },
+  "scheduleNoteNewDose": " New dose day.",
+  "@scheduleNoteNewDose": {
+    "description": "Clause marking a new-dose day."
+  },
+  "scheduleNoteHeld": " Held, an extra day in block {block}.",
+  "@scheduleNoteHeld": {
+    "description": "Clause explaining a hold day inside a block.",
+    "placeholders": {
+      "block": {
+        "type": "int"
+      }
+    }
+  },
+  "scheduleNoteHeldNoBlock": " Held, an extra day.",
+  "@scheduleNoteHeldNoBlock": {
+    "description": "Clause explaining a hold day with no block."
+  },
+  "scheduleNoteState": " {state}.",
+  "@scheduleNoteState": {
+    "description": "Clause carrying the day state word.",
+    "placeholders": {
+      "state": {}
+    }
+  },
+  "scheduleNoteUnachievable": " This dose cannot be made from the tablets you hold.",
+  "@scheduleNoteUnachievable": {
+    "description": "Clause warning the dose cannot be made."
+  },
+  "scheduleTodaySemantics": "Today. {day}, {dose} milligrams: {breakdown}.{notes}",
+  "@scheduleTodaySemantics": {
+    "description": "Today's schedule row as one sentence; it says so first.",
+    "placeholders": {
+      "day": {},
+      "dose": {},
+      "breakdown": {},
+      "notes": {}
+    }
   }
 }

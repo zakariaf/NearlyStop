@@ -477,4 +477,44 @@ class AppLocalizationsFa extends AppLocalizations {
   String stepRangeLabel(int index, int total, Object from, Object to) {
     return 'گام $index از $total — $from به $to';
   }
+
+  @override
+  String scheduleDaySemantics(
+    Object day,
+    Object dose,
+    Object breakdown,
+    Object notes,
+  ) {
+    return '$day، $dose میلی‌گرم: $breakdown.$notes';
+  }
+
+  @override
+  String get scheduleNoteNewDose => ' روز دوز جدید.';
+
+  @override
+  String scheduleNoteHeld(int block) {
+    return ' نگه‌داشته شده، یک روز اضافه در مرحله $block.';
+  }
+
+  @override
+  String get scheduleNoteHeldNoBlock => ' نگه‌داشته شده، یک روز اضافه.';
+
+  @override
+  String scheduleNoteState(Object state) {
+    return ' $state.';
+  }
+
+  @override
+  String get scheduleNoteUnachievable =>
+      ' این دوز با قرص‌هایی که دارید ساخته نمی‌شود.';
+
+  @override
+  String scheduleTodaySemantics(
+    Object day,
+    Object dose,
+    Object breakdown,
+    Object notes,
+  ) {
+    return 'امروز. $day، $dose میلی‌گرم: $breakdown.$notes';
+  }
 }

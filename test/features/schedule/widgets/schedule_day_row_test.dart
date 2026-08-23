@@ -24,12 +24,14 @@ void main() {
     bool tickable = true,
     bool isHoldDay = false,
     String? holdLabel,
+    int? holdBlockNumber = 3,
     bool isNewDose = false,
     bool unachievable = false,
   }) => ScheduleDayVm(
     date: date,
     dayLabel: 'Thu, Apr 16',
     doseLabel: '9mg',
+    spokenDose: '9',
     tabletsLabel: unachievable
         ? 'Cannot be made from the tablets you hold: 9mg'
         : '1 × 5mg · 4 × 1mg',
@@ -38,6 +40,7 @@ void main() {
     isNewDose: isNewDose,
     isHoldDay: isHoldDay,
     holdLabel: holdLabel,
+    holdBlockNumber: isHoldDay ? holdBlockNumber : null,
     tickable: tickable,
     plannedMg: const Milligrams.fromHundredths(900),
     recordedSource: state == DayState.taken,

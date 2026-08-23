@@ -117,5 +117,12 @@
   "jumpToToday": "Zu heute springen",
   "futureDayNotYet": "Ein Tag in der Zukunft kann nicht abgehakt werden",
   "stepSwitcherTitle": "Schritt auswählen",
-  "stepRangeLabel": "Schritt {index} von {total} — {from} auf {to}"
+  "stepRangeLabel": "Schritt {index} von {total} — {from} auf {to}",
+  "scheduleDaySemantics": "{day}, {dose} Milligramm: {breakdown}.{notes}",
+  "scheduleNoteNewDose": " Tag der neuen Dosis.",
+  "scheduleNoteHeld": " Gehalten, ein zusätzlicher Tag in Block {block}.",
+  "scheduleNoteHeldNoBlock": " Gehalten, ein zusätzlicher Tag.",
+  "scheduleNoteState": " {state}.",
+  "scheduleNoteUnachievable": " Diese Dosis lässt sich aus Ihren Tabletten nicht zusammenstellen.",
+  "scheduleTodaySemantics": "Heute. {day}, {dose} Milligramm: {breakdown}.{notes}"
 }

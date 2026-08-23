@@ -117,5 +117,12 @@
   "jumpToToday": "بازدان بۆ ئەمڕۆ",
   "futureDayNotYet": "ناتوانیت ڕۆژێک تۆمار بکەیت کە هێشتا نەهاتووە",
   "stepSwitcherTitle": "هەنگاوێک هەڵبژێرە",
-  "stepRangeLabel": "هەنگاوی {index} لە {total} — {from} بۆ {to}"
+  "stepRangeLabel": "هەنگاوی {index} لە {total} — {from} بۆ {to}",
+  "scheduleDaySemantics": "{day}، {dose} میلیگرام: {breakdown}.{notes}",
+  "scheduleNoteNewDose": " ڕۆژی دۆزی نوێ.",
+  "scheduleNoteHeld": " ڕاگیراوە، ڕۆژێکی زیادە لە بەشی {block}.",
+  "scheduleNoteHeldNoBlock": " ڕاگیراوە، ڕۆژێکی زیادە.",
+  "scheduleNoteState": " {state}.",
+  "scheduleNoteUnachievable": " ئەم دۆزە لە قورساییەکانی دەستت دروست نابێت.",
+  "scheduleTodaySemantics": "ئەمڕۆ. {day}، {dose} میلیگرام: {breakdown}.{notes}"
 }

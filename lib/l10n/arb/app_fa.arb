@@ -117,5 +117,12 @@
   "jumpToToday": "پرش به امروز",
   "futureDayNotYet": "روزی که هنوز نرسیده را نمی‌توان ثبت کرد",
   "stepSwitcherTitle": "انتخاب گام",
-  "stepRangeLabel": "گام {index} از {total} — {from} به {to}"
+  "stepRangeLabel": "گام {index} از {total} — {from} به {to}",
+  "scheduleDaySemantics": "{day}، {dose} میلی‌گرم: {breakdown}.{notes}",
+  "scheduleNoteNewDose": " روز دوز جدید.",
+  "scheduleNoteHeld": " نگه‌داشته شده، یک روز اضافه در مرحله {block}.",
+  "scheduleNoteHeldNoBlock": " نگه‌داشته شده، یک روز اضافه.",
+  "scheduleNoteState": " {state}.",
+  "scheduleNoteUnachievable": " این دوز با قرص‌هایی که دارید ساخته نمی‌شود.",
+  "scheduleTodaySemantics": "امروز. {day}، {dose} میلی‌گرم: {breakdown}.{notes}"
 }
