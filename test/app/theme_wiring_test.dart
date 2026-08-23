@@ -140,9 +140,11 @@ void main() {
     tester,
   ) async {
     // Ours is bounded because it is OUR control. A stored 4.0 — from a corrupt
-    // row or a future slider with a wider range — is capped at 1.5. The OS half
-    // is never touched: 3.0 from the phone stays 3.0.
-    expect(await scaledTen(tester, stored: 4), closeTo(15, 0.001));
+    // row or a future slider with a wider range — is capped at
+    // `kMaxUserTextScale`, which EPIC-11 raised from 1.5 to 2.0 so SPEC 5.4's
+    // "on top of the OS setting" has somewhere to go for a phone already at
+    // its maximum. The OS half is never touched: 3.0 from the phone stays 3.0.
+    expect(await scaledTen(tester, stored: 4), closeTo(20, 0.001));
     expect(await scaledTen(tester, stored: 0.1), closeTo(9, 0.001));
     expect(
       await scaledTen(
