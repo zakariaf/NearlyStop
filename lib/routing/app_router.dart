@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nearlystop/core/settings/app_settings.dart';
 import 'package:nearlystop/features/plan/presentation/plan_screen.dart';
@@ -11,9 +12,9 @@ import 'package:nearlystop/features/settings/application/settings_controller.dar
 import 'package:nearlystop/features/settings/presentation/settings_screen.dart';
 import 'package:nearlystop/features/shell/presentation/app_shell.dart';
 import 'package:nearlystop/features/today/presentation/today_screen.dart';
+import 'package:nearlystop/features/welcome/presentation/widgets/disclaimer_sheet.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/routing/routes.dart';
-import 'package:riverpod/riverpod.dart';
 
 /// A `Listenable` that fires when the disclaimer's acceptance changes.
 ///
@@ -146,44 +147,40 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((ref) {
 });
 
 /// The gate. EPIC-11 fills in the content; EPIC-06 owns that it cannot be left.
-class _WelcomeGate extends StatelessWidget {
+class _WelcomeGate extends ConsumerWidget {
   const _WelcomeGate();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     return PopScope(
       // No system-back escape. `SPEC.md` §4.0 calls this a modal, not a tab.
       canPop: false,
       child: Scaffold(
+        // EPIC-07 recipe 10, which is the component built for this screen: it
+        // scrolls (at the largest OS text size this column overflowed by 296px
+        // on a 390x844 phone), and it keeps the accept action disabled until
+        // the reader reaches the end of the text.
+        //
+        // Before this it rendered the disclaimer and NOTHING ELSE. On a fresh
+        // install the app opened on a screen with no action and no way back,
+        // and every router test asserted where the redirect lands rather than
+        // whether the gate can be left.
         body: SafeArea(
-          // SCROLLABLE, and not optional. At the largest OS text size this
-          // column overflowed by 296px on a 390x844 phone — clipping the
-          // disclaimer the gate exists to make the user read, on the one
-          // screen `PopScope(canPop: false)` will not let them leave.
-          // CLAUDE.md rule 4: largest OS text size on every screen, without
-          // clipping.
-          child: SingleChildScrollView(
-            padding: const EdgeInsetsDirectional.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Text(
-                  l10n.welcomeTitle,
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  l10n.welcomeDisclaimer,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  l10n.welcomeOffline,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
+          child: DisclaimerSheet(
+            title: l10n.welcomeTitle,
+            body: '${l10n.welcomeDisclaimer}\n\n${l10n.welcomeOffline}',
+            actionLabel: l10n.welcomeAccept,
+            isGate: true,
+            onAccept: () async {
+              // The redirect is driven by `disclaimerAcceptedAt`, so writing it
+              // IS the navigation — `_DisclaimerListenable` refreshes the
+              // router and the gate redirects to Today.
+              await ref
+                  .read(settingsControllerProvider.notifier)
+                  .acceptDisclaimer();
+            },
+            onClose: () {},
           ),
         ),
       ),
@@ -200,11 +197,18 @@ class _DisclaimerReread extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsReadDisclaimer)),
-      body: Padding(
-        padding: const EdgeInsetsDirectional.all(24),
-        child: Text(
-          l10n.welcomeDisclaimer,
-          style: Theme.of(context).textTheme.bodyLarge,
+      // The SAME component as the gate, in its dismissible mode. Two renderings
+      // of the disclaimer is two places for it to drift, and the one that
+      // drifts is the one nobody opens.
+      body: SafeArea(
+        top: false,
+        child: DisclaimerSheet(
+          title: l10n.welcomeTitle,
+          body: '${l10n.welcomeDisclaimer}\n\n${l10n.welcomeOffline}',
+          actionLabel: l10n.actionClose,
+          isGate: false,
+          onAccept: () {},
+          onClose: () => context.pop(),
         ),
       ),
     );
