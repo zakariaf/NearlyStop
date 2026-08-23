@@ -20,6 +20,11 @@ environment:
 # telemetry path in an app whose store listing will claim neither.
 # tool/check_bans.sh and tool/audit-deps.sh make that refusal a gate.
 dependencies:
+  # Grapheme-cluster counting. Task 8's string budgets are measured in
+  # clusters, not UTF-16 units: a Perso-Arabic string carrying a combining mark
+  # overcounts by one on `String.length` and would fail a budget the layout
+  # actually meets.
+  characters: ^1.3.0
   clock: ^1.1.1
   # Capped, deliberately. drift >=2.34.1 moved `GeneratedDatabase` onto the
   # drift3 preview API, and the newest drift_dev this Flutter SDK can resolve
