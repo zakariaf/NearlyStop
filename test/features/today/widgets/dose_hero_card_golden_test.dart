@@ -26,23 +26,27 @@ DoseHeroCard cardFor(String languageCode, {required bool isTaken}) =>
         doseText: '۹',
         unitText: 'میلی‌گرم',
         tabletsText: '۱ × ۵ میلی‌گرم · ۴ × ۱ میلی‌گرم',
-        dateText: 'پنجشنبه ۲۷ فروردین',
+        unachievableMessage: null,
         dayKindLabel: 'روز دوز جدید',
+        isNewDoseDay: true,
         semanticsLabel: 'امروز، ۹ میلی‌گرم.',
         takenLabel: 'ثبت مصرف امروز',
         isTaken: isTaken,
         onTaken: () {},
+        onUndo: () {},
       )
     : DoseHeroCard(
         doseText: '9',
         unitText: 'mg',
         tabletsText: '1 × 5mg · 4 × 1mg',
-        dateText: 'Thursday 16 April',
+        unachievableMessage: null,
         dayKindLabel: 'New dose day',
+        isNewDoseDay: true,
         semanticsLabel: 'Today, 9 milligrams.',
         takenLabel: 'Mark as taken',
         isTaken: isTaken,
         onTaken: () {},
+        onUndo: () {},
       );
 
 void main() {

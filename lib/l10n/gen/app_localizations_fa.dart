@@ -295,4 +295,136 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get shellStorageError =>
       'تنظیمات شما بارگذاری نشد، بنابراین برنامه از مقادیر پیش‌فرض استفاده می‌کند.';
+
+  @override
+  String doseNotAchievable(Object dose) {
+    return 'با قرص‌هایی که دارید ساخته نمی‌شود: $dose میلی‌گرم';
+  }
+
+  @override
+  String holdingAtDose(Object dose) {
+    return 'ثابت روی $dose';
+  }
+
+  @override
+  String nDaysNotTicked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count روز گذشته ثبت نشده است',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get stepFinishedExplainer =>
+      'روزهای این گام تمام شد. دوز شما تا شروع گام بعدی همین‌جا می‌ماند.';
+
+  @override
+  String get startNextStep => 'شروع گام بعدی';
+
+  @override
+  String get holdNeedsActiveStep => 'گامی در جریان نیست که متوقف شود';
+
+  @override
+  String get markTaken => 'ثبت مصرف امروز';
+
+  @override
+  String takenAt(Object time) {
+    return 'مصرف شد ساعت $time';
+  }
+
+  @override
+  String get markedAsTaken => 'به عنوان مصرف‌شده ثبت شد';
+
+  @override
+  String contextLineSemantics(
+    Object step,
+    Object total,
+    Object from,
+    Object to,
+    Object day,
+    Object length,
+  ) {
+    return 'گام $step از $total، کاهش از $from به $to، روز $day از $length';
+  }
+
+  @override
+  String todaySemanticsNewDose(Object dose, Object breakdown) {
+    return 'امروز، $dose میلی‌گرم: $breakdown. روز دوز جدید. هنوز مصرف نشده.';
+  }
+
+  @override
+  String get flareTitle => 'ثبت عود';
+
+  @override
+  String get flarePickDose => 'بازگشت به دوزی که مؤثر بود';
+
+  @override
+  String get flareHistoryKept =>
+      'تاریخچه و مجموع شما تا امروز نگه داشته می‌شود. روزهای از امروز به بعد از این دوز بازسازی می‌شوند.';
+
+  @override
+  String get flareConfirm => 'ثبت عود';
+
+  @override
+  String flareDateRange(Object dose, Object from, Object to) {
+    return '$dose — از $from تا $to';
+  }
+
+  @override
+  String get flareNoHistory =>
+      'هنوز گامی را تمام نکرده‌اید، پس دوز قبلی برای بازگشت وجود ندارد.';
+
+  @override
+  String get holdTitle => 'ماندن روی این دوز';
+
+  @override
+  String get holdExtraDays => 'روزهای بیشتر';
+
+  @override
+  String holdConsequence(Object dose, Object days) {
+    return 'شما $days روز دیگر روی $dose می‌مانید. گام رها نمی‌شود و چیزی از دست نمی‌رود.';
+  }
+
+  @override
+  String get holdConfirm => 'ماندن';
+
+  @override
+  String get noteTitle => 'یادداشت امروز';
+
+  @override
+  String get noteHint => 'امروز چطور بود؟';
+
+  @override
+  String get noteSave => 'ذخیره یادداشت';
+
+  @override
+  String get taperCompleteTitle => 'به هدف خود رسیدید';
+
+  @override
+  String get taperCompleteBody =>
+      'کاهش دوز شما به پایان رسید. همچنان دستورات پزشکتان را دنبال کنید.';
+
+  @override
+  String get noPlanHeading => 'برنامه شما از اینجا شروع می‌شود';
+
+  @override
+  String get noPlanBody =>
+      'برنامه‌ای را که با پزشکتان توافق کرده‌اید اضافه کنید تا این صفحه هر صبح نشان دهد چه باید مصرف کنید.';
+
+  @override
+  String get noPlanAction => 'برنامه‌ام را تنظیم کن';
+
+  @override
+  String get errorTitle => 'در خواندن برنامه شما مشکلی پیش آمد';
+
+  @override
+  String get errorRetry => 'دوباره تلاش کنید';
+
+  @override
+  String get actionNotNow => 'حالا نه';
+
+  @override
+  String get backfillAction => 'اکنون ثبت کن';
 }

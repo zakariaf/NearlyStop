@@ -16,6 +16,7 @@ failures=0
 
 cleanup() {
   rm -f "$scratch" "$scratch2" "$data_scratch"
+  rm -rf lib/features/_scratchfeature
   [ -f "$clock_backup" ] && mv "$clock_backup" "$clock"
   return 0
 }
@@ -415,6 +416,42 @@ elif ! grep -q 'zero network calls' <<<"$out"; then
 else
   pass "an explicit ROOT is scanned, not silently skipped"
 fi
+
+echo "case 14: the presentation-widget layering rules, and their SCOPE"
+widget_dir=lib/features/_scratchfeature/presentation/widgets
+mkdir -p "$widget_dir"
+widget="$widget_dir/planted.dart"
+
+cat >"$widget" <<'DART'
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+/// Scratch.
+void scratch() {}
+DART
+expect_flagged "a widget importing Riverpod is flagged" \
+  "$widget" "a presentation widget may not import drift"
+
+cat >"$widget" <<'DART'
+import 'package:flutter/material.dart';
+
+/// Scratch.
+class Scratch extends ConsumerWidget {}
+DART
+expect_flagged "a widget naming ConsumerWidget is flagged" \
+  "$widget" "a presentation widget may not name WidgetRef"
+
+# The other arm, and the one that matters: the rule is CONFINED. A screen —
+# one directory up from `widgets/` — is exactly where the Consumer belongs, and
+# a rule that flagged it would be a rule somebody deletes.
+cat >"$widget_dir/../planted_screen.dart" <<'DART'
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+/// Scratch.
+abstract class Scratch extends ConsumerWidget {}
+DART
+rm -f "$widget"
+expect_clean "the same import in a SCREEN, one level up, is allowed"
+rm -rf lib/features/_scratchfeature
 
 if [ "$failures" -ne 0 ]; then
   echo "check_bans_selftest: $failures case(s) failed"

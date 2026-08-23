@@ -299,4 +299,137 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get shellStorageError =>
       'Your settings could not be loaded, so the app is using its defaults.';
+
+  @override
+  String doseNotAchievable(Object dose) {
+    return 'Cannot be made from the tablets you hold: ${dose}mg';
+  }
+
+  @override
+  String holdingAtDose(Object dose) {
+    return 'Holding at $dose';
+  }
+
+  @override
+  String nDaysNotTicked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'You haven’t marked the last $count days',
+      one: 'Yesterday wasn’t ticked',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get stepFinishedExplainer =>
+      'This step’s days are done. Your dose stays here until you start the next one.';
+
+  @override
+  String get startNextStep => 'Start next step';
+
+  @override
+  String get holdNeedsActiveStep => 'There is no step running to hold';
+
+  @override
+  String get markTaken => 'Mark as taken';
+
+  @override
+  String takenAt(Object time) {
+    return 'Taken at $time';
+  }
+
+  @override
+  String get markedAsTaken => 'Marked as taken';
+
+  @override
+  String contextLineSemantics(
+    Object step,
+    Object total,
+    Object from,
+    Object to,
+    Object day,
+    Object length,
+  ) {
+    return 'Step $step of $total, reducing from $from to $to, day $day of $length';
+  }
+
+  @override
+  String todaySemanticsNewDose(Object dose, Object breakdown) {
+    return 'Today, $dose milligrams: $breakdown. New dose day. Not yet taken.';
+  }
+
+  @override
+  String get flareTitle => 'Record a flare';
+
+  @override
+  String get flarePickDose => 'Go back to a dose that worked';
+
+  @override
+  String get flareHistoryKept =>
+      'Your history and your total so far are kept. Days from today are rebuilt from this dose.';
+
+  @override
+  String get flareConfirm => 'Record flare';
+
+  @override
+  String flareDateRange(Object dose, Object from, Object to) {
+    return '$dose — from $from to $to';
+  }
+
+  @override
+  String get flareNoHistory =>
+      'You have not finished a step yet, so there is no earlier dose to go back to.';
+
+  @override
+  String get holdTitle => 'Hold at this dose';
+
+  @override
+  String get holdExtraDays => 'Extra days';
+
+  @override
+  String holdConsequence(Object dose, Object days) {
+    return 'You stay at $dose for $days more days. The step is not abandoned and nothing is lost.';
+  }
+
+  @override
+  String get holdConfirm => 'Hold';
+
+  @override
+  String get noteTitle => 'Note for today';
+
+  @override
+  String get noteHint => 'How did today go?';
+
+  @override
+  String get noteSave => 'Save note';
+
+  @override
+  String get taperCompleteTitle => 'You reached your target';
+
+  @override
+  String get taperCompleteBody =>
+      'Your taper is finished. Keep following your doctor’s instructions.';
+
+  @override
+  String get noPlanHeading => 'Your plan starts here';
+
+  @override
+  String get noPlanBody =>
+      'Add the plan you and your doctor agreed, and this screen will show what to take each morning.';
+
+  @override
+  String get noPlanAction => 'Set up my plan';
+
+  @override
+  String get errorTitle => 'Something went wrong reading your plan';
+
+  @override
+  String get errorRetry => 'Try again';
+
+  @override
+  String get actionNotNow => 'Not now';
+
+  @override
+  String get backfillAction => 'Mark them now';
 }

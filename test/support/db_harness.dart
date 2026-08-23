@@ -48,6 +48,17 @@ AppDatabase openTestDatabase() {
   return (db: db, file: file);
 }
 
+/// Reopens a file-backed database over bytes an earlier one left behind.
+///
+/// The other half of [openTempFileDatabase]: a persistence claim needs the
+/// first database CLOSED and a second one opened over the same file, because
+/// that is the only shape in which "it survived" means anything.
+AppDatabase reopenFileDatabase(File file) {
+  final db = AppDatabase.forTesting(NativeDatabase(file));
+  addTearDown(db.close);
+  return db;
+}
+
 /// A [DatabaseLocation] that answers with a directory the test controls, and
 /// counts how many times it was asked.
 ///

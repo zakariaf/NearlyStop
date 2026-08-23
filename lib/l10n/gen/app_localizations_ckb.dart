@@ -295,4 +295,136 @@ class AppLocalizationsCkb extends AppLocalizations {
   @override
   String get shellStorageError =>
       'ڕێکخستنەکانت بار نەکران، بۆیە ئەپەکە بنەڕەتەکانی خۆی بەکاردەهێنێت.';
+
+  @override
+  String doseNotAchievable(Object dose) {
+    return 'لە حەبەکانی تۆ دروست نابێت: $dose میلیگرام';
+  }
+
+  @override
+  String holdingAtDose(Object dose) {
+    return 'جێگیر لەسەر $dose';
+  }
+
+  @override
+  String nDaysNotTicked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ڕۆژی ڕابردوو تۆمار نەکراون',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get stepFinishedExplainer =>
+      'ڕۆژەکانی ئەم هەنگاوە تەواوبوون. دۆزەکەت لێرە دەمێنێتەوە تا هەنگاوی داهاتوو دەست پێبکەیت.';
+
+  @override
+  String get startNextStep => 'دەستپێکردنی هەنگاوی داهاتوو';
+
+  @override
+  String get holdNeedsActiveStep => 'هیچ هەنگاوێک نییە کە بوەستێنرێت';
+
+  @override
+  String get markTaken => 'وەک وەرگیراو تۆمار بکە';
+
+  @override
+  String takenAt(Object time) {
+    return 'وەرگیرا لە $time';
+  }
+
+  @override
+  String get markedAsTaken => 'وەک وەرگیراو تۆمار کرا';
+
+  @override
+  String contextLineSemantics(
+    Object step,
+    Object total,
+    Object from,
+    Object to,
+    Object day,
+    Object length,
+  ) {
+    return 'هەنگاوی $step لە $total، کەمکردنەوە لە $from بۆ $to، ڕۆژی $day لە $length';
+  }
+
+  @override
+  String todaySemanticsNewDose(Object dose, Object breakdown) {
+    return 'ئەمڕۆ، $dose میلیگرام: $breakdown. ڕۆژی دۆزی نوێ. هێشتا وەرنەگیراوە.';
+  }
+
+  @override
+  String get flareTitle => 'تۆمارکردنی هەڵگیرسانەوە';
+
+  @override
+  String get flarePickDose => 'گەڕانەوە بۆ دۆزێک کە کاری کرد';
+
+  @override
+  String get flareHistoryKept =>
+      'مێژوو و کۆی گشتیت دەپارێزرێن. ڕۆژەکانی لە ئەمڕۆوە لەم دۆزەوە دروست دەکرێنەوە.';
+
+  @override
+  String get flareConfirm => 'هەڵگیرسانەوە تۆمار بکە';
+
+  @override
+  String flareDateRange(Object dose, Object from, Object to) {
+    return '$dose — لە $from بۆ $to';
+  }
+
+  @override
+  String get flareNoHistory =>
+      'هێشتا هیچ هەنگاوێکت تەواو نەکردووە، بۆیە دۆزێکی پێشووتر نییە.';
+
+  @override
+  String get holdTitle => 'مانەوە لەسەر ئەم دۆزە';
+
+  @override
+  String get holdExtraDays => 'ڕۆژی زیادە';
+
+  @override
+  String holdConsequence(Object dose, Object days) {
+    return 'بۆ $days ڕۆژی تر لەسەر $dose دەمێنیتەوە. هەنگاوەکە وازی لێ ناهێنرێت و هیچ لەدەست ناچێت.';
+  }
+
+  @override
+  String get holdConfirm => 'وەستان';
+
+  @override
+  String get noteTitle => 'تێبینی بۆ ئەمڕۆ';
+
+  @override
+  String get noteHint => 'ئەمڕۆ چۆن بوو؟';
+
+  @override
+  String get noteSave => 'پاشەکەوتکردنی تێبینی';
+
+  @override
+  String get taperCompleteTitle => 'گەیشتیتە ئامانجەکەت';
+
+  @override
+  String get taperCompleteBody =>
+      'کەمکردنەوەکەت تەواوبوو. بەردەوام بە لەسەر ڕێنماییەکانی پزیشکەکەت.';
+
+  @override
+  String get noPlanHeading => 'پلانەکەت لێرەوە دەست پێدەکات';
+
+  @override
+  String get noPlanBody =>
+      'ئەو پلانە زیاد بکە کە لەگەڵ پزیشکەکەت ڕێککەوتوویت، ئەم شاشەیە هەموو بەیانییەک پیشانت دەدات چی وەربگریت.';
+
+  @override
+  String get noPlanAction => 'پلانەکەم ڕێک بخە';
+
+  @override
+  String get errorTitle => 'لە خوێندنەوەی پلانەکەت هەڵەیەک ڕوویدا';
+
+  @override
+  String get errorRetry => 'دووبارە هەوڵ بدە';
+
+  @override
+  String get actionNotNow => 'ئێستا نا';
+
+  @override
+  String get backfillAction => 'ئێستا تۆماریان بکە';
 }

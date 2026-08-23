@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
 import 'package:nearlystop/features/today/presentation/widgets/dose_hero_card.dart';
+import 'package:nearlystop/features/today/presentation/widgets/new_dose_badge.dart';
 import 'package:nearlystop/features/today/presentation/widgets/sunrise_arc_painter.dart';
+import 'package:nearlystop/features/today/presentation/widgets/tablet_breakdown_pill.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_typography.dart';
 
@@ -26,6 +28,12 @@ void main() {
   Future<void> pumpCard(
     WidgetTester tester, {
     bool isTaken = false,
+    bool isNewDoseDay = true,
+    String? tabletsText = '1 × 5mg · 4 × 1mg',
+    String? unachievableMessage,
+    String takenLabel = 'Taken',
+    VoidCallback? onTaken,
+    VoidCallback? onUndo,
     TextScaler textScaler = TextScaler.noScaling,
     Locale locale = const Locale('en'),
     Brightness brightness = Brightness.light,
@@ -34,13 +42,15 @@ void main() {
     DoseHeroCard(
       doseText: '9',
       unitText: 'mg',
-      tabletsText: '1 × 5mg · 4 × 1mg',
-      dateText: 'Wed, Apr 16',
+      tabletsText: tabletsText,
+      unachievableMessage: unachievableMessage,
       dayKindLabel: 'New dose day',
+      isNewDoseDay: isNewDoseDay,
       semanticsLabel: _sentence,
-      takenLabel: 'Taken',
+      takenLabel: takenLabel,
       isTaken: isTaken,
-      onTaken: () => taps++,
+      onTaken: onTaken ?? () => taps++,
+      onUndo: onUndo ?? () {},
     ),
     locale: locale,
     brightness: brightness,
@@ -228,5 +238,79 @@ void main() {
       reason: 'the label was clipped by a fixed height',
     );
     expect(tester.takeException(), isNull);
+  });
+
+  group('task 5: the badge, the pill and the unachievable path', () {
+    testWidgets('isNewDoseDay renders the badge with a glyph AND words', (
+      tester,
+    ) async {
+      await pumpCard(tester);
+
+      expect(find.byType(NewDoseBadge), findsOneWidget);
+      expect(find.text('New dose day'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(NewDoseBadge),
+          matching: find.byIcon(NewDoseBadge.glyph),
+        ),
+        findsOneWidget,
+        reason: 'shape + glyph + label, never the colour alone',
+      );
+    });
+
+    testWidgets('an old-dose day leaves the slot EMPTY, not a second badge', (
+      tester,
+    ) async {
+      await pumpCard(tester, isNewDoseDay: false);
+
+      expect(find.byType(NewDoseBadge), findsNothing);
+      expect(find.text('New dose day'), findsNothing);
+    });
+
+    testWidgets('the tablets pill carries the breakdown', (tester) async {
+      await pumpCard(tester);
+
+      expect(find.byType(TabletBreakdownPill), findsOneWidget);
+      expect(find.text('1 × 5mg · 4 × 1mg'), findsOneWidget);
+    });
+
+    testWidgets('an unachievable dose replaces the pill with the FLAG', (
+      tester,
+    ) async {
+      // SPEC.md §3.3 and CLAUDE.md rule 5: flagged, never rounded — and never
+      // shown beside a breakdown that invites the reader to take it anyway.
+      await pumpCard(
+        tester,
+        tabletsText: null,
+        unachievableMessage: 'Cannot be made from the tablets you hold: 0.75mg',
+      );
+
+      expect(find.byType(TabletBreakdownPill), findsNothing);
+      expect(
+        find.text('Cannot be made from the tablets you hold: 0.75mg'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('when taken, the action UNDOES rather than re-marking', (
+      tester,
+    ) async {
+      var taken = 0;
+      var undone = 0;
+      await pumpCard(
+        tester,
+        isTaken: true,
+        takenLabel: 'Taken at 08:12',
+        onTaken: () => taken++,
+        onUndo: () => undone++,
+      );
+
+      await tester.tap(find.text('Taken at 08:12'));
+      await tester.pumpAndSettle();
+
+      expect(taken, 0, reason: 'a second tap re-marked an already-taken day');
+      expect(undone, 1);
+      expect(find.byType(SnackBar), findsNothing);
+    });
   });
 }

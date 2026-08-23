@@ -30,6 +30,7 @@ class ConfirmRequest {
     required this.cancelLabel,
     this.preActionLabel,
     this.onPreAction,
+    this.content,
     this.isDestructive = true,
   }) : assert(
          (preActionLabel == null) == (onPreAction == null),
@@ -61,6 +62,15 @@ class ConfirmRequest {
 
   /// Runs the pre-action. The sheet stays open.
   final Future<void> Function()? onPreAction;
+
+  /// An optional picker between the body and the actions.
+  ///
+  /// This is what lets EPIC-08's Flare and Hold sheets be THIS sheet rather
+  /// than a private dialog each: they need the reader to choose a value, and
+  /// `SPEC.md` §5.2 names the hardcoded two-button dialog as the thing every
+  /// competitor gets wrong. The caller owns the selection — it passes a
+  /// listenable in and reads it back after the sheet resolves.
+  final WidgetBuilder? content;
 
   /// Whether the confirm action is styled as destructive.
   final bool isDestructive;
@@ -169,6 +179,14 @@ class _ConfirmSheetState extends State<ConfirmSheet> {
                   request.body,
                   style: text.bodyLarge?.copyWith(color: colors.ink),
                 ),
+                if (request.content case final content?) ...<Widget>[
+                  SizedBox(height: shapes.s4),
+                  // Scrollable and bounded: a candidate list grows with the
+                  // number of steps completed, and at 200% each row is tall.
+                  Flexible(
+                    child: SingleChildScrollView(child: content(context)),
+                  ),
+                ],
                 SizedBox(height: shapes.s5),
                 if (request.preActionLabel case final label?) ...<Widget>[
                   SecondaryButton(
