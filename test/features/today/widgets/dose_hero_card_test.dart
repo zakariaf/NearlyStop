@@ -44,7 +44,6 @@ void main() {
       unitText: 'mg',
       tabletsText: tabletsText,
       unachievableMessage: unachievableMessage,
-      dateText: 'Wed, Apr 16',
       dayKindLabel: 'New dose day',
       isNewDoseDay: isNewDoseDay,
       semanticsLabel: _sentence,

@@ -97,7 +97,7 @@ Widget sheet(BuildContext context, String languageCode) {
               child: DayStateRow(
                 state: state,
                 weekdayText: copy.weekday,
-                dateText: copy.date,
+                dateText: '16 April',
                 doseText: copy.dose,
                 tabletsText: copy.tablets,
                 stateLabel: wordFor(languageCode, state),

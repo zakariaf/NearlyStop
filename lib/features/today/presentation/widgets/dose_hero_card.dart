@@ -33,7 +33,6 @@ class DoseHeroCard extends StatelessWidget {
     required this.unitText,
     required this.tabletsText,
     required this.unachievableMessage,
-    required this.dateText,
     required this.dayKindLabel,
     required this.isNewDoseDay,
     required this.semanticsLabel,
@@ -59,9 +58,6 @@ class DoseHeroCard extends StatelessWidget {
   /// unachievable dose is FLAGGED, never rounded — and never shown beside a
   /// breakdown that invites the reader to take it anyway.
   final String? unachievableMessage;
-
-  /// Today's date, already formatted for the locale.
-  final String dateText;
 
   /// The day-kind badge's word, e.g. *New dose day*. A **word**, not a colour.
   final String dayKindLabel;
@@ -132,7 +128,6 @@ class DoseHeroCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     _Header(
-                      dateText: dateText,
                       dayKindLabel: dayKindLabel,
                       isNewDoseDay: isNewDoseDay,
                       colors: colors,
@@ -195,14 +190,12 @@ class DoseHeroCard extends StatelessWidget {
 
 class _Header extends StatelessWidget {
   const _Header({
-    required this.dateText,
     required this.dayKindLabel,
     required this.isNewDoseDay,
     required this.colors,
     required this.shapes,
   });
 
-  final String dateText;
   final String dayKindLabel;
 
   /// Whether today takes the step's new dose.
@@ -216,16 +209,11 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
     return Wrap(
       spacing: shapes.s3,
       runSpacing: shapes.s2,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: <Widget>[
-        Text(
-          dateText,
-          style: text.labelLarge?.copyWith(color: colors.onPrimary),
-        ),
         // Rendered ONLY on a new-dose day. `NewDoseBadge` is the shared
         // recipe — shape, glyph AND word — and on an old-dose day the slot
         // is empty rather than a second badge saying the opposite.

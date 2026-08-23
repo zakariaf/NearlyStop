@@ -91,16 +91,23 @@ class QuietActionRow extends StatelessWidget {
         ],
       );
     }
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        for (var index = 0; index < tiles.length; index++) ...<Widget>[
-          // `Expanded`, so the three are equal by construction rather than by
-          // whichever label happens to be longest.
-          Expanded(child: tiles[index]),
-          if (index < tiles.length - 1) SizedBox(width: shapes.s2),
+    // `IntrinsicHeight` so `stretch` means "as tall as the TALLEST tile"
+    // rather than "as tall as whatever the parent offers" — and inside a
+    // scroll view the parent offers infinity, which is an assertion rather
+    // than a layout. One extra pass over three children buys three tiles that
+    // are the same height whatever their labels wrap to.
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          for (var index = 0; index < tiles.length; index++) ...<Widget>[
+            // `Expanded`, so the three are equal by construction rather than
+            // by whichever label happens to be longest.
+            Expanded(child: tiles[index]),
+            if (index < tiles.length - 1) SizedBox(width: shapes.s2),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

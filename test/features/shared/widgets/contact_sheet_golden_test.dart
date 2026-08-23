@@ -50,7 +50,6 @@ void main() {
                     unitText: 'mg',
                     tabletsText: '1 × 5mg · 4 × 1mg',
                     unachievableMessage: null,
-                    dateText: 'Thursday 16 April',
                     dayKindLabel: 'New dose day',
                     isNewDoseDay: true,
                     semanticsLabel: 'Today, 9 milligrams.',
