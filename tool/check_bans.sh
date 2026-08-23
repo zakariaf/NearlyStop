@@ -68,12 +68,16 @@ rule_modes=()
 rule_exempt=()
 rule_patterns=()
 rule_reasons=()
+# A glob a rule is CONFINED to, or `-` for the whole scope. The inverse of
+# `rule_exempt`: some rules are about one layer rather than about the tree.
+rule_only=()
 add_rule() {
   rule_scopes+=("$1")
   rule_modes+=("$2")
   rule_exempt+=("$3")
   rule_patterns+=("$4")
   rule_reasons+=("$5")
+  rule_only+=("${6:--}")
 }
 
 # Zero network calls, zero telemetry, bundled fonts. The store listing will
@@ -185,6 +189,24 @@ add_rule lib code - \
   'withClampedTextScaling' \
   "never clamp the OS text scale — bound the app's own multiplier instead, and let the product be unbounded"
 
+# A presentation widget takes pre-formatted strings and callbacks. Nothing
+# else. `widget-composition`'s dumb-view rule and CONTRACTS.md 4's layering are
+# both about the same failure: the day a widget reaches the repository is the
+# day formatting, locale and domain math live in the view — and then the same
+# rounding lives in two places, which for a dose is the unforgivable bug.
+#
+# Scoped with `only`, because this is a rule about ONE layer rather than about
+# the tree. The screen itself is the `ConsumerWidget`; its widgets are not.
+add_rule lib code - \
+  "^[[:space:]]*import[[:space:]]+['\"](package:drift/|package:nearlystop/data/|package:flutter_riverpod/|package:riverpod/)" \
+  "a presentation widget may not import drift, the data layer or Riverpod — it takes pre-formatted strings and callbacks (CONTRACTS.md 4)" \
+  "lib/features/*/presentation/widgets/*"
+
+add_rule lib code - \
+  '\b(WidgetRef|ProviderScope|ConsumerWidget|ConsumerStatefulWidget|TaperRepository)\b' \
+  "a presentation widget may not name WidgetRef, ProviderScope, a Consumer base class or the repository — the screen watches, the widget paints" \
+  "lib/features/*/presentation/widgets/*"
+
 # Suppressions are line-scoped with a reason. A file-scoped ignore on a rule we
 # deliberately promoted to error leaves every later edit in that file
 # unprotected — exactly the leak the promotion exists to catch.
@@ -216,6 +238,9 @@ scan_scope() {
       # one file. An exact path is a glob with no wildcards, so the older rules
       # are unaffected.
       case "$file" in ${rule_exempt[$r]}) [ "${rule_exempt[$r]}" = '-' ] || continue ;; esac
+      if [ "${rule_only[$r]}" != '-' ]; then
+        case "$file" in ${rule_only[$r]}) ;; *) continue ;; esac
+      fi
       if [ "${rule_modes[$r]}" = "code" ]; then
         if [ "$stripped_done" -eq 0 ]; then
           stripped="$(awk -f "$stripper" "$file")"

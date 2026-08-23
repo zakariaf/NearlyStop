@@ -51,6 +51,25 @@ String formatDayLabel(LocalDate date, Locale locale) =>
       _ => DateFormat.MMMEd(locale.languageCode).format(date.toUtcMidnight()),
     };
 
+/// The full weekday-and-date line, e.g. Today's "Wednesday 16 April".
+///
+/// Longer than [formatDayLabel] on purpose: a schedule ROW is scanned in a
+/// column of fifty others and wants the short form, while the Today screen has
+/// one date on it and is read at arm's length without glasses.
+///
+/// No year. The reader knows what year it is, and the one number that must not
+/// have to compete for attention on this screen is the dose.
+String formatFullDayLabel(LocalDate date, Locale locale) =>
+    switch (locale.languageCode) {
+      // Both already render weekday + day + month name in full.
+      'fa' => _jalaliLabel(date, locale),
+      'ckb' => _kurdishLabel(date, locale),
+      _ => DateFormat(
+        'EEEE d MMMM',
+        locale.languageCode,
+      ).format(date.toUtcMidnight()),
+    };
+
 String _jalaliLabel(LocalDate date, Locale locale) {
   final jalali = Jalali.fromDateTime(date.toUtcMidnight());
   final day = _localizedInt(jalali.day, locale);

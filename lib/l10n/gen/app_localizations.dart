@@ -557,6 +557,211 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your settings could not be loaded, so the app is using its defaults.'**
   String get shellStorageError;
+
+  /// Shown INSTEAD of a tablet breakdown when the dose cannot be built from the strengths held. SPEC.md 3.3 and CLAUDE.md rule 5: flagged, never rounded. The number is the exact dose, unrounded.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot be made from the tablets you hold: {dose}mg'**
+  String doseNotAchievable(Object dose);
+
+  /// The context line on a steady-state day, where there is no "day n of 52" to print because dayInStep is null upstream.
+  ///
+  /// In en, this message translates to:
+  /// **'Holding at {dose}'**
+  String holdingAtDose(Object dose);
+
+  /// The backfill banner. The count is the TRAILING RUN of un-ticked past days, not the lifetime total — a ticked day terminates it. Warm, not scolding: a missed day is not a failure (SPEC.md 4.1).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Yesterday wasn’t ticked} other{You haven’t marked the last {count} days}}'**
+  String nDaysNotTicked(int count);
+
+  /// Day 53. The step is used up and the next has not been started, so the dose holds. Says what is happening rather than showing nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'This step’s days are done. Your dose stays here until you start the next one.'**
+  String get stepFinishedExplainer;
+
+  /// The action on a finished step. The reader starts it, never the app.
+  ///
+  /// In en, this message translates to:
+  /// **'Start next step'**
+  String get startNextStep;
+
+  /// The DISABLED Hold tile says why. Disabled-with-reason, never hidden: a control that vanishes teaches nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no step running to hold'**
+  String get holdNeedsActiveStep;
+
+  /// The 88pt action. The whole daily interaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as taken'**
+  String get markTaken;
+
+  /// The taken state. Says WHEN, because the question at 9am is "did I already?" and a tick alone does not answer it.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken at {time}'**
+  String takenAt(Object time);
+
+  /// The live-region announcement after a successful write.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as taken'**
+  String get markedAsTaken;
+
+  /// The whole context line as ONE sentence for a screen reader. Six fragments read as six announcements.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {step} of {total}, reducing from {from} to {to}, day {day} of {length}'**
+  String contextLineSemantics(
+    Object step,
+    Object total,
+    Object from,
+    Object to,
+    Object day,
+    Object length,
+  );
+
+  /// The hero as one sentence on a new-dose day.
+  ///
+  /// In en, this message translates to:
+  /// **'Today, {dose} milligrams: {breakdown}. New dose day. Not yet taken.'**
+  String todaySemanticsNewDose(Object dose, Object breakdown);
+
+  /// SPEC.md 5.2. The reader chooses the dose; the app never picks one.
+  ///
+  /// In en, this message translates to:
+  /// **'Record a flare'**
+  String get flareTitle;
+
+  /// The picker heading. A JUDGEMENT the person makes, which is why the sheet lists the doses they have actually been on.
+  ///
+  /// In en, this message translates to:
+  /// **'Go back to a dose that worked'**
+  String get flarePickDose;
+
+  /// Names exactly what is kept. This reader has spent two years on a taper and needs to know which two years are at risk.
+  ///
+  /// In en, this message translates to:
+  /// **'Your history and your total so far are kept. Days from today are rebuilt from this dose.'**
+  String get flareHistoryKept;
+
+  /// The confirm action in the flare sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Record flare'**
+  String get flareConfirm;
+
+  /// One candidate row: the dose and when they were on it.
+  ///
+  /// In en, this message translates to:
+  /// **'{dose} — from {from} to {to}'**
+  String flareDateRange(Object dose, Object from, Object to);
+
+  /// Shown when there are no candidates, instead of an empty picker.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not finished a step yet, so there is no earlier dose to go back to.'**
+  String get flareNoHistory;
+
+  /// SPEC.md 5.2.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold at this dose'**
+  String get holdTitle;
+
+  /// The stepper label, 1–28.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra days'**
+  String get holdExtraDays;
+
+  /// Plain language, with the numbers filled in — not "your schedule will be adjusted".
+  ///
+  /// In en, this message translates to:
+  /// **'You stay at {dose} for {days} more days. The step is not abandoned and nothing is lost.'**
+  String holdConsequence(Object dose, Object days);
+
+  /// The confirm action in the hold sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold'**
+  String get holdConfirm;
+
+  /// One free-text note per day (SPEC.md 8).
+  ///
+  /// In en, this message translates to:
+  /// **'Note for today'**
+  String get noteTitle;
+
+  /// The note field placeholder. A question, not "Enter note".
+  ///
+  /// In en, this message translates to:
+  /// **'How did today go?'**
+  String get noteHint;
+
+  /// The note sheet confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Save note'**
+  String get noteSave;
+
+  /// SPEC.md 7: the taper ends cleanly. Never a negative dose.
+  ///
+  /// In en, this message translates to:
+  /// **'You reached your target'**
+  String get taperCompleteTitle;
+
+  /// The finish card. Still defers to the clinician — the app never recommends a dose, including zero.
+  ///
+  /// In en, this message translates to:
+  /// **'Your taper is finished. Keep following your doctor’s instructions.'**
+  String get taperCompleteBody;
+
+  /// Day zero. Warm, never "No data".
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan starts here'**
+  String get noPlanHeading;
+
+  /// The empty state sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the plan you and your doctor agreed, and this screen will show what to take each morning.'**
+  String get noPlanBody;
+
+  /// The one primary action on the empty state.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up my plan'**
+  String get noPlanAction;
+
+  /// The error panel. Says what failed, not a code.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong reading your plan'**
+  String get errorTitle;
+
+  /// The retry control on the error panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get errorRetry;
+
+  /// Dismisses the backfill banner without marking anything.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get actionNotNow;
+
+  /// The backfill banner action: marks inline for one day, opens the Schedule focused on the oldest for more.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark them now'**
+  String get backfillAction;
 }
 
 class _AppLocalizationsDelegate

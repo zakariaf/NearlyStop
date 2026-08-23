@@ -499,5 +499,172 @@
   "shellStorageError": "Your settings could not be loaded, so the app is using its defaults.",
   "@shellStorageError": {
     "description": "A persistent banner in the shell when the LAUNCH could not read the settings row. Persistent, never a toast: this audience does not finish reading a message that times out. It must not claim anything about the taper plan — this state is specifically about settings, and an earlier wording said \"your plan is safe\" in the one case where that was not knowable."
+  },
+  "doseNotAchievable": "Cannot be made from the tablets you hold: {dose}mg",
+  "@doseNotAchievable": {
+    "description": "Shown INSTEAD of a tablet breakdown when the dose cannot be built from the strengths held. SPEC.md 3.3 and CLAUDE.md rule 5: flagged, never rounded. The number is the exact dose, unrounded.",
+    "placeholders": {
+      "dose": {}
+    }
+  },
+  "holdingAtDose": "Holding at {dose}",
+  "@holdingAtDose": {
+    "description": "The context line on a steady-state day, where there is no \"day n of 52\" to print because dayInStep is null upstream.",
+    "placeholders": {
+      "dose": {}
+    }
+  },
+  "nDaysNotTicked": "{count, plural, =1{Yesterday wasn’t ticked} other{You haven’t marked the last {count} days}}",
+  "@nDaysNotTicked": {
+    "description": "The backfill banner. The count is the TRAILING RUN of un-ticked past days, not the lifetime total — a ticked day terminates it. Warm, not scolding: a missed day is not a failure (SPEC.md 4.1).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "stepFinishedExplainer": "This step’s days are done. Your dose stays here until you start the next one.",
+  "@stepFinishedExplainer": {
+    "description": "Day 53. The step is used up and the next has not been started, so the dose holds. Says what is happening rather than showing nothing."
+  },
+  "startNextStep": "Start next step",
+  "@startNextStep": {
+    "description": "The action on a finished step. The reader starts it, never the app."
+  },
+  "holdNeedsActiveStep": "There is no step running to hold",
+  "@holdNeedsActiveStep": {
+    "description": "The DISABLED Hold tile says why. Disabled-with-reason, never hidden: a control that vanishes teaches nothing."
+  },
+  "markTaken": "Mark as taken",
+  "@markTaken": {
+    "description": "The 88pt action. The whole daily interaction."
+  },
+  "takenAt": "Taken at {time}",
+  "@takenAt": {
+    "description": "The taken state. Says WHEN, because the question at 9am is \"did I already?\" and a tick alone does not answer it.",
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "markedAsTaken": "Marked as taken",
+  "@markedAsTaken": {
+    "description": "The live-region announcement after a successful write."
+  },
+  "contextLineSemantics": "Step {step} of {total}, reducing from {from} to {to}, day {day} of {length}",
+  "@contextLineSemantics": {
+    "description": "The whole context line as ONE sentence for a screen reader. Six fragments read as six announcements.",
+    "placeholders": {
+      "step": {},
+      "total": {},
+      "from": {},
+      "to": {},
+      "day": {},
+      "length": {}
+    }
+  },
+  "todaySemanticsNewDose": "Today, {dose} milligrams: {breakdown}. New dose day. Not yet taken.",
+  "@todaySemanticsNewDose": {
+    "description": "The hero as one sentence on a new-dose day.",
+    "placeholders": {
+      "dose": {},
+      "breakdown": {}
+    }
+  },
+  "flareTitle": "Record a flare",
+  "@flareTitle": {
+    "description": "SPEC.md 5.2. The reader chooses the dose; the app never picks one."
+  },
+  "flarePickDose": "Go back to a dose that worked",
+  "@flarePickDose": {
+    "description": "The picker heading. A JUDGEMENT the person makes, which is why the sheet lists the doses they have actually been on."
+  },
+  "flareHistoryKept": "Your history and your total so far are kept. Days from today are rebuilt from this dose.",
+  "@flareHistoryKept": {
+    "description": "Names exactly what is kept. This reader has spent two years on a taper and needs to know which two years are at risk."
+  },
+  "flareConfirm": "Record flare",
+  "@flareConfirm": {
+    "description": "The confirm action in the flare sheet."
+  },
+  "flareDateRange": "{dose} — from {from} to {to}",
+  "@flareDateRange": {
+    "description": "One candidate row: the dose and when they were on it.",
+    "placeholders": {
+      "dose": {},
+      "from": {},
+      "to": {}
+    }
+  },
+  "flareNoHistory": "You have not finished a step yet, so there is no earlier dose to go back to.",
+  "@flareNoHistory": {
+    "description": "Shown when there are no candidates, instead of an empty picker."
+  },
+  "holdTitle": "Hold at this dose",
+  "@holdTitle": {
+    "description": "SPEC.md 5.2."
+  },
+  "holdExtraDays": "Extra days",
+  "@holdExtraDays": {
+    "description": "The stepper label, 1–28."
+  },
+  "holdConsequence": "You stay at {dose} for {days} more days. The step is not abandoned and nothing is lost.",
+  "@holdConsequence": {
+    "description": "Plain language, with the numbers filled in — not \"your schedule will be adjusted\".",
+    "placeholders": {
+      "dose": {},
+      "days": {}
+    }
+  },
+  "holdConfirm": "Hold",
+  "@holdConfirm": {
+    "description": "The confirm action in the hold sheet."
+  },
+  "noteTitle": "Note for today",
+  "@noteTitle": {
+    "description": "One free-text note per day (SPEC.md 8)."
+  },
+  "noteHint": "How did today go?",
+  "@noteHint": {
+    "description": "The note field placeholder. A question, not \"Enter note\"."
+  },
+  "noteSave": "Save note",
+  "@noteSave": {
+    "description": "The note sheet confirm."
+  },
+  "taperCompleteTitle": "You reached your target",
+  "@taperCompleteTitle": {
+    "description": "SPEC.md 7: the taper ends cleanly. Never a negative dose."
+  },
+  "taperCompleteBody": "Your taper is finished. Keep following your doctor’s instructions.",
+  "@taperCompleteBody": {
+    "description": "The finish card. Still defers to the clinician — the app never recommends a dose, including zero."
+  },
+  "noPlanHeading": "Your plan starts here",
+  "@noPlanHeading": {
+    "description": "Day zero. Warm, never \"No data\"."
+  },
+  "noPlanBody": "Add the plan you and your doctor agreed, and this screen will show what to take each morning.",
+  "@noPlanBody": {
+    "description": "The empty state sentence."
+  },
+  "noPlanAction": "Set up my plan",
+  "@noPlanAction": {
+    "description": "The one primary action on the empty state."
+  },
+  "errorTitle": "Something went wrong reading your plan",
+  "@errorTitle": {
+    "description": "The error panel. Says what failed, not a code."
+  },
+  "errorRetry": "Try again",
+  "@errorRetry": {
+    "description": "The retry control on the error panel."
+  },
+  "actionNotNow": "Not now",
+  "@actionNotNow": {
+    "description": "Dismisses the backfill banner without marking anything."
+  },
+  "backfillAction": "Mark them now",
+  "@backfillAction": {
+    "description": "The backfill banner action: marks inline for one day, opens the Schedule focused on the oldest for more."
   }
 }

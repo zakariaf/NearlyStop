@@ -299,4 +299,138 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get shellStorageError =>
       'Ihre Einstellungen konnten nicht geladen werden; die App verwendet ihre Standardwerte.';
+
+  @override
+  String doseNotAchievable(Object dose) {
+    return 'Aus Ihren Tabletten nicht herstellbar: $dose mg';
+  }
+
+  @override
+  String holdingAtDose(Object dose) {
+    return 'Bleibt bei $dose';
+  }
+
+  @override
+  String nDaysNotTicked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Die letzten $count Tage sind nicht abgehakt',
+      one: 'Gestern wurde nicht abgehakt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get stepFinishedExplainer =>
+      'Die Tage dieses Schritts sind vorbei. Ihre Dosis bleibt hier, bis Sie den nächsten beginnen.';
+
+  @override
+  String get startNextStep => 'Nächsten Schritt beginnen';
+
+  @override
+  String get holdNeedsActiveStep =>
+      'Es läuft kein Schritt, der pausiert werden könnte';
+
+  @override
+  String get markTaken => 'Als eingenommen markieren';
+
+  @override
+  String takenAt(Object time) {
+    return 'Eingenommen um $time';
+  }
+
+  @override
+  String get markedAsTaken => 'Als eingenommen markiert';
+
+  @override
+  String contextLineSemantics(
+    Object step,
+    Object total,
+    Object from,
+    Object to,
+    Object day,
+    Object length,
+  ) {
+    return 'Schritt $step von $total, Reduzierung von $from auf $to, Tag $day von $length';
+  }
+
+  @override
+  String todaySemanticsNewDose(Object dose, Object breakdown) {
+    return 'Heute, $dose Milligramm: $breakdown. Neuer Dosistag. Noch nicht eingenommen.';
+  }
+
+  @override
+  String get flareTitle => 'Schub erfassen';
+
+  @override
+  String get flarePickDose => 'Zurück zu einer Dosis, die gewirkt hat';
+
+  @override
+  String get flareHistoryKept =>
+      'Ihr Verlauf und Ihre bisherige Gesamtmenge bleiben erhalten. Die Tage ab heute werden aus dieser Dosis neu berechnet.';
+
+  @override
+  String get flareConfirm => 'Schub erfassen';
+
+  @override
+  String flareDateRange(Object dose, Object from, Object to) {
+    return '$dose — von $from bis $to';
+  }
+
+  @override
+  String get flareNoHistory =>
+      'Sie haben noch keinen Schritt abgeschlossen, daher gibt es keine frühere Dosis.';
+
+  @override
+  String get holdTitle => 'Bei dieser Dosis bleiben';
+
+  @override
+  String get holdExtraDays => 'Zusätzliche Tage';
+
+  @override
+  String holdConsequence(Object dose, Object days) {
+    return 'Sie bleiben $days weitere Tage bei $dose. Der Schritt wird nicht abgebrochen und nichts geht verloren.';
+  }
+
+  @override
+  String get holdConfirm => 'Pausieren';
+
+  @override
+  String get noteTitle => 'Notiz für heute';
+
+  @override
+  String get noteHint => 'Wie war der Tag?';
+
+  @override
+  String get noteSave => 'Notiz speichern';
+
+  @override
+  String get taperCompleteTitle => 'Sie haben Ihr Ziel erreicht';
+
+  @override
+  String get taperCompleteBody =>
+      'Ihre Ausschleichphase ist abgeschlossen. Folgen Sie weiterhin den Anweisungen Ihrer Ärztin oder Ihres Arztes.';
+
+  @override
+  String get noPlanHeading => 'Ihr Plan beginnt hier';
+
+  @override
+  String get noPlanBody =>
+      'Tragen Sie den mit Ihrer Ärztin oder Ihrem Arzt vereinbarten Plan ein, dann zeigt dieser Bildschirm jeden Morgen, was einzunehmen ist.';
+
+  @override
+  String get noPlanAction => 'Plan einrichten';
+
+  @override
+  String get errorTitle => 'Beim Lesen Ihres Plans ist etwas schiefgelaufen';
+
+  @override
+  String get errorRetry => 'Erneut versuchen';
+
+  @override
+  String get actionNotNow => 'Jetzt nicht';
+
+  @override
+  String get backfillAction => 'Jetzt abhaken';
 }
