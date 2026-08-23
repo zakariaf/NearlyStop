@@ -25,7 +25,7 @@ import 'package:nearlystop/theme/daybreak_typography.dart';
 /// `ellipsis`. Shrinking the one number the patient reads every morning turns a
 /// loud layout failure into a quietly wrong dose on a phone, and this audience
 /// will not notice the difference. If it does not fit, the layout degrades
-/// around it — see [_arcVisibleBelow].
+/// around it — see [_arcVisibleAtOrBelow].
 class DoseHeroCard extends StatelessWidget {
   /// Creates the card from pre-formatted text.
   const DoseHeroCard({
@@ -84,14 +84,22 @@ class DoseHeroCard extends StatelessWidget {
   /// Reverses the tick. What the action does once [isTaken].
   final VoidCallback onUndo;
 
-  /// Above this text scale the decorative arc is dropped.
+  /// ABOVE this text scale the decorative arc is dropped.
   ///
-  /// First step of the degradation order: arc → row becomes column → the
+  /// First rung of the degradation order: arc → amount/unit stack → the
   /// caption's second line. Decoration goes before content, always.
-  static const double _arcVisibleBelow = 1.6;
+  ///
+  /// "Above", so the arc is still there AT 1.6 and gone at 1.61. The
+  /// comparison was `<` and dropped it at exactly 1.6 — an off-by-one at the
+  /// boundary that only a test asserting BOTH sides can see.
+  static const double _arcVisibleAtOrBelow = 1.6;
 
-  /// Above this, the horizontal layout becomes vertical.
-  static const double _columnAbove = 1.6;
+  /// Above this, the amount and unit stack.
+  ///
+  /// 1.3, not 1.6: the numeral is `displayLarge` and the unit is `titleLarge`,
+  /// so the pair runs out of width well before the arc becomes the problem.
+  /// The rungs fire in the order the ladder declares them.
+  static const double _columnAbove = 1.3;
 
   @override
   Widget build(BuildContext context) {
@@ -134,14 +142,23 @@ class DoseHeroCard extends StatelessWidget {
                       shapes: shapes,
                     ),
                     SizedBox(height: shapes.s4),
-                    if (scale > _columnAbove)
+                    // The two rungs are INDEPENDENT. The amount/unit pair
+                    // stacks above 1.3 and the arc drops above 1.6, so between
+                    // those two the layout is a column that STILL has its arc
+                    // — which it cannot be if the arc only exists inside the
+                    // row branch. It did, and the arc vanished at 1.31.
+                    if (scale > _columnAbove) ...<Widget>[
                       _Numerals(
                         doseText: doseText,
                         unitText: unitText,
                         colors: colors,
                         type: type,
-                      )
-                    else
+                      ),
+                      if (scale <= _arcVisibleAtOrBelow) ...<Widget>[
+                        SizedBox(height: shapes.s2),
+                        _Arc(colors: colors, shapes: shapes),
+                      ],
+                    ] else
                       Row(
                         children: <Widget>[
                           _Numerals(
@@ -150,7 +167,7 @@ class DoseHeroCard extends StatelessWidget {
                             colors: colors,
                             type: type,
                           ),
-                          if (scale < _arcVisibleBelow) ...<Widget>[
+                          if (scale <= _arcVisibleAtOrBelow) ...<Widget>[
                             SizedBox(width: shapes.s4),
                             Expanded(
                               child: _Arc(colors: colors, shapes: shapes),
