@@ -42,7 +42,8 @@ void main() {
       'showDatePicker': 'final f = showDatePicker(context: c);',
     };
 
-    offenders.forEach((needle, line) {
+    for (final MapEntry<String, String>(key: needle, value: line)
+        in offenders.entries) {
       test('$needle in the Schedule feature turns the build red', () async {
         write(
           'lib/features/schedule/presentation/planted.dart',
@@ -60,7 +61,7 @@ void main() {
           reason: 'the failure must say WHY, not just fail',
         );
       });
-    });
+    }
 
     test('date ENTRY stays legal in the Plan feature', () async {
       // The counter-case. The ban is about rendering a taper as a month grid,
