@@ -267,4 +267,14 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get ckbMonthNames =>
       'ژانویه|فوریه|مارس|آوریل|مه|ژوئن|ژوئیه|اوت|سپتامبر|اکتبر|نوامبر|دسامبر';
+
+  @override
+  String get unknownRouteTitle => 'چنین صفحه‌ای وجود ندارد';
+
+  @override
+  String get unknownRouteAction => 'رفتن به امروز';
+
+  @override
+  String get shellStorageError =>
+      'تنظیمات شما بارگذاری نشد، بنابراین برنامه از مقادیر پیش‌فرض استفاده می‌کند.';
 }

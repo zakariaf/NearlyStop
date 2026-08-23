@@ -503,6 +503,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'January|February|March|April|May|June|July|August|September|October|November|December'**
   String get ckbMonthNames;
+
+  /// Shown when a link or a restored location points nowhere. Warm and short — never the framework's red error screen.
+  ///
+  /// In en, this message translates to:
+  /// **'That page does not exist'**
+  String get unknownRouteTitle;
+
+  /// The single way out of the unknown-route page.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Today'**
+  String get unknownRouteAction;
+
+  /// A persistent banner in the shell when the LAUNCH could not read the settings row. Persistent, never a toast: this audience does not finish reading a message that times out. It must not claim anything about the taper plan — this state is specifically about settings, and an earlier wording said "your plan is safe" in the one case where that was not knowable.
+  ///
+  /// In en, this message translates to:
+  /// **'Your settings could not be loaded, so the app is using its defaults.'**
+  String get shellStorageError;
 }
 
 class _AppLocalizationsDelegate

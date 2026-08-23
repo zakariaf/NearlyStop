@@ -155,7 +155,13 @@ jobs:
       # prove LocalDate's DST claims is to re-run its suite under a second zone.
       # Europe/Berlin observes DST and is one hour east of UTC, which is exactly
       # where an accidental local-instant construction lands a day early.
-      - run: TZ=Europe/Berlin flutter test test/core/time/ --reporter expanded
+      #
+      # `test/app/` is in scope because the midnight ticker is the other place
+      # a DST claim lives, and it is the one the user meets: on 2025-03-30 a
+      # ticker built on UTC arithmetic reschedules an hour late. Verified by
+      # planting exactly that — `DateTime.utc(...).difference(now.toUtc())`
+      # passes under UTC and fails here.
+      - run: TZ=Europe/Berlin flutter test test/core/time/ test/app/ --reporter expanded
 
       # The same argument one layer up, and the zone chosen by EXPERIMENT
       # rather than by intuition. The bug this catches is a UTC midnight read

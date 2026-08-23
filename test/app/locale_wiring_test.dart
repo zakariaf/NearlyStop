@@ -7,16 +7,29 @@
 // silent: a Persian UI rendered in the Latin type scale, which looks merely
 // slightly wrong rather than broken.
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nearlystop/app.dart';
+import 'package:nearlystop/app/app.dart';
+import 'package:nearlystop/core/settings/app_settings.dart';
 import 'package:nearlystop/l10n/app_locales.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
+import 'package:nearlystop/providers.dart';
+import 'package:riverpod/misc.dart' show Override;
 
 void main() {
   Future<void> pumpIn(WidgetTester tester, List<Locale> platformLocales) async {
     tester.platformDispatcher.localesTestValue = platformLocales;
     addTearDown(tester.platformDispatcher.clearLocalesTestValue);
-    await tester.pumpWidget(const NearlyStopApp());
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: <Override>[
+          // The app reads its theme from state the launch supplies. Without
+          // this override `bootstrapSettingsProvider` throws by design.
+          bootstrapSettingsProvider.overrideWithValue(AppSettings.defaults),
+        ],
+        child: const NearlyStopApp(),
+      ),
+    );
     await tester.pumpAndSettle();
   }
 

@@ -1,11 +1,9 @@
 {
   "@@locale": "en",
-
   "appTitle": "NearlyStop",
   "@appTitle": {
     "description": "The application name. A product name — never translated, in any locale."
   },
-
   "welcomeTitle": "Welcome to NearlyStop",
   "@welcomeTitle": {
     "description": "Heading of the first screen a new user sees."
@@ -23,7 +21,6 @@
   "@welcomeOffline": {
     "description": "Reassurance under the disclaimer. The app makes no network calls at all."
   },
-
   "tabToday": "Today",
   "@tabToday": {
     "description": "Bottom navigation label for the home screen. Slot: .tab in design/daybreak-screens.html — 390px frame, 8px tabbar padding each side, five flex:1 tabs, so ~74.8px, and the label renders at --fs-caption 14px.",
@@ -49,12 +46,14 @@
     "description": "Bottom navigation label for app settings. Same .tab slot as tabToday.",
     "x-maxChars": 10
   },
-
   "doseWithUnit": "{dose}mg",
   "@doseWithUnit": {
     "description": "A dose with its unit. The number arrives already formatted for the locale, so this string must not reformat it.",
     "placeholders": {
-      "dose": {"type": "String", "example": "9"}
+      "dose": {
+        "type": "String",
+        "example": "9"
+      }
     }
   },
   "milligramUnit": "mg",
@@ -62,7 +61,6 @@
     "description": "The milligram unit on its own, beside the large dose numeral.",
     "x-maxChars": 12
   },
-
   "stateNewDoseDay": "New dose day",
   "@stateNewDoseDay": {
     "description": "Badge on a day that takes the reduced dose.",
@@ -83,7 +81,6 @@
     "description": "Section heading for days that have not happened yet.",
     "x-maxChars": 16
   },
-
   "actionTaken": "Taken",
   "@actionTaken": {
     "description": "The primary button on Today. Records the planned dose as taken.",
@@ -109,13 +106,18 @@
     "description": "Begin the next reduction. Enabled only when the current step is complete.",
     "x-maxChars": 26
   },
-
   "stepOfTotal": "Step {current} of {total}",
   "@stepOfTotal": {
     "description": "Which reduction the patient is on, out of the plan's total.",
     "placeholders": {
-      "current": {"type": "int", "example": "3"},
-      "total": {"type": "int", "example": "15"}
+      "current": {
+        "type": "int",
+        "example": "3"
+      },
+      "total": {
+        "type": "int",
+        "example": "15"
+      }
     },
     "x-maxChars": 22
   },
@@ -123,8 +125,14 @@
   "@dayOfStep": {
     "description": "Position within the current 52-day step. Deliberately not a week number — the pattern ignores that a week has seven days.",
     "placeholders": {
-      "day": {"type": "int", "example": "14"},
-      "length": {"type": "int", "example": "52"}
+      "day": {
+        "type": "int",
+        "example": "14"
+      },
+      "length": {
+        "type": "int",
+        "example": "52"
+      }
     },
     "x-maxChars": 22
   },
@@ -132,8 +140,14 @@
   "@blockOfTotal": {
     "description": "Which of the eleven blocks of the pattern this is.",
     "placeholders": {
-      "current": {"type": "int", "example": "3"},
-      "total": {"type": "int", "example": "11"}
+      "current": {
+        "type": "int",
+        "example": "3"
+      },
+      "total": {
+        "type": "int",
+        "example": "11"
+      }
     },
     "x-maxChars": 24
   },
@@ -141,46 +155,70 @@
   "@blockPattern": {
     "description": "The teaching sentence under a block header: the new dose is taken on one day, the old dose on the days between. Word order differs per language, so the counts are ICU branches rather than spliced numbers.",
     "placeholders": {
-      "newDose": {"type": "String", "example": "9mg"},
-      "oldDays": {"type": "int", "example": "4"},
-      "oldDose": {"type": "String", "example": "10mg"}
+      "newDose": {
+        "type": "String",
+        "example": "9mg"
+      },
+      "oldDays": {
+        "type": "int",
+        "example": "4"
+      },
+      "oldDose": {
+        "type": "String",
+        "example": "10mg"
+      }
     }
   },
   "doseTransition": "{from} to {to}",
   "@doseTransition": {
     "description": "The step's reduction, read aloud and shown in the context line.",
     "placeholders": {
-      "from": {"type": "String", "example": "10mg"},
-      "to": {"type": "String", "example": "9mg"}
+      "from": {
+        "type": "String",
+        "example": "10mg"
+      },
+      "to": {
+        "type": "String",
+        "example": "9mg"
+      }
     }
   },
-
   "tabletBreakdown": "{parts}",
   "@tabletBreakdown": {
     "description": "The tablets that make up a dose, e.g. '1 x 5mg . 4 x 1mg'. The value is a Latin-script run inside a possibly right-to-left sentence and arrives already bidi-isolated; this message must not add punctuation around it.",
     "placeholders": {
-      "parts": {"type": "String", "example": "1 × 5mg · 4 × 1mg"}
+      "parts": {
+        "type": "String",
+        "example": "1 × 5mg · 4 × 1mg"
+      }
     }
   },
-
   "yesterdayNotTicked": "Yesterday wasn't ticked — mark it now?",
   "@yesterdayNotTicked": {
     "description": "Offered on Today when the previous day has no record. A question, never a reprimand."
   },
-
   "takenDays": "{count, plural, =1{1 day taken} other{{count} days taken}}",
   "@takenDays": {
     "description": "How many days have been recorded as taken.",
     "placeholders": {
-      "count": {"type": "int", "example": "341"}
+      "count": {
+        "type": "int",
+        "example": "341"
+      }
     }
   },
   "daysOnMedicine": "{count, plural, =1{1 day on {medicine}} other{{count} days on {medicine}}}",
   "@daysOnMedicine": {
     "description": "Total days since the plan started, with the medicine's name.",
     "placeholders": {
-      "count": {"type": "int", "example": "581"},
-      "medicine": {"type": "String", "example": "prednisolone"}
+      "count": {
+        "type": "int",
+        "example": "581"
+      },
+      "medicine": {
+        "type": "String",
+        "example": "prednisolone"
+      }
     }
   },
   "adherenceReassurance": "days ticked so far — a few gaps change nothing",
@@ -195,14 +233,20 @@
   "@lowerThanStart": {
     "description": "The headline on Progress: how far the dose has come down.",
     "placeholders": {
-      "amount": {"type": "String", "example": "6mg"}
+      "amount": {
+        "type": "String",
+        "example": "6mg"
+      }
     }
   },
   "flaresRecorded": "{count, plural, =1{1 flare recorded} other{{count} flares recorded}}",
   "@flaresRecorded": {
     "description": "How many flares are marked on the dose chart.",
     "placeholders": {
-      "count": {"type": "int", "example": "2"}
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
     }
   },
   "doseOverTime": "Your dose over time",
@@ -213,19 +257,30 @@
   "@startedAt": {
     "description": "When the plan began and at what dose.",
     "placeholders": {
-      "date": {"type": "String", "example": "12 September 2024"},
-      "dose": {"type": "String", "example": "15mg"}
+      "date": {
+        "type": "String",
+        "example": "12 September 2024"
+      },
+      "dose": {
+        "type": "String",
+        "example": "15mg"
+      }
     }
   },
   "adherenceRatio": "{taken} of {total}",
   "@adherenceRatio": {
     "description": "Days ticked out of days elapsed.",
     "placeholders": {
-      "taken": {"type": "String", "example": "574"},
-      "total": {"type": "String", "example": "581"}
+      "taken": {
+        "type": "String",
+        "example": "574"
+      },
+      "total": {
+        "type": "String",
+        "example": "581"
+      }
     }
   },
-
   "planMedicine": "Medicine",
   "@planMedicine": {
     "description": "Field label for the drug name. Free text — never looked up in a drug database.",
@@ -274,19 +329,30 @@
   "@suggestedStep": {
     "description": "The step size the app worked out. It is a suggestion the clinician overrides, never an instruction.",
     "placeholders": {
-      "amount": {"type": "String", "example": "1mg"}
+      "amount": {
+        "type": "String",
+        "example": "1mg"
+      }
     }
   },
   "percentageExplainer": "{percent}% of {dose} is {result} — your doctor's instruction wins",
   "@percentageExplainer": {
     "description": "Shown under the percentage field. The final clause is the point: the app arranges, the clinician decides.",
     "placeholders": {
-      "percent": {"type": "String", "example": "10"},
-      "dose": {"type": "String", "example": "9mg"},
-      "result": {"type": "String", "example": "0.9mg"}
+      "percent": {
+        "type": "String",
+        "example": "10"
+      },
+      "dose": {
+        "type": "String",
+        "example": "9mg"
+      },
+      "result": {
+        "type": "String",
+        "example": "0.9mg"
+      }
     }
   },
-
   "settingsReminder": "Daily reminder",
   "@settingsReminder": {
     "description": "Row label for the morning notification.",
@@ -361,24 +427,34 @@
     "description": "The dark theme.",
     "x-maxChars": 14
   },
-
   "todaySemantics": "Today, {dose} milligrams: {breakdown}. Not yet taken.",
   "@todaySemantics": {
     "description": "SPEC 5.4. What a screen reader announces on the Today screen before the dose is recorded. A semantics label is a user-facing string like any other, so it is translated rather than composed in code.",
     "placeholders": {
-      "dose": {"type": "String", "example": "9"},
-      "breakdown": {"type": "String", "example": "one 5 milligram tablet, four 1 milligram tablets"}
+      "dose": {
+        "type": "String",
+        "example": "9"
+      },
+      "breakdown": {
+        "type": "String",
+        "example": "one 5 milligram tablet, four 1 milligram tablets"
+      }
     }
   },
   "todaySemanticsTaken": "Today, {dose} milligrams: {breakdown}. Taken.",
   "@todaySemanticsTaken": {
     "description": "The same announcement once the dose has been recorded.",
     "placeholders": {
-      "dose": {"type": "String", "example": "9"},
-      "breakdown": {"type": "String", "example": "one 5 milligram tablet, four 1 milligram tablets"}
+      "dose": {
+        "type": "String",
+        "example": "9"
+      },
+      "breakdown": {
+        "type": "String",
+        "example": "one 5 milligram tablet, four 1 milligram tablets"
+      }
     }
   },
-
   "ckbWeekdayNames": "Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday",
   "@ckbWeekdayNames": {
     "description": "Weekday names, Monday first, pipe-separated. Only the ckb translation is ever read: `intl` ships no ckb date symbols, so Kurdish dates are composed from these lists rather than from DateFormat. The other locales carry it only to keep every ARB key-identical."
@@ -386,5 +462,18 @@
   "ckbMonthNames": "January|February|March|April|May|June|July|August|September|October|November|December",
   "@ckbMonthNames": {
     "description": "Gregorian month names, January first, pipe-separated. See ckbWeekdayNames — read only for ckb."
+  },
+  "unknownRouteTitle": "That page does not exist",
+  "@unknownRouteTitle": {
+    "description": "Shown when a link or a restored location points nowhere. Warm and short — never the framework's red error screen."
+  },
+  "unknownRouteAction": "Go to Today",
+  "@unknownRouteAction": {
+    "description": "The single way out of the unknown-route page.",
+    "x-maxChars": 24
+  },
+  "shellStorageError": "Your settings could not be loaded, so the app is using its defaults.",
+  "@shellStorageError": {
+    "description": "A persistent banner in the shell when the LAUNCH could not read the settings row. Persistent, never a toast: this audience does not finish reading a message that times out. It must not claim anything about the taper plan — this state is specifically about settings, and an earlier wording said \"your plan is safe\" in the one case where that was not knowable."
   }
 }

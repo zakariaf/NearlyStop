@@ -267,4 +267,14 @@ class AppLocalizationsCkb extends AppLocalizations {
   @override
   String get ckbMonthNames =>
       'کانوونی دووەم|شوبات|ئازار|نیسان|ئایار|حوزەیران|تەمووز|ئاب|ئەیلوول|تشرینی یەکەم|تشرینی دووەم|کانوونی یەکەم';
+
+  @override
+  String get unknownRouteTitle => 'ئەم پەڕەیە بوونی نییە';
+
+  @override
+  String get unknownRouteAction => 'بۆ ئەمڕۆ';
+
+  @override
+  String get shellStorageError =>
+      'ڕێکخستنەکانت بار نەکران، بۆیە ئەپەکە بنەڕەتەکانی خۆی بەکاردەهێنێت.';
 }

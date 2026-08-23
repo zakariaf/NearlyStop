@@ -196,3 +196,15 @@ Future<int> pragmaValue(AppDatabase db, String pragma) async {
   final rows = await db.customSelect('PRAGMA $pragma').get();
   return rows.single.data.values.first! as int;
 }
+
+/// A handle to a test database that other suites can pass around.
+///
+/// A named holder rather than a bare `AppDatabase` so a test reads as "the
+/// database this container was given" at every call site.
+final class AppDatabaseHolder {
+  /// Wraps [database].
+  AppDatabaseHolder(this.database);
+
+  /// The open database.
+  final AppDatabase database;
+}

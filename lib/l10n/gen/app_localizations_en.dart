@@ -271,4 +271,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get ckbMonthNames =>
       'January|February|March|April|May|June|July|August|September|October|November|December';
+
+  @override
+  String get unknownRouteTitle => 'That page does not exist';
+
+  @override
+  String get unknownRouteAction => 'Go to Today';
+
+  @override
+  String get shellStorageError =>
+      'Your settings could not be loaded, so the app is using its defaults.';
 }

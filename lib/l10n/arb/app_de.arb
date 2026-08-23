@@ -66,5 +66,8 @@
   "todaySemantics": "Heute, {dose} Milligramm: {breakdown}. Noch nicht eingenommen.",
   "todaySemanticsTaken": "Heute, {dose} Milligramm: {breakdown}. Eingenommen.",
   "ckbWeekdayNames": "Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag",
-  "ckbMonthNames": "Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember"
+  "ckbMonthNames": "Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember",
+  "unknownRouteTitle": "Diese Seite gibt es nicht",
+  "unknownRouteAction": "Zu Heute",
+  "shellStorageError": "Ihre Einstellungen konnten nicht geladen werden; die App verwendet ihre Standardwerte."
 }
