@@ -195,7 +195,11 @@ class _BlockSentence extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Text(title, style: BlockHeader.titleStyle(context)),
-        Text(doseSummary, style: BlockHeader.summaryStyle(context)),
+        // An empty summary renders NOTHING, not an empty line: a landscape
+        // phone drops the teaching sentence to keep the block's identity, and
+        // a blank Text would keep its leading and half the height with it.
+        if (doseSummary.isNotEmpty)
+          Text(doseSummary, style: BlockHeader.summaryStyle(context)),
         if (isCompleted) ...<Widget>[
           SizedBox(height: shapes.s1),
           Row(
@@ -275,9 +279,13 @@ class BlockHeaderDelegate extends SliverPersistentHeaderDelegate {
       return painter.height;
     }
 
-    var sentence =
-        heightOf(header.title, BlockHeader.titleStyle(context)) +
-        heightOf(header.doseSummary, BlockHeader.summaryStyle(context));
+    var sentence = heightOf(header.title, BlockHeader.titleStyle(context));
+    if (header.doseSummary.isNotEmpty) {
+      sentence += heightOf(
+        header.doseSummary,
+        BlockHeader.summaryStyle(context),
+      );
+    }
     if (header.isCompleted) {
       sentence +=
           shapes.s1 +

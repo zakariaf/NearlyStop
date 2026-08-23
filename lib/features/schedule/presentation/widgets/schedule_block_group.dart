@@ -21,6 +21,7 @@ class ScheduleBlockGroup extends StatelessWidget {
     required this.block,
     required this.onToggle,
     required this.headerWidth,
+    this.compactHeaders = false,
     this.todayKey,
     this.todayDate,
     super.key,
@@ -31,6 +32,13 @@ class ScheduleBlockGroup extends StatelessWidget {
 
   /// Forwarded to every row that can be ticked.
   final ValueChanged<ScheduleDayVm>? onToggle;
+
+  /// Whether the header drops its teaching sentence.
+  ///
+  /// A landscape phone has ~390pt of height. The sentence is the first thing
+  /// to go and the block's identity is the last, because a header that has
+  /// stopped saying which block you are in is no longer a header.
+  final bool compactHeaders;
 
   /// Attached to today's row, so the screen can MEASURE whether it is on
   /// screen instead of estimating an offset that is wrong at every text scale
@@ -53,7 +61,7 @@ class ScheduleBlockGroup extends StatelessWidget {
       SliverPersistentHeader(
         pinned: true,
         delegate: BlockHeaderDelegate(
-          header: headerFor(context, block),
+          header: headerFor(context, block, compact: compactHeaders),
           context: context,
           width: headerWidth,
         ),
@@ -83,12 +91,19 @@ class ScheduleBlockGroup extends StatelessWidget {
   );
 
   /// The header widget for [block], shared with the reversed leading region.
-  static BlockHeader headerFor(BuildContext context, ScheduleBlockVm block) {
+  static BlockHeader headerFor(
+    BuildContext context,
+    ScheduleBlockVm block, {
+    bool compact = false,
+  }) {
     final l10n = AppLocalizations.of(context);
     final completed = block.status == BlockStatus.completed;
     return BlockHeader(
       title: block.title,
-      doseSummary: block.summary,
+      // The SEMANTICS sentence keeps the summary even when the visible header
+      // drops it: a screen reader has no height constraint, and the teaching
+      // sentence is the reason this screen is not a calendar.
+      doseSummary: compact ? '' : block.summary,
       semanticsLabel: <String>[
         block.title,
         if (block.summary.isNotEmpty) block.summary,
@@ -155,6 +170,7 @@ class ScheduleEarlierSliver extends StatelessWidget {
   const ScheduleEarlierSliver({
     required this.blocks,
     required this.onToggle,
+    this.compactHeaders = false,
     this.todayKey,
     this.todayDate,
     super.key,
@@ -165,6 +181,9 @@ class ScheduleEarlierSliver extends StatelessWidget {
 
   /// Forwarded to every row that can be ticked.
   final ValueChanged<ScheduleDayVm>? onToggle;
+
+  /// Whether the headers drop their teaching sentence.
+  final bool compactHeaders;
 
   /// Attached to today's row when today is behind the centre.
   final GlobalKey? todayKey;
@@ -183,7 +202,10 @@ class ScheduleEarlierSliver extends StatelessWidget {
         (context, index) {
           final item = items[index];
           return switch (item) {
-            ScheduleBlockVm() => _EarlierHeader(block: item),
+            ScheduleBlockVm() => _EarlierHeader(
+              block: item,
+              compact: compactHeaders,
+            ),
             ScheduleDayVm() => ScheduleDayRowTile(
               day: item,
               onToggle: onToggle,
@@ -200,9 +222,10 @@ class ScheduleEarlierSliver extends StatelessWidget {
 
 /// A block header in the scrolled-past region: same widget, no pinning.
 class _EarlierHeader extends StatelessWidget {
-  const _EarlierHeader({required this.block});
+  const _EarlierHeader({required this.block, required this.compact});
 
   final ScheduleBlockVm block;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -214,7 +237,7 @@ class _EarlierHeader extends StatelessWidget {
         shapes.s4,
         shapes.s2,
       ),
-      child: ScheduleBlockGroup.headerFor(context, block),
+      child: ScheduleBlockGroup.headerFor(context, block, compact: compact),
     );
   }
 }

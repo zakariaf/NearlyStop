@@ -22,6 +22,21 @@ import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_motion.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
 
+/// Above this width the steps get their own pane instead of a sheet.
+///
+/// `adaptive-layout`'s expanded boundary. Below it the app-bar chevron opens
+/// the switcher; above it the pane is permanent and the chevron is GONE — one
+/// choice offered in two places is two things to keep in step, and one of them
+/// will drift.
+const double kScheduleTwoPaneBreakpoint = 840;
+
+/// Below this height the block header drops its teaching sentence.
+///
+/// A landscape phone. The sentence goes first and the block's identity last,
+/// because a header that has stopped saying which block you are in has stopped
+/// being a header.
+const double kScheduleShortScreenHeight = 500;
+
 /// The taper, grouped into blocks and opened on today.
 ///
 /// **Never a seven-column grid** (`SPEC.md` §4.2). A calendar square has no
@@ -88,8 +103,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     if (chosen == null || !mounted) return;
     // Browsing is an explicit navigation, so it outranks the deep link that
     // brought the reader here.
-    ref.read(scheduleFocusProvider.notifier).clear();
-    ref.read(browsedStepProvider.notifier).show(chosen);
+    _select(chosen);
   }
 
   @override
@@ -99,46 +113,73 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     final state = ref.watch(scheduleViewProvider(stepIndex));
     final options = ref.watch(scheduleStepOptionsProvider);
     final focus = ref.watch(scheduleFocusProvider);
+    final twoPane =
+        MediaQuery.sizeOf(context).width > kScheduleTwoPaneBreakpoint &&
+        options.length > 1;
+
+    final body = switch (state) {
+      AsyncData<ScheduleViewState>(value: final ScheduleLoaded loaded) =>
+        ScheduleList(
+          // A new centre means a different sliver at offset zero, so the
+          // list is REBUILT rather than scrolled: the key gives it a fresh
+          // controller sitting at zero, which is exactly the day asked for.
+          key: ValueKey<String>('schedule-$stepIndex-$focus'),
+          state: loaded,
+          stepIndex: stepIndex,
+          focus: focus,
+        ),
+      AsyncData<ScheduleViewState>() => TaperEmptyState(
+        heading: l10n.noPlanHeading,
+        message: l10n.noPlanBody,
+        actionLabel: l10n.noPlanAction,
+        onAction: () => context.go(Routes.plan),
+      ),
+      AsyncError<ScheduleViewState>() => ErrorPanel(
+        title: l10n.errorTitle,
+        retryLabel: l10n.errorRetry,
+        onRetry: () => ref.invalidate(scheduleViewProvider(stepIndex)),
+      ),
+      // A skeleton rather than a spinner: a spinner that becomes a list moves
+      // everything under it, and this reader is already unsure whether they
+      // tapped.
+      _ => const ScheduleSkeleton(),
+    };
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.tabSchedule),
         actions: <Widget>[
-          if (options.length > 1)
+          if (options.length > 1 && !twoPane)
             StepSwitcherButton(
               tooltip: l10n.stepSwitcherTitle,
               onPressed: () => _openSwitcher(options, l10n, stepIndex),
             ),
         ],
       ),
-      body: switch (state) {
-        AsyncData<ScheduleViewState>(value: final ScheduleLoaded loaded) =>
-          ScheduleList(
-            // A new centre means a different sliver at offset zero, so the
-            // list is REBUILT rather than scrolled: the key gives it a fresh
-            // controller sitting at zero, which is exactly the day asked for.
-            key: ValueKey<String>('schedule-$stepIndex-$focus'),
-            state: loaded,
-            stepIndex: stepIndex,
-            focus: focus,
-          ),
-        AsyncData<ScheduleViewState>() => TaperEmptyState(
-          heading: l10n.noPlanHeading,
-          message: l10n.noPlanBody,
-          actionLabel: l10n.noPlanAction,
-          onAction: () => context.go(Routes.plan),
-        ),
-        AsyncError<ScheduleViewState>() => ErrorPanel(
-          title: l10n.errorTitle,
-          retryLabel: l10n.errorRetry,
-          onRetry: () => ref.invalidate(scheduleViewProvider(stepIndex)),
-        ),
-        // A skeleton rather than a spinner: a spinner that becomes a list
-        // moves everything under it, and this reader is already unsure
-        // whether they tapped.
-        _ => const ScheduleSkeleton(),
-      },
+      body: twoPane
+          ? Row(
+              children: <Widget>[
+                // The SAME providers, not a second container: choosing a step
+                // on the left is one write, and the right pane is already
+                // watching it.
+                StepPane(
+                  options: options,
+                  current: stepIndex,
+                  title: l10n.stepSwitcherTitle,
+                  completedLabel: l10n.blockCompleted,
+                  onSelected: _select,
+                ),
+                Expanded(child: body),
+              ],
+            )
+          : body,
     );
+  }
+
+  /// Browses [index], clearing any deep link that brought the reader here.
+  void _select(int index) {
+    ref.read(scheduleFocusProvider.notifier).clear();
+    ref.read(browsedStepProvider.notifier).show(index);
   }
 }
 
@@ -300,7 +341,15 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
         ? null
         : blocks[todayAt.$1].days[todayAt.$2].date;
     final inset = shapes.s5;
-    final width = MediaQuery.sizeOf(context).width - inset * 2;
+    final media = MediaQuery.sizeOf(context);
+    // The LIST's width, which above the two-pane breakpoint is not the
+    // screen's. Measuring the header against the screen wraps the teaching
+    // sentence onto fewer lines than it takes and the pinned header clips it.
+    final available = media.width > kScheduleTwoPaneBreakpoint
+        ? media.width - StepPane.width
+        : media.width;
+    final width = available - inset * 2;
+    final compact = media.height < kScheduleShortScreenHeight;
     final onToggle = widget.state.steps.isActive ? _toggle : null;
 
     final list = CustomScrollView(
@@ -315,6 +364,7 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
           sliver: ScheduleEarlierSliver(
             blocks: blocks.sublist(0, centre),
             onToggle: onToggle,
+            compactHeaders: compact,
             todayKey: _todayKey,
             todayDate: todayDate,
           ),
@@ -331,6 +381,7 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
               block: blocks[index],
               onToggle: onToggle,
               headerWidth: width < 0 ? 0 : width,
+              compactHeaders: compact,
               todayKey: _todayKey,
               todayDate: todayDate,
             ),
@@ -471,33 +522,33 @@ class ScheduleSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = DaybreakColors.of(context);
     final shapes = DaybreakShapes.of(context);
-    return Padding(
+    // A `ListView`, not a `Column`: this stands in for a scroll view, and a
+    // fixed column of placeholders overflows a landscape phone before any
+    // data has arrived — which is the one moment nobody is looking for a bug.
+    return ListView(
       padding: EdgeInsetsDirectional.all(shapes.s5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Container(
-            height: 84,
-            decoration: BoxDecoration(
-              color: colors.surfaceSunken,
-              borderRadius: BorderRadius.all(Radius.circular(shapes.radiusLg)),
-            ),
+      children: <Widget>[
+        Container(
+          height: 84,
+          decoration: BoxDecoration(
+            color: colors.surfaceSunken,
+            borderRadius: BorderRadius.all(Radius.circular(shapes.radiusLg)),
           ),
-          for (var row = 0; row < rows; row++)
-            Padding(
-              padding: EdgeInsetsDirectional.only(top: shapes.s2),
-              child: Container(
-                height: DayStateRow.minHeight,
-                decoration: BoxDecoration(
-                  color: colors.surfaceSunken,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(shapes.radiusMd),
-                  ),
+        ),
+        for (var row = 0; row < rows; row++)
+          Padding(
+            padding: EdgeInsetsDirectional.only(top: shapes.s2),
+            child: Container(
+              height: DayStateRow.minHeight,
+              decoration: BoxDecoration(
+                color: colors.surfaceSunken,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(shapes.radiusMd),
                 ),
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }
