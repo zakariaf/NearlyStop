@@ -234,8 +234,20 @@ class DoseStaircasePainter extends CustomPainter {
       ..lineTo(xFor(0, size), size.height - plotBottom)
       ..close();
     canvas
-      ..drawPath(area, fill..shader = fillGradient.createShader(plot))
-      ..drawPath(path, stroke..shader = lineGradient.createShader(plot));
+      // The direction is PASSED: the token gradients are declared with
+      // `AlignmentDirectional`, and resolving one without a text direction
+      // throws inside `paint()` — where the painter has no `Directionality`
+      // to inherit from, by design.
+      ..drawPath(
+        area,
+        fill
+          ..shader = fillGradient.createShader(plot, textDirection: direction),
+      )
+      ..drawPath(
+        path,
+        stroke
+          ..shader = lineGradient.createShader(plot, textDirection: direction),
+      );
 
     for (final hold in holds) {
       _paintHold(canvas, size, hold, mark);

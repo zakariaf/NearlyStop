@@ -15,23 +15,23 @@ import 'package:nearlystop/theme/daybreak_shapes.dart';
 class ProgressStatBlock extends StatelessWidget {
   /// Creates one stat block.
   const ProgressStatBlock({
-    required this.overline,
     required this.value,
     required this.unit,
+    this.valueUnit,
     super.key,
   });
-
-  /// The category, already localized and in its natural case.
-  ///
-  /// Never `toUpperCase()`d: it no-ops in Persian and shouts in English, and
-  /// the tracking in the overline style is what makes it read as an overline.
-  final String overline;
 
   /// The number, already formatted for the locale.
   final String value;
 
   /// The number's meaning, in words. Already localized.
   final String unit;
+
+  /// The unit that belongs to the figure itself — frame 4's `.u` span.
+  ///
+  /// "6,842 **mg**": smaller and inline, so the number stays the thing the eye
+  /// lands on while never appearing without its unit.
+  final String? valueUnit;
 
   @override
   Widget build(BuildContext context) {
@@ -41,9 +41,11 @@ class ProgressStatBlock extends StatelessWidget {
 
     return Semantics(
       container: true,
-      // One sentence. Three nodes would be read as three announcements, and
-      // the middle one would be a bare number.
-      label: '$overline: $unit',
+      // One sentence, and the NUMBER is in it. The first version read
+      // "Progress: days on prednisolone" — the category and the unit, with
+      // the figure left out, on the screen whose whole subject is a number
+      // getting smaller.
+      label: '$value${valueUnit ?? ''} $unit',
       child: ExcludeSemantics(
         child: Container(
           margin: EdgeInsetsDirectional.only(bottom: shapes.s3),
@@ -57,16 +59,23 @@ class ProgressStatBlock extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Text(
-                overline,
-                style: text.labelSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colors.inkMuted,
+              // No overline. Frame 4's `.stat` is a value and a label; a third
+              // line is a third thing to read on a card that exists to be
+              // glanced at.
+              Text.rich(
+                TextSpan(
+                  text: value,
+                  children: <InlineSpan>[
+                    if (valueUnit case final unit?)
+                      TextSpan(
+                        text: unit,
+                        style: text.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: colors.inkMuted,
+                        ),
+                      ),
+                  ],
                 ),
-              ),
-              SizedBox(height: shapes.s1),
-              Text(
-                value,
                 style: text.headlineLarge?.copyWith(
                   fontWeight: FontWeight.w800,
                   color: colors.ink,

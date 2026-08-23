@@ -155,7 +155,6 @@ void main() {
                   const SizedBox(height: 14),
                   // 9 — progress stat block
                   const ProgressStatBlock(
-                    overline: 'Adherence',
                     value: '341',
                     unit: 'taken 341 of 350 days',
                   ),

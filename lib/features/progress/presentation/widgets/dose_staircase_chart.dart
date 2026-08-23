@@ -130,20 +130,8 @@ class DoseStaircaseChart extends StatelessWidget {
                         minDose: axis.minDose,
                         maxDose: axis.maxDose,
                         gridline: colors.border,
-                        lineGradient: LinearGradient(
-                          colors: <Color>[
-                            colors.primaryDeep,
-                            colors.primaryDeep,
-                          ],
-                        ),
-                        fillGradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: <Color>[
-                            colors.primary.withValues(alpha: 0.30),
-                            colors.secondary.withValues(alpha: 0.04),
-                          ],
-                        ),
+                        lineGradient: colors.chartLine,
+                        fillGradient: colors.chartFill,
                         flareRing: colors.danger,
                         flareGlyph: colors.danger,
                         holdBracket: colors.inkMuted,

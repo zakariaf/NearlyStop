@@ -5,7 +5,6 @@
 // and assertions on the geometry that comes out. A painter that reached for
 // `Theme.of` could only be tested through a pumped widget, and then nobody
 // would test the geometry at all.
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -304,15 +303,18 @@ void main() {
     ]) {
       // Against the gradient's WORST stop, not a named one: a ratio against a
       // gradient is only meaningful where it is hardest to see.
-      final ground = DaybreakGradients.worstStopFor(
-        colors.primaryDeep,
-        colors.wash,
-      );
-      expect(
-        contrastRatio(colors.primaryDeep, ground),
-        greaterThanOrEqualTo(3),
-        reason: 'primaryDeep on the $name wash',
-      );
+      // Every stop of the SLOT the chart actually uses, against the wash's
+      // worst stop — not a colour the test picked and hoped matched.
+      for (final stop in colors.chartLine.colors) {
+        expect(
+          contrastRatio(
+            stop,
+            DaybreakGradients.worstStopFor(stop, colors.wash),
+          ),
+          greaterThanOrEqualTo(3),
+          reason: 'a chartLine stop on the $name wash',
+        );
+      }
       // And the reason the slot is `primaryDeep` and not `primary`, kept as a
       // documented expectation so nobody "simplifies" it back. LIGHT only:
       // coral on the dark theme's plum wash is a perfectly good ratio, and it

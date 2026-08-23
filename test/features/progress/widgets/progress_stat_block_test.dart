@@ -22,17 +22,14 @@ void main() {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             ProgressStatBlock(
-              overline: 'Adherence',
               value: '341',
               unit: 'taken 341 of 350 days',
             ),
             ProgressStatBlock(
-              overline: 'Cumulative dose',
               value: '12,480',
               unit: '12,480 mg cumulative',
             ),
             ProgressStatBlock(
-              overline: 'Time on steroids',
               value: '402',
               unit: 'day 402 on steroids',
             ),
@@ -56,23 +53,6 @@ void main() {
     }
   });
 
-  testWidgets('the overline is byte-identical — no toUpperCase()', (
-    tester,
-  ) async {
-    // Uppercasing no-ops in Persian and shouts in English, and the tracking
-    // this overline carries is what makes it read as an overline anyway.
-    await pumpBlocks(tester);
-
-    for (final overline in <String>[
-      'Adherence',
-      'Cumulative dose',
-      'Time on steroids',
-    ]) {
-      expect(find.text(overline), findsOneWidget, reason: overline);
-      expect(find.text(overline.toUpperCase()), findsNothing, reason: overline);
-    }
-  });
-
   testWidgets('the numeral is TABULAR', (tester) async {
     // Without this, a column of figures jitters sideways as the digits change
     // — on a screen whose whole job is showing one number getting smaller.
@@ -93,7 +73,9 @@ void main() {
     await pumpBlocks(tester);
 
     final node = tester.getSemantics(find.byType(ProgressStatBlock).first);
-    expect(node.label, 'Adherence: taken 341 of 350 days');
+    // The NUMBER is in the sentence. It used to read "Adherence: taken … days"
+    // — the category and the unit, with the figure left out.
+    expect(node.label, '341 taken 341 of 350 days');
     handle.dispose();
   });
 
@@ -101,5 +83,46 @@ void main() {
     await pumpBlocks(tester, textScaler: const TextScaler.linear(2));
 
     expect(tester.takeException(), isNull);
+  });
+  testWidgets('the screen reader hears the NUMBER, not just its label', (
+    tester,
+  ) async {
+    // The sentence was "Progress: days on prednisolone" — the overline and
+    // the unit, with the number left out entirely. On the one screen whose
+    // whole subject is a number getting smaller.
+    final handle = tester.ensureSemantics();
+    await pumpApp(
+      tester,
+      const Material(
+        child: ProgressStatBlock(
+          value: '581',
+          unit: 'days on prednisolone',
+        ),
+      ),
+      surfaceSize: const Size(390, 300),
+    );
+
+    expect(
+      tester.getSemantics(find.byType(ProgressStatBlock)).label,
+      '581 days on prednisolone',
+    );
+    handle.dispose();
+  });
+
+  testWidgets('there is no overline — frame 4 has a value and a label', (
+    tester,
+  ) async {
+    await pumpApp(
+      tester,
+      const Material(
+        child: ProgressStatBlock(
+          value: '581',
+          unit: 'days on prednisolone',
+        ),
+      ),
+      surfaceSize: const Size(390, 300),
+    );
+
+    expect(find.byType(Text), findsNWidgets(2));
   });
 }
