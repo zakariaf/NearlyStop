@@ -21,6 +21,12 @@ environment:
 # tool/check_bans.sh and tool/audit-deps.sh make that refusal a gate.
 dependencies:
   clock: ^1.1.1
+  # Capped, deliberately. drift >=2.34.1 moved `GeneratedDatabase` onto the
+  # drift3 preview API, and the newest drift_dev this Flutter SDK can resolve
+  # (2.34.0 — 2.34.5 wants analyzer ^13, which `test` forbids) fails to compile
+  # against it, taking `drift_dev schema dump` with it. 2.31.x is the newest
+  # matched pair. Revisit when the SDK's analyzer floor moves.
+  drift: ">=2.31.0 <2.32.0"
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -33,9 +39,23 @@ dependencies:
   go_router: ^17.0.0
   intl: ^0.20.2 # flutter_localizations pins intl exactly; a wider range will not resolve
   meta: ^1.15.0
+  path: ^1.9.0
+  path_provider: ^2.1.0
   riverpod: ^3.0.0
+  # On the shipping path already via `package:drift/native.dart`; declared so
+  # `_mapError` can name `SqliteException` without tripping
+  # depend_on_referenced_packages.
+  sqlite3: ">=2.4.6 <4.0.0"
+  sqlite3_flutter_libs: ^0.5.0
+  # A ULID per row, minted at insert. EPIC-13's backup format is built on stable
+  # text ids — re-importing with autoincrement rowids duplicates everything —
+  # and retrofitting them onto a database already holding a 400-day taper is the
+  # migration this schema exists to avoid (CONTRACTS.md §11).
+  ulid: ^2.0.0
 
 dev_dependencies:
+  build_runner: ^2.4.0
+  drift_dev: ">=2.31.0 <2.32.0" # must match drift; see the note on it above
   flutter_test:
     sdk: flutter
   test: ^1.25.0

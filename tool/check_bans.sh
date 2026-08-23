@@ -58,7 +58,8 @@ promoted="${promoted%|}"
 #   mode   — `code` matches comment-stripped source (string literals survive, so
 #            an import URI is still matchable); `comment` matches the raw file
 #            and is only for rules that are ABOUT comments
-#   exempt — one path this rule does not apply to, or `-`
+#   exempt — one path this rule does not apply to, or a glob (`lib/data/*`),
+#            or `-`
 # Fields are held in four parallel arrays rather than one delimited string: a
 # delimited encoding shifts every column the first time a rule needs an empty
 # field.
@@ -120,6 +121,22 @@ add_rule lib code - \
   "FontVariation\\([[:space:]]*'(opsz|ital|slnt|wdth)'" \
   "both bundled faces expose the wght axis only — any other FontVariation no-ops silently"
 
+# drift stays behind the data layer. The domain and every screen see facts and
+# `Result`; the day an `Insertable` or a generated row class reaches a widget,
+# the UI cannot be tested without a database. test/data/no_drift_in_api_test
+# covers the half a grep cannot: no drift type in a public SIGNATURE.
+add_rule lib code 'lib/data/*' \
+  "^[[:space:]]*(import|export)[[:space:]]+['\"]package:drift/" \
+  "drift lives behind lib/data/ — the domain and the UI never learn it exists"
+
+# drift_dev is a DEV dependency and it drags `analyzer` and `build` with it.
+# `validateDatabaseSchema` is the tempting one: it is an extension in
+# package:drift_dev/api/migrations.dart, and importing it from lib/ puts the
+# whole analyzer on the shipping app's compile path.
+add_rule lib code - \
+  "^[[:space:]]*(import|export)[[:space:]]+['\"]package:drift_dev/" \
+  "drift_dev is a dev dependency — an import from lib/ puts analyzer and build on the shipping compile path"
+
 # Suppressions are line-scoped with a reason. A file-scoped ignore on a rule we
 # deliberately promoted to error leaves every later edit in that file
 # unprotected — exactly the leak the promotion exists to catch.
@@ -147,7 +164,10 @@ scan_scope() {
     raw_done=0
     for r in "${!rule_patterns[@]}"; do
       case " ${rule_scopes[$r]} " in *" $scope "*) ;; *) continue ;; esac
-      [ "${rule_exempt[$r]}" = "$file" ] && continue
+      # A glob, so a rule can exempt a whole layer (`lib/data/*`) and not just
+      # one file. An exact path is a glob with no wildcards, so the older rules
+      # are unaffected.
+      case "$file" in ${rule_exempt[$r]}) [ "${rule_exempt[$r]}" = '-' ] || continue ;; esac
       if [ "${rule_modes[$r]}" = "code" ]; then
         if [ "$stripped_done" -eq 0 ]; then
           stripped="$(awk -f "$stripper" "$file")"

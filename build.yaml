@@ -1,0 +1,36 @@
+# drift's shared-part builder is `auto_apply: dependents`, so left alone it
+# hands every .dart file in the package to the drift analyzer on every build
+# (324 inputs here, of which 32 matter).
+#
+# The three `enabled: false` lines are load-bearing, not tidying. `not_shared`
+# declares `auto_apply: none`, but build_runner 2.15 still plans it, and
+# `analyzer` declares `runs_before: [":not_shared"]` — so planning one drags in
+# the other, and `analyzer` then claims the same `.drift_elements.json` outputs
+# as `drift_dev` below. The build fails to plan at all with:
+#
+#     Builders drift_dev and drift_dev:analyzer outputs collide
+#
+# Disabling `analyzer` alone is not enough; `not_shared` re-summons it.
+# `modular` is off for the same reason (`applies_builders: [":analyzer"]`).
+targets:
+  $default:
+    builders:
+      drift_dev:analyzer:
+        enabled: false
+      drift_dev:not_shared:
+        enabled: false
+      drift_dev:modular:
+        enabled: false
+      drift_dev:
+        generate_for:
+          include:
+            - lib/data/db/**.dart
+            # The synthetic v2 the migration ladder is exercised against. It
+            # lives only in test/, so the app ships no dead column.
+            - test/data/migration_fixture/**.dart
+        options:
+          # A drift diagnostic is a dropped constraint, not a style note: an
+          # unresolvable `.references()` warns, generates no FOREIGN KEY, and
+          # the build still succeeds. That leaves orphaned dose logs behind a
+          # deleted plan. Warnings fail the build here.
+          fatal_warnings: true

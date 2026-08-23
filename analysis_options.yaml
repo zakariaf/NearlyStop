@@ -15,6 +15,10 @@ analyzer:
     - '**/*.freezed.dart'
     - '**/*.drift.dart'
     - lib/l10n/gen/**
+    # `drift_dev schema generate` output: a frozen copy of each shipped schema,
+    # regenerated wholesale and never hand-edited. Linting it would mean
+    # editing it.
+    - test/data/generated_migrations/**
 
   # Only silence-producing bug classes are promoted — never style preferences.
   # Every rule here is one very_good_analysis already enables, because `errors:`

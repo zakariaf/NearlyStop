@@ -53,6 +53,15 @@ abstract class Failure {
 
   @override
   int get hashCode => Object.hash(runtimeType, _deepHash(props));
+
+  /// `Corrupt(storage.corrupt, [unknown step status])`.
+  ///
+  /// The payload, not just the type name. A failure that stringifies to its
+  /// class alone turns both a log line and a failing `expect` into
+  /// `Expected: Corrupt, Actual: Corrupt` — which names nothing.
+  @override
+  String toString() =>
+      props.isEmpty ? '$runtimeType($code)' : '$runtimeType($code, $props)';
 }
 
 bool _deepEquals(List<Object?> a, List<Object?> b) {
