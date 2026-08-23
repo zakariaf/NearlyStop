@@ -542,4 +542,99 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get stateUpcomingCaps => 'BEVORSTEHEND';
+
+  @override
+  String get chartOverline => 'Ihre Dosis im Zeitverlauf';
+
+  @override
+  String daysOnDrugLabel(Object medicine) {
+    return 'Tage mit $medicine';
+  }
+
+  @override
+  String holdsRecorded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Pausen erfasst',
+      one: '1 Pause erfasst',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String flaresAndHoldsRecorded(int flares, int holds) {
+    String _temp0 = intl.Intl.pluralLogic(
+      flares,
+      locale: localeName,
+      other: '$flares Schübe',
+      one: '1 Schub',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      holds,
+      locale: localeName,
+      other: '$holds Pausen',
+      one: '1 Pause',
+    );
+    return '$_temp0 und $_temp1 erfasst';
+  }
+
+  @override
+  String get noEventsRecorded => 'Keine Schübe oder Pausen erfasst';
+
+  @override
+  String get sameAsStart => 'Sie bleiben stabil bei Ihrer Anfangsdosis.';
+
+  @override
+  String chartSummary(
+    Object from,
+    Object fromMonth,
+    Object to,
+    Object toMonth,
+    Object events,
+  ) {
+    return 'Diagramm: Ihre Dosis sank von $from Milligramm im $fromMonth auf $to Milligramm im $toMonth$events.';
+  }
+
+  @override
+  String chartSummaryEvents(Object events) {
+    return ', mit $events';
+  }
+
+  @override
+  String get doseHistoryTitle => 'Dosisverlauf als Liste';
+
+  @override
+  String historySegmentRow(Object dose, Object date, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days Tage',
+      one: '1 Tag',
+    );
+    return '$dose Milligramm ab $date für $_temp0';
+  }
+
+  @override
+  String historyFlareRow(Object date, Object dose) {
+    return 'Schub am $date, zurück auf $dose Milligramm';
+  }
+
+  @override
+  String historyHoldRow(Object dose, int days, Object date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days Tage',
+      one: '1 Tag',
+    );
+    return 'Gehalten bei $dose Milligramm für $_temp0 ab $date';
+  }
+
+  @override
+  String get exportComingSoon => 'Export kommt als Nächstes';
+
+  @override
+  String get exportComingSoonBody =>
+      'Ein PDF und eine Tabelle für Ihren Termin. Noch nicht gebaut.';
 }

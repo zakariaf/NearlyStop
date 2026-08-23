@@ -129,5 +129,19 @@
   "stateTakenCaps": "وەرگیرا",
   "stateNotTickedCaps": "تۆمار نەکراوە",
   "stateTodayCaps": "ئەمڕۆ",
-  "stateUpcomingCaps": "داهاتوو"
+  "stateUpcomingCaps": "داهاتوو",
+  "chartOverline": "دۆزەکەت بە درێژایی کات",
+  "daysOnDrugLabel": "ڕۆژ لەگەڵ {medicine}",
+  "holdsRecorded": "{count, plural, other{{count} ڕاگرتن تۆمارکراوە}}",
+  "flaresAndHoldsRecorded": "{flares, plural, other{{flares} هەڵگیرسان}} و {holds, plural, other{{holds} ڕاگرتن}} تۆمارکراوە",
+  "noEventsRecorded": "هیچ هەڵگیرسان یان ڕاگرتنێک تۆمار نەکراوە",
+  "sameAsStart": "لەسەر ئەو دۆزەی پێی دەستت پێکرد جێگیریت.",
+  "chartSummary": "هێڵکاری: دۆزەکەت لە {from} میلیگرام لە {fromMonth} دابەزی بۆ {to} میلیگرام لە {toMonth}{events}.",
+  "chartSummaryEvents": "، لەگەڵ {events}",
+  "doseHistoryTitle": "مێژووی دۆز وەک لیست",
+  "historySegmentRow": "{dose} میلیگرام لە {date} بۆ ماوەی {days, plural, other{{days} ڕۆژ}}",
+  "historyFlareRow": "هەڵگیرسان لە {date}، گەڕانەوە بۆ {dose} میلیگرام",
+  "historyHoldRow": "ڕاگیراوە لە {dose} میلیگرام بۆ ماوەی {days, plural, other{{days} ڕۆژ}} لە {date}",
+  "exportComingSoon": "هەناردەکردن بەم زووانە",
+  "exportComingSoonBody": "PDF و خشتەیەک بۆ چاوپێکەوتنەکەت. هێشتا دروست نەکراوە."
 }

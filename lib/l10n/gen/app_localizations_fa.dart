@@ -532,4 +532,94 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get stateUpcomingCaps => 'پیش‌رو';
+
+  @override
+  String get chartOverline => 'دوز شما در طول زمان';
+
+  @override
+  String daysOnDrugLabel(Object medicine) {
+    return 'روز مصرف $medicine';
+  }
+
+  @override
+  String holdsRecorded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count توقف ثبت شده',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String flaresAndHoldsRecorded(int flares, int holds) {
+    String _temp0 = intl.Intl.pluralLogic(
+      flares,
+      locale: localeName,
+      other: '$flares عود',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      holds,
+      locale: localeName,
+      other: '$holds توقف',
+    );
+    return '$_temp0 و $_temp1 ثبت شده';
+  }
+
+  @override
+  String get noEventsRecorded => 'هیچ عود یا توقفی ثبت نشده است';
+
+  @override
+  String get sameAsStart => 'شما در همان دوز شروع پایدار هستید.';
+
+  @override
+  String chartSummary(
+    Object from,
+    Object fromMonth,
+    Object to,
+    Object toMonth,
+    Object events,
+  ) {
+    return 'نمودار: دوز شما از $from میلی‌گرم در $fromMonth به $to میلی‌گرم در $toMonth رسید$events.';
+  }
+
+  @override
+  String chartSummaryEvents(Object events) {
+    return '، با $events';
+  }
+
+  @override
+  String get doseHistoryTitle => 'تاریخچه دوز به‌صورت فهرست';
+
+  @override
+  String historySegmentRow(Object dose, Object date, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days روز',
+    );
+    return '$dose میلی‌گرم از $date به مدت $_temp0';
+  }
+
+  @override
+  String historyFlareRow(Object date, Object dose) {
+    return 'عود در $date، بازگشت به $dose میلی‌گرم';
+  }
+
+  @override
+  String historyHoldRow(Object dose, int days, Object date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days روز',
+    );
+    return 'توقف در $dose میلی‌گرم به مدت $_temp0 از $date';
+  }
+
+  @override
+  String get exportComingSoon => 'خروجی گرفتن به‌زودی';
+
+  @override
+  String get exportComingSoonBody =>
+      'یک PDF و یک صفحه‌گسترده برای قرار ملاقات شما. هنوز ساخته نشده است.';
 }

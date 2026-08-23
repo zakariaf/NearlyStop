@@ -532,4 +532,94 @@ class AppLocalizationsCkb extends AppLocalizations {
 
   @override
   String get stateUpcomingCaps => 'داهاتوو';
+
+  @override
+  String get chartOverline => 'دۆزەکەت بە درێژایی کات';
+
+  @override
+  String daysOnDrugLabel(Object medicine) {
+    return 'ڕۆژ لەگەڵ $medicine';
+  }
+
+  @override
+  String holdsRecorded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ڕاگرتن تۆمارکراوە',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String flaresAndHoldsRecorded(int flares, int holds) {
+    String _temp0 = intl.Intl.pluralLogic(
+      flares,
+      locale: localeName,
+      other: '$flares هەڵگیرسان',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      holds,
+      locale: localeName,
+      other: '$holds ڕاگرتن',
+    );
+    return '$_temp0 و $_temp1 تۆمارکراوە';
+  }
+
+  @override
+  String get noEventsRecorded => 'هیچ هەڵگیرسان یان ڕاگرتنێک تۆمار نەکراوە';
+
+  @override
+  String get sameAsStart => 'لەسەر ئەو دۆزەی پێی دەستت پێکرد جێگیریت.';
+
+  @override
+  String chartSummary(
+    Object from,
+    Object fromMonth,
+    Object to,
+    Object toMonth,
+    Object events,
+  ) {
+    return 'هێڵکاری: دۆزەکەت لە $from میلیگرام لە $fromMonth دابەزی بۆ $to میلیگرام لە $toMonth$events.';
+  }
+
+  @override
+  String chartSummaryEvents(Object events) {
+    return '، لەگەڵ $events';
+  }
+
+  @override
+  String get doseHistoryTitle => 'مێژووی دۆز وەک لیست';
+
+  @override
+  String historySegmentRow(Object dose, Object date, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days ڕۆژ',
+    );
+    return '$dose میلیگرام لە $date بۆ ماوەی $_temp0';
+  }
+
+  @override
+  String historyFlareRow(Object date, Object dose) {
+    return 'هەڵگیرسان لە $date، گەڕانەوە بۆ $dose میلیگرام';
+  }
+
+  @override
+  String historyHoldRow(Object dose, int days, Object date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days ڕۆژ',
+    );
+    return 'ڕاگیراوە لە $dose میلیگرام بۆ ماوەی $_temp0 لە $date';
+  }
+
+  @override
+  String get exportComingSoon => 'هەناردەکردن بەم زووانە';
+
+  @override
+  String get exportComingSoonBody =>
+      'PDF و خشتەیەک بۆ چاوپێکەوتنەکەت. هێشتا دروست نەکراوە.';
 }

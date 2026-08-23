@@ -903,6 +903,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'UPCOMING'**
   String get stateUpcomingCaps;
+
+  /// Overline above the dose chart.
+  ///
+  /// In en, this message translates to:
+  /// **'Your dose over time'**
+  String get chartOverline;
+
+  /// Label under the days-on-drug stat.
+  ///
+  /// In en, this message translates to:
+  /// **'days on {medicine}'**
+  String daysOnDrugLabel(Object medicine);
+
+  /// Hold count under the chart.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hold recorded} other{{count} holds recorded}}'**
+  String holdsRecorded(int count);
+
+  /// Both counts under the chart, when both are non-zero.
+  ///
+  /// In en, this message translates to:
+  /// **'{flares, plural, =1{1 flare} other{{flares} flares}} and {holds, plural, =1{1 hold}other{{holds} holds}} recorded'**
+  String flaresAndHoldsRecorded(int flares, int holds);
+
+  /// Shown under the chart when there are neither flares nor holds.
+  ///
+  /// In en, this message translates to:
+  /// **'No flares or holds recorded'**
+  String get noEventsRecorded;
+
+  /// Encouragement when the dose has not changed. Never "0mg lower".
+  ///
+  /// In en, this message translates to:
+  /// **'You are steady at the dose you started on.'**
+  String get sameAsStart;
+
+  /// The chart as one sentence, for a screen reader.
+  ///
+  /// In en, this message translates to:
+  /// **'Chart: your dose fell from {from} milligrams in {fromMonth} to {to} milligrams in {toMonth}{events}.'**
+  String chartSummary(
+    Object from,
+    Object fromMonth,
+    Object to,
+    Object toMonth,
+    Object events,
+  );
+
+  /// The chart summary's trailing clause. Empty when there are no events.
+  ///
+  /// In en, this message translates to:
+  /// **', with {events}'**
+  String chartSummaryEvents(Object events);
+
+  /// Heading of the chart's non-visual equivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'Dose history as a list'**
+  String get doseHistoryTitle;
+
+  /// One tread, as a sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'{dose} milligrams from {date} for {days, plural, =1{1 day} other{{days} days}}'**
+  String historySegmentRow(Object dose, Object date, int days);
+
+  /// One flare, as a sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Flare on {date}, back to {dose} milligrams'**
+  String historyFlareRow(Object date, Object dose);
+
+  /// One hold, as a sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Held at {dose} milligrams for {days, plural, =1{1 day} other{{days} days}} from {date}'**
+  String historyHoldRow(Object dose, int days, Object date);
+
+  /// Heading of the placeholder export screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Export is coming next'**
+  String get exportComingSoon;
+
+  /// Body of the placeholder export screen.
+  ///
+  /// In en, this message translates to:
+  /// **'A PDF and a spreadsheet for your appointment. Not built yet.'**
+  String get exportComingSoonBody;
 }
 
 class _AppLocalizationsDelegate

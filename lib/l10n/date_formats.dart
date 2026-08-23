@@ -112,3 +112,26 @@ _kurdishNameCache = <String, ({List<String> weekdays, List<String> months})>{};
 /// the pin that function carries.
 String _localizedInt(int value, Locale locale) =>
     numberFormatFor(locale).format(value);
+
+/// A month and year, e.g. the chart's axis ends: "Sep 2024".
+///
+/// Jalali for `fa` and Gregorian for `ckb`, exactly as [formatDayLabel] is —
+/// the calendar follows the script's community, not the script.
+String formatMonthLabel(LocalDate date, Locale locale) =>
+    switch (locale.languageCode) {
+      'fa' => _jalaliMonthLabel(date, locale),
+      'ckb' => _kurdishMonthLabel(date, locale),
+      _ => DateFormat.yMMM(locale.languageCode).format(date.toUtcMidnight()),
+    };
+
+String _jalaliMonthLabel(LocalDate date, Locale locale) {
+  final jalali = Jalali.fromDateTime(date.toUtcMidnight());
+  return '${jalali.formatter.mN} ${_localizedInt(jalali.year, locale)}';
+}
+
+String _kurdishMonthLabel(LocalDate date, Locale locale) {
+  final bridged = date.toUtcMidnight();
+  final names = _kurdishNames(locale);
+  return '${names.months[bridged.month - 1]} '
+      '${_localizedInt(bridged.year, locale)}';
+}
