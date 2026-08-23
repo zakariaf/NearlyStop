@@ -113,10 +113,16 @@ class DayStateRow extends StatelessWidget {
     final colors = DaybreakColors.of(context);
     final shapes = DaybreakShapes.of(context);
     final elevation = DaybreakElevation.of(context);
-    final text = Theme.of(context).textTheme;
     final isToday = state == DayState.today;
     final stacked =
         MediaQuery.textScalerOf(context).scale(1) > stackAboveTextScale;
+    final dayBlock = _DayBlock(
+      weekdayText: weekdayText,
+      dateText: dateText,
+      isToday: isToday,
+      isNewDose: isNewDose,
+      newDoseLabel: newDoseLabel,
+    );
 
     return Semantics(
       container: true,
@@ -147,66 +153,61 @@ class DayStateRow extends StatelessWidget {
               dashed: state == DayState.missed,
             ),
             child: stacked
-                ? _stacked(context, text, colors, shapes)
-                : _sideBySide(context, text, colors, shapes),
+                // The large-text layout: the end block moves UNDER the day
+                // block. The marker stays on the day block's line, because it
+                // is the thing the eye runs down the list edge looking for —
+                // moving it would cost the scan line the whole screen is
+                // organised around.
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          DayStateMarker(state: state, isNewDose: isNewDose),
+                          SizedBox(width: shapes.s3),
+                          Expanded(child: dayBlock),
+                        ],
+                      ),
+                      SizedBox(height: shapes.s2),
+                      // Aligned to the START when stacked: a right-aligned
+                      // block under a left-aligned one reads as two unrelated
+                      // things, and at this size the reader is following one
+                      // line down the page.
+                      _DayEndBlock(
+                        doseText: doseText,
+                        tabletsText: tabletsText,
+                        unachievableText: unachievableText,
+                        stateLabel: stateLabel,
+                        stateWordColor: _stateWordColor(colors),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        textAlign: TextAlign.start,
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: <Widget>[
+                      DayStateMarker(state: state, isNewDose: isNewDose),
+                      SizedBox(width: shapes.s3),
+                      Expanded(child: dayBlock),
+                      SizedBox(width: shapes.s3),
+                      Flexible(
+                        child: _DayEndBlock(
+                          doseText: doseText,
+                          tabletsText: tabletsText,
+                          unachievableText: unachievableText,
+                          stateLabel: stateLabel,
+                          stateWordColor: _stateWordColor(colors),
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ),
       ),
     );
   }
-
-  /// The ordinary layout: marker, day block, end block, left to right.
-  Widget _sideBySide(
-    BuildContext context,
-    TextTheme text,
-    DaybreakColors colors,
-    DaybreakShapes shapes,
-  ) => Row(
-    children: <Widget>[
-      DayStateMarker(state: state, isNewDose: isNewDose),
-      SizedBox(width: shapes.s3),
-      Expanded(child: _dayColumn(context, text, colors, shapes)),
-      SizedBox(width: shapes.s3),
-      Flexible(child: _endColumn(context, text, colors, shapes)),
-    ],
-  );
-
-  /// The large-text layout: the end block moves under the day block.
-  ///
-  /// The marker stays on the day block's line, because it is the thing the eye
-  /// runs down the list edge looking for — moving it would cost the scan line
-  /// that the whole screen is organised around.
-  Widget _stacked(
-    BuildContext context,
-    TextTheme text,
-    DaybreakColors colors,
-    DaybreakShapes shapes,
-  ) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    mainAxisSize: MainAxisSize.min,
-    children: <Widget>[
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          DayStateMarker(state: state, isNewDose: isNewDose),
-          SizedBox(width: shapes.s3),
-          Expanded(child: _dayColumn(context, text, colors, shapes)),
-        ],
-      ),
-      SizedBox(height: shapes.s2),
-      // Aligned to the START when stacked, not the end: a right-aligned block
-      // under a left-aligned one reads as two unrelated things, and at this
-      // text size the reader is following a single line down the page.
-      _endColumn(
-        context,
-        text,
-        colors,
-        shapes,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        textAlign: TextAlign.start,
-      ),
-    ],
-  );
 
   /// The border colour, which is part of the state signal for `missed`.
   ///
@@ -218,108 +219,6 @@ class DayStateRow extends StatelessWidget {
     DayState.missed => colors.stateMissed,
     DayState.taken || DayState.upcoming => colors.border,
   };
-
-  Widget _dayColumn(
-    BuildContext context,
-    TextTheme text,
-    DaybreakColors colors,
-    DaybreakShapes shapes,
-  ) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    mainAxisSize: MainAxisSize.min,
-    children: <Widget>[
-      Text(
-        weekdayText,
-        style: text.bodyLarge?.copyWith(
-          fontWeight: state == DayState.today
-              ? FontWeight.w800
-              : FontWeight.w700,
-          color: colors.ink,
-        ),
-      ),
-      Text(
-        dateText,
-        style: text.bodySmall?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: colors.inkMuted,
-        ),
-      ),
-      if (isNewDose) ...<Widget>[
-        SizedBox(height: shapes.s1),
-        _newDoseBadge(text, colors, shapes),
-      ],
-    ],
-  );
-
-  /// Colour **and** glyph **and** word — all three, always.
-  Widget _newDoseBadge(
-    TextTheme text,
-    DaybreakColors colors,
-    DaybreakShapes shapes,
-  ) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: <Widget>[
-      Icon(newDoseGlyph, size: 16, color: colors.stateNewDose),
-      SizedBox(width: shapes.s1),
-      Flexible(
-        child: Text(
-          newDoseLabel!,
-          style: text.labelMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: colors.stateNewDose,
-          ),
-        ),
-      ),
-    ],
-  );
-
-  Widget _endColumn(
-    BuildContext context,
-    TextTheme text,
-    DaybreakColors colors,
-    DaybreakShapes shapes, {
-    CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.end,
-    TextAlign textAlign = TextAlign.end,
-  }) => Column(
-    crossAxisAlignment: crossAxisAlignment,
-    mainAxisSize: MainAxisSize.min,
-    children: <Widget>[
-      // The dose is suppressed entirely when the composition is unachievable:
-      // showing "9mg" beside "cannot be made" invites the reader to take 9mg.
-      if (unachievableText == null)
-        Text(
-          doseText,
-          style: text.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: colors.ink,
-          ),
-        ),
-      if (tabletsText case final tablets?)
-        Text(
-          tablets,
-          style: text.bodySmall?.copyWith(color: colors.inkMuted),
-          textAlign: textAlign,
-        ),
-      if (unachievableText case final flag?)
-        Text(
-          flag,
-          style: text.bodySmall?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: colors.warning,
-          ),
-          textAlign: textAlign,
-        ),
-      SizedBox(height: shapes.s1),
-      Text(
-        stateLabel,
-        style: text.labelSmall?.copyWith(
-          fontWeight: FontWeight.w800,
-          color: _stateWordColor(colors),
-        ),
-        textAlign: textAlign,
-      ),
-    ],
-  );
 
   /// The state word's colour, at **text** tier.
   ///
@@ -426,4 +325,147 @@ class RowBorderPainter extends CustomPainter {
       oldDelegate.width != width ||
       oldDelegate.radius != radius ||
       oldDelegate.dashed != dashed;
+}
+
+/// The weekday, the date, and the new-dose badge when there is one.
+///
+/// A CLASS, not a `_buildX()` helper: a helper has no `Element` boundary, so a
+/// row that rebuilds for any reason rebuilds this subtree too, and it cannot
+/// be `const`. `widget-composition` bans them outright.
+class _DayBlock extends StatelessWidget {
+  const _DayBlock({
+    required this.weekdayText,
+    required this.dateText,
+    required this.isToday,
+    required this.isNewDose,
+    required this.newDoseLabel,
+  });
+
+  final String weekdayText;
+  final String dateText;
+  final bool isToday;
+  final bool isNewDose;
+  final String? newDoseLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = DaybreakColors.of(context);
+    final shapes = DaybreakShapes.of(context);
+    final text = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Text(
+          weekdayText,
+          style: text.bodyLarge?.copyWith(
+            fontWeight: isToday ? FontWeight.w800 : FontWeight.w700,
+            color: colors.ink,
+          ),
+        ),
+        Text(
+          dateText,
+          style: text.bodySmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: colors.inkMuted,
+          ),
+        ),
+        if (isNewDose) ...<Widget>[
+          SizedBox(height: shapes.s1),
+          // Colour AND glyph AND word — all three, always.
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(
+                DayStateRow.newDoseGlyph,
+                size: 16,
+                color: colors.stateNewDose,
+              ),
+              SizedBox(width: shapes.s1),
+              Flexible(
+                child: Text(
+                  newDoseLabel!,
+                  style: text.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colors.stateNewDose,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// The dose, the tablet breakdown or the unachievable flag, and the state word.
+class _DayEndBlock extends StatelessWidget {
+  const _DayEndBlock({
+    required this.doseText,
+    required this.tabletsText,
+    required this.unachievableText,
+    required this.stateLabel,
+    required this.stateWordColor,
+    this.crossAxisAlignment = CrossAxisAlignment.end,
+    this.textAlign = TextAlign.end,
+  });
+
+  final String doseText;
+  final String? tabletsText;
+  final String? unachievableText;
+  final String stateLabel;
+  final Color stateWordColor;
+  final CrossAxisAlignment crossAxisAlignment;
+  final TextAlign textAlign;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = DaybreakColors.of(context);
+    final shapes = DaybreakShapes.of(context);
+    final text = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: crossAxisAlignment,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        // The dose is suppressed entirely when the composition is
+        // unachievable: showing "9mg" beside "cannot be made" invites the
+        // reader to take 9mg.
+        if (unachievableText == null)
+          Text(
+            doseText,
+            style: text.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: colors.ink,
+            ),
+          ),
+        if (tabletsText case final tablets?)
+          Text(
+            tablets,
+            style: text.bodySmall?.copyWith(color: colors.inkMuted),
+            textAlign: textAlign,
+          ),
+        if (unachievableText case final flag?)
+          Text(
+            flag,
+            style: text.bodySmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: colors.warning,
+            ),
+            textAlign: textAlign,
+          ),
+        SizedBox(height: shapes.s1),
+        Text(
+          stateLabel,
+          style: text.labelSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: stateWordColor,
+          ),
+          textAlign: textAlign,
+        ),
+      ],
+    );
+  }
 }

@@ -124,53 +124,97 @@ class BlockHeader extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              _glyphTile(colors, shapes),
+              const _BlockGlyphTile(),
               SizedBox(width: shapes.s3),
-              Expanded(child: _sentence(context, colors, shapes)),
+              Expanded(
+                child: _BlockSentence(
+                  title: title,
+                  doseSummary: doseSummary,
+                  isCompleted: isCompleted,
+                  completedLabel: completedLabel,
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _glyphTile(DaybreakColors colors, DaybreakShapes shapes) => Container(
-    key: glyphTileKey,
-    width: tileSide,
-    height: tileSide,
-    decoration: BoxDecoration(
-      color: colors.surface,
-      borderRadius: BorderRadius.all(Radius.circular(shapes.radiusSm)),
-      border: Border.all(color: colors.border, width: shapes.hairlineWidth),
-    ),
-    child: Icon(leadingGlyph, size: 20, color: colors.primaryDeep),
-  );
+/// The 36x36 tile that leads the header.
+///
+/// A CLASS, not a `_buildX()` helper: `widget-composition` bans those outright
+/// — no `Element` boundary, no `const`, no key. This one is fully `const`, so
+/// it is built once for every header in a 52-day list.
+class _BlockGlyphTile extends StatelessWidget {
+  const _BlockGlyphTile();
 
-  Widget _sentence(
-    BuildContext context,
-    DaybreakColors colors,
-    DaybreakShapes shapes,
-  ) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    mainAxisSize: MainAxisSize.min,
-    children: <Widget>[
-      Text(title, style: titleStyle(context)),
-      Text(doseSummary, style: summaryStyle(context)),
-      if (isCompleted) ...<Widget>[
-        SizedBox(height: shapes.s1),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(completedGlyph, size: 18, color: colors.success),
-            SizedBox(width: shapes.s1),
-            Flexible(
-              child: Text(completedLabel!, style: completedStyle(context)),
-            ),
-          ],
-        ),
+  @override
+  Widget build(BuildContext context) {
+    final colors = DaybreakColors.of(context);
+    final shapes = DaybreakShapes.of(context);
+    return Container(
+      key: BlockHeader.glyphTileKey,
+      width: BlockHeader.tileSide,
+      height: BlockHeader.tileSide,
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.all(Radius.circular(shapes.radiusSm)),
+        border: Border.all(color: colors.border, width: shapes.hairlineWidth),
+      ),
+      child: Icon(
+        BlockHeader.leadingGlyph,
+        size: 20,
+        color: colors.primaryDeep,
+      ),
+    );
+  }
+}
+
+/// The title, the pattern, and the completed word when there is one.
+class _BlockSentence extends StatelessWidget {
+  const _BlockSentence({
+    required this.title,
+    required this.doseSummary,
+    required this.isCompleted,
+    required this.completedLabel,
+  });
+
+  final String title;
+  final String doseSummary;
+  final bool isCompleted;
+  final String? completedLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = DaybreakColors.of(context);
+    final shapes = DaybreakShapes.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Text(title, style: BlockHeader.titleStyle(context)),
+        Text(doseSummary, style: BlockHeader.summaryStyle(context)),
+        if (isCompleted) ...<Widget>[
+          SizedBox(height: shapes.s1),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(BlockHeader.completedGlyph, size: 18, color: colors.success),
+              SizedBox(width: shapes.s1),
+              Flexible(
+                child: Text(
+                  completedLabel!,
+                  style: BlockHeader.completedStyle(context),
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
-    ],
-  );
+    );
+  }
 }
 
 /// Pins a [BlockHeader] to the top of the block the user is scrolling through.

@@ -152,7 +152,7 @@ class _ConfirmSheetState extends State<ConfirmSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                _dragHandle(colors, shapes),
+                const SheetDragHandle(),
                 SizedBox(height: shapes.s4),
                 Focus(
                   focusNode: _title,
@@ -207,15 +207,29 @@ class _ConfirmSheetState extends State<ConfirmSheet> {
       ),
     );
   }
+}
 
-  Widget _dragHandle(DaybreakColors colors, DaybreakShapes shapes) => Center(
-    child: Container(
-      width: shapes.s8,
-      height: shapes.s1,
-      decoration: BoxDecoration(
-        color: colors.border,
-        borderRadius: BorderRadius.all(Radius.circular(shapes.radiusPill)),
+/// The grab bar at the top of a bottom sheet.
+///
+/// Shared with the disclaimer sheet rather than written twice, and a CLASS
+/// rather than a `_buildX()` helper — `widget-composition` bans those.
+class SheetDragHandle extends StatelessWidget {
+  /// Creates the handle.
+  const SheetDragHandle({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = DaybreakColors.of(context);
+    final shapes = DaybreakShapes.of(context);
+    return Center(
+      child: Container(
+        width: shapes.s8,
+        height: shapes.s1,
+        decoration: BoxDecoration(
+          color: colors.border,
+          borderRadius: BorderRadius.all(Radius.circular(shapes.radiusPill)),
+        ),
       ),
-    ),
-  );
+    );
+  }
 }

@@ -162,7 +162,11 @@ class DaybreakTabDestination extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            _iconCapsule(colors, shapes, ink),
+            _TabIconCapsule(
+              destination: destination,
+              selected: selected,
+              ink: ink,
+            ),
             SizedBox(height: shapes.s1),
             // NOT `Flexible`: it hands the label whatever height is left and
             // the paragraph clips the rest without a word. The bar grows
@@ -180,14 +184,27 @@ class DaybreakTabDestination extends StatelessWidget {
       ),
     );
   }
+}
 
-  /// The pill behind the icon — the third signal, and the only one that is a
-  /// shape rather than a colour or a weight.
-  Widget _iconCapsule(
-    DaybreakColors colors,
-    DaybreakShapes shapes,
-    Color ink,
-  ) {
+/// The pill behind the icon — the third selection signal, and the only one
+/// that is a SHAPE rather than a colour or a weight.
+///
+/// A CLASS, not a `_buildX()` helper: `widget-composition` bans those. Five of
+/// these sit in the bar on every screen, so each getting its own `Element`
+/// boundary is worth having.
+class _TabIconCapsule extends StatelessWidget {
+  const _TabIconCapsule({
+    required this.destination,
+    required this.selected,
+    required this.ink,
+  });
+
+  final DaybreakDestination destination;
+  final bool selected;
+  final Color ink;
+
+  @override
+  Widget build(BuildContext context) {
     final glyph = Icon(
       selected ? destination.selectedIcon : destination.icon,
       size: 22,
@@ -199,6 +216,8 @@ class DaybreakTabDestination extends StatelessWidget {
         child: Center(child: glyph),
       );
     }
+    final colors = DaybreakColors.of(context);
+    final shapes = DaybreakShapes.of(context);
     return Container(
       key: DaybreakTabBar.activePillKey,
       width: DaybreakTabBar.pillSize.width,

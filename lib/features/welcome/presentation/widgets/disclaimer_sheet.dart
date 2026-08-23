@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:nearlystop/features/shared/presentation/widgets/confirm_sheet.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
@@ -119,18 +120,7 @@ class _DisclaimerSheetState extends State<DisclaimerSheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                Center(
-                  child: Container(
-                    width: shapes.s8,
-                    height: shapes.s1,
-                    decoration: BoxDecoration(
-                      color: colors.border,
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(shapes.radiusPill),
-                      ),
-                    ),
-                  ),
-                ),
+                const SheetDragHandle(),
                 SizedBox(height: shapes.s4),
                 Text(
                   widget.title,
