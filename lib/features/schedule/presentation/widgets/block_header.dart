@@ -268,7 +268,10 @@ class BlockHeaderDelegate extends SliverPersistentHeaderDelegate {
         text: TextSpan(text: text, style: style),
         textDirection: Directionality.of(context),
         textScaler: media.textScaler,
-      )..layout(maxWidth: contentWidth);
+        // Clamped at zero: a viewport of 0×0 is a real state in a widget test,
+        // and `TextPainter.layout` asserts on a negative bound rather than
+        // shrugging.
+      )..layout(maxWidth: contentWidth < 0 ? 0 : contentWidth);
       return painter.height;
     }
 

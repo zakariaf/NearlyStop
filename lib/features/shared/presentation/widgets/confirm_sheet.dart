@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
+import 'package:nearlystop/features/shared/presentation/widgets/daybreak_sheet.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
 
@@ -84,19 +85,10 @@ Future<ConfirmResult> showConfirmSheet(
   BuildContext context,
   ConfirmRequest request,
 ) async {
-  final result = await showModalBottomSheet<ConfirmResult>(
+  // The scrim and the drag both stay enabled, unlike the disclaimer gate:
+  // cancelling a destructive action must be the EASY path.
+  final result = await showDaybreakSheet<ConfirmResult>(
     context: context,
-    // The root navigator, so it reads as a modal route to the accessibility
-    // tree rather than as a panel inside the current tab.
-    useRootNavigator: true,
-    // Unlike the disclaimer gate, both of these stay at their permissive
-    // defaults on purpose: cancelling a destructive action must be the EASY
-    // path, so the scrim and the drag both work. Stated here rather than
-    // passed, because `avoid_redundant_argument_values` bans restating a
-    // default and the reason still needs recording.
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: DaybreakColors.of(context).overlay,
     builder: (context) => ConfirmSheet(request: request),
   );
   // A null here is a scrim tap or a drag-down, which is a cancel.

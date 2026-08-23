@@ -95,7 +95,12 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((ref) {
             routes: <RouteBase>[
               GoRoute(
                 path: Routes.schedule,
-                builder: (context, state) => const ScheduleScreen(),
+                // `?focus=<iso>` lands the list on one day — what EPIC-08's
+                // backfill banner targets when more than one day is
+                // outstanding. It reaches the screen UNPARSED, because a deep
+                // link is user input and the screen owns the fallback.
+                builder: (context, state) =>
+                    ScheduleScreen(focus: state.uri.queryParameters['focus']),
               ),
             ],
           ),

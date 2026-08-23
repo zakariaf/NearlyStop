@@ -12,13 +12,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:nearlystop/features/schedule/application/schedule_view_provider.dart';
 import 'package:nearlystop/features/schedule/presentation/schedule_screen.dart';
-import 'package:nearlystop/features/schedule/presentation/schedule_view_state.dart';
 import 'package:nearlystop/features/schedule/presentation/widgets/block_header.dart';
 import 'package:nearlystop/features/schedule/presentation/widgets/schedule_day_row.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
-import 'package:riverpod/misc.dart' show Override;
 
 import '../../support/harness.dart';
 import 'support/schedule_fixture.dart';
@@ -33,12 +30,7 @@ void main() {
     await pumpApp(
       tester,
       const ScheduleScreen(),
-      overrides: <Override>[
-        currentStepIndexProvider.overrideWithValue(0),
-        scheduleViewProvider(
-          0,
-        ).overrideWith(() => _Fixed(fixtureSchedule(l10n: l10n))),
-      ],
+      overrides: scheduleOverrides(active: fixtureSchedule(l10n: l10n)),
       surfaceSize: const Size(390, 844),
     );
     await tester.pump();
@@ -65,14 +57,4 @@ void main() {
       reason: 'two rows are side by side — that is a grid',
     );
   });
-}
-
-/// A notifier that emits one fixed state and nothing else.
-final class _Fixed extends ScheduleNotifier {
-  _Fixed(this.fixture) : super(0);
-
-  final ScheduleViewState fixture;
-
-  @override
-  Stream<ScheduleViewState> build() => Stream<ScheduleViewState>.value(fixture);
 }

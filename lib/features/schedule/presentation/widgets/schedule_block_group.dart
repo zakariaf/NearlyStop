@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:nearlystop/core/time/local_date.dart';
 import 'package:nearlystop/features/schedule/presentation/schedule_view_state.dart';
 import 'package:nearlystop/features/schedule/presentation/widgets/block_header.dart';
 import 'package:nearlystop/features/schedule/presentation/widgets/schedule_day_row.dart';
@@ -20,6 +21,8 @@ class ScheduleBlockGroup extends StatelessWidget {
     required this.block,
     required this.onToggle,
     required this.headerWidth,
+    this.todayKey,
+    this.todayDate,
     super.key,
   });
 
@@ -28,6 +31,14 @@ class ScheduleBlockGroup extends StatelessWidget {
 
   /// Forwarded to every row that can be ticked.
   final ValueChanged<ScheduleDayVm>? onToggle;
+
+  /// Attached to today's row, so the screen can MEASURE whether it is on
+  /// screen instead of estimating an offset that is wrong at every text scale
+  /// but the one it was written at.
+  final GlobalKey? todayKey;
+
+  /// Which row [todayKey] belongs to, or null when today is elsewhere.
+  final LocalDate? todayDate;
 
   /// The width the header is actually laid out at.
   ///
@@ -49,8 +60,11 @@ class ScheduleBlockGroup extends StatelessWidget {
       ),
       SliverList(
         delegate: SliverChildBuilderDelegate(
-          (context, index) =>
-              ScheduleDayRowTile(day: block.days[index], onToggle: onToggle),
+          (context, index) => ScheduleDayRowTile(
+            day: block.days[index],
+            onToggle: onToggle,
+            measureKey: block.days[index].date == todayDate ? todayKey : null,
+          ),
           childCount: block.days.length,
           // 780 rows of history: keeping scrolled-off rows alive is how this
           // screen becomes slow at step 12. Set deliberately, so the default
@@ -94,8 +108,11 @@ class ScheduleBlockGroup extends StatelessWidget {
 /// something the element tree can diff.
 class ScheduleDayRowTile extends StatelessWidget {
   /// Creates the padded row for [day].
-  ScheduleDayRowTile({required this.day, required this.onToggle})
-    : super(key: ValueKey<String>('schedule-day-${day.date.toIso8601()}'));
+  ScheduleDayRowTile({
+    required this.day,
+    required this.onToggle,
+    this.measureKey,
+  }) : super(key: ValueKey<String>('schedule-day-${day.date.toIso8601()}'));
 
   /// The row's data.
   final ScheduleDayVm day;
@@ -103,10 +120,14 @@ class ScheduleDayRowTile extends StatelessWidget {
   /// Forwarded to the row when it is tickable.
   final ValueChanged<ScheduleDayVm>? onToggle;
 
+  /// A handle on this row's box, for the one row the screen has to measure.
+  final GlobalKey? measureKey;
+
   @override
   Widget build(BuildContext context) {
     final shapes = DaybreakShapes.of(context);
     return Padding(
+      key: measureKey,
       padding: EdgeInsetsDirectional.fromSTEB(
         shapes.s4,
         shapes.s1,
@@ -134,6 +155,8 @@ class ScheduleEarlierSliver extends StatelessWidget {
   const ScheduleEarlierSliver({
     required this.blocks,
     required this.onToggle,
+    this.todayKey,
+    this.todayDate,
     super.key,
   });
 
@@ -142,6 +165,12 @@ class ScheduleEarlierSliver extends StatelessWidget {
 
   /// Forwarded to every row that can be ticked.
   final ValueChanged<ScheduleDayVm>? onToggle;
+
+  /// Attached to today's row when today is behind the centre.
+  final GlobalKey? todayKey;
+
+  /// Which row [todayKey] belongs to, or null.
+  final LocalDate? todayDate;
 
   @override
   Widget build(BuildContext context) {

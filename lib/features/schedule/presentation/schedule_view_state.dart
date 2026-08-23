@@ -3,6 +3,7 @@ library;
 
 import 'package:meta/meta.dart';
 import 'package:nearlystop/core/day_state.dart';
+import 'package:nearlystop/core/dsns/facts.dart';
 import 'package:nearlystop/core/time/local_date.dart';
 import 'package:nearlystop/core/units/milligrams.dart';
 
@@ -207,6 +208,36 @@ final class StepNav {
   int get hashCode => Object.hash(index, total, hasPrevious, hasNext, isActive);
 }
 
+/// One step, as the switcher offers it.
+@immutable
+final class StepOption {
+  /// Creates one row of the switcher.
+  const StepOption({
+    required this.index,
+    required this.label,
+    required this.status,
+  });
+
+  /// 0-based, and the family argument the sheet resolves to.
+  final int index;
+
+  /// "Step 1 of 2 — 15mg to 14mg", already localized.
+  final String label;
+
+  /// Whether this step is finished, running, or still ahead.
+  final StepStatus status;
+
+  @override
+  bool operator ==(Object other) =>
+      other is StepOption &&
+      other.index == index &&
+      other.label == label &&
+      other.status == status;
+
+  @override
+  int get hashCode => Object.hash(index, label, status);
+}
+
 /// What the Schedule screen is showing.
 @immutable
 sealed class ScheduleViewState {
@@ -239,6 +270,20 @@ final class ScheduleLoaded extends ScheduleViewState {
 
   /// The blocks, in order, with a trailing steady-state group when needed.
   final List<ScheduleBlockVm> blocks;
+
+  /// Where [date] sits in these blocks, or null when it is not in this step.
+  ///
+  /// The list opens centred on whatever this returns, which is today most of
+  /// the time and the `?focus=` day when a deep link brought the reader here.
+  (int block, int day)? locate(LocalDate date) {
+    for (var block = 0; block < blocks.length; block++) {
+      final days = blocks[block].days;
+      for (var day = 0; day < days.length; day++) {
+        if (days[day].date == date) return (block, day);
+      }
+    }
+    return null;
+  }
 
   /// Where today is, or null when today is not in this step.
   ///

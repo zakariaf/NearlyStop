@@ -10,12 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:nearlystop/core/time/local_date.dart';
-import 'package:nearlystop/features/schedule/application/schedule_view_provider.dart';
 import 'package:nearlystop/features/schedule/presentation/schedule_screen.dart';
-import 'package:nearlystop/features/schedule/presentation/schedule_view_state.dart';
 import 'package:nearlystop/features/schedule/presentation/widgets/block_header.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
-import 'package:riverpod/misc.dart' show Override;
 
 import '../../support/harness.dart';
 import 'support/schedule_fixture.dart';
@@ -37,10 +34,7 @@ void main() {
     await pumpApp(
       tester,
       const ScheduleScreen(),
-      overrides: <Override>[
-        currentStepIndexProvider.overrideWithValue(0),
-        scheduleViewProvider(0).overrideWith(() => _FixedSchedule(fixture)),
-      ],
+      overrides: scheduleOverrides(active: fixture),
       locale: locale,
       textScaler: textScaler,
       surfaceSize: size,
@@ -236,14 +230,4 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(BlockHeader), findsAtLeastNWidgets(1));
   });
-}
-
-/// A notifier that emits one fixed state and nothing else.
-final class _FixedSchedule extends ScheduleNotifier {
-  _FixedSchedule(this.fixture) : super(0);
-
-  final ScheduleViewState fixture;
-
-  @override
-  Stream<ScheduleViewState> build() => Stream<ScheduleViewState>.value(fixture);
 }

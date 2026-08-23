@@ -62,6 +62,107 @@ int _activeIndex(TaperSnapshot facts) {
   return facts.steps.isEmpty ? 0 : facts.steps.last.index;
 }
 
+/// The step the reader has BROWSED to, or null to follow the active step.
+///
+/// Null rather than "the active index" so the screen keeps following the
+/// active step as it advances. A reader who opened the app in step 3 and left
+/// it open across midnight into step 4 should see step 4.
+final NotifierProvider<BrowsedStep, int?> browsedStepProvider =
+    NotifierProvider<BrowsedStep, int?>(BrowsedStep.new);
+
+/// Holds which step the switcher last chose.
+class BrowsedStep extends Notifier<int?> {
+  @override
+  int? build() => null;
+
+  /// Browses [index], read-only unless it happens to be the active step.
+  void show(int index) {
+    if (state == index) return;
+    state = index;
+  }
+
+  /// Goes back to following whichever step is running.
+  void followActive() => state = null;
+}
+
+/// The day the list is centred on, or null for today.
+///
+/// Set from `/schedule?focus=<iso>` and cleared by jump-to-today. A provider
+/// rather than screen state because the deep link and the control both write
+/// it, and the list is rebuilt from scratch when it changes.
+final NotifierProvider<ScheduleFocus, LocalDate?> scheduleFocusProvider =
+    NotifierProvider<ScheduleFocus, LocalDate?>(ScheduleFocus.new);
+
+/// Holds the focused day.
+class ScheduleFocus extends Notifier<LocalDate?> {
+  @override
+  LocalDate? build() => null;
+
+  /// Centres the list on [date].
+  void focus(LocalDate date) {
+    if (state == date) return;
+    state = date;
+  }
+
+  /// Goes back to centring on today.
+  void clear() => state = null;
+}
+
+/// The step actually on screen.
+final Provider<int> shownStepIndexProvider = Provider<int>(
+  (ref) =>
+      ref.watch(browsedStepProvider) ?? ref.watch(currentStepIndexProvider),
+);
+
+/// Which step every generated date belongs to.
+///
+/// The lookup `?focus=<iso>` needs and nothing more. A date the plan has never
+/// heard of is simply absent, which is what makes the deep link's fallback a
+/// map miss rather than an exception — a deep link is user input.
+final Provider<Map<LocalDate, int>> scheduleFocusDatesProvider =
+    Provider<Map<LocalDate, int>>((ref) {
+      final derived = ref.watch(derivedScheduleProvider);
+      return switch (derived) {
+        Ok<List<DayPlan>, Failure>(:final value) => <LocalDate, int>{
+          for (final day in value) day.date: day.stepIndex,
+        },
+        Err<List<DayPlan>, Failure>() => const <LocalDate, int>{},
+      };
+    });
+
+/// Every step, as the switcher offers it.
+final Provider<List<StepOption>> scheduleStepOptionsProvider =
+    Provider<List<StepOption>>((ref) {
+      final snapshot = ref.watch(taperSnapshotProvider);
+      final l10n = ref.watch(appLocalizationsProvider);
+      final locale = ref.watch(resolvedLocaleProvider);
+      final facts = switch (snapshot) {
+        AsyncData<Result<TaperSnapshot, StorageFailure>>(:final value) =>
+          switch (value) {
+            Ok<TaperSnapshot, StorageFailure>(value: final data) => data,
+            Err<TaperSnapshot, StorageFailure>() => null,
+          },
+        _ => null,
+      };
+      if (facts == null) return const <StepOption>[];
+
+      final steps = <StepFacts>[...facts.steps]
+        ..sort((a, b) => a.index.compareTo(b.index));
+      return <StepOption>[
+        for (final step in steps)
+          StepOption(
+            index: step.index,
+            label: l10n.stepRangeLabel(
+              step.index + 1,
+              steps.length,
+              ScheduleNotifier.doseText(step.fromDose, locale, l10n),
+              ScheduleNotifier.doseText(step.toDose, locale, l10n),
+            ),
+            status: facts.statusByStepId[step.id] ?? step.status,
+          ),
+      ];
+    });
+
 /// One step's schedule, keyed by step index.
 final StreamNotifierProviderFamily<ScheduleNotifier, ScheduleViewState, int>
 scheduleViewProvider =
@@ -445,5 +546,16 @@ class ScheduleNotifier extends StreamNotifier<ScheduleViewState> {
   }
 
   static String _dose(Milligrams dose, Locale locale, AppLocalizations l10n) =>
-      '${formatDose(dose, locale)}${l10n.milligramUnit}';
+      doseText(dose, locale, l10n);
+
+  /// "9mg" — a dose with its unit, in the locale's numerals.
+  ///
+  /// Exposed because the step switcher labels its rows with the same two doses
+  /// this projection puts on its blocks, and two spellings of one dose on one
+  /// screen is the kind of difference a reader tries to explain.
+  static String doseText(
+    Milligrams dose,
+    Locale locale,
+    AppLocalizations l10n,
+  ) => '${formatDose(dose, locale)}${l10n.milligramUnit}';
 }

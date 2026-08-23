@@ -16,6 +16,7 @@ import 'package:nearlystop/data/taper_repository.dart';
 import 'package:nearlystop/features/schedule/application/schedule_view_provider.dart';
 import 'package:nearlystop/features/schedule/presentation/schedule_view_state.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
+import 'package:riverpod/misc.dart' show Override;
 
 import '../../../fixtures/taper_fixture.dart';
 
@@ -85,3 +86,46 @@ ScheduleLoaded fixtureSchedule({
 /// The fixture's dose on [date], for a test that needs the number.
 Milligrams fixtureDose(LocalDate date) =>
     fixtureDays().firstWhere((day) => day.date == date).dose;
+
+/// A notifier that emits one fixed state and nothing else.
+///
+/// Shared because three suites pump this screen and each had written its own;
+/// a fourth copy is where one of them quietly emits something different.
+final class FixedSchedule extends ScheduleNotifier {
+  /// Emits [fixture], once.
+  FixedSchedule(this.fixture) : super(0);
+
+  /// The state to emit.
+  final ScheduleViewState fixture;
+
+  @override
+  Stream<ScheduleViewState> build() => Stream<ScheduleViewState>.value(fixture);
+}
+
+/// The overrides a Schedule widget test needs: no repository, no clock.
+///
+/// The screen watches the step switcher's options and the deep-link lookup as
+/// well as the view state, and both of those reach the database. Overriding
+/// only the view state leaves the screen throwing on `bootstrapSettings`.
+List<Override> scheduleOverrides({
+  required ScheduleViewState active,
+  int activeIndex = 0,
+  Map<int, ScheduleViewState> otherSteps = const <int, ScheduleViewState>{},
+  List<StepOption> options = const <StepOption>[],
+  Map<LocalDate, int>? focusDates,
+}) => <Override>[
+  currentStepIndexProvider.overrideWithValue(activeIndex),
+  scheduleViewProvider(
+    activeIndex,
+  ).overrideWith(() => FixedSchedule(active)),
+  for (final MapEntry<int, ScheduleViewState>(:key, :value)
+      in otherSteps.entries)
+    scheduleViewProvider(key).overrideWith(() => FixedSchedule(value)),
+  scheduleStepOptionsProvider.overrideWithValue(options),
+  scheduleFocusDatesProvider.overrideWithValue(
+    focusDates ??
+        <LocalDate, int>{
+          for (final day in fixtureDays()) day.date: activeIndex,
+        },
+  ),
+];

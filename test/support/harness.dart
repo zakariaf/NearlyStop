@@ -36,6 +36,7 @@ Future<void> pumpApp(
   TextScaler textScaler = TextScaler.noScaling,
   bool highContrast = false,
   bool boldText = false,
+  bool disableAnimations = false,
   double userTextScale = 1,
   Size? surfaceSize,
 }) async {
@@ -76,6 +77,7 @@ Future<void> pumpApp(
               textScaler: textScaler,
               boldText: boldText,
               highContrast: highContrast,
+              disableAnimations: disableAnimations,
             ),
             // The app's OWN layer, not a re-implementation of it: `pumpApp`
             // renders a screen under exactly the preferences wrapper

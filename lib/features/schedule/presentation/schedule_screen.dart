@@ -1,19 +1,25 @@
 /// The Schedule screen: blocks, never a calendar.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nearlystop/core/day_state.dart';
+import 'package:nearlystop/core/time/local_date.dart';
 import 'package:nearlystop/features/schedule/application/schedule_view_provider.dart';
 import 'package:nearlystop/features/schedule/presentation/schedule_view_state.dart';
 import 'package:nearlystop/features/schedule/presentation/widgets/day_state_row.dart';
+import 'package:nearlystop/features/schedule/presentation/widgets/jump_to_today_button.dart';
 import 'package:nearlystop/features/schedule/presentation/widgets/schedule_block_group.dart';
+import 'package:nearlystop/features/schedule/presentation/widgets/step_switcher_sheet.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/error_panel.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/taper_empty_state.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/routing/routes.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
+import 'package:nearlystop/theme/daybreak_motion.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
 
 /// The taper, grouped into blocks and opened on today.
@@ -23,21 +29,99 @@ import 'package:nearlystop/theme/daybreak_shapes.dart';
 /// eye across unrelated days; and it teaches "a taper is a month" when a taper
 /// is a sequence of blocks. `no_calendar_grid_test.dart` and a rule in
 /// `tool/check_bans.sh` both fail the build if one appears.
-class ScheduleScreen extends ConsumerWidget {
+class ScheduleScreen extends ConsumerStatefulWidget {
   /// Creates the screen.
-  const ScheduleScreen({super.key});
+  ///
+  /// [focus] is the raw `?focus=<iso>` query parameter. It is USER INPUT: a
+  /// link can carry anything, so it is parsed defensively and a date the plan
+  /// has never heard of falls back to today rather than throwing.
+  const ScheduleScreen({this.focus, super.key});
+
+  /// The `?focus=` query parameter, unparsed.
+  final String? focus;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ScheduleScreen> createState() => _ScheduleScreenState();
+}
+
+class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // After the first frame: the deep link writes two providers, and writing
+    // them during a build is what Riverpod's own assert exists to stop.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _applyFocus());
+  }
+
+  @override
+  void didUpdateWidget(ScheduleScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focus != widget.focus) _applyFocus();
+  }
+
+  /// Resolves `?focus=` to a step and a day, or leaves the screen on today.
+  void _applyFocus() {
+    if (!mounted) return;
+    // Two ways to miss: an unparseable string, and a perfectly good date the
+    // plan has never heard of. Both land on today, because a deep link is the
+    // one input this screen does not control.
+    final date = LocalDate.tryParse(widget.focus ?? '');
+    final step = date == null
+        ? null
+        : ref.read(scheduleFocusDatesProvider)[date];
+    if (date == null || step == null) return;
+    ref.read(scheduleFocusProvider.notifier).focus(date);
+    ref.read(browsedStepProvider.notifier).show(step);
+  }
+
+  Future<void> _openSwitcher(
+    List<StepOption> options,
+    AppLocalizations l10n,
+    int current,
+  ) async {
+    final chosen = await showStepSwitcherSheet(
+      context,
+      options,
+      l10n,
+      current: current,
+    );
+    if (chosen == null || !mounted) return;
+    // Browsing is an explicit navigation, so it outranks the deep link that
+    // brought the reader here.
+    ref.read(scheduleFocusProvider.notifier).clear();
+    ref.read(browsedStepProvider.notifier).show(chosen);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final stepIndex = ref.watch(currentStepIndexProvider);
+    final stepIndex = ref.watch(shownStepIndexProvider);
     final state = ref.watch(scheduleViewProvider(stepIndex));
+    final options = ref.watch(scheduleStepOptionsProvider);
+    final focus = ref.watch(scheduleFocusProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.tabSchedule)),
+      appBar: AppBar(
+        title: Text(l10n.tabSchedule),
+        actions: <Widget>[
+          if (options.length > 1)
+            StepSwitcherButton(
+              tooltip: l10n.stepSwitcherTitle,
+              onPressed: () => _openSwitcher(options, l10n, stepIndex),
+            ),
+        ],
+      ),
       body: switch (state) {
         AsyncData<ScheduleViewState>(value: final ScheduleLoaded loaded) =>
-          ScheduleList(state: loaded, stepIndex: stepIndex),
+          ScheduleList(
+            // A new centre means a different sliver at offset zero, so the
+            // list is REBUILT rather than scrolled: the key gives it a fresh
+            // controller sitting at zero, which is exactly the day asked for.
+            key: ValueKey<String>('schedule-$stepIndex-$focus'),
+            state: loaded,
+            stepIndex: stepIndex,
+            focus: focus,
+          ),
         AsyncData<ScheduleViewState>() => TaperEmptyState(
           heading: l10n.noPlanHeading,
           message: l10n.noPlanBody,
@@ -64,10 +148,15 @@ class ScheduleScreen extends ConsumerWidget {
 /// on the current block, so today's block starts at scroll offset zero and the
 /// history above it lives at NEGATIVE offsets. That is what makes "opens in
 /// the middle, scrolls both ways" exact rather than arithmetic — and it is
-/// what `jump to today` animates back to, with no measurement at all.
+/// what jump-to-today animates back to, with no measurement at all.
 class ScheduleList extends ConsumerStatefulWidget {
-  /// Creates the list for [state].
-  const ScheduleList({required this.state, required this.stepIndex, super.key});
+  /// Creates the list for [state], centred on [focus] or on today.
+  const ScheduleList({
+    required this.state,
+    required this.stepIndex,
+    this.focus,
+    super.key,
+  });
 
   /// The blocks to render.
   final ScheduleLoaded state;
@@ -75,23 +164,78 @@ class ScheduleList extends ConsumerStatefulWidget {
   /// The step being shown, for the writes.
   final int stepIndex;
 
+  /// The `?focus=` day, or null to centre on today.
+  ///
+  /// Today comes from the STATE's own locator, not from the clock: the state
+  /// was projected against a date, and asking the clock again is how the list
+  /// ends up centred on a day the projection never placed.
+  final LocalDate? focus;
+
   @override
   ConsumerState<ScheduleList> createState() => _ScheduleListState();
 }
 
 class _ScheduleListState extends ConsumerState<ScheduleList> {
   /// Identifies the sliver that sits at scroll offset zero.
-  static final GlobalKey centerKey = GlobalKey(debugLabel: 'schedule-centre');
+  final GlobalKey _centreKey = GlobalKey(debugLabel: 'schedule-centre');
+
+  /// Finds today's row, so "is today off screen" is measured, not estimated.
+  final GlobalKey _todayKey = GlobalKey(debugLabel: 'schedule-today');
 
   final ScrollController _controller = ScrollController();
 
+  ScheduleRefusal? _refusal;
+  bool _todayOffScreen = false;
+  bool _checkScheduled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_onScroll);
+  }
+
   @override
   void dispose() {
-    _controller.dispose();
+    _controller
+      ..removeListener(_onScroll)
+      ..dispose();
     super.dispose();
   }
 
-  ScheduleRefusal? _refusal;
+  /// Re-checks AFTER the frame, never during the notification.
+  ///
+  /// A scroll listener fires before layout, so today's row still reports its
+  /// old position. Small scrolls hid that — the next notification corrected it
+  /// — but one big fling or jump produces a single notification, and then the
+  /// control stayed wrong until the reader happened to scroll again.
+  void _onScroll() {
+    if (_checkScheduled) return;
+    _checkScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkScheduled = false;
+      if (!mounted) return;
+      final off = !_todayVisible();
+      if (off == _todayOffScreen) return;
+      setState(() => _todayOffScreen = off);
+    });
+  }
+
+  /// Whether today's row overlaps the viewport at all.
+  ///
+  /// Measured off the row itself rather than compared against an estimated
+  /// offset: the rows are not a fixed height, and an estimate is wrong at
+  /// every text scale but the one it was written at.
+  bool _todayVisible() {
+    final rowContext = _todayKey.currentContext;
+    final listObject = context.findRenderObject();
+    if (rowContext == null || listObject is! RenderBox) return false;
+    final row = rowContext.findRenderObject();
+    if (row is! RenderBox || !row.attached || !listObject.attached) {
+      return false;
+    }
+    final top = row.localToGlobal(Offset.zero, ancestor: listObject).dy;
+    return top + row.size.height > 0 && top < listObject.size.height;
+  }
 
   /// Ticks or unticks [day], and SAYS SO when the write is refused.
   ///
@@ -108,20 +252,60 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
     setState(() => _refusal = refusal);
   }
 
+  /// Returns to today: the active step first, then its centre.
+  void _jumpToToday() {
+    if (ref.read(shownStepIndexProvider) !=
+            ref.read(currentStepIndexProvider) ||
+        ref.read(scheduleFocusProvider) != null) {
+      // A different step or a different centre rebuilds the list from
+      // scratch, which lands at offset zero — today's block — with nothing to
+      // animate. There is no arithmetic here and that is the point.
+      ref.read(scheduleFocusProvider.notifier).clear();
+      ref.read(browsedStepProvider.notifier).followActive();
+      return;
+    }
+
+    final motion = DaybreakMotion.of(context);
+    final duration = resolveMotion(context, motion.base);
+    // `resolveMotion` collapses to zero when the OS asks for reduced motion,
+    // and `animateTo` ASSERTS on a zero duration — `DrivenScrollActivity`
+    // refuses to be driven over no time at all. So the collapse is a real
+    // branch, not a zero handed to the same call. The curve comes from the
+    // motion slot, never a bare Material easing.
+    if (duration == Duration.zero) {
+      _controller.jumpTo(0);
+      return;
+    }
+    unawaited(
+      _controller.animateTo(0, duration: duration, curve: motion.easeOut),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final shapes = DaybreakShapes.of(context);
     final blocks = widget.state.blocks;
-    // Today's block anchors the view. Browsing a step today is not in has
-    // nothing to centre on, so it opens at the top.
-    final centre = widget.state.todayLocator?.$1 ?? 0;
+    // The centre anchors the view. A step the centre is not in — a completed
+    // step being browsed — opens at the top instead.
+    final focused = widget.focus;
+    final centreAt = focused == null
+        ? widget.state.todayLocator
+        : widget.state.locate(focused);
+    final centre = centreAt?.$1 ?? 0;
+    final todayAt = widget.state.todayLocator;
+    // The one row the jump control measures. Null when today is in another
+    // step, and then the control simply shows.
+    final todayDate = todayAt == null
+        ? null
+        : blocks[todayAt.$1].days[todayAt.$2].date;
     final inset = shapes.s5;
     final width = MediaQuery.sizeOf(context).width - inset * 2;
     final onToggle = widget.state.steps.isActive ? _toggle : null;
 
     final list = CustomScrollView(
       controller: _controller,
-      center: centerKey,
+      center: _centreKey,
       slivers: <Widget>[
         // Grows toward the leading edge. One sliver, not one per block: the
         // reverse-growth region lays its children out nearest-the-centre
@@ -131,11 +315,13 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
           sliver: ScheduleEarlierSliver(
             blocks: blocks.sublist(0, centre),
             onToggle: onToggle,
+            todayKey: _todayKey,
+            todayDate: todayDate,
           ),
         ),
         for (var index = centre; index < blocks.length; index++)
           SliverPadding(
-            key: index == centre ? centerKey : null,
+            key: index == centre ? _centreKey : null,
             // Horizontal only. Vertical space between blocks belongs INSIDE
             // the group that owns it, or it becomes a band of scroll during
             // which one block has ended, the next has not begun, and the top
@@ -144,19 +330,80 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
             sliver: ScheduleBlockGroup(
               block: blocks[index],
               onToggle: onToggle,
-              headerWidth: width,
+              headerWidth: width < 0 ? 0 : width,
+              todayKey: _todayKey,
+              todayDate: todayDate,
             ),
           ),
       ],
     );
 
     final refusal = _refusal;
-    if (refusal == null) return list;
     return Column(
       children: <Widget>[
-        RefusalNotice(refusal: refusal),
-        Expanded(child: list),
+        if (!widget.state.steps.isActive)
+          ReadOnlyStrip(message: l10n.pastStepReadOnly),
+        if (refusal != null) RefusalNotice(refusal: refusal),
+        Expanded(
+          child: Stack(
+            children: <Widget>[
+              Positioned.fill(child: list),
+              // Absent while today is on screen. BOTH transitions matter: a
+              // control that appears once and then stays is one the reader
+              // learns to ignore, on a screen they open every morning.
+              if (_todayOffScreen || todayAt == null)
+                PositionedDirectional(
+                  bottom: shapes.s5,
+                  start: 0,
+                  end: 0,
+                  child: Align(
+                    child: JumpToTodayButton(
+                      label: l10n.jumpToToday,
+                      onPressed: _jumpToToday,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ],
+    );
+  }
+}
+
+/// Says, once and at the top, that this step cannot be changed.
+class ReadOnlyStrip extends StatelessWidget {
+  /// Creates the strip.
+  const ReadOnlyStrip({required this.message, super.key});
+
+  /// Why the rows below are inert, already localized.
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = DaybreakColors.of(context);
+    final shapes = DaybreakShapes.of(context);
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsetsDirectional.symmetric(
+        horizontal: shapes.s5,
+        vertical: shapes.s3,
+      ),
+      color: colors.surfaceSunken,
+      child: Row(
+        children: <Widget>[
+          Icon(Icons.lock_outline, size: 18, color: colors.inkMuted),
+          SizedBox(width: shapes.s2),
+          Expanded(
+            child: Text(
+              message,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: colors.inkMuted),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -211,8 +458,8 @@ class RefusalNotice extends StatelessWidget {
 /// A block-shaped placeholder while the first emission lands.
 ///
 /// A skeleton rather than a spinner: a spinner that becomes a list moves
-/// everything under it, and a reader who is unsure whether they tapped
-/// reads that movement as their tap having done something.
+/// everything under it, and a reader who is unsure whether they tapped reads
+/// that movement as their tap having done something.
 class ScheduleSkeleton extends StatelessWidget {
   /// Creates the skeleton.
   const ScheduleSkeleton({super.key});
