@@ -280,5 +280,5 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get shellStorageError =>
-      'Beim Speichern ist etwas schiefgegangen. Ihr Plan ist sicher.';
+      'Ihre Einstellungen konnten nicht geladen werden; die App verwendet ihre Standardwerte.';
 }

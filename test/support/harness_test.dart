@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:riverpod/misc.dart' show Override;
 
 import 'harness.dart';
@@ -171,5 +172,68 @@ void main() {
     );
 
     expect(body.fontFamily, 'Vazirmatn');
+  });
+
+  // Three arguments were added when `/code-review` found that `pumpApp` built
+  // a `MaterialApp` materially different from the app's while its doc claimed
+  // they were the same. Each is asserted here for the reason at the top of
+  // `harness.dart`: an argument the harness silently drops makes every later
+  // epic's test that passes it vacuous.
+  testWidgets('highContrast reaches the palette', (tester) async {
+    late DaybreakColors palette;
+    await pumpApp(
+      tester,
+      Builder(
+        builder: (context) {
+          palette = DaybreakColors.of(context);
+          return const SizedBox.shrink();
+        },
+      ),
+      highContrast: true,
+    );
+
+    // The structural moves that define the high-contrast palette.
+    expect(palette.border, palette.borderStrong);
+    expect(palette.inkMuted, palette.ink);
+  });
+
+  testWidgets('boldText reaches the weight ladder', (tester) async {
+    Future<FontWeight?> weightWith({required bool boldText}) async {
+      late FontWeight? weight;
+      await pumpApp(
+        tester,
+        Builder(
+          builder: (context) {
+            weight = Theme.of(context).textTheme.bodyMedium?.fontWeight;
+            return const SizedBox.shrink();
+          },
+        ),
+        boldText: boldText,
+      );
+      return weight;
+    }
+
+    expect(await weightWith(boldText: false), FontWeight.w400);
+    expect(await weightWith(boldText: true), FontWeight.w600);
+  });
+
+  testWidgets('userTextScale composes with textScaler, as the app does', (
+    tester,
+  ) async {
+    late double scaled;
+    await pumpApp(
+      tester,
+      Builder(
+        builder: (context) {
+          scaled = MediaQuery.textScalerOf(context).scale(10);
+          return const SizedBox.shrink();
+        },
+      ),
+      textScaler: const TextScaler.linear(2),
+      userTextScale: 1.5,
+    );
+
+    // 2.0 from the "OS", 1.5 from the app: the product, not either one.
+    expect(scaled, closeTo(30, 0.001));
   });
 }

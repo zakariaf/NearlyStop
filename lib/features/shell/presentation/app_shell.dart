@@ -47,7 +47,16 @@ class _AppShellState extends ConsumerState<AppShell> {
 
     final body = Column(
       children: <Widget>[
-        if (failure != null) _ErrorBanner(message: l10n.shellStorageError),
+        if (failure != null)
+          // `SafeArea` on the banner alone, with `bottom: false`: `Scaffold`
+          // does not inset its `body`, so an unpadded banner paints under the
+          // status bar and notch. Insetting the whole column instead would
+          // make the screen's own Scaffold reserve the top inset a second
+          // time, leaving a blank strip inside its app bar.
+          SafeArea(
+            bottom: false,
+            child: _ErrorBanner(message: l10n.shellStorageError),
+          ),
         Expanded(child: widget.shell),
       ],
     );
@@ -59,6 +68,12 @@ class _AppShellState extends ConsumerState<AppShell> {
             NavigationRail(
               selectedIndex: widget.shell.currentIndex,
               onDestinationSelected: _goBranch,
+              // Flutter only wraps the rail's destinations in a scroll view
+              // when this is set. Without it, five always-labelled
+              // destinations clip 68px in landscape at the largest text size
+              // — Plan and Settings become unreachable, with no way to get to
+              // them at all.
+              scrollable: true,
               // Always visible, never icon-only: an unlabelled icon is a
               // guessing game for the audience this app is for.
               labelType: NavigationRailLabelType.all,

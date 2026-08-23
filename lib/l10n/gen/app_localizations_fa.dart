@@ -276,5 +276,5 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get shellStorageError =>
-      'در ذخیرهٔ اطلاعات مشکلی پیش آمد. طرح شما ایمن است.';
+      'تنظیمات شما بارگذاری نشد، بنابراین برنامه از مقادیر پیش‌فرض استفاده می‌کند.';
 }

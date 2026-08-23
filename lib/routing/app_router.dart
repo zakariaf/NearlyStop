@@ -157,10 +157,15 @@ class _WelcomeGate extends StatelessWidget {
       canPop: false,
       child: Scaffold(
         body: SafeArea(
-          child: Padding(
+          // SCROLLABLE, and not optional. At the largest OS text size this
+          // column overflowed by 296px on a 390x844 phone — clipping the
+          // disclaimer the gate exists to make the user read, on the one
+          // screen `PopScope(canPop: false)` will not let them leave.
+          // CLAUDE.md rule 4: largest OS text size on every screen, without
+          // clipping.
+          child: SingleChildScrollView(
             padding: const EdgeInsetsDirectional.all(24),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 Text(

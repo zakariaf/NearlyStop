@@ -7,6 +7,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/app/day_ticker.dart';
 import 'package:nearlystop/app/derived_schedule_provider.dart';
+import 'package:nearlystop/app/locale_providers.dart';
 import 'package:nearlystop/core/settings/app_settings.dart';
 import 'package:nearlystop/core/time/local_date.dart';
 import 'package:nearlystop/providers.dart';
@@ -62,34 +63,70 @@ void main() {
     });
   });
 
-  test('a DST-shortened day is 23 hours, not 24', () {
-    // Computed with the LOCAL constructor on purpose. `Duration(hours: 24)`
-    // lands an hour late on the one morning of the year that already confuses
-    // everyone. (Meaningful only under a DST zone; the CI step runs it under
-    // Europe/Berlin.)
+  test('the interval to midnight follows the zone, not a 24-hour day', () {
+    // The oracle is built from the UTC OFFSETS, which `day_ticker.dart` never
+    // reads — not from `DateTime(y, m, d + 1).difference(now)`, which is the
+    // implementation's own line 49 and therefore agrees with any bug in it.
+    //
+    // wall-clock remainder, then corrected by however much the zone moved
+    // across the boundary. Under UTC that correction is zero and this is
+    // 23h30m; under Europe/Berlin, where 2025-03-30 loses an hour at 02:00,
+    // it is 22h30m. A `Duration(hours: 24)` implementation fails under both,
+    // and a local-constructor one that ignored the offset fails under Berlin.
     FakeAsync().run((async) {
       final start = DateTime(2025, 3, 30, 0, 30);
+      final nextMidnight = DateTime(2025, 3, 31);
+      final wallClockRemainder =
+          const Duration(days: 1) -
+          Duration(hours: start.hour, minutes: start.minute);
+      final zoneShift = nextMidnight.timeZoneOffset - start.timeZoneOffset;
       final container = containerFor(async, start);
 
       final until = container.read(dayTickerProvider).untilNextMidnight;
 
-      expect(until, DateTime(2025, 3, 31).difference(start));
+      expect(until, wallClockRemainder - zoneShift);
+      expect(
+        until,
+        isNot(const Duration(hours: 24)),
+        reason: 'a fixed 24-hour reschedule is the bug this test exists for',
+      );
       container.dispose();
     });
   });
 
-  test('the locale hook and the date hook do not cross', () {
-    // Asserted as an ABSENCE in both directions. Riverpod does not notify when
-    // a rebuild produces an equal value, so counting locale notifications
-    // would be counting whether the OS language actually changed — not
-    // whether the hook is wired. What can be asserted, and is what matters, is
-    // that neither hook disturbs the other's provider.
+  test('elapsing that interval is exactly what turns the date', () {
+    // The interval is only interesting because the timer uses it. Asserted
+    // separately so a correct duration wired to nothing still fails.
+    FakeAsync().run((async) {
+      final container = containerFor(async, DateTime(2025, 3, 30, 0, 30));
+      final until = container.read(dayTickerProvider).untilNextMidnight;
+
+      async.elapse(until - const Duration(seconds: 1));
+      expect(container.read(todayDateProvider), const LocalDate(2025, 3, 30));
+
+      async.elapse(const Duration(seconds: 1));
+
+      expect(container.read(todayDateProvider), const LocalDate(2025, 3, 31));
+      container.dispose();
+    });
+  });
+
+  test('a locale change is not a new day', () {
+    // The two hooks live on different observers — this ticker owns resume,
+    // `_NearlyStopAppState.didChangeLocales` owns the language — so the claim
+    // worth pinning is that they stay disjoint: re-resolving the locale must
+    // not move the pointer into the taper. Driven through the provider the
+    // root widget actually invalidates, not through a method on this class:
+    // an earlier version of this test called a `DayTicker.onLocalesChanged`
+    // that nothing in the app ever called, so it asserted only that a dead
+    // method behaved.
     FakeAsync().run((async) {
       final container = containerFor(async, DateTime(2025, 4, 16, 23, 59));
       var dates = 0;
       container
         ..listen(todayDateProvider, (_, _) => dates++)
-        ..read(dayTickerProvider).onLocalesChanged();
+        ..read(dayTickerProvider)
+        ..invalidate(resolvedLocaleProvider);
 
       expect(dates, 0, reason: 'a language change is not a new day');
 

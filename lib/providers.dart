@@ -6,6 +6,7 @@ library;
 
 import 'package:nearlystop/core/settings/app_settings.dart';
 import 'package:nearlystop/core/time/clock.dart';
+import 'package:nearlystop/data/storage_failure.dart';
 import 'package:riverpod/riverpod.dart';
 
 /// The app's single time source.
@@ -29,11 +30,15 @@ final Provider<AppSettings> bootstrapSettingsProvider = Provider<AppSettings>((
   );
 });
 
-/// Why the launch could not read the database, or `null` if it could.
+/// Why the launch could not read the settings, or `null` if it could.
 ///
 /// The app still comes up — on defaults — because a person 400 days into a
 /// taper needs the app to open far more than they need it to be right about
 /// their theme. The shell surfaces this as a persistent banner.
-final Provider<Object?> bootstrapErrorProvider = Provider<Object?>(
-  (ref) => null,
-);
+///
+/// A **typed** failure, not the raw exception: a consumer has to be able to
+/// switch on it exhaustively and localize from a stable code, and a drift or
+/// sqlite type crossing out of `lib/data/` is the leak the data layer's own
+/// boundary test exists to prevent.
+final Provider<StorageFailure?> bootstrapErrorProvider =
+    Provider<StorageFailure?>((ref) => null);

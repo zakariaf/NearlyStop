@@ -5,7 +5,6 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:nearlystop/app/derived_schedule_provider.dart';
-import 'package:nearlystop/app/locale_providers.dart';
 import 'package:nearlystop/providers.dart';
 import 'package:riverpod/riverpod.dart';
 
@@ -26,6 +25,13 @@ import 'package:riverpod/riverpod.dart';
 /// belongs to a day.** Dates are stored as dates (EPIC-05), so the schedule is
 /// invariant under travel — only the pointer into it moves. That distinction is
 /// the whole reason this class is small.
+///
+/// **The locale hook is NOT here.** `_NearlyStopAppState.didChangeLocales`
+/// owns it, because the disclaimer gate is a top-level route outside the shell
+/// and the root widget is the only observer that exists on first run. So there
+/// are two `WidgetsBindingObserver`s in the tree — this one's
+/// `AppLifecycleListener` and the root widget — and they watch disjoint
+/// signals: resume here, locale there.
 ///
 /// It lives in `lib/app/` rather than `lib/core/` because it invalidates a
 /// Riverpod provider, and `lib/core/` may not import Riverpod.
@@ -67,13 +73,6 @@ class DayTicker {
     _ref.invalidate(todayDateProvider);
     _schedule();
   }
-
-  /// Re-resolves the locale after the OS language changed.
-  ///
-  /// The same lifecycle owner carries this so the shell has ONE observer. Two
-  /// would each fire on resume, and one of the two rollover suites would then
-  /// be asserting nothing.
-  void onLocalesChanged() => _ref.invalidate(resolvedLocaleProvider);
 
   /// Cancels the timer and stops observing. A leaked timer is the "Timer still
   /// pending" failure that poisons the next test.

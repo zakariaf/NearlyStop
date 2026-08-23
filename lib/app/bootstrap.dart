@@ -2,6 +2,7 @@
 library;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -78,6 +79,13 @@ void Function() installCrashSink(CrashSink sink) {
   };
   PlatformDispatcher.instance.onError = (error, stack) {
     sink.record(error, stack, context: 'PlatformDispatcher');
+    // PRESENTED as well as recorded. Returning `true` tells the engine the
+    // error is fully handled, so the framework's own print never runs — a
+    // developer would see nothing at all, only a line in a file nothing reads.
+    // That is a worse posture than having no handler.
+    FlutterError.presentError(
+      FlutterErrorDetails(exception: error, stack: stack),
+    );
     return true;
   };
   return () {
@@ -96,15 +104,28 @@ void Function() installCrashSink(CrashSink sink) {
 ///    await, and the thing that buys a first frame in the right theme;
 /// 5. `runApp`.
 ///
-/// There is no `FutureBuilder` and no splash widget anywhere in this path: the
-/// native splash covers step 4, and a spinner would be the flash by another
-/// name.
+/// There is no `FutureBuilder` and no splash widget anywhere in this path: a
+/// spinner is the flash by another name. What the platform shows during step 4
+/// is its **default** launch screen — `flutter_native_splash` is not wired yet
+/// (EPIC-15 owns the icon artwork and can configure it there, measured), so
+/// this comment describes the Dart side only.
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final directory = await getApplicationSupportDirectory();
+  // The ONE thing that happens before the sink exists, and it can throw:
+  // `path_provider` raises `MissingPlatformDirectoryException` on a device
+  // whose app-support path is unavailable. Unguarded, that is the black screen
+  // the whole launch order exists to prevent, with nothing recorded — so it
+  // falls back to the system temp directory, which is always writable and
+  // whose only cost is a diagnostics log that does not survive a reboot.
+  String diagnosticsDirectory;
+  try {
+    diagnosticsDirectory = (await getApplicationSupportDirectory()).path;
+  } on Object {
+    diagnosticsDirectory = Directory.systemTemp.path;
+  }
   final launched = await startUp(
     location: appDocumentsDatabaseFile,
-    diagnosticsDirectory: directory.path,
+    diagnosticsDirectory: diagnosticsDirectory,
   );
   runApp(
     UncontrolledProviderScope(
@@ -137,7 +158,7 @@ Future<void> bootstrap() async {
 Future<
   ({
     ProviderContainer container,
-    Object? failure,
+    StorageFailure? failure,
     void Function() restoreHandlers,
   })
 >
@@ -180,7 +201,7 @@ startUp({
 /// happen to a person 400 days into a taper — and the answer is **defaults plus
 /// a recoverable error**, never a black screen. The failure reaches the UI
 /// through `bootstrapErrorProvider`; the crash sink already has the stack.
-Future<({AppDatabase? database, AppSettings settings, Object? failure})>
+Future<({AppDatabase? database, AppSettings settings, StorageFailure? failure})>
 _openAndReadSettings(
   DatabaseLocation location,
   AppDatabase Function(DatabaseLocation location) openDatabase,
@@ -212,7 +233,8 @@ _openAndReadSettings(
 ///
 /// **Never a black screen.** A person 400 days into a taper needs the app to
 /// open far more than they need it to be right about their theme.
-({AppDatabase? database, AppSettings settings, Object? failure}) _fallback(
+({AppDatabase? database, AppSettings settings, StorageFailure? failure})
+_fallback(
   CrashSink sink,
   AppDatabase? database,
   Object error,
@@ -225,5 +247,12 @@ _openAndReadSettings(
   // problem and in production is a console dump the user cannot act on.
   sink.record(error, stack, context: 'opening the database at startup');
   unawaited(database?.close().catchError((_) {}));
-  return (database: null, settings: AppSettings.defaults, failure: error);
+  // TYPED, not the raw exception. A `SqliteException` crossing out of
+  // `lib/data/` is the leak `no_drift_in_api_test` exists to prevent, and a
+  // consumer cannot switch on it or localize from a stable code.
+  return (
+    database: null,
+    settings: AppSettings.defaults,
+    failure: storageFailureFrom(error),
+  );
 }

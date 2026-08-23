@@ -125,6 +125,12 @@ void main() {
   }
 
   setUp(() {
+    // Reset, not merely declared: these are file-scoped so that
+    // `disposeLaunched` can reach them from inside a test body, and a test
+    // that fails before disposing would otherwise hand the NEXT test a
+    // container and a database belonging to a dead one.
+    launchedContainer = null;
+    launchedDatabase = null;
     directory = Directory.systemTemp.createTempSync('nearlystop_boot');
     // What `FlutterError.onError` was before the launch replaced it. The
     // ordering claim is observed against this, and `launch` puts both global
@@ -134,7 +140,23 @@ void main() {
     originalOnError = FlutterError.onError;
     location = RecordingLocation(directory, originalOnError);
   });
-  tearDown(() => directory.deleteSync(recursive: true));
+  tearDown(() {
+    // Disposal has to happen in the BODY (see `disposeLaunched`), so this
+    // cannot do the cleanup — but it can refuse to let a missed call be
+    // silent. Without it a forgotten `disposeLaunched` surfaces as a hang in
+    // whichever test runs next, which names nothing and, under
+    // `--test-randomize-ordering-seed random`, is a different test each run.
+    final leaked = launchedContainer != null || launchedDatabase != null;
+    launchedContainer?.dispose();
+    launchedContainer = null;
+    launchedDatabase = null;
+    directory.deleteSync(recursive: true);
+    expect(
+      leaked,
+      isFalse,
+      reason: 'this test body must end with `await disposeLaunched(tester)`',
+    );
+  });
 
   /// Writes a settings row into the database the bootstrap will find.
   /// Also inside `runAsync`, for the same reason the launch is: this writes a
@@ -155,7 +177,6 @@ void main() {
       ),
     );
     await db.close();
-    await disposeLaunched(tester);
   });
 
   testWidgets('frame one is ALREADY dark — not a light frame then dark', (
@@ -250,5 +271,6 @@ void main() {
     await launch(tester, const NearlyStopApp());
 
     expect(find.byType(FutureBuilder<Object?>), findsNothing);
+    await disposeLaunched(tester);
   });
 }

@@ -82,6 +82,51 @@ void main() {
     expect(sink.readAll(), isNotEmpty);
   });
 
+  test('the byte cap holds when the cut lands mid-character', () {
+    // `utf8.decode(..., allowMalformed: true)` turns a half-written 3-byte
+    // character into U+FFFD, which is itself 3 bytes — so slicing the encoded
+    // bytes at exactly `maxBytes` can re-encode to MORE than `maxBytes`. Two
+    // of this app's four locales are Perso-Arabic, so every character in a
+    // Persian error message is 2 bytes and this is the ordinary case, not an
+    // exotic one.
+    final sink = sinkWith(maxRecords: 1000, maxBytes: 300)
+      ..record(StateError('خطای پایگاه داده ' * 40), null);
+
+    expect(sink.file.lengthSync(), lessThanOrEqualTo(300));
+  });
+
+  test('the byte cap holds at EVERY cut position', () {
+    // Swept rather than sampled: whether the cut lands mid-character depends
+    // on the cap, and one lucky cap proves nothing about the others.
+    for (var cap = 120; cap <= 200; cap++) {
+      final directory = Directory.systemTemp.createTempSync('nearlystop_cut');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      CrashSink(
+        directory: directory.path,
+        maxRecords: 1000,
+        maxBytes: cap,
+      ).record(StateError('میلی‌گرم ' * 60), null);
+
+      expect(
+        File('${directory.path}/diagnostics.log').lengthSync(),
+        lessThanOrEqualTo(cap),
+        reason: 'overshot at maxBytes = $cap',
+      );
+    }
+  });
+
+  test('truncation cuts on a character boundary, losing no byte to U+FFFD', () {
+    // The truncated record is the only evidence left of the crash. A tail of
+    // replacement characters is evidence destroyed, and in Persian — where
+    // every character is two bytes — that is most of the last line.
+    final sink = sinkWith(maxRecords: 1000, maxBytes: 151)
+      ..record(StateError('میلی‌گرم ' * 60), null);
+
+    final written = sink.file.readAsStringSync();
+    expect(written, isNot(contains('\uFFFD')));
+    expect(sink.file.lengthSync(), lessThanOrEqualTo(151));
+  });
+
   test('an unwritable directory FAILS, it does not throw', () {
     // This runs from inside `FlutterError.onError`. A throw here turns a
     // reportable crash into an unreportable one, and the app loses the only

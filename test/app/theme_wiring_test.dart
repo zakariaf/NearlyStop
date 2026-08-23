@@ -88,4 +88,69 @@ void main() {
     expect(theme.textTheme.bodyMedium?.fontWeight, FontWeight.w600);
     expect(DaybreakColors.of(context).inkMuted, DaybreakColors.of(context).ink);
   });
+
+  // The stored text-scale setting is read at bootstrap, persisted, and carried
+  // through `AppSettings` — none of which does anything unless the widget tree
+  // is told. Before this suite existed the setting was silently inert: the
+  // slider EPIC-11 puts on the Settings screen would have moved and changed
+  // nothing.
+  Future<double> scaledTen(
+    WidgetTester tester, {
+    required double stored,
+    TextScaler platform = TextScaler.noScaling,
+  }) async {
+    await tester.pumpWidget(
+      MediaQuery(
+        data: MediaQueryData(textScaler: platform),
+        child: ProviderScope(
+          overrides: <Override>[
+            bootstrapSettingsProvider.overrideWithValue(
+              AppSettings.defaults.copyWith(textScale: stored),
+            ),
+          ],
+          child: const NearlyStopApp(),
+        ),
+      ),
+    );
+    return MediaQuery.textScalerOf(
+      tester.element(find.byType(Scaffold)),
+    ).scale(10);
+  }
+
+  testWidgets('the stored text scale reaches the tree', (tester) async {
+    expect(await scaledTen(tester, stored: 1.4), closeTo(14, 0.001));
+  });
+
+  testWidgets('it MULTIPLIES the OS scaler, it does not replace it', (
+    tester,
+  ) async {
+    // `TextScaler.clamp(minScaleFactor: 1.5)` would leave this at 20 — the user
+    // asked their phone for 2.0 AND this app for 1.5, and gets both.
+    expect(
+      await scaledTen(
+        tester,
+        stored: 1.5,
+        platform: const TextScaler.linear(2),
+      ),
+      closeTo(30, 0.001),
+    );
+  });
+
+  testWidgets('the app multiplier is bounded, the OS scaler is not', (
+    tester,
+  ) async {
+    // Ours is bounded because it is OUR control. A stored 4.0 — from a corrupt
+    // row or a future slider with a wider range — is capped at 1.5. The OS half
+    // is never touched: 3.0 from the phone stays 3.0.
+    expect(await scaledTen(tester, stored: 4), closeTo(15, 0.001));
+    expect(await scaledTen(tester, stored: 0.1), closeTo(9, 0.001));
+    expect(
+      await scaledTen(
+        tester,
+        stored: 1,
+        platform: const TextScaler.linear(3),
+      ),
+      closeTo(30, 0.001),
+    );
+  });
 }

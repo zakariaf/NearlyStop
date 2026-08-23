@@ -280,5 +280,5 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shellStorageError =>
-      'Something went wrong saving your data. Your plan is safe.';
+      'Your settings could not be loaded, so the app is using its defaults.';
 }

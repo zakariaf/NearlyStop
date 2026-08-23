@@ -276,5 +276,5 @@ class AppLocalizationsCkb extends AppLocalizations {
 
   @override
   String get shellStorageError =>
-      'کێشەیەک لە پاشەکەوتکردنی داتاکەت ڕوویدا. پلانەکەت پارێزراوە.';
+      'ڕێکخستنەکانت بار نەکران، بۆیە ئەپەکە بنەڕەتەکانی خۆی بەکاردەهێنێت.';
 }

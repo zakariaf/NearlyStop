@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/app/app.dart';
+import 'package:nearlystop/data/storage_failure.dart';
 import 'package:nearlystop/routing/app_router.dart';
 import 'package:nearlystop/routing/routes.dart';
 
@@ -23,7 +24,7 @@ void main() {
     WidgetTester tester, {
     Locale locale = const Locale('en'),
     Size size = const Size(400, 800),
-    Object? bootstrapFailure,
+    StorageFailure? bootstrapFailure,
   }) async {
     tester.view.physicalSize = size * tester.view.devicePixelRatio;
     addTearDown(tester.view.resetPhysicalSize);
@@ -107,7 +108,7 @@ void main() {
   testWidgets('the error banner is persistent, and is not a SnackBar', (
     tester,
   ) async {
-    await pumpShell(tester, bootstrapFailure: 'disk on fire');
+    await pumpShell(tester, bootstrapFailure: const Io('disk on fire'));
     expect(find.byIcon(Icons.error_outline), findsOneWidget);
 
     // Thirty seconds of timed pumps: a SnackBar would be long gone, and this

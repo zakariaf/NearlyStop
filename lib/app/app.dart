@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nearlystop/app/locale_providers.dart';
+import 'package:nearlystop/app/user_preferences_layer.dart';
 import 'package:nearlystop/core/settings/app_settings.dart';
 import 'package:nearlystop/features/settings/application/settings_controller.dart';
 import 'package:nearlystop/l10n/app_locales.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/routing/app_router.dart';
-import 'package:nearlystop/theme/daybreak_script.dart';
 import 'package:nearlystop/theme/daybreak_theme.dart';
 
 /// The root widget.
@@ -102,40 +102,12 @@ class _NearlyStopAppState extends ConsumerState<NearlyStopApp>
       // Material cross-fades ThemeData over kThemeAnimationDuration by default.
       // At 6am on a bedside table that is a luminance jolt nobody asked for.
       themeAnimationStyle: AnimationStyle.noAnimation,
-      builder: (context, child) =>
-          _applyBoldText(context, child, script, highContrast: highContrast),
+      builder: (context, child) => UserPreferencesLayer(
+        script: script,
+        highContrast: highContrast,
+        userTextScale: settings.textScale,
+        child: child ?? const SizedBox.shrink(),
+      ),
     );
   }
-}
-
-/// Rebuilds the theme one weight-step up when the OS asks for bold text.
-///
-/// It has to happen **here**, below `MaterialApp`, because that is the first
-/// place a `MediaQuery` exists: `theme:` and `darkTheme:` are evaluated above
-/// it, so no call site up there can read `boldTextOf`. Flutter does not apply
-/// `boldText` on its own — it exposes the flag and leaves honouring it to the
-/// app, and `accessibility-as-code` says honouring it is correctness.
-Widget _applyBoldText(
-  BuildContext context,
-  Widget? child,
-  DaybreakScript script, {
-  required bool highContrast,
-}) {
-  final content = child ?? const SizedBox.shrink();
-  if (!MediaQuery.boldTextOf(context)) return content;
-  final selected = Theme.of(context);
-  return Theme(
-    data: buildDaybreakTheme(
-      selected.brightness,
-      // The SAME script the themes above were built from. Rebuilding in Latin
-      // here would silently drop the Persian transform for exactly the users
-      // who turned bold text on.
-      script,
-      // The user's SETTING or the OS switch. Reading only the OS one here
-      // would drop the in-app choice for the same users.
-      highContrast: highContrast || MediaQuery.highContrastOf(context),
-      boldText: true,
-    ),
-    child: content,
-  );
 }

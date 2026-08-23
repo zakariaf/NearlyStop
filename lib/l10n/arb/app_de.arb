@@ -69,5 +69,5 @@
   "ckbMonthNames": "Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember",
   "unknownRouteTitle": "Diese Seite gibt es nicht",
   "unknownRouteAction": "Zu Heute",
-  "shellStorageError": "Beim Speichern ist etwas schiefgegangen. Ihr Plan ist sicher."
+  "shellStorageError": "Ihre Einstellungen konnten nicht geladen werden; die App verwendet ihre Standardwerte."
 }

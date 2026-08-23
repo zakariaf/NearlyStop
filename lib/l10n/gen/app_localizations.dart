@@ -516,10 +516,10 @@ abstract class AppLocalizations {
   /// **'Go to Today'**
   String get unknownRouteAction;
 
-  /// A persistent banner in the shell when a write fails. Persistent, never a toast: this audience does not finish reading a message that times out.
+  /// A persistent banner in the shell when the LAUNCH could not read the settings row. Persistent, never a toast: this audience does not finish reading a message that times out. It must not claim anything about the taper plan — this state is specifically about settings, and an earlier wording said "your plan is safe" in the one case where that was not knowable.
   ///
   /// In en, this message translates to:
-  /// **'Something went wrong saving your data. Your plan is safe.'**
+  /// **'Your settings could not be loaded, so the app is using its defaults.'**
   String get shellStorageError;
 }
 

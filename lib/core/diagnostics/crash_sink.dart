@@ -37,6 +37,14 @@ final class DiagnosticsFailure extends Failure {
 }
 
 /// Appends crash records to a bounded local file.
+///
+/// **The steady-state write is an append.** `FlutterError.onError` can fire
+/// once per frame — a throwing `build` method does exactly that — and a sink
+/// that read, re-joined and rewrote the whole log every time would put O(n)
+/// synchronous I/O on the UI isolate at frame rate, in an app that is already
+/// in trouble. The kept records and their byte lengths are held in memory, so
+/// the common path appends one line and the file is only rewritten on the
+/// frames where rotation actually drops something.
 class CrashSink {
   /// Creates a sink writing under [directory].
   ///
@@ -61,7 +69,20 @@ class CrashSink {
   final int maxBytes;
 
   /// The log file itself.
-  File get file => File('$directory/diagnostics.log');
+  late final File file = File('$directory/diagnostics.log');
+
+  /// The in-memory mirror of the file, oldest first. Null until first touched.
+  List<String>? _kept;
+
+  /// The UTF-8 length of each entry in [_kept], same order.
+  ///
+  /// Held because the rotation below needs byte counts for records it is
+  /// deciding whether to drop; re-encoding the survivors once per dropped
+  /// record made trimming quadratic in the size of the log.
+  List<int>? _keptBytes;
+
+  /// The byte length of the joined file, separators included.
+  int _totalBytes = 0;
 
   /// Appends one record, dropping the oldest to stay inside both caps.
   Result<void, DiagnosticsFailure> record(
@@ -70,13 +91,27 @@ class CrashSink {
     String? context,
   }) {
     try {
-      final kept = <String>[..._existing(), _encode(error, stack, context)];
-      file.writeAsStringSync(_trimmed(kept).join('\n'));
+      _load();
+      final line = _encode(error, stack, context);
+      _append(line, utf8.encode(line).length);
+
+      if (_rotate()) {
+        // Something was dropped or truncated, so the whole file changes.
+        file.writeAsStringSync(_kept!.join('\n'));
+      } else if (_kept!.length == 1) {
+        // First record: this is also what creates the file.
+        file.writeAsStringSync(line);
+      } else {
+        file.writeAsStringSync('\n$line', mode: FileMode.append);
+      }
       return const Ok(null);
     } on Object catch (cause) {
       // An unwritable directory, a full disk, a permission change. The caller
       // is an error handler; it has nowhere to report this to and must not
-      // make things worse.
+      // make things worse. The mirror is dropped so the next attempt re-reads
+      // rather than appending to a file that may not hold what we think.
+      _kept = null;
+      _keptBytes = null;
       return Err(DiagnosticsFailure(cause));
     }
   }
@@ -87,10 +122,87 @@ class CrashSink {
   /// who has never crashed.
   List<String> readAll() {
     try {
+      // Deliberately from DISK, not from the mirror: this is also how a test
+      // — and a support request — checks that what we believe we wrote is
+      // what is actually on the device.
       return _existing();
     } on Object {
       return const <String>[];
     }
+  }
+
+  /// Reads the file into the mirror, once.
+  void _load() {
+    if (_kept != null) return;
+    final records = _existing();
+    _kept = records;
+    _keptBytes = records.map((r) => utf8.encode(r).length).toList();
+    _totalBytes = _joinedLength(_keptBytes!, 0);
+  }
+
+  void _append(String line, int bytes) {
+    _kept!.add(line);
+    _keptBytes!.add(bytes);
+    _totalBytes += bytes + (_kept!.length > 1 ? 1 : 0);
+  }
+
+  /// Brings the mirror inside both caps. True if anything changed.
+  bool _rotate() {
+    final lengths = _keptBytes!;
+    final total = _kept!.length;
+    var drop = 0;
+    var bytes = _totalBytes;
+
+    // One pass, computing the drop count before mutating: `removeAt(0)` in a
+    // loop shifts the whole list per record dropped.
+    while (total - drop > maxRecords) {
+      bytes -= lengths[drop] + 1;
+      drop++;
+    }
+    while (total - drop > 1 && bytes > maxBytes) {
+      bytes -= lengths[drop] + 1;
+      drop++;
+    }
+    if (drop > 0) {
+      _kept!.removeRange(0, drop);
+      lengths.removeRange(0, drop);
+      _totalBytes = bytes;
+    }
+
+    // The newest record alone still over the cap is truncated rather than
+    // dropped, because an over-long record is still evidence.
+    if (_kept!.length == 1 && _totalBytes > maxBytes) {
+      final truncated = _truncateToBytes(_kept!.single, maxBytes);
+      _kept![0] = truncated;
+      lengths[0] = utf8.encode(truncated).length;
+      _totalBytes = lengths[0];
+      return true;
+    }
+    return drop > 0;
+  }
+
+  /// The longest prefix of [value] that encodes to at most [limit] bytes.
+  ///
+  /// **Not** `utf8.encode(value).sublist(0, limit)` decoded with
+  /// `allowMalformed`. Cutting mid-character leaves a partial sequence that
+  /// decodes to U+FFFD, which is itself three bytes — so that slice can
+  /// re-encode LONGER than the cap it was supposed to enforce. Two of this
+  /// app's four locales are Perso-Arabic, where every character is two bytes,
+  /// so this is the ordinary case rather than an exotic one. Measured: a
+  /// Persian record under a 120-byte cap wrote 122.
+  static String _truncateToBytes(String value, int limit) {
+    final bytes = utf8.encode(value);
+    if (bytes.length <= limit) return value;
+    // `bytes[end]` is the first byte NOT kept. While it is a continuation byte
+    // (10xxxxxx) the slice ends mid-character, so step back — at most three
+    // times, because a UTF-8 sequence is at most four bytes. Walking back one
+    // CHARACTER at a time and re-encoding would be quadratic, and the record
+    // that hits this path is the 2MB stack trace.
+    var end = limit;
+    while (end > 0 && (bytes[end] & 0xC0) == 0x80) {
+      end--;
+    }
+    return utf8.decode(bytes.sublist(0, end));
   }
 
   List<String> _existing() {
@@ -106,7 +218,7 @@ class CrashSink {
   ///
   /// A stack is multi-line by nature, so its newlines are escaped rather than
   /// written — otherwise counting records means parsing them, and the rotation
-  /// below could not tell a record from a stack frame.
+  /// above could not tell a record from a stack frame.
   String _encode(Object error, StackTrace? stack, String? context) {
     final parts = <String, String>{
       'context': ?context,
@@ -116,27 +228,12 @@ class CrashSink {
     return jsonEncode(parts);
   }
 
-  /// The tail of [records] that fits inside both caps.
-  List<String> _trimmed(List<String> records) {
-    var kept = records.length > maxRecords
-        ? records.sublist(records.length - maxRecords)
-        : records;
-    // Drop from the front until the joined file fits. The newest record is
-    // the one worth keeping; if even that exceeds the cap it is truncated
-    // rather than dropped, because an over-long record is still evidence.
-    while (kept.length > 1 && _bytes(kept) > maxBytes) {
-      kept = kept.sublist(1);
+  /// The joined length of [lengths] from [from], one separator between each.
+  static int _joinedLength(List<int> lengths, int from) {
+    var total = 0;
+    for (var i = from; i < lengths.length; i++) {
+      total += lengths[i] + (i > from ? 1 : 0);
     }
-    if (kept.length == 1 && _bytes(kept) > maxBytes) {
-      kept = <String>[
-        utf8.decode(
-          utf8.encode(kept.single).sublist(0, maxBytes),
-          allowMalformed: true,
-        ),
-      ];
-    }
-    return kept;
+    return total;
   }
-
-  int _bytes(List<String> records) => utf8.encode(records.join('\n')).length;
 }

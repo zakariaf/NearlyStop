@@ -10,8 +10,9 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nearlystop/app/app.dart';
+import 'package:nearlystop/app/user_preferences_layer.dart';
 import 'package:nearlystop/core/settings/app_settings.dart';
+import 'package:nearlystop/data/storage_failure.dart';
 import 'package:nearlystop/l10n/app_locales.dart';
 import 'package:nearlystop/providers.dart';
 import 'package:nearlystop/theme/daybreak_theme.dart';
@@ -33,6 +34,9 @@ Future<void> pumpApp(
   Locale locale = const Locale('en'),
   Brightness brightness = Brightness.light,
   TextScaler textScaler = TextScaler.noScaling,
+  bool highContrast = false,
+  bool boldText = false,
+  double userTextScale = 1,
   Size? surfaceSize,
 }) async {
   if (surfaceSize != null) {
@@ -53,15 +57,35 @@ Future<void> pumpApp(
         // The SAME builder the app uses, with the same three arguments. A
         // harness that built a default `ThemeData` would let a screen pass here
         // and look wrong in the app.
-        theme: buildDaybreakTheme(brightness, scriptFor(locale)),
+        theme: buildDaybreakTheme(
+          brightness,
+          scriptFor(locale),
+          highContrast: highContrast,
+        ),
+        // The app suppresses the theme cross-fade; without this a harness pump
+        // that changes theme would need an extra settle to reach the colours
+        // the app shows immediately.
+        themeAnimationStyle: AnimationStyle.noAnimation,
         // `copyWith` on the MediaQuery `MaterialApp` already provides, not a
         // bare `MediaQueryData`: replacing it wholesale zeroes the viewport
         // size, and a screen laid out at 0×0 passes any test that does not
         // look at geometry.
         home: Builder(
           builder: (context) => MediaQuery(
-            data: MediaQuery.of(context).copyWith(textScaler: textScaler),
-            child: child,
+            data: MediaQuery.of(context).copyWith(
+              textScaler: textScaler,
+              boldText: boldText,
+              highContrast: highContrast,
+            ),
+            // The app's OWN layer, not a re-implementation of it: `pumpApp`
+            // renders a screen under exactly the preferences wrapper
+            // `MaterialApp.builder` gives it in production.
+            child: UserPreferencesLayer(
+              script: scriptFor(locale),
+              highContrast: highContrast,
+              userTextScale: userTextScale,
+              child: child,
+            ),
           ),
         ),
       ),
@@ -78,7 +102,7 @@ Future<void> pumpApp(
 /// different from what the launch actually produces.
 List<Override> launchOverrides({
   AppSettings? settings,
-  Object? bootstrapFailure,
+  StorageFailure? bootstrapFailure,
 }) => <Override>[
   bootstrapSettingsProvider.overrideWithValue(settings ?? AppSettings.defaults),
   bootstrapErrorProvider.overrideWithValue(bootstrapFailure),
@@ -94,28 +118,3 @@ AppSettings acceptedSettings({String? localeTag, bool highContrast = false}) =>
       localeTag: localeTag,
       highContrast: highContrast,
     );
-
-/// Pumps the real [NearlyStopApp] and hands back its container.
-///
-/// The container is **not** torn down here. Two suites pump twice in one test,
-/// and registering a teardown per pump nests one `runAsync` inside another,
-/// which `flutter_test` refuses — so disposal is the caller's, once per test.
-Future<ProviderContainer> pumpNearlyStopApp(
-  WidgetTester tester, {
-  List<Override> overrides = const <Override>[],
-  Size? surfaceSize,
-}) async {
-  if (surfaceSize != null) {
-    tester.view.physicalSize = surfaceSize * tester.view.devicePixelRatio;
-    addTearDown(tester.view.resetPhysicalSize);
-  }
-  final container = ProviderContainer(overrides: overrides);
-  await tester.pumpWidget(
-    UncontrolledProviderScope(
-      container: container,
-      child: const NearlyStopApp(),
-    ),
-  );
-  await tester.pumpAndSettle();
-  return container;
-}
