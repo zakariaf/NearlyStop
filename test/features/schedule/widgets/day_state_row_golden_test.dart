@@ -60,10 +60,11 @@ String wordFor(String languageCode, DayState state) => languageCode == 'fa'
         DayState.upcoming => 'پیش‌رو',
       }
     : switch (state) {
-        DayState.taken => 'Taken',
-        DayState.missed => 'Not ticked',
-        DayState.today => 'Today',
-        DayState.upcoming => 'Upcoming',
+        // The CASED forms, because that is what `.sstate` shows in Latin.
+        DayState.taken => 'TAKEN',
+        DayState.missed => 'NOT TICKED',
+        DayState.today => 'TODAY',
+        DayState.upcoming => 'UPCOMING',
       };
 
 /// All four states stacked, plus the new-dose channel on `today`.
@@ -96,8 +97,7 @@ Widget sheet(BuildContext context, String languageCode) {
               padding: const EdgeInsetsDirectional.fromSTEB(12, 4, 12, 4),
               child: DayStateRow(
                 state: state,
-                weekdayText: copy.weekday,
-                dateText: '16 April',
+                dayLabel: '${copy.weekday} 16 April',
                 doseText: copy.dose,
                 tabletsText: copy.tablets,
                 stateLabel: wordFor(languageCode, state),

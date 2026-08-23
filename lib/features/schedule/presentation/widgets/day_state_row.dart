@@ -4,8 +4,10 @@ library;
 import 'package:flutter/material.dart';
 import 'package:nearlystop/core/day_state.dart';
 import 'package:nearlystop/features/schedule/presentation/widgets/day_state_marker.dart';
+import 'package:nearlystop/l10n/app_locales.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_elevation.dart';
+import 'package:nearlystop/theme/daybreak_script.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
 
 /// One schedule row: a marker, the day, the dose, and the state as a word.
@@ -23,17 +25,23 @@ class DayStateRow extends StatelessWidget {
   /// Creates a row for one day.
   const DayStateRow({
     required this.state,
-    required this.weekdayText,
-    required this.dateText,
+    required this.dayLabel,
     required this.doseText,
     required this.stateLabel,
     required this.semanticsLabel,
     this.tabletsText,
     this.isNewDose = false,
     this.newDoseLabel,
+    this.isHoldDay = false,
+    this.holdLabel,
     this.unachievableText,
     super.key,
   }) : assert(
+         !isHoldDay || holdLabel != null,
+         'a hold day is explained by a glyph AND a word; the glyph alone is a '
+         'shape nobody has been taught',
+       ),
+       assert(
          tabletsText != null || unachievableText != null,
          'a row shows a tablet breakdown OR the unachievable flag — never '
          'neither, which would leave the dose unexplained',
@@ -49,6 +57,31 @@ class DayStateRow extends StatelessWidget {
 
   /// Finds the `CustomPaint` that draws the row's outline.
   static const Key borderKey = Key('day-state-row-border');
+
+  /// The glyph that sits beside the state word.
+  ///
+  /// A SECOND shape channel, next to the marker's. The reference puts one in
+  /// `.sstate` as well, and it is the channel that survives beside the word a
+  /// screen reader reads and a greyscale printout shows.
+  static IconData stateGlyph(DayState state) => switch (state) {
+    DayState.taken => Icons.check,
+    DayState.missed => Icons.radio_button_unchecked,
+    DayState.today => Icons.wb_twilight,
+    DayState.upcoming => Icons.schedule,
+  };
+
+  /// The tracking on the state word in Latin, from `.sstate`'s `.06em`.
+  ///
+  /// Zero in Perso-Arabic: the script has no case to change and tracking
+  /// breaks the joins between letters (`daybreak-bilingual-type`).
+  static const double stateTracking = 0.06;
+
+  /// The glyph that accompanies the hold word.
+  ///
+  /// A pause bracket: distinct in SHAPE from all four state markers and from
+  /// the new-dose arrow, because a run of five held days is exactly where a
+  /// colour-only signal would leave the reader guessing.
+  static const IconData holdGlyph = Icons.pause_circle_outline;
 
   /// The glyph that accompanies the new-dose word.
   ///
@@ -73,11 +106,12 @@ class DayStateRow extends StatelessWidget {
   /// Which of the four states this day is in.
   final DayState state;
 
-  /// The weekday name, already localized.
-  final String weekdayText;
-
-  /// The date, already formatted in the active calendar.
-  final String dateText;
+  /// "Wed 16 Apr" — weekday and date on ONE line, already localized and
+  /// already in the active calendar.
+  ///
+  /// One string, not a weekday and a date: frame 3's `.sday` is a single line,
+  /// and the second line of that column belongs to [tabletsText].
+  final String dayLabel;
 
   /// The dose with its unit, already formatted.
   final String doseText;
@@ -101,6 +135,18 @@ class DayStateRow extends StatelessWidget {
   /// The new-dose word, already localized. Required when [isNewDose].
   final String? newDoseLabel;
 
+  /// Whether this day was inserted by a hold.
+  ///
+  /// A separate channel, exactly like [isNewDose] and for the same reason. The
+  /// alternative — replacing the state marker and the state word with a hold
+  /// treatment — takes both the shape channel and the word channel away from
+  /// taken/not-taken for up to 28 consecutive days, on rows whose only job is
+  /// answering "did I take it?".
+  final bool isHoldDay;
+
+  /// "Held at block 3", already localized. Required when [isHoldDay].
+  final String? holdLabel;
+
   /// The flag shown INSTEAD of a tablet breakdown when the dose cannot be made
   /// from the tablets held.
   ///
@@ -117,8 +163,11 @@ class DayStateRow extends StatelessWidget {
     final stacked =
         MediaQuery.textScalerOf(context).scale(1) > stackAboveTextScale;
     final dayBlock = _DayBlock(
-      weekdayText: weekdayText,
-      dateText: dateText,
+      dayLabel: dayLabel,
+      isHoldDay: isHoldDay,
+      holdLabel: holdLabel,
+      tabletsText: tabletsText,
+      unachievableText: unachievableText,
       isToday: isToday,
       isNewDose: isNewDose,
       newDoseLabel: newDoseLabel,
@@ -176,8 +225,8 @@ class DayStateRow extends StatelessWidget {
                       // things, and at this size the reader is following one
                       // line down the page.
                       _DayEndBlock(
+                        state: state,
                         doseText: doseText,
-                        tabletsText: tabletsText,
                         unachievableText: unachievableText,
                         stateLabel: stateLabel,
                         stateWordColor: _stateWordColor(colors),
@@ -192,14 +241,18 @@ class DayStateRow extends StatelessWidget {
                       SizedBox(width: shapes.s3),
                       Expanded(child: dayBlock),
                       SizedBox(width: shapes.s3),
-                      Flexible(
-                        child: _DayEndBlock(
-                          doseText: doseText,
-                          tabletsText: tabletsText,
-                          unachievableText: unachievableText,
-                          stateLabel: stateLabel,
-                          stateWordColor: _stateWordColor(colors),
-                        ),
+                      // NOT `Flexible`. Frame 3's `.send` is `flex: 0 0 auto`
+                      // with `margin-inline-start: auto`: it takes its own
+                      // width and the day column takes the rest. As a flex
+                      // child it splits the free space instead and the
+                      // breakdown wraps with room to spare beside it. Above
+                      // 1.6 the row stacks, so nothing has to squeeze here.
+                      _DayEndBlock(
+                        state: state,
+                        doseText: doseText,
+                        unachievableText: unachievableText,
+                        stateLabel: stateLabel,
+                        stateWordColor: _stateWordColor(colors),
                       ),
                     ],
                   ),
@@ -334,15 +387,21 @@ class RowBorderPainter extends CustomPainter {
 /// be `const`. `widget-composition` bans them outright.
 class _DayBlock extends StatelessWidget {
   const _DayBlock({
-    required this.weekdayText,
-    required this.dateText,
+    required this.dayLabel,
+    required this.isHoldDay,
+    required this.holdLabel,
+    required this.tabletsText,
+    required this.unachievableText,
     required this.isToday,
     required this.isNewDose,
     required this.newDoseLabel,
   });
 
-  final String weekdayText;
-  final String dateText;
+  final String dayLabel;
+  final bool isHoldDay;
+  final String? holdLabel;
+  final String? tabletsText;
+  final String? unachievableText;
   final bool isToday;
   final bool isNewDose;
   final String? newDoseLabel;
@@ -358,41 +417,46 @@ class _DayBlock extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Text(
-          weekdayText,
+          dayLabel,
           style: text.bodyLarge?.copyWith(
             fontWeight: isToday ? FontWeight.w800 : FontWeight.w700,
             color: colors.ink,
           ),
         ),
-        Text(
-          dateText,
-          style: text.bodySmall?.copyWith(
-            fontWeight: FontWeight.w600,
+        // `.stab`: what you actually swallow that day, directly under the day
+        // it belongs to. The trailing column carries the dose and the state,
+        // and nothing else.
+        if (tabletsText case final tablets?)
+          Text(
+            tablets,
+            style: text.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colors.inkMuted,
+            ),
+          ),
+        if (unachievableText case final flag?)
+          Text(
+            flag,
+            style: text.bodySmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: colors.warning,
+            ),
+          ),
+        if (isHoldDay) ...<Widget>[
+          SizedBox(height: shapes.s1),
+          _DayChannelChip(
+            glyph: DayStateRow.holdGlyph,
+            label: holdLabel!,
             color: colors.inkMuted,
           ),
-        ),
+        ],
         if (isNewDose) ...<Widget>[
           SizedBox(height: shapes.s1),
           // Colour AND glyph AND word — all three, always.
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Icon(
-                DayStateRow.newDoseGlyph,
-                size: 16,
-                color: colors.stateNewDose,
-              ),
-              SizedBox(width: shapes.s1),
-              Flexible(
-                child: Text(
-                  newDoseLabel!,
-                  style: text.labelMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colors.stateNewDose,
-                  ),
-                ),
-              ),
-            ],
+          _DayChannelChip(
+            glyph: DayStateRow.newDoseGlyph,
+            label: newDoseLabel!,
+            color: colors.stateNewDose,
           ),
         ],
       ],
@@ -403,8 +467,8 @@ class _DayBlock extends StatelessWidget {
 /// The dose, the tablet breakdown or the unachievable flag, and the state word.
 class _DayEndBlock extends StatelessWidget {
   const _DayEndBlock({
+    required this.state,
     required this.doseText,
-    required this.tabletsText,
     required this.unachievableText,
     required this.stateLabel,
     required this.stateWordColor,
@@ -412,8 +476,8 @@ class _DayEndBlock extends StatelessWidget {
     this.textAlign = TextAlign.end,
   });
 
+  final DayState state;
   final String doseText;
-  final String? tabletsText;
   final String? unachievableText;
   final String stateLabel;
   final Color stateWordColor;
@@ -441,29 +505,104 @@ class _DayEndBlock extends StatelessWidget {
               color: colors.ink,
             ),
           ),
-        if (tabletsText case final tablets?)
-          Text(
-            tablets,
-            style: text.bodySmall?.copyWith(color: colors.inkMuted),
-            textAlign: textAlign,
-          ),
-        if (unachievableText case final flag?)
-          Text(
-            flag,
-            style: text.bodySmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: colors.warning,
+        SizedBox(height: shapes.s1),
+        _StateWord(
+          state: state,
+          label: stateLabel,
+          color: stateWordColor,
+          textAlign: textAlign,
+          crossAxisAlignment: crossAxisAlignment,
+        ),
+      ],
+    );
+  }
+}
+
+/// The state's glyph and its word, cased for the script.
+class _StateWord extends StatelessWidget {
+  const _StateWord({
+    required this.state,
+    required this.label,
+    required this.color,
+    required this.textAlign,
+    required this.crossAxisAlignment,
+  });
+
+  final DayState state;
+  final String label;
+  final Color color;
+  final TextAlign textAlign;
+  final CrossAxisAlignment crossAxisAlignment;
+
+  @override
+  Widget build(BuildContext context) {
+    final shapes = DaybreakShapes.of(context);
+    final style = Theme.of(context).textTheme.labelSmall;
+    final perso =
+        scriptFor(Localizations.localeOf(context)) == DaybreakScript.perso;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: crossAxisAlignment == CrossAxisAlignment.end
+          ? MainAxisAlignment.end
+          : MainAxisAlignment.start,
+      children: <Widget>[
+        Icon(DayStateRow.stateGlyph(state), size: 14, color: color),
+        SizedBox(width: shapes.s1),
+        Flexible(
+          child: Text(
+            // The CASED string comes from the ARB, never from
+            // `.toUpperCase()`: Dart's is locale-blind, and casing is a
+            // translator's call. In Perso-Arabic the cased key is the same
+            // word, because the script has no case.
+            label,
+            style: style?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: color,
+              letterSpacing: perso
+                  ? 0
+                  : (style.fontSize ?? 14) * DayStateRow.stateTracking,
             ),
             textAlign: textAlign,
           ),
-        SizedBox(height: shapes.s1),
-        Text(
-          stateLabel,
-          style: text.labelSmall?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: stateWordColor,
+        ),
+      ],
+    );
+  }
+}
+
+/// A glyph and a word beside the day, for a channel that is not the state.
+///
+/// New-dose and held both ride here. Neither is a fifth [DayState] member: a
+/// day is routinely both `today` and a new-dose day, and a held day is still
+/// either taken or not (CONTRACTS.md §1).
+class _DayChannelChip extends StatelessWidget {
+  const _DayChannelChip({
+    required this.glyph,
+    required this.label,
+    required this.color,
+  });
+
+  final IconData glyph;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final shapes = DaybreakShapes.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Icon(glyph, size: 16, color: color),
+        SizedBox(width: shapes.s1),
+        Flexible(
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
           ),
-          textAlign: textAlign,
         ),
       ],
     );

@@ -1,0 +1,237 @@
+/// One block as a sliver group, and the reversed history above it.
+library;
+
+import 'package:flutter/material.dart';
+import 'package:nearlystop/core/time/local_date.dart';
+import 'package:nearlystop/features/schedule/presentation/schedule_view_state.dart';
+import 'package:nearlystop/features/schedule/presentation/widgets/block_header.dart';
+import 'package:nearlystop/features/schedule/presentation/widgets/schedule_day_row.dart';
+import 'package:nearlystop/l10n/gen/app_localizations.dart';
+import 'package:nearlystop/theme/daybreak_shapes.dart';
+
+/// One block: a pinned header, then its days.
+///
+/// **`SliverMainAxisGroup`, not a flat list of slivers.** A plain pinned
+/// `SliverPersistentHeader` sticks for the whole scroll view, so block 3's
+/// header would sit over block 4's rows and the header would stop being a
+/// truthful label. The group scopes the pinning to its own extent.
+class ScheduleBlockGroup extends StatelessWidget {
+  /// Creates the group for [block].
+  const ScheduleBlockGroup({
+    required this.block,
+    required this.onToggle,
+    required this.headerWidth,
+    this.compactHeaders = false,
+    this.todayKey,
+    this.todayDate,
+    super.key,
+  });
+
+  /// The block, already projected.
+  final ScheduleBlockVm block;
+
+  /// Forwarded to every row that can be ticked.
+  final ValueChanged<ScheduleDayVm>? onToggle;
+
+  /// Whether the header drops its teaching sentence.
+  ///
+  /// A landscape phone has ~390pt of height. The sentence is the first thing
+  /// to go and the block's identity is the last, because a header that has
+  /// stopped saying which block you are in is no longer a header.
+  final bool compactHeaders;
+
+  /// Attached to today's row, so the screen can MEASURE whether it is on
+  /// screen instead of estimating an offset that is wrong at every text scale
+  /// but the one it was written at.
+  final GlobalKey? todayKey;
+
+  /// Which row [todayKey] belongs to, or null when today is elsewhere.
+  final LocalDate? todayDate;
+
+  /// The width the header is actually laid out at.
+  ///
+  /// The list is inset, so the delegate cannot read the width off the
+  /// viewport: measuring against a wider box wraps the teaching sentence onto
+  /// fewer lines than it takes and the pinned header then clips it.
+  final double headerWidth;
+
+  @override
+  Widget build(BuildContext context) => SliverMainAxisGroup(
+    slivers: <Widget>[
+      SliverPersistentHeader(
+        pinned: true,
+        delegate: BlockHeaderDelegate(
+          header: headerFor(context, block, compact: compactHeaders),
+          context: context,
+          width: headerWidth,
+        ),
+      ),
+      SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) => ScheduleDayRowTile(
+            day: block.days[index],
+            onToggle: onToggle,
+            measureKey: block.days[index].date == todayDate ? todayKey : null,
+          ),
+          childCount: block.days.length,
+          // 780 rows of history: keeping scrolled-off rows alive is how this
+          // screen becomes slow at step 12. Set deliberately, so the default
+          // cannot come back by accident.
+          addAutomaticKeepAlives: false,
+        ),
+      ),
+      // The gap to the next block lives INSIDE this group, not between the two
+      // of them. Outside, it is a band of scroll during which this block has
+      // ended and the next has not begun, so nothing is pinned and the top of
+      // the screen briefly stops saying which block you are in.
+      SliverToBoxAdapter(
+        child: SizedBox(height: DaybreakShapes.of(context).s5),
+      ),
+    ],
+  );
+
+  /// The header widget for [block], shared with the reversed leading region.
+  static BlockHeader headerFor(
+    BuildContext context,
+    ScheduleBlockVm block, {
+    bool compact = false,
+  }) {
+    final l10n = AppLocalizations.of(context);
+    final completed = block.status == BlockStatus.completed;
+    return BlockHeader(
+      title: block.title,
+      // The SEMANTICS sentence keeps the summary even when the visible header
+      // drops it: a screen reader has no height constraint, and the teaching
+      // sentence is the reason this screen is not a calendar.
+      doseSummary: compact ? '' : block.summary,
+      semanticsLabel: <String>[
+        block.title,
+        if (block.summary.isNotEmpty) block.summary,
+        if (completed) l10n.blockCompleted,
+      ].join('. '),
+      isCurrent: block.status == BlockStatus.current,
+      isCompleted: completed,
+      completedLabel: completed ? l10n.blockCompleted : null,
+    );
+  }
+}
+
+/// One row with the padding the list gives it.
+///
+/// A named class rather than a closure in the builder: `widget-composition`
+/// bans `_buildRow()` helpers, and the `ValueKey(date)` has to live on
+/// something the element tree can diff.
+class ScheduleDayRowTile extends StatelessWidget {
+  /// Creates the padded row for [day].
+  ScheduleDayRowTile({
+    required this.day,
+    required this.onToggle,
+    this.measureKey,
+  }) : super(key: ValueKey<String>('schedule-day-${day.date.toIso8601()}'));
+
+  /// The row's data.
+  final ScheduleDayVm day;
+
+  /// Forwarded to the row when it is tickable.
+  final ValueChanged<ScheduleDayVm>? onToggle;
+
+  /// A handle on this row's box, for the one row the screen has to measure.
+  final GlobalKey? measureKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final shapes = DaybreakShapes.of(context);
+    // VERTICAL only. Frame 3 insets the whole list by `s5` and gives the row
+    // its own `s3/s4` padding inside that; a second horizontal `s4` here
+    // costs 32pt of row, which is the difference between "1 × 5mg, 4 × 1mg"
+    // on one line and on two.
+    return Padding(
+      key: measureKey,
+      padding: EdgeInsetsDirectional.symmetric(vertical: shapes.s1),
+      child: ScheduleDayRow(day: day, onToggle: onToggle),
+    );
+  }
+}
+
+/// Everything BEFORE the current block, in the order a reversed sliver wants.
+///
+/// Slivers placed before `CustomScrollView.center` grow toward the leading
+/// edge, and their children are laid out nearest-the-centre first — so the
+/// content is flattened and REVERSED, which puts each block's header back
+/// above its own rows on screen.
+///
+/// Its headers do not pin. Pinning inside the reverse-growth region would
+/// stick a header to the bottom edge, which is not what a header means; and
+/// the reader scrolling back into history is looking for a specific day, not
+/// for a label to stay put.
+class ScheduleEarlierSliver extends StatelessWidget {
+  /// Creates the leading region for [blocks].
+  const ScheduleEarlierSliver({
+    required this.blocks,
+    required this.onToggle,
+    this.compactHeaders = false,
+    this.todayKey,
+    this.todayDate,
+    super.key,
+  });
+
+  /// The blocks before the current one, in forward order.
+  final List<ScheduleBlockVm> blocks;
+
+  /// Forwarded to every row that can be ticked.
+  final ValueChanged<ScheduleDayVm>? onToggle;
+
+  /// Whether the headers drop their teaching sentence.
+  final bool compactHeaders;
+
+  /// Attached to today's row when today is behind the centre.
+  final GlobalKey? todayKey;
+
+  /// Which row [todayKey] belongs to, or null.
+  final LocalDate? todayDate;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = <Object>[
+      for (final block in blocks) ...<Object>[block, ...block.days],
+    ].reversed.toList();
+
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final item = items[index];
+          return switch (item) {
+            ScheduleBlockVm() => _EarlierHeader(
+              block: item,
+              compact: compactHeaders,
+            ),
+            ScheduleDayVm() => ScheduleDayRowTile(
+              day: item,
+              onToggle: onToggle,
+            ),
+            _ => const SizedBox.shrink(),
+          };
+        },
+        childCount: items.length,
+        addAutomaticKeepAlives: false,
+      ),
+    );
+  }
+}
+
+/// A block header in the scrolled-past region: same widget, no pinning.
+class _EarlierHeader extends StatelessWidget {
+  const _EarlierHeader({required this.block, required this.compact});
+
+  final ScheduleBlockVm block;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final shapes = DaybreakShapes.of(context);
+    return Padding(
+      padding: EdgeInsetsDirectional.only(top: shapes.s3, bottom: shapes.s2),
+      child: ScheduleBlockGroup.headerFor(context, block, compact: compact),
+    );
+  }
+}

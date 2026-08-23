@@ -185,7 +185,11 @@ void main() {
         .toSet();
     expect(
       tops.length,
-      greaterThanOrEqualTo(3),
+      greaterThanOrEqualTo(2),
+      // Was 3, which was a count taken against a 17pt summary. The reference
+      // sets `.bh-txt` to `--fs-label` (15), so the same German sentence at
+      // 200% now needs two lines rather than three. The CLAIM is that it
+      // wraps rather than shrinking, and two lines is that claim.
       reason: 'the teaching sentence should wrap, not shrink',
     );
     expect(
@@ -278,5 +282,29 @@ void main() {
         reason: 'scale $scale',
       );
     }
+  });
+  testWidgets('the sentence is sized the way frame 3 sizes it', (
+    tester,
+  ) async {
+    // `.blockhead .bh-txt` is `--fs-label` (15) and its `b` is `--fs-body`
+    // (17). This component was built one step up on both, which is why the
+    // teaching sentence wraps to two lines at 390pt where the reference keeps
+    // it on one — and the wrap is what makes the header look like a card
+    // rather than a label.
+    late TextStyle title;
+    late TextStyle summary;
+    await pumpApp(
+      tester,
+      Builder(
+        builder: (context) {
+          title = BlockHeader.titleStyle(context);
+          summary = BlockHeader.summaryStyle(context);
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+
+    expect(title.fontSize, 17);
+    expect(summary.fontSize, 15);
   });
 }

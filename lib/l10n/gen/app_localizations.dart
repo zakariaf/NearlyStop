@@ -762,6 +762,147 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mark them now'**
   String get backfillAction;
+
+  /// The block header’s teaching sentence, generated FROM THE BLOCK TABLE and never hardcoded: blocks 7–11 invert, so the OLD dose becomes the single leading day and a summary that always named the new dose first would be wrong for five of the eleven.
+  ///
+  /// In en, this message translates to:
+  /// **'{leadCount, plural, =1{one day at {leadDose}} other{{leadCount} days at {leadDose}}}, then {restCount, plural, =1{1 day at {restDose}} other{{restCount} days at {restDose}}}'**
+  String blockSummary(
+    int leadCount,
+    Object leadDose,
+    int restCount,
+    Object restDose,
+  );
+
+  /// The trailing group for days with no block — after a step’s realised length and after the taper reaches target. Every date the generator emits has to land in some group.
+  ///
+  /// In en, this message translates to:
+  /// **'Holding at {dose}'**
+  String steadyStateTitle(Object dose);
+
+  /// The trailing word on a hold day, where the state word sits.
+  ///
+  /// In en, this message translates to:
+  /// **'Held'**
+  String get held;
+
+  /// A hold day repeats its host day’s `dayInStep`, so five held days would otherwise read "day 14 of 52" five times — which looks like a bug on the one screen whose job is making the structure legible.
+  ///
+  /// In en, this message translates to:
+  /// **'Held at block {block}'**
+  String heldAtBlock(int block);
+
+  /// A read-only row SAYS so rather than being a dead tap target.
+  ///
+  /// In en, this message translates to:
+  /// **'This step is finished and cannot be changed'**
+  String get pastStepReadOnly;
+
+  /// Returns the list to today from anywhere in a 780-day history.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump to today'**
+  String get jumpToToday;
+
+  /// Refused with a reason, never a silent no-op.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot mark a day that has not happened yet'**
+  String get futureDayNotYet;
+
+  /// Completed steps are reached through the switcher, not by scrolling a two-year history into them.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a step'**
+  String get stepSwitcherTitle;
+
+  /// One row in the step switcher.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {index} of {total} — {from} to {to}'**
+  String stepRangeLabel(int index, int total, Object from, Object to);
+
+  /// One schedule row as one sentence, for the screen reader.
+  ///
+  /// In en, this message translates to:
+  /// **'{day}, {dose} milligrams: {breakdown}.{notes}'**
+  String scheduleDaySemantics(
+    Object day,
+    Object dose,
+    Object breakdown,
+    Object notes,
+  );
+
+  /// Clause marking a new-dose day.
+  ///
+  /// In en, this message translates to:
+  /// **' New dose day.'**
+  String get scheduleNoteNewDose;
+
+  /// Clause explaining a hold day inside a block.
+  ///
+  /// In en, this message translates to:
+  /// **' Held, an extra day in block {block}.'**
+  String scheduleNoteHeld(int block);
+
+  /// Clause explaining a hold day with no block.
+  ///
+  /// In en, this message translates to:
+  /// **' Held, an extra day.'**
+  String get scheduleNoteHeldNoBlock;
+
+  /// Clause carrying the day state word.
+  ///
+  /// In en, this message translates to:
+  /// **' {state}.'**
+  String scheduleNoteState(Object state);
+
+  /// Clause warning the dose cannot be made.
+  ///
+  /// In en, this message translates to:
+  /// **' This dose cannot be made from the tablets you hold.'**
+  String get scheduleNoteUnachievable;
+
+  /// Today's schedule row as one sentence; it says so first.
+  ///
+  /// In en, this message translates to:
+  /// **'Today. {day}, {dose} milligrams: {breakdown}.{notes}'**
+  String scheduleTodaySemantics(
+    Object day,
+    Object dose,
+    Object breakdown,
+    Object notes,
+  );
+
+  /// Between tablet groups in the Schedule row's breakdown; U+060C in Perso-Arabic.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get tabletSeparator;
+
+  /// The taken word as the Schedule row DISPLAYS it. Upper case in Latin; unchanged in Perso-Arabic, which has no case.
+  ///
+  /// In en, this message translates to:
+  /// **'TAKEN'**
+  String get stateTakenCaps;
+
+  /// The not-ticked word as the Schedule row displays it. See stateTakenCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'NOT TICKED'**
+  String get stateNotTickedCaps;
+
+  /// The today word as the Schedule row displays it. See stateTakenCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'TODAY'**
+  String get stateTodayCaps;
+
+  /// The upcoming word as the Schedule row displays it. See stateTakenCaps.
+  ///
+  /// In en, this message translates to:
+  /// **'UPCOMING'**
+  String get stateUpcomingCaps;
 }
 
 class _AppLocalizationsDelegate

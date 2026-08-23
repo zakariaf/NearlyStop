@@ -666,5 +666,137 @@
   "backfillAction": "Mark them now",
   "@backfillAction": {
     "description": "The backfill banner action: marks inline for one day, opens the Schedule focused on the oldest for more."
+  },
+  "blockSummary": "{leadCount, plural, =1{one day at {leadDose}} other{{leadCount} days at {leadDose}}}, then {restCount, plural, =1{1 day at {restDose}} other{{restCount} days at {restDose}}}",
+  "@blockSummary": {
+    "description": "The block header’s teaching sentence, generated FROM THE BLOCK TABLE and never hardcoded: blocks 7–11 invert, so the OLD dose becomes the single leading day and a summary that always named the new dose first would be wrong for five of the eleven.",
+    "placeholders": {
+      "leadCount": {
+        "type": "int"
+      },
+      "leadDose": {},
+      "restCount": {
+        "type": "int"
+      },
+      "restDose": {}
+    }
+  },
+  "steadyStateTitle": "Holding at {dose}",
+  "@steadyStateTitle": {
+    "description": "The trailing group for days with no block — after a step’s realised length and after the taper reaches target. Every date the generator emits has to land in some group.",
+    "placeholders": {
+      "dose": {}
+    }
+  },
+  "held": "Held",
+  "@held": {
+    "description": "The trailing word on a hold day, where the state word sits."
+  },
+  "heldAtBlock": "Held at block {block}",
+  "@heldAtBlock": {
+    "description": "A hold day repeats its host day’s `dayInStep`, so five held days would otherwise read \"day 14 of 52\" five times — which looks like a bug on the one screen whose job is making the structure legible.",
+    "placeholders": {
+      "block": {
+        "type": "int"
+      }
+    }
+  },
+  "pastStepReadOnly": "This step is finished and cannot be changed",
+  "@pastStepReadOnly": {
+    "description": "A read-only row SAYS so rather than being a dead tap target."
+  },
+  "jumpToToday": "Jump to today",
+  "@jumpToToday": {
+    "description": "Returns the list to today from anywhere in a 780-day history."
+  },
+  "futureDayNotYet": "You cannot mark a day that has not happened yet",
+  "@futureDayNotYet": {
+    "description": "Refused with a reason, never a silent no-op."
+  },
+  "stepSwitcherTitle": "Choose a step",
+  "@stepSwitcherTitle": {
+    "description": "Completed steps are reached through the switcher, not by scrolling a two-year history into them."
+  },
+  "stepRangeLabel": "Step {index} of {total} — {from} to {to}",
+  "@stepRangeLabel": {
+    "description": "One row in the step switcher.",
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "from": {},
+      "to": {}
+    }
+  },
+  "scheduleDaySemantics": "{day}, {dose} milligrams: {breakdown}.{notes}",
+  "@scheduleDaySemantics": {
+    "description": "One schedule row as one sentence, for the screen reader.",
+    "placeholders": {
+      "day": {},
+      "dose": {},
+      "breakdown": {},
+      "notes": {}
+    }
+  },
+  "scheduleNoteNewDose": " New dose day.",
+  "@scheduleNoteNewDose": {
+    "description": "Clause marking a new-dose day."
+  },
+  "scheduleNoteHeld": " Held, an extra day in block {block}.",
+  "@scheduleNoteHeld": {
+    "description": "Clause explaining a hold day inside a block.",
+    "placeholders": {
+      "block": {
+        "type": "int"
+      }
+    }
+  },
+  "scheduleNoteHeldNoBlock": " Held, an extra day.",
+  "@scheduleNoteHeldNoBlock": {
+    "description": "Clause explaining a hold day with no block."
+  },
+  "scheduleNoteState": " {state}.",
+  "@scheduleNoteState": {
+    "description": "Clause carrying the day state word.",
+    "placeholders": {
+      "state": {}
+    }
+  },
+  "scheduleNoteUnachievable": " This dose cannot be made from the tablets you hold.",
+  "@scheduleNoteUnachievable": {
+    "description": "Clause warning the dose cannot be made."
+  },
+  "scheduleTodaySemantics": "Today. {day}, {dose} milligrams: {breakdown}.{notes}",
+  "@scheduleTodaySemantics": {
+    "description": "Today's schedule row as one sentence; it says so first.",
+    "placeholders": {
+      "day": {},
+      "dose": {},
+      "breakdown": {},
+      "notes": {}
+    }
+  },
+  "tabletSeparator": ", ",
+  "@tabletSeparator": {
+    "description": "Between tablet groups in the Schedule row's breakdown; U+060C in Perso-Arabic."
+  },
+  "stateTakenCaps": "TAKEN",
+  "@stateTakenCaps": {
+    "description": "The taken word as the Schedule row DISPLAYS it. Upper case in Latin; unchanged in Perso-Arabic, which has no case."
+  },
+  "stateNotTickedCaps": "NOT TICKED",
+  "@stateNotTickedCaps": {
+    "description": "The not-ticked word as the Schedule row displays it. See stateTakenCaps."
+  },
+  "stateTodayCaps": "TODAY",
+  "@stateTodayCaps": {
+    "description": "The today word as the Schedule row displays it. See stateTakenCaps."
+  },
+  "stateUpcomingCaps": "UPCOMING",
+  "@stateUpcomingCaps": {
+    "description": "The upcoming word as the Schedule row displays it. See stateTakenCaps."
   }
 }

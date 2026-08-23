@@ -432,4 +432,112 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backfillAction => 'Mark them now';
+
+  @override
+  String blockSummary(
+    int leadCount,
+    Object leadDose,
+    int restCount,
+    Object restDose,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      leadCount,
+      locale: localeName,
+      other: '$leadCount days at $leadDose',
+      one: 'one day at $leadDose',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      restCount,
+      locale: localeName,
+      other: '$restCount days at $restDose',
+      one: '1 day at $restDose',
+    );
+    return '$_temp0, then $_temp1';
+  }
+
+  @override
+  String steadyStateTitle(Object dose) {
+    return 'Holding at $dose';
+  }
+
+  @override
+  String get held => 'Held';
+
+  @override
+  String heldAtBlock(int block) {
+    return 'Held at block $block';
+  }
+
+  @override
+  String get pastStepReadOnly => 'This step is finished and cannot be changed';
+
+  @override
+  String get jumpToToday => 'Jump to today';
+
+  @override
+  String get futureDayNotYet =>
+      'You cannot mark a day that has not happened yet';
+
+  @override
+  String get stepSwitcherTitle => 'Choose a step';
+
+  @override
+  String stepRangeLabel(int index, int total, Object from, Object to) {
+    return 'Step $index of $total — $from to $to';
+  }
+
+  @override
+  String scheduleDaySemantics(
+    Object day,
+    Object dose,
+    Object breakdown,
+    Object notes,
+  ) {
+    return '$day, $dose milligrams: $breakdown.$notes';
+  }
+
+  @override
+  String get scheduleNoteNewDose => ' New dose day.';
+
+  @override
+  String scheduleNoteHeld(int block) {
+    return ' Held, an extra day in block $block.';
+  }
+
+  @override
+  String get scheduleNoteHeldNoBlock => ' Held, an extra day.';
+
+  @override
+  String scheduleNoteState(Object state) {
+    return ' $state.';
+  }
+
+  @override
+  String get scheduleNoteUnachievable =>
+      ' This dose cannot be made from the tablets you hold.';
+
+  @override
+  String scheduleTodaySemantics(
+    Object day,
+    Object dose,
+    Object breakdown,
+    Object notes,
+  ) {
+    return 'Today. $day, $dose milligrams: $breakdown.$notes';
+  }
+
+  @override
+  String get tabletSeparator => ', ';
+
+  @override
+  String get stateTakenCaps => 'TAKEN';
+
+  @override
+  String get stateNotTickedCaps => 'NOT TICKED';
+
+  @override
+  String get stateTodayCaps => 'TODAY';
+
+  @override
+  String get stateUpcomingCaps => 'UPCOMING';
 }

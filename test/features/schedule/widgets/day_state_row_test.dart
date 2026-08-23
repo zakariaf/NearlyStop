@@ -23,6 +23,19 @@ void main() {
     DayState.upcoming => l10n.stateUpcoming,
   };
 
+  /// The state word AS RENDERED, straight from the ARB's cased key.
+  ///
+  /// Not `stateWord(...).toUpperCase()`: Dart's casing is locale-blind, which
+  /// is why `check_bans.sh` rejects it in `lib/` — and a test that spells the
+  /// rule differently from the code is a test that agrees with itself.
+  String renderedStateWord(AppLocalizations l10n, DayState state) =>
+      switch (state) {
+        DayState.taken => l10n.stateTakenCaps,
+        DayState.missed => l10n.stateNotTickedCaps,
+        DayState.today => l10n.stateTodayCaps,
+        DayState.upcoming => l10n.stateUpcomingCaps,
+      };
+
   /// The row's painted border, which carries part of the state signal.
   ///
   /// Read off the painter rather than a `BoxDecoration`: Flutter has no dashed
@@ -59,11 +72,12 @@ void main() {
             child: Material(
               child: DayStateRow(
                 state: state,
-                weekdayText: 'Thursday',
-                dateText: '16 April',
+                dayLabel: 'Thursday 16 April',
                 doseText: '9mg',
                 tabletsText: flagText == null ? '1 × 5mg · 4 × 1mg' : null,
-                stateLabel: stateWord(l10n, state),
+                // The row renders what it is GIVEN: casing is the
+                // caller's, out of the ARB, never `.toUpperCase()`.
+                stateLabel: renderedStateWord(l10n, state),
                 semanticsLabel:
                     'Thursday 16 April, 9 milligrams. '
                     '${stateWord(l10n, state)}.',
@@ -113,7 +127,7 @@ void main() {
       final l10n = await pumpRow(tester, state: state);
 
       expect(
-        find.text(stateWord(l10n, state)),
+        find.text(renderedStateWord(l10n, state)),
         findsOneWidget,
         reason: '$state',
       );
@@ -134,11 +148,10 @@ void main() {
             return const Material(
               child: DayStateRow(
                 state: DayState.missed,
-                weekdayText: 'Thursday',
-                dateText: '16 April',
+                dayLabel: 'Thursday 16 April',
                 doseText: '9mg',
                 tabletsText: '1 × 5mg',
-                stateLabel: 'Not ticked',
+                stateLabel: 'NOT TICKED',
                 semanticsLabel: 'Thursday 16 April, 9 milligrams. Not ticked.',
               ),
             );
@@ -202,11 +215,10 @@ void main() {
           return const Material(
             child: DayStateRow(
               state: DayState.missed,
-              weekdayText: 'Thursday',
-              dateText: '16 April',
+              dayLabel: 'Thursday 16 April',
               doseText: '9mg',
               tabletsText: '1 × 5mg',
-              stateLabel: 'Not ticked',
+              stateLabel: 'NOT TICKED',
               semanticsLabel: 'Thursday 16 April, 9 milligrams. Not ticked.',
             ),
           );
@@ -214,7 +226,7 @@ void main() {
       ),
     );
 
-    final word = tester.widget<Text>(find.text('Not ticked'));
+    final word = tester.widget<Text>(find.text('NOT TICKED'));
     final colour = word.style!.color!;
     expect(
       contrastRatio(colour, colors.surface),
@@ -239,7 +251,7 @@ void main() {
         find.byKey(DayStateRow.containerKey),
       );
       final decoration = container.decoration! as BoxDecoration;
-      final weekday = tester.widget<Text>(find.text('Thursday'));
+      final weekday = tester.widget<Text>(find.text('Thursday 16 April'));
 
       if (state == DayState.today) {
         expect(rowBorder(tester).width, 2, reason: '$state');
@@ -273,8 +285,7 @@ void main() {
             return Material(
               child: DayStateRow(
                 state: state,
-                weekdayText: 'Thursday',
-                dateText: '16 April',
+                dayLabel: 'Thursday 16 April',
                 doseText: '9mg',
                 tabletsText: '1 × 5mg',
                 stateLabel: 'x',
@@ -390,15 +401,15 @@ void main() {
     // The real symptom, asserted directly: the state word is not one glyph
     // wide. A height bound alone could be met by clipping.
     expect(
-      tester.getSize(find.text('Today')).width,
+      tester.getSize(find.text('TODAY')).width,
       greaterThan(60),
       reason: 'the state word wrapped to a vertical column of letters',
     );
     // And it stacked rather than merely shrinking something: the end block is
     // now BELOW the day block.
     expect(
-      tester.getCenter(find.text('Today')).dy,
-      greaterThan(tester.getCenter(find.text('Thursday')).dy),
+      tester.getCenter(find.text('TODAY')).dy,
+      greaterThan(tester.getCenter(find.text('Thursday 16 April')).dy),
       reason: 'the end block should sit under the day block above 1.6x',
     );
   });
@@ -416,8 +427,8 @@ void main() {
     // Structural, not pixel: the end block sits BESIDE the day block, so its
     // centre is further along the reading direction rather than below it.
     expect(
-      tester.getCenter(find.text('Today')).dx,
-      greaterThan(tester.getCenter(find.text('Thursday')).dx),
+      tester.getCenter(find.text('TODAY')).dx,
+      greaterThan(tester.getCenter(find.text('Thursday 16 April')).dx),
       reason: 'still side by side at 1.6x',
     );
   });
@@ -429,5 +440,81 @@ void main() {
       tester.getSize(find.byType(DayStateRow)).height,
       greaterThanOrEqualTo(64),
     );
+  });
+  testWidgets('the tablet breakdown sits UNDER the day, not beside the dose', (
+    tester,
+  ) async {
+    // Frame 3's `.srow`: the middle column is `.sday` over `.stab` — the day
+    // and the tablets you swallow that day, one above the other — and the
+    // trailing `.send` column is `.sdose` over `.sstate`, nothing else.
+    //
+    // This component was built against a contact sheet rather than against
+    // frame 3, and put the breakdown in the trailing column instead. Element
+    // order is a Tier-1 parity row: it has to match exactly, and it does not.
+    await pumpRow(tester, surfaceSize: const Size(390, 400));
+
+    final day = tester.getTopLeft(find.text('Thursday 16 April'));
+    final tablets = tester.getTopLeft(find.text('1 × 5mg · 4 × 1mg'));
+    final dose = tester.getTopLeft(find.text('9mg'));
+
+    expect(
+      tablets.dx,
+      day.dx,
+      reason: 'the breakdown is not in the day column',
+    );
+    expect(tablets.dy, greaterThan(day.dy), reason: 'it is not under the day');
+    expect(
+      tablets.dx,
+      lessThan(dose.dx),
+      reason: 'the breakdown drifted into the trailing column',
+    );
+  });
+  testWidgets('the state word is UPPERCASE and tracked in Latin', (
+    tester,
+  ) async {
+    // `.sstate { text-transform: uppercase; letter-spacing: .06em }`. It is
+    // the smallest text on the row and the one that answers "did I take it?",
+    // so the reference gives it caps and air rather than size.
+    final l10n = await pumpRow(tester, state: DayState.taken);
+
+    expect(find.text(l10n.stateTakenCaps), findsOneWidget);
+    final word = tester.widget<Text>(find.text(l10n.stateTakenCaps));
+    expect(word.style?.letterSpacing, isNotNull);
+    expect(word.style!.letterSpacing! > 0, isTrue);
+  });
+
+  testWidgets('in fa it is NOT uppercased and carries no tracking', (
+    tester,
+  ) async {
+    // `html[lang="fa"] .sstate { text-transform: none; letter-spacing: 0 }`.
+    // Perso-Arabic has no case, and tracking breaks the joins between letters.
+    final l10n = await pumpRow(
+      tester,
+      state: DayState.taken,
+      locale: const Locale('fa'),
+    );
+
+    expect(find.text(l10n.stateTaken), findsOneWidget);
+    final word = tester.widget<Text>(find.text(l10n.stateTaken));
+    expect(word.style?.letterSpacing ?? 0, 0);
+  });
+
+  testWidgets('each state carries its own glyph beside the word', (
+    tester,
+  ) async {
+    // The reference puts a glyph in `.sstate` as well as in the marker. Two
+    // shape channels, and this one sits next to the word a screen reader and
+    // a greyscale printout both read.
+    final glyphs = <IconData>{};
+    for (final state in DayState.values) {
+      await pumpRow(tester, state: state);
+      final icon = tester
+          .widgetList<Icon>(find.byType(Icon))
+          .firstWhere(
+            (candidate) => candidate.icon != DayStateRow.holdGlyph,
+          );
+      glyphs.add(icon.icon!);
+    }
+    expect(glyphs, hasLength(DayState.values.length));
   });
 }

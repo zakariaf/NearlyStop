@@ -68,8 +68,12 @@ class BlockHeader extends StatelessWidget {
   final String? completedLabel;
 
   /// The title's style, shared with the delegate's measurement.
+  ///
+  /// `--fs-body` (17), from `.blockhead .bh-txt b`. It is a LABEL on a group,
+  /// not a page heading: at `titleLarge` (24) the header stops reading as a
+  /// divider and the sentence under it wraps to two lines at 390pt.
   static TextStyle titleStyle(BuildContext context) =>
-      Theme.of(context).textTheme.titleLarge!.copyWith(
+      Theme.of(context).textTheme.bodyMedium!.copyWith(
         fontWeight: FontWeight.w800,
         color: DaybreakColors.of(context).ink,
       );
@@ -77,9 +81,9 @@ class BlockHeader extends StatelessWidget {
   /// The summary's style, shared with the delegate's measurement.
   ///
   /// `ink`, not `inkMuted`: the reference sets `.bh-txt` to full `ink`, and
-  /// this is the teaching sentence rather than a caption.
+  /// this is the teaching sentence rather than a caption. `--fs-label` (15).
   static TextStyle summaryStyle(BuildContext context) =>
-      Theme.of(context).textTheme.bodyMedium!.copyWith(
+      Theme.of(context).textTheme.bodySmall!.copyWith(
         fontWeight: FontWeight.w700,
         color: DaybreakColors.of(context).ink,
       );
@@ -195,7 +199,11 @@ class _BlockSentence extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Text(title, style: BlockHeader.titleStyle(context)),
-        Text(doseSummary, style: BlockHeader.summaryStyle(context)),
+        // An empty summary renders NOTHING, not an empty line: a landscape
+        // phone drops the teaching sentence to keep the block's identity, and
+        // a blank Text would keep its leading and half the height with it.
+        if (doseSummary.isNotEmpty)
+          Text(doseSummary, style: BlockHeader.summaryStyle(context)),
         if (isCompleted) ...<Widget>[
           SizedBox(height: shapes.s1),
           Row(
@@ -226,8 +234,15 @@ class _BlockSentence extends StatelessWidget {
 /// the same styles the widget renders, at the same width.
 class BlockHeaderDelegate extends SliverPersistentHeaderDelegate {
   /// Creates a delegate that measures [header] against [context].
-  BlockHeaderDelegate({required this.header, required BuildContext context})
-    : _extent = _measure(header, context);
+  ///
+  /// [width] is the width the header will actually be laid out at. It defaults
+  /// to the whole viewport, which is right only when the list is not inset —
+  /// and the Schedule list IS inset, so it passes its own.
+  BlockHeaderDelegate({
+    required this.header,
+    required BuildContext context,
+    double? width,
+  }) : _extent = _measure(header, context, width);
 
   /// The header this delegate pins.
   final BlockHeader header;
@@ -236,16 +251,20 @@ class BlockHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   /// The laid-out height of [header] at the current width and text scale.
   ///
-  /// Width comes from the context's `MediaQuery`, which is the viewport the
-  /// sliver fills on every layout this app has today. A future layout that
-  /// gives the list less than the full width — a tablet with the rail — must
-  /// pass its own context, or this over-measures and leaves a gap rather than
-  /// clipping. Over-measuring is the safe direction and that is deliberate.
-  static double _measure(BlockHeader header, BuildContext context) {
+  /// Width defaults to the whole viewport. A caller that lays the header out
+  /// NARROWER than that — an inset list, a tablet with a rail — must pass its
+  /// own, because measuring against a wider box wraps the sentence onto fewer
+  /// lines than it really takes and the pinned header then CLIPS it. That
+  /// direction is the dangerous one, and the audience runs at 200%.
+  static double _measure(
+    BlockHeader header,
+    BuildContext context, [
+    double? width,
+  ]) {
     final shapes = DaybreakShapes.of(context);
     final media = MediaQuery.of(context);
     final contentWidth =
-        media.size.width -
+        (width ?? media.size.width) -
         shapes.s4 * 2 -
         BlockHeader.tileSide -
         shapes.s3 -
@@ -257,13 +276,20 @@ class BlockHeaderDelegate extends SliverPersistentHeaderDelegate {
         text: TextSpan(text: text, style: style),
         textDirection: Directionality.of(context),
         textScaler: media.textScaler,
-      )..layout(maxWidth: contentWidth);
+        // Clamped at zero: a viewport of 0×0 is a real state in a widget test,
+        // and `TextPainter.layout` asserts on a negative bound rather than
+        // shrugging.
+      )..layout(maxWidth: contentWidth < 0 ? 0 : contentWidth);
       return painter.height;
     }
 
-    var sentence =
-        heightOf(header.title, BlockHeader.titleStyle(context)) +
-        heightOf(header.doseSummary, BlockHeader.summaryStyle(context));
+    var sentence = heightOf(header.title, BlockHeader.titleStyle(context));
+    if (header.doseSummary.isNotEmpty) {
+      sentence += heightOf(
+        header.doseSummary,
+        BlockHeader.summaryStyle(context),
+      );
+    }
     if (header.isCompleted) {
       sentence +=
           shapes.s1 +

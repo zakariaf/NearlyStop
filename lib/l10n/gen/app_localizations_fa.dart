@@ -427,4 +427,109 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get backfillAction => 'اکنون ثبت کن';
+
+  @override
+  String blockSummary(
+    int leadCount,
+    Object leadDose,
+    int restCount,
+    Object restDose,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      leadCount,
+      locale: localeName,
+      other: '$leadCount روز با $leadDose',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      restCount,
+      locale: localeName,
+      other: '$restCount روز با $restDose',
+    );
+    return '$_temp0، سپس $_temp1';
+  }
+
+  @override
+  String steadyStateTitle(Object dose) {
+    return 'ثابت روی $dose';
+  }
+
+  @override
+  String get held => 'متوقف';
+
+  @override
+  String heldAtBlock(int block) {
+    return 'متوقف در بلوک $block';
+  }
+
+  @override
+  String get pastStepReadOnly => 'این گام تمام شده و قابل تغییر نیست';
+
+  @override
+  String get jumpToToday => 'پرش به امروز';
+
+  @override
+  String get futureDayNotYet => 'روزی که هنوز نرسیده را نمی‌توان ثبت کرد';
+
+  @override
+  String get stepSwitcherTitle => 'انتخاب گام';
+
+  @override
+  String stepRangeLabel(int index, int total, Object from, Object to) {
+    return 'گام $index از $total — $from به $to';
+  }
+
+  @override
+  String scheduleDaySemantics(
+    Object day,
+    Object dose,
+    Object breakdown,
+    Object notes,
+  ) {
+    return '$day، $dose میلی‌گرم: $breakdown.$notes';
+  }
+
+  @override
+  String get scheduleNoteNewDose => ' روز دوز جدید.';
+
+  @override
+  String scheduleNoteHeld(int block) {
+    return ' نگه‌داشته شده، یک روز اضافه در مرحله $block.';
+  }
+
+  @override
+  String get scheduleNoteHeldNoBlock => ' نگه‌داشته شده، یک روز اضافه.';
+
+  @override
+  String scheduleNoteState(Object state) {
+    return ' $state.';
+  }
+
+  @override
+  String get scheduleNoteUnachievable =>
+      ' این دوز با قرص‌هایی که دارید ساخته نمی‌شود.';
+
+  @override
+  String scheduleTodaySemantics(
+    Object day,
+    Object dose,
+    Object breakdown,
+    Object notes,
+  ) {
+    return 'امروز. $day، $dose میلی‌گرم: $breakdown.$notes';
+  }
+
+  @override
+  String get tabletSeparator => '، ';
+
+  @override
+  String get stateTakenCaps => 'مصرف شد';
+
+  @override
+  String get stateNotTickedCaps => 'ثبت نشده';
+
+  @override
+  String get stateTodayCaps => 'امروز';
+
+  @override
+  String get stateUpcomingCaps => 'پیش‌رو';
 }

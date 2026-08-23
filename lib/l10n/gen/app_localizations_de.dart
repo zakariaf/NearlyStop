@@ -433,4 +433,113 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get backfillAction => 'Jetzt abhaken';
+
+  @override
+  String blockSummary(
+    int leadCount,
+    Object leadDose,
+    int restCount,
+    Object restDose,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      leadCount,
+      locale: localeName,
+      other: '$leadCount Tage mit $leadDose',
+      one: 'ein Tag mit $leadDose',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      restCount,
+      locale: localeName,
+      other: '$restCount Tage mit $restDose',
+      one: '1 Tag mit $restDose',
+    );
+    return '$_temp0, dann $_temp1';
+  }
+
+  @override
+  String steadyStateTitle(Object dose) {
+    return 'Bleibt bei $dose';
+  }
+
+  @override
+  String get held => 'Pausiert';
+
+  @override
+  String heldAtBlock(int block) {
+    return 'Pausiert bei Block $block';
+  }
+
+  @override
+  String get pastStepReadOnly =>
+      'Dieser Schritt ist abgeschlossen und kann nicht geändert werden';
+
+  @override
+  String get jumpToToday => 'Zu heute springen';
+
+  @override
+  String get futureDayNotYet =>
+      'Ein Tag in der Zukunft kann nicht abgehakt werden';
+
+  @override
+  String get stepSwitcherTitle => 'Schritt auswählen';
+
+  @override
+  String stepRangeLabel(int index, int total, Object from, Object to) {
+    return 'Schritt $index von $total — $from auf $to';
+  }
+
+  @override
+  String scheduleDaySemantics(
+    Object day,
+    Object dose,
+    Object breakdown,
+    Object notes,
+  ) {
+    return '$day, $dose Milligramm: $breakdown.$notes';
+  }
+
+  @override
+  String get scheduleNoteNewDose => ' Tag der neuen Dosis.';
+
+  @override
+  String scheduleNoteHeld(int block) {
+    return ' Gehalten, ein zusätzlicher Tag in Block $block.';
+  }
+
+  @override
+  String get scheduleNoteHeldNoBlock => ' Gehalten, ein zusätzlicher Tag.';
+
+  @override
+  String scheduleNoteState(Object state) {
+    return ' $state.';
+  }
+
+  @override
+  String get scheduleNoteUnachievable =>
+      ' Diese Dosis lässt sich aus Ihren Tabletten nicht zusammenstellen.';
+
+  @override
+  String scheduleTodaySemantics(
+    Object day,
+    Object dose,
+    Object breakdown,
+    Object notes,
+  ) {
+    return 'Heute. $day, $dose Milligramm: $breakdown.$notes';
+  }
+
+  @override
+  String get tabletSeparator => ', ';
+
+  @override
+  String get stateTakenCaps => 'EINGENOMMEN';
+
+  @override
+  String get stateNotTickedCaps => 'NICHT ABGEHAKT';
+
+  @override
+  String get stateTodayCaps => 'HEUTE';
+
+  @override
+  String get stateUpcomingCaps => 'BEVORSTEHEND';
 }
