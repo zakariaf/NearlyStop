@@ -201,6 +201,48 @@ void main() {
       });
     }
 
+    test('savePlan refuses a first step of zero', () async {
+      // Not caught by anything downstream: the row reads as valid and the
+      // generator emits 52 days at the same dose, forever.
+      expectErr<Invariant>(
+        await repository.savePlan(
+          TaperPlanDraft(
+            drugName: 'Prednisolone',
+            startDate: const LocalDate(2026, 4, 1),
+            currentDose: mg(10),
+            targetDose: Milligrams.zero,
+            strengths: <Milligrams>[mg(5), mg(1)],
+            allowHalves: true,
+            method: TaperMethod.dsns,
+            stepSize: Milligrams.zero,
+          ),
+        ),
+      );
+
+      expect(await db.select(db.taperPlans).get(), isEmpty);
+    });
+
+    test('a plan already AT its target is accepted with a zero step', () async {
+      // The other arm: nothing left to reduce is a finished plan, not an
+      // invalid one.
+      await expectOk(
+        repository.savePlan(
+          TaperPlanDraft(
+            drugName: 'Prednisolone',
+            startDate: const LocalDate(2026, 4, 1),
+            currentDose: mg(1),
+            targetDose: mg(1),
+            strengths: <Milligrams>[mg(1)],
+            allowHalves: true,
+            method: TaperMethod.dsns,
+            stepSize: Milligrams.zero,
+          ),
+        ),
+      );
+
+      expect((await snapshot()).steps, hasLength(1));
+    });
+
     test('savePlan refuses a target above the current dose', () async {
       expectErr<Invariant>(
         await repository.savePlan(

@@ -404,6 +404,13 @@ final class TaperRepository {
   Future<Result<void, StorageFailure>> savePlan(TaperPlanDraft draft) async {
     final refusal = _refuse(draft);
     if (refusal != null) return Err(refusal);
+    if (draft.stepSize <= Milligrams.zero &&
+        draft.currentDose > draft.targetDose) {
+      // A first step of zero never reaches the target: the plan would sit on
+      // one dose forever with "Start next step" moving it nowhere. Only a
+      // refusal at the write can say why; the row itself reads as valid.
+      return const Err(Invariant('the first step has to reduce the dose'));
+    }
     try {
       await _db.transaction(() async {
         if (await _db.planDao.countPlans() > 0) {
