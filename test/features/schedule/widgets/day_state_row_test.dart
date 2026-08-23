@@ -517,4 +517,20 @@ void main() {
     }
     expect(glyphs, hasLength(DayState.values.length));
   });
+  testWidgets('the outline is drawn round the CARD, not inside its padding', (
+    tester,
+  ) async {
+    // Seen on a device: a missed row showed a dashed rectangle floating
+    // INSIDE the white card, with the dose and the state word crossing it —
+    // because the painter sat inside the container's padding and so drew a
+    // box `s3`/`s4` smaller than the card. `.srow` has one border, on the
+    // card. Every golden in the repo had baked the floating one in.
+    await pumpRow(tester, state: DayState.missed);
+
+    expect(
+      tester.getRect(find.byKey(DayStateRow.borderKey)),
+      tester.getRect(find.byKey(DayStateRow.containerKey)),
+      reason: 'the outline is inset from the card it belongs to',
+    );
+  });
 }

@@ -180,10 +180,6 @@ class DayStateRow extends StatelessWidget {
         child: Container(
           key: containerKey,
           constraints: const BoxConstraints(minHeight: minHeight),
-          padding: EdgeInsetsDirectional.symmetric(
-            horizontal: shapes.s4,
-            vertical: shapes.s3,
-          ),
           decoration: BoxDecoration(
             color: colors.surface,
             borderRadius: BorderRadius.all(Radius.circular(shapes.radiusMd)),
@@ -193,6 +189,10 @@ class DayStateRow extends StatelessWidget {
             // reads as "no shadow" rather than "a shadow of zero blur".
             boxShadow: isToday ? elevation.level2 : elevation.level0,
           ),
+          // The painter wraps the PADDING, not the other way round: the
+          // outline belongs to the card's edge, and painting it inside the
+          // padding drew a second rectangle floating `s3`/`s4` in from the
+          // card with the dose and the state word crossing it.
           child: CustomPaint(
             key: borderKey,
             foregroundPainter: RowBorderPainter(
@@ -201,61 +201,67 @@ class DayStateRow extends StatelessWidget {
               radius: shapes.radiusMd,
               dashed: state == DayState.missed,
             ),
-            child: stacked
-                // The large-text layout: the end block moves UNDER the day
-                // block. The marker stays on the day block's line, because it
-                // is the thing the eye runs down the list edge looking for —
-                // moving it would cost the scan line the whole screen is
-                // organised around.
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          DayStateMarker(state: state, isNewDose: isNewDose),
-                          SizedBox(width: shapes.s3),
-                          Expanded(child: dayBlock),
-                        ],
-                      ),
-                      SizedBox(height: shapes.s2),
-                      // Aligned to the START when stacked: a right-aligned
-                      // block under a left-aligned one reads as two unrelated
-                      // things, and at this size the reader is following one
-                      // line down the page.
-                      _DayEndBlock(
-                        state: state,
-                        doseText: doseText,
-                        unachievableText: unachievableText,
-                        stateLabel: stateLabel,
-                        stateWordColor: _stateWordColor(colors),
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        textAlign: TextAlign.start,
-                      ),
-                    ],
-                  )
-                : Row(
-                    children: <Widget>[
-                      DayStateMarker(state: state, isNewDose: isNewDose),
-                      SizedBox(width: shapes.s3),
-                      Expanded(child: dayBlock),
-                      SizedBox(width: shapes.s3),
-                      // NOT `Flexible`. Frame 3's `.send` is `flex: 0 0 auto`
-                      // with `margin-inline-start: auto`: it takes its own
-                      // width and the day column takes the rest. As a flex
-                      // child it splits the free space instead and the
-                      // breakdown wraps with room to spare beside it. Above
-                      // 1.6 the row stacks, so nothing has to squeeze here.
-                      _DayEndBlock(
-                        state: state,
-                        doseText: doseText,
-                        unachievableText: unachievableText,
-                        stateLabel: stateLabel,
-                        stateWordColor: _stateWordColor(colors),
-                      ),
-                    ],
-                  ),
+            child: Padding(
+              padding: EdgeInsetsDirectional.symmetric(
+                horizontal: shapes.s4,
+                vertical: shapes.s3,
+              ),
+              child: stacked
+                  // The large-text layout: the end block moves UNDER the day
+                  // block. The marker stays on the day block's line, because it
+                  // is the thing the eye runs down the list edge looking for —
+                  // moving it would cost the scan line the whole screen is
+                  // organised around.
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            DayStateMarker(state: state, isNewDose: isNewDose),
+                            SizedBox(width: shapes.s3),
+                            Expanded(child: dayBlock),
+                          ],
+                        ),
+                        SizedBox(height: shapes.s2),
+                        // Aligned to the START when stacked: a right-aligned
+                        // block under a left-aligned one reads as two unrelated
+                        // things, and at this size the reader is following one
+                        // line down the page.
+                        _DayEndBlock(
+                          state: state,
+                          doseText: doseText,
+                          unachievableText: unachievableText,
+                          stateLabel: stateLabel,
+                          stateWordColor: _stateWordColor(colors),
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          textAlign: TextAlign.start,
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: <Widget>[
+                        DayStateMarker(state: state, isNewDose: isNewDose),
+                        SizedBox(width: shapes.s3),
+                        Expanded(child: dayBlock),
+                        SizedBox(width: shapes.s3),
+                        // NOT `Flexible`. Frame 3's `.send` is `flex: 0 0 auto`
+                        // with `margin-inline-start: auto`: it takes its own
+                        // width and the day column takes the rest. As a flex
+                        // child it splits the free space instead and the
+                        // breakdown wraps with room to spare beside it. Above
+                        // 1.6 the row stacks, so nothing has to squeeze here.
+                        _DayEndBlock(
+                          state: state,
+                          doseText: doseText,
+                          unachievableText: unachievableText,
+                          stateLabel: stateLabel,
+                          stateWordColor: _stateWordColor(colors),
+                        ),
+                      ],
+                    ),
+            ),
           ),
         ),
       ),

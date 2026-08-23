@@ -58,3 +58,6 @@ test/zzz_coverage_all_files_test.dart
 # NOTE: pubspec.lock is deliberately NOT ignored. This is an application, and the
 # committed lock is what makes a stranger's clone resolve the versions that were
 # tested (dependency-hygiene rule 2). Never ignore design/reference/*.png either.
+
+# Golden diff artefacts. Written on a red run, never committed.
+**/failures/
