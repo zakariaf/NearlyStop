@@ -4,8 +4,10 @@ library;
 import 'package:flutter/material.dart';
 import 'package:nearlystop/core/day_state.dart';
 import 'package:nearlystop/features/schedule/presentation/widgets/day_state_marker.dart';
+import 'package:nearlystop/l10n/app_locales.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_elevation.dart';
+import 'package:nearlystop/theme/daybreak_script.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
 
 /// One schedule row: a marker, the day, the dose, and the state as a word.
@@ -55,6 +57,24 @@ class DayStateRow extends StatelessWidget {
 
   /// Finds the `CustomPaint` that draws the row's outline.
   static const Key borderKey = Key('day-state-row-border');
+
+  /// The glyph that sits beside the state word.
+  ///
+  /// A SECOND shape channel, next to the marker's. The reference puts one in
+  /// `.sstate` as well, and it is the channel that survives beside the word a
+  /// screen reader reads and a greyscale printout shows.
+  static IconData stateGlyph(DayState state) => switch (state) {
+    DayState.taken => Icons.check,
+    DayState.missed => Icons.radio_button_unchecked,
+    DayState.today => Icons.wb_twilight,
+    DayState.upcoming => Icons.schedule,
+  };
+
+  /// The tracking on the state word in Latin, from `.sstate`'s `.06em`.
+  ///
+  /// Zero in Perso-Arabic: the script has no case to change and tracking
+  /// breaks the joins between letters (`daybreak-bilingual-type`).
+  static const double stateTracking = 0.06;
 
   /// The glyph that accompanies the hold word.
   ///
@@ -205,6 +225,7 @@ class DayStateRow extends StatelessWidget {
                       // things, and at this size the reader is following one
                       // line down the page.
                       _DayEndBlock(
+                        state: state,
                         doseText: doseText,
                         unachievableText: unachievableText,
                         stateLabel: stateLabel,
@@ -220,13 +241,18 @@ class DayStateRow extends StatelessWidget {
                       SizedBox(width: shapes.s3),
                       Expanded(child: dayBlock),
                       SizedBox(width: shapes.s3),
-                      Flexible(
-                        child: _DayEndBlock(
-                          doseText: doseText,
-                          unachievableText: unachievableText,
-                          stateLabel: stateLabel,
-                          stateWordColor: _stateWordColor(colors),
-                        ),
+                      // NOT `Flexible`. Frame 3's `.send` is `flex: 0 0 auto`
+                      // with `margin-inline-start: auto`: it takes its own
+                      // width and the day column takes the rest. As a flex
+                      // child it splits the free space instead and the
+                      // breakdown wraps with room to spare beside it. Above
+                      // 1.6 the row stacks, so nothing has to squeeze here.
+                      _DayEndBlock(
+                        state: state,
+                        doseText: doseText,
+                        unachievableText: unachievableText,
+                        stateLabel: stateLabel,
+                        stateWordColor: _stateWordColor(colors),
                       ),
                     ],
                   ),
@@ -441,6 +467,7 @@ class _DayBlock extends StatelessWidget {
 /// The dose, the tablet breakdown or the unachievable flag, and the state word.
 class _DayEndBlock extends StatelessWidget {
   const _DayEndBlock({
+    required this.state,
     required this.doseText,
     required this.unachievableText,
     required this.stateLabel,
@@ -449,6 +476,7 @@ class _DayEndBlock extends StatelessWidget {
     this.textAlign = TextAlign.end,
   });
 
+  final DayState state;
   final String doseText;
   final String? unachievableText;
   final String stateLabel;
@@ -478,13 +506,64 @@ class _DayEndBlock extends StatelessWidget {
             ),
           ),
         SizedBox(height: shapes.s1),
-        Text(
-          stateLabel,
-          style: text.labelSmall?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: stateWordColor,
-          ),
+        _StateWord(
+          state: state,
+          label: stateLabel,
+          color: stateWordColor,
           textAlign: textAlign,
+          crossAxisAlignment: crossAxisAlignment,
+        ),
+      ],
+    );
+  }
+}
+
+/// The state's glyph and its word, cased for the script.
+class _StateWord extends StatelessWidget {
+  const _StateWord({
+    required this.state,
+    required this.label,
+    required this.color,
+    required this.textAlign,
+    required this.crossAxisAlignment,
+  });
+
+  final DayState state;
+  final String label;
+  final Color color;
+  final TextAlign textAlign;
+  final CrossAxisAlignment crossAxisAlignment;
+
+  @override
+  Widget build(BuildContext context) {
+    final shapes = DaybreakShapes.of(context);
+    final style = Theme.of(context).textTheme.labelSmall;
+    final perso =
+        scriptFor(Localizations.localeOf(context)) == DaybreakScript.perso;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: crossAxisAlignment == CrossAxisAlignment.end
+          ? MainAxisAlignment.end
+          : MainAxisAlignment.start,
+      children: <Widget>[
+        Icon(DayStateRow.stateGlyph(state), size: 14, color: color),
+        SizedBox(width: shapes.s1),
+        Flexible(
+          child: Text(
+            // No `toUpperCase()` in Perso-Arabic: the script has no case, and
+            // `toUpperCase` on it is a no-op that still costs a locale-aware
+            // pass over every label on the screen.
+            perso ? label : label.toUpperCase(),
+            style: style?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: color,
+              letterSpacing: perso
+                  ? 0
+                  : (style.fontSize ?? 14) * DayStateRow.stateTracking,
+            ),
+            textAlign: textAlign,
+          ),
         ),
       ],
     );

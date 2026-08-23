@@ -8,8 +8,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/core/day_state.dart';
 import 'package:nearlystop/features/schedule/presentation/widgets/day_state_marker.dart';
 import 'package:nearlystop/features/schedule/presentation/widgets/day_state_row.dart';
+import 'package:nearlystop/l10n/app_locales.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
+import 'package:nearlystop/theme/daybreak_script.dart';
 
 import '../../../support/contrast.dart';
 import '../../../support/harness.dart';
@@ -22,6 +24,16 @@ void main() {
     DayState.today => l10n.stateToday,
     DayState.upcoming => l10n.stateUpcoming,
   };
+
+  /// The state word AS RENDERED: uppercase in Latin, untouched in
+  /// Perso-Arabic, exactly as `.sstate` and `daybreak-bilingual-type` have it.
+  String renderedStateWord(
+    AppLocalizations l10n,
+    DayState state, {
+    Locale locale = const Locale('en'),
+  }) => scriptFor(locale) == DaybreakScript.perso
+      ? stateWord(l10n, state)
+      : stateWord(l10n, state).toUpperCase();
 
   /// The row's painted border, which carries part of the state signal.
   ///
@@ -112,7 +124,7 @@ void main() {
       final l10n = await pumpRow(tester, state: state);
 
       expect(
-        find.text(stateWord(l10n, state)),
+        find.text(renderedStateWord(l10n, state)),
         findsOneWidget,
         reason: '$state',
       );
@@ -211,7 +223,7 @@ void main() {
       ),
     );
 
-    final word = tester.widget<Text>(find.text('Not ticked'));
+    final word = tester.widget<Text>(find.text('NOT TICKED'));
     final colour = word.style!.color!;
     expect(
       contrastRatio(colour, colors.surface),
@@ -386,14 +398,14 @@ void main() {
     // The real symptom, asserted directly: the state word is not one glyph
     // wide. A height bound alone could be met by clipping.
     expect(
-      tester.getSize(find.text('Today')).width,
+      tester.getSize(find.text('TODAY')).width,
       greaterThan(60),
       reason: 'the state word wrapped to a vertical column of letters',
     );
     // And it stacked rather than merely shrinking something: the end block is
     // now BELOW the day block.
     expect(
-      tester.getCenter(find.text('Today')).dy,
+      tester.getCenter(find.text('TODAY')).dy,
       greaterThan(tester.getCenter(find.text('Thursday 16 April')).dy),
       reason: 'the end block should sit under the day block above 1.6x',
     );
@@ -412,7 +424,7 @@ void main() {
     // Structural, not pixel: the end block sits BESIDE the day block, so its
     // centre is further along the reading direction rather than below it.
     expect(
-      tester.getCenter(find.text('Today')).dx,
+      tester.getCenter(find.text('TODAY')).dx,
       greaterThan(tester.getCenter(find.text('Thursday 16 April')).dx),
       reason: 'still side by side at 1.6x',
     );
@@ -453,5 +465,55 @@ void main() {
       lessThan(dose.dx),
       reason: 'the breakdown drifted into the trailing column',
     );
+  });
+  testWidgets('the state word is UPPERCASE and tracked in Latin', (
+    tester,
+  ) async {
+    // `.sstate { text-transform: uppercase; letter-spacing: .06em }`. It is
+    // the smallest text on the row and the one that answers "did I take it?",
+    // so the reference gives it caps and air rather than size.
+    final l10n = await pumpRow(tester, state: DayState.taken);
+
+    expect(find.text(l10n.stateTaken.toUpperCase()), findsOneWidget);
+    final word = tester.widget<Text>(
+      find.text(l10n.stateTaken.toUpperCase()),
+    );
+    expect(word.style?.letterSpacing, isNotNull);
+    expect(word.style!.letterSpacing! > 0, isTrue);
+  });
+
+  testWidgets('in fa it is NOT uppercased and carries no tracking', (
+    tester,
+  ) async {
+    // `html[lang="fa"] .sstate { text-transform: none; letter-spacing: 0 }`.
+    // Perso-Arabic has no case, and tracking breaks the joins between letters.
+    final l10n = await pumpRow(
+      tester,
+      state: DayState.taken,
+      locale: const Locale('fa'),
+    );
+
+    expect(find.text(l10n.stateTaken), findsOneWidget);
+    final word = tester.widget<Text>(find.text(l10n.stateTaken));
+    expect(word.style?.letterSpacing ?? 0, 0);
+  });
+
+  testWidgets('each state carries its own glyph beside the word', (
+    tester,
+  ) async {
+    // The reference puts a glyph in `.sstate` as well as in the marker. Two
+    // shape channels, and this one sits next to the word a screen reader and
+    // a greyscale printout both read.
+    final glyphs = <IconData>{};
+    for (final state in DayState.values) {
+      await pumpRow(tester, state: state);
+      final icon = tester
+          .widgetList<Icon>(find.byType(Icon))
+          .firstWhere(
+            (candidate) => candidate.icon != DayStateRow.holdGlyph,
+          );
+      glyphs.add(icon.icon!);
+    }
+    expect(glyphs, hasLength(DayState.values.length));
   });
 }

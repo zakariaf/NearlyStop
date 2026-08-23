@@ -161,7 +161,7 @@ void main() {
     expect(find.byIcon(DayStateRow.holdGlyph), findsOneWidget);
     expect(find.text(l10n.heldAtBlock(3)), findsOneWidget);
     expect(
-      find.text(l10n.stateTaken),
+      find.text(l10n.stateTaken.toUpperCase()),
       findsOneWidget,
       reason: 'the hold chip ate the state word',
     );
@@ -222,7 +222,7 @@ void main() {
         final l10n = await pumpRow(tester, vm(state: state), onToggle: (_) {});
         words.add(ScheduleDayRow.stateWord(l10n, state));
         expect(
-          find.text(ScheduleDayRow.stateWord(l10n, state)),
+          find.text(ScheduleDayRow.stateWord(l10n, state).toUpperCase()),
           findsOneWidget,
         );
       }
