@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:nearlystop/bootstrap.dart';
 
-void main() => bootstrap();
+void main() => unawaited(bootstrap());

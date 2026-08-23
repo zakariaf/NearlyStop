@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:nearlystop/app.dart';
 
 /// The bundled faces, and the OFL text file that licenses each.
@@ -38,8 +39,12 @@ void registerFontLicenses() {
 /// EPIC-06 adds the global error net and the provider overrides. Keep the order
 /// deliberate: the error handlers must be installed before any code that can
 /// throw.
-void bootstrap() {
+Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
   registerFontLicenses();
+  // `DateFormat('de')` throws on first use without this. It loads `intl`'s
+  // symbol data for every locale, so it has to happen before the first frame
+  // rather than lazily on the screen that first shows a date.
+  await initializeDateFormatting();
   runApp(const ProviderScope(child: NearlyStopApp()));
 }

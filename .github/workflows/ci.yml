@@ -144,6 +144,20 @@ jobs:
       # where an accidental local-instant construction lands a day early.
       - run: TZ=Europe/Berlin flutter test test/core/time/ --reporter expanded
 
+      # The same argument one layer up, and the zone chosen by EXPERIMENT
+      # rather than by intuition. The bug this catches is a UTC midnight read
+      # back through local fields (`toUtcMidnight().toLocal()`), and that only
+      # crosses a date boundary WEST of UTC: planted into date_formats.dart it
+      # is invisible under both UTC and Pacific/Auckland — Auckland is UTC+12,
+      # so a UTC midnight is still the same calendar day there — and fails four
+      # assertions under America/Los_Angeles. The epic names Auckland; Auckland
+      # cannot fail for this bug class, and a gate that cannot fail is a
+      # comment.
+      #
+      # The assertions are absolute strings, so a zone-induced shift fails them
+      # here rather than being diffed against the UTC run by hand.
+      - run: TZ=America/Los_Angeles flutter test test/l10n/ --reporter expanded
+
       # Contract: the handful of files where a bug is unrecoverable stay at
       # their floor. Coverage as a whole is a published report, never a gate,
       # and there is deliberately no percentage threshold anywhere in this file.
