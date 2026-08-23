@@ -93,12 +93,15 @@ Widget _heroCard() => const DoseHeroCard(
   doseText: '9',
   unitText: 'mg',
   tabletsText: '1 × 5mg · 4 × 1mg',
+  unachievableMessage: null,
   dateText: 'Thursday 16 April',
   dayKindLabel: 'New dose day',
+  isNewDoseDay: true,
   semanticsLabel: 'Today, 9 milligrams. Not yet taken.',
   takenLabel: 'Mark as taken',
   isTaken: false,
   onTaken: _noop,
+  onUndo: _noop,
 );
 
 Widget _dayStateRows() => Column(
