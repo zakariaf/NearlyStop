@@ -30,7 +30,7 @@ void main() {
 
   /// Every banned pattern, with a snippet that trips it.
   const banned = <String, String>{
-    'a raw hex colour': "const value = Color(0xFFAABBCC);",
+    'a raw hex colour': 'const value = Color(0xFFAABBCC);',
     'a Material colour': 'const value = Colors.red;',
     'a literal duration': 'const value = Duration(seconds: 1);',
     'a font size': 'const value = TextStyle(fontSize: 17);',
@@ -131,7 +131,7 @@ void main() {
     // only that it never ran.
     write(
       'lib/features/clean.dart',
-      "/// Scratch.\n"
+      '/// Scratch.\n'
           "import 'package:flutter/material.dart';\n\n"
           '/// Scratch.\n'
           'Widget build(BuildContext context) => const SizedBox.shrink();\n',
