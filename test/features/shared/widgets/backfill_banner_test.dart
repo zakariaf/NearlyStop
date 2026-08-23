@@ -5,6 +5,7 @@
 // that matter here are the ones a timing bug would break, and they are written
 // with a TIMED `pump`, never `pumpAndSettle` on a surface that never settles.
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/backfill_banner.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
@@ -139,5 +140,31 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.text(message), findsOneWidget);
+  });
+
+  testWidgets('the actions are reachable by a screen reader', (tester) async {
+    // The failure this rules out: wrapping the whole surface in
+    // `ExcludeSemantics` to keep it reading as one sentence also removes its
+    // BUTTONS from the semantics tree. The reader hears the message and has
+    // no way to act on it — and for the undo row, no way to undo a change to
+    // their medication record.
+    final handle = tester.ensureSemantics();
+    await pumpBanner(tester);
+
+    final spoken = <String>[];
+    void collect(SemanticsNode node) {
+      if (node.label.isNotEmpty) spoken.add(node.label);
+      node.visitChildren((child) {
+        collect(child);
+        return true;
+      });
+    }
+
+    collect(tester.getSemantics(find.byType(BackfillBanner)));
+
+    for (final action in <String>['Mark them now', 'Not now']) {
+      expect(spoken, contains(action), reason: '$action is not announced');
+    }
+    handle.dispose();
   });
 }

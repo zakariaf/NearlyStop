@@ -47,8 +47,16 @@ class DaybreakTabBar extends StatelessWidget {
   /// Finds the pill behind the active icon.
   static const Key activePillKey = Key('daybreak-tab-active-pill');
 
-  /// The bar's height, INCLUDING the bottom safe-area inset.
-  static const double height = 96;
+  /// The bar's height at 1.0 text scale, INCLUDING the bottom safe-area inset.
+  ///
+  /// A **floor**, never a fixed height. Pinned as a fixed 96 the labels are
+  /// clipped the moment the reader turns text up, and clipped SILENTLY:
+  /// `Flexible` around a `Text` produces no overflow stripe and no exception,
+  /// so nothing goes red. Measured at 2.0 in German before this was a
+  /// minimum — "Behandlungsplan" wanted 164pt of height inside a bar that
+  /// gave it 36. The bar is on every screen, so that is CLAUDE.md rule 4 on
+  /// every screen.
+  static const double minHeight = 96;
 
   /// The active pill's size, from `.tab[aria-current]` in the reference.
   static const Size pillSize = Size(52, 30);
@@ -75,24 +83,33 @@ class DaybreakTabBar extends StatelessWidget {
           top: BorderSide(color: colors.border, width: shapes.hairlineWidth),
         ),
       ),
-      child: SizedBox(
-        height: height,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: minHeight),
         child: Padding(
           // The inset is INSIDE the 96, not added to it: a bar that grew by the
           // home indicator's height would be 122 on one phone and 96 on
           // another, and the reference's geometry is the former.
           padding: EdgeInsetsDirectional.only(bottom: inset),
-          child: Row(
-            children: <Widget>[
-              for (var index = 0; index < destinations.length; index++)
-                Expanded(
-                  child: DaybreakTabDestination(
-                    destination: destinations[index],
-                    selected: index == selectedIndex,
-                    onTap: () => onDestinationSelected(index),
+          // `IntrinsicHeight` so `stretch` below means "as tall as the
+          // TALLEST destination" rather than "as tall as whatever the parent
+          // offers" — under a bottom `Align` that offer is the whole viewport,
+          // and the bar became 844pt tall. One extra layout pass over five
+          // children is the price of the tap targets being a single band
+          // rather than five ragged boxes.
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                for (var index = 0; index < destinations.length; index++)
+                  Expanded(
+                    child: DaybreakTabDestination(
+                      destination: destinations[index],
+                      selected: index == selectedIndex,
+                      onTap: () => onDestinationSelected(index),
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -147,14 +164,15 @@ class DaybreakTabDestination extends StatelessWidget {
           children: <Widget>[
             _iconCapsule(colors, shapes, ink),
             SizedBox(height: shapes.s1),
-            Flexible(
-              child: Text(
-                destination.label,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                  color: ink,
-                ),
+            // NOT `Flexible`: it hands the label whatever height is left and
+            // the paragraph clips the rest without a word. The bar grows
+            // instead.
+            Text(
+              destination.label,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                color: ink,
               ),
             ),
           ],

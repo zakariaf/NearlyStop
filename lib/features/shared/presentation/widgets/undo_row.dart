@@ -54,12 +54,16 @@ class UndoRow extends StatelessWidget {
     final colors = DaybreakColors.of(context);
     final shapes = DaybreakShapes.of(context);
 
+    // The wrapper announces the change; the actions keep their own nodes.
+    // `ExcludeSemantics` over the whole row would take "Undo" out of the
+    // semantics tree, leaving a screen-reader user told that their medication
+    // record changed and unable to reverse it.
     return Semantics(
       container: true,
       liveRegion: true,
       label: message,
-      child: ExcludeSemantics(
-        child: Container(
+      child: Builder(
+        builder: (context) => Container(
           padding: EdgeInsetsDirectional.all(shapes.s3),
           decoration: BoxDecoration(
             color: colors.tintPrimary,
@@ -70,11 +74,17 @@ class UndoRow extends StatelessWidget {
             spacing: shapes.s2,
             runSpacing: shapes.s1,
             children: <Widget>[
-              Text(
-                message,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: colors.ink),
+              // The PROSE is excluded, not the row: the wrapper already says
+              // it, and excluding the whole row would take "Undo" out of the
+              // semantics tree — leaving a screen-reader user told their
+              // medication record changed and unable to reverse it.
+              ExcludeSemantics(
+                child: Text(
+                  message,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: colors.ink),
+                ),
               ),
               TertiaryButton(label: undoLabel, onPressed: onUndo),
               TertiaryButton(label: dismissLabel, onPressed: onDismiss),

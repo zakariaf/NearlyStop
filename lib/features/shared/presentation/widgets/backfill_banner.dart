@@ -53,14 +53,19 @@ class BackfillBanner extends StatelessWidget {
     final colors = DaybreakColors.of(context);
     final shapes = DaybreakShapes.of(context);
 
+    // The `Semantics` wrapper covers the PROSE only, and the actions sit
+    // outside it. Wrapping the whole banner in `ExcludeSemantics` — to keep it
+    // reading as one sentence — also takes its BUTTONS out of the semantics
+    // tree, so a screen-reader user hears "you haven't marked the last 3 days"
+    // and has no way to act on it.
     return Semantics(
       container: true,
       // Announced when it appears, without stealing focus from whatever the
       // reader was doing.
       liveRegion: true,
       label: message,
-      child: ExcludeSemantics(
-        child: Container(
+      child: Builder(
+        builder: (context) => Container(
           key: containerKey,
           padding: EdgeInsetsDirectional.all(shapes.s4),
           decoration: BoxDecoration(
@@ -75,20 +80,26 @@ class BackfillBanner extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Icon(glyph, size: 22, color: colors.warning),
-                  SizedBox(width: shapes.s3),
-                  Expanded(
-                    child: Text(
-                      message,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: colors.ink,
+              // `ExcludeSemantics` over the PROSE only. Over the whole banner
+              // it also removes the two buttons from the semantics tree, and a
+              // screen-reader user hears "you haven't marked the last 3 days"
+              // with no way to act on it.
+              ExcludeSemantics(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Icon(glyph, size: 22, color: colors.warning),
+                    SizedBox(width: shapes.s3),
+                    Expanded(
+                      child: Text(
+                        message,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: colors.ink,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               SizedBox(height: shapes.s2),
               // A `Wrap`, so two long German action labels stack instead of

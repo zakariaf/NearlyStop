@@ -211,6 +211,29 @@ void main() {
           isNot(TextOverflow.ellipsis),
           reason: destination.label,
         );
+
+        // VISIBLE, not merely present. `find.text` succeeds on a label that
+        // has been clipped to a quarter of itself, and `Flexible` around a
+        // `Text` clips SILENTLY — no overflow stripe, no exception. Measured
+        // at 2.0 before this assertion existed: "Behandlungsplan" wanted 164pt
+        // of height inside a bar that gave it 36.
+        //
+        // The oracle is an independent `TextPainter` at the destination's own
+        // width, so it does not agree with whatever the bar decided.
+        final rendered = tester.getSize(find.text(destination.label));
+        final wanted = (TextPainter(
+          text: TextSpan(
+            text: destination.label,
+            style: tester.widget<Text>(find.text(destination.label)).style,
+          ),
+          textDirection: TextDirection.ltr,
+          textScaler: TextScaler.linear(scale),
+        )..layout(maxWidth: rendered.width)).size;
+        expect(
+          rendered.height,
+          greaterThanOrEqualTo(wanted.height),
+          reason: '${destination.label} at $scale was clipped',
+        );
       }
       expect(tester.takeException(), isNull, reason: 'scale $scale');
     }

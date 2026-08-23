@@ -5,6 +5,7 @@
 // before this reader finishes reading it, and what it is offering to undo is a
 // change to their medication record.
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/undo_row.dart';
 
@@ -160,6 +161,32 @@ void main() {
     expect(find.byType(UndoRow), findsOneWidget);
     expect(find.text('Marked Friday as taken.'), findsOneWidget);
     expect(find.text('Marked Thursday as taken.'), findsNothing);
+  });
+
+  testWidgets('the actions are reachable by a screen reader', (tester) async {
+    // The failure this rules out: wrapping the whole surface in
+    // `ExcludeSemantics` to keep it reading as one sentence also removes its
+    // BUTTONS from the semantics tree. The reader hears the message and has
+    // no way to act on it — and for the undo row, no way to undo a change to
+    // their medication record.
+    final handle = tester.ensureSemantics();
+    await pumpRow(tester);
+
+    final spoken = <String>[];
+    void collect(SemanticsNode node) {
+      if (node.label.isNotEmpty) spoken.add(node.label);
+      node.visitChildren((child) {
+        collect(child);
+        return true;
+      });
+    }
+
+    collect(tester.getSemantics(find.byType(UndoRow)));
+
+    for (final action in <String>['Undo', 'Close']) {
+      expect(spoken, contains(action), reason: '$action is not announced');
+    }
+    handle.dispose();
   });
 }
 

@@ -22,7 +22,13 @@ class MethodSegmentedControl extends StatelessWidget {
     required this.labels,
     required this.onChanged,
     super.key,
-  });
+  }) : assert(
+         labels.length == TaperMethod.values.length,
+         'labels must cover every TaperMethod — a partial map throws "Null '
+         'check operator used on a null value" from inside build, which names '
+         'neither the widget nor the missing member. A fourth method added '
+         'without a string is exactly how that happens.',
+       );
 
   /// Above this text scale the segments stack.
   ///

@@ -207,4 +207,32 @@ void main() {
     }
     handle.dispose();
   });
+
+  test('a labels map missing a method fails LOUDLY', () {
+    // `labels[method]!` on a partial map throws "Null check operator used on a
+    // null value" from inside a build, which names neither the widget nor the
+    // missing member. A fourth `TaperMethod` added in EPIC-11 and not given a
+    // string is exactly how that happens, and the Plan screen is where it
+    // lands.
+    //
+    // A plain `test`, not `testWidgets`: the assert fires at CONSTRUCTION,
+    // which is earlier than the build and is where the stack still points at
+    // the call site that got it wrong.
+    expect(
+      () => MethodSegmentedControl(
+        value: TaperMethod.dsns,
+        labels: const <TaperMethod, String>{
+          TaperMethod.dsns: 'Dead Slow and Nearly Stop',
+        },
+        onChanged: (_) {},
+      ),
+      throwsA(
+        isA<AssertionError>().having(
+          (error) => error.toString(),
+          'message',
+          contains('every TaperMethod'),
+        ),
+      ),
+    );
+  });
 }
