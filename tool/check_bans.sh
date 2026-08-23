@@ -223,6 +223,21 @@ add_rule lib code - \
   "the Schedule is never a seven-column month grid — block grouping is the teaching device and the product (SPEC.md 4.2)" \
   "lib/features/schedule/*"
 
+# A `CustomPainter` takes a value SNAPSHOT, never a `BuildContext`
+# (`custom-canvas-and-gestures`). Two reasons, and both are load-bearing here.
+# A painter that reaches for `Theme.of` can only be exercised through a pumped
+# widget, so nobody tests the geometry — and this app's one painter IS the
+# geometry. And a theme lookup inside `paint()` is work on every frame of every
+# scroll, on a device an eighty-year-old is holding.
+#
+# Comment-stripped, which a raw grep is not: the painter's own dartdoc says the
+# words "no BuildContext", and a rule that fires on its own documentation is a
+# rule someone deletes.
+add_rule lib code - \
+  '\b(BuildContext|Theme\.of|MediaQuery|Localizations)\b' \
+  "a CustomPainter takes a value snapshot, not a BuildContext — a painter that reaches for the theme cannot be tested and does theme lookups per frame" \
+  "lib/features/*/presentation/widgets/*_painter.dart"
+
 # Suppressions are line-scoped with a reason. A file-scoped ignore on a rule we
 # deliberately promoted to error leaves every later edit in that file
 # unprotected — exactly the leak the promotion exists to catch.
