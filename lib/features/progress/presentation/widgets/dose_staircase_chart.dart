@@ -190,14 +190,23 @@ class DoseStaircaseChart extends StatelessWidget {
       textScaler: scaler,
     )..layout();
 
+    // A taper that has not reached its first crossover is FLAT, and three
+    // gridline labels reading the same number tell the reader nothing and
+    // look like a bug on the screen that exists to be evidence. One label.
+    final flat = axis.minDose == axis.maxDose;
     final mid = Milligrams.fromHundredths(
       (axis.minDose.hundredths + axis.maxDose.hundredths) ~/ 2,
     );
     return DoseAxisLabels(
       first: paint(axis.firstLabel),
-      last: paint(axis.lastLabel),
+      // Same for the two ends of the x axis: sixteen days in, both are the
+      // same month, and printing it twice is printing it once too often.
+      last: paint(axis.lastLabel == axis.firstLabel ? '' : axis.lastLabel),
       doses: <TextPainter>[
-        for (final dose in <Milligrams>[axis.maxDose, mid, axis.minDose])
+        for (final dose
+            in flat
+                ? <Milligrams>[axis.minDose]
+                : <Milligrams>[axis.maxDose, mid, axis.minDose])
           paint('${formatDose(dose, locale)}${l10n.milligramUnit}'),
       ],
     );
