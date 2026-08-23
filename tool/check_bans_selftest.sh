@@ -289,6 +289,72 @@ expect_flagged "a package:drift_dev import is flagged even inside lib/data/" \
   "$data_scratch" "dev dependency"
 rm -f "$data_scratch"
 
+echo "case 12d: text is never shrunk to fit"
+cat >"$scratch" <<'DART'
+import 'package:flutter/widgets.dart';
+
+/// Scratch.
+Widget scratch() => const FittedBox(child: Text('9'));
+DART
+expect_flagged "a planted FittedBox is flagged" "$scratch" "never shrink text"
+
+cat >"$scratch" <<'DART'
+/// Scratch. The BAN is discussed in a comment: FittedBox, .toUpperCase().
+String scratch() => 'ok';
+DART
+expect_clean "the same words in a COMMENT pass — the gate strips comments"
+rm -f "$scratch"
+
+echo "case 12e: casing lives in the ARB, not at render"
+cat >"$scratch" <<'DART'
+/// Scratch.
+String scratch(String label) => label.toUpperCase();
+DART
+expect_flagged "a planted .toUpperCase() is flagged" "$scratch" "casing belongs in the ARB"
+rm -f "$scratch"
+
+echo "case 12f: no hand-rolled digit tables"
+cat >"$scratch" <<'DART'
+/// Scratch.
+const faDigits = <String>['\u06F0', '\u06F1', '\u06F2'];
+DART
+expect_clean "escaped code points are not a digit TABLE the eye can misread"
+
+printf '/// Scratch.\nconst faDigits = <String>[%s];\n' \
+  "'\u06F0','\u06F1','\u06F2'" >/dev/null
+cat >"$scratch" <<'DART'
+/// Scratch.
+const faDigits = '۰۱۲۳۴۵۶۷۸۹';
+DART
+expect_flagged "a literal Persian digit table is flagged" \
+  "$scratch" "never hand-roll a digit table"
+
+cat >"$scratch" <<'DART'
+/// Scratch. The Arabic-Indic block ٠١٢ is wrong for fa, says this COMMENT.
+const note = 'ok';
+DART
+expect_clean "the same digits in a comment pass — the gate strips comments"
+rm -f "$scratch"
+
+echo "case 12g: the file that documents the block needs no exemption"
+# It carries the digits only inside a `//` comment, and the gate strips
+# comments, so it passes the rule on its own terms. This case exists because an
+# earlier version of the self-test asserted the OPPOSITE of what it printed —
+# a negated grep that reported ok precisely when the block was absent.
+if awk -f tool/strip_comments.awk lib/l10n/number_formats.dart \
+  | grep -qE '[۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩]'; then
+  bad "number_formats.dart has Perso-Arabic digits in CODE, not just comments"
+else
+  pass "number_formats.dart carries the block in comments only"
+fi
+run_gate
+if [ "$code" -ne 0 ]; then
+  bad "the real tree fails the digit ban (exit $code)"
+  echo "$out" | sed 's/^/         /'
+else
+  pass "the real tree passes with no exemption for it"
+fi
+
 echo "case 13: the gate works from an arbitrary ROOT, not just the repo root"
 alt="$(mktemp -d)"
 mkdir -p "$alt/lib/features"

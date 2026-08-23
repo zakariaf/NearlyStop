@@ -1,0 +1,18 @@
+{
+  "@@locale": "en",
+  "greeting": "Hello",
+  "@greeting": {"description": "A greeting."},
+  "takenDays": "{count, plural, =1{1 day} other{{count} days}}",
+  "@takenDays": {
+    "description": "A count of days.",
+    "placeholders": {"count": {"type": "int", "example": "3"}}
+  },
+  "stepOf": "Step {current} of {total}",
+  "@stepOf": {
+    "description": "Position in a sequence.",
+    "placeholders": {
+      "current": {"type": "int", "example": "3"},
+      "total": {"type": "int", "example": "15"}
+    }
+  }
+}

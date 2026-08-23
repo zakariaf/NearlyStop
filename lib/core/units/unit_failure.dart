@@ -92,3 +92,24 @@ final class DoseNotHalvable extends UnitFailure {
     hundredths,
   ];
 }
+
+/// The input is larger than the plan allows.
+///
+/// A ceiling is a plan-level fact, not a property of the unit — a typo of `100`
+/// for `10` is a ten-fold overdose that every other check here would pass.
+final class DoseAboveCeiling extends UnitFailure {
+  /// Records that [input] exceeded [ceilingHundredths].
+  const DoseAboveCeiling(this.input, this.ceilingHundredths);
+
+  /// The rejected text, exactly as received.
+  final String input;
+
+  /// The plan's maximum, in hundredths of a milligram.
+  final int ceilingHundredths;
+
+  @override
+  String get code => 'unit.dose_above_ceiling';
+
+  @override
+  List<Object?> get props => <Object?>[input, ceilingHundredths];
+}

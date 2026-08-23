@@ -1,0 +1,23 @@
+# gen-l10n configuration.
+#
+# `output-dir` inside `lib/` is what makes `lookupAppLocalizations(locale)` a
+# real, importable function. EPIC-06's `appLocalizationsProvider`
+# (CONTRACTS.md §4) is built on it, and it is the only sanctioned way to reach a
+# string outside a widget — `AppLocalizations.of` above the `Localizations`
+# scope throws.
+#
+# There is deliberately no `synthetic-package: false` here. The epic calls for
+# it, but this Flutter version has REMOVED the option: gen-l10n warns that it
+# "no longer has any effect", because non-synthetic output is now the only
+# behaviour. Setting it would be a line that reads like it is doing something.
+#
+# `nullable-getter: false` is load-bearing: it makes `AppLocalizations.of` return
+# non-null, so a missing or mistyped key is a COMPILE error rather than a
+# silently empty widget on a screen nobody re-tested.
+arb-dir: lib/l10n/arb
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+output-dir: lib/l10n/gen
+nullable-getter: false
+preferred-supported-locales: [en]

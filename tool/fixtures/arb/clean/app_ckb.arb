@@ -1,0 +1,6 @@
+{
+  "@@locale": "ckb",
+  "greeting": "سڵاو",
+  "takenDays": "{count, plural, other{{count} ڕۆژ}}",
+  "stepOf": "هەنگاوی {current} لە {total}"
+}

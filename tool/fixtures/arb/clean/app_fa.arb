@@ -1,0 +1,6 @@
+{
+  "@@locale": "fa",
+  "greeting": "سلام",
+  "takenDays": "{count, plural, other{{count} روز}}",
+  "stepOf": "گام {current} از {total}"
+}
