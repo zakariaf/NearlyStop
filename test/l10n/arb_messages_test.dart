@@ -4,26 +4,19 @@
 // German sentence is a review question. The shapes can: a count spliced into a
 // sentence, a plural branch hand-faked into a language that has none, a
 // placeholder left behind. Those are what this file pins.
-import 'dart:convert';
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 
-/// Every locale the app ships, as gen-l10n names them.
-const locales = <String>['en', 'de', 'fa', 'ckb'];
-
-Map<String, dynamic> arbFor(String locale) =>
-    jsonDecode(File('lib/l10n/arb/app_$locale.arb').readAsStringSync())
-        as Map<String, dynamic>;
+import '../support/arb.dart';
 
 void main() {
   test('lookupAppLocalizations works OUTSIDE a Localizations scope', () async {
     // The evidence that `synthetic-package: false` is doing its job. EPIC-06's
     // `appLocalizationsProvider` is built on exactly this call, and a provider
     // body has no BuildContext to hand `AppLocalizations.of`.
-    for (final tag in locales) {
+    for (final tag in arbLocaleTags) {
       final l10n = lookupAppLocalizations(Locale(tag));
 
       expect(l10n.localeName, tag, reason: tag);
@@ -43,7 +36,7 @@ void main() {
     // A ternary in Dart cannot pass this, and a spliced string looks perfectly
     // fine in English right up until it is translated into a language whose
     // word order differs.
-    final template = arbFor('en');
+    final template = arbFor(arbTemplateTag);
     final countBearing = template.keys.where(
       (key) =>
           !key.startsWith('@') &&
@@ -60,7 +53,7 @@ void main() {
       reason: 'the fixture itself must have some',
     );
     for (final key in countBearing) {
-      for (final tag in locales) {
+      for (final tag in arbLocaleTags) {
         expect(
           arbFor(tag)[key],
           contains('{count, plural,'),
@@ -95,7 +88,7 @@ void main() {
   });
 
   test('no placeholder survives unsubstituted, in any locale', () {
-    for (final tag in locales) {
+    for (final tag in arbLocaleTags) {
       final l10n = lookupAppLocalizations(Locale(tag));
       final rendered = <String>[
         l10n.takenDays(341),
@@ -127,7 +120,7 @@ void main() {
       'Not yet taken.',
     );
 
-    for (final tag in locales) {
+    for (final tag in arbLocaleTags) {
       expect(
         arbFor(tag)['todaySemantics'],
         allOf(contains('{dose}'), contains('{breakdown}')),
@@ -139,9 +132,9 @@ void main() {
   test('every locale carries exactly the template keys', () {
     // Task 10 makes this a CI gate over the raw files; here it is the reason
     // the tests above can index any locale by key without a null check.
-    final template = arbFor('en').keys.where((k) => !k.startsWith('@')).toSet();
+    final template = arbMessageKeys().toSet();
 
-    for (final tag in locales) {
+    for (final tag in arbLocaleTags) {
       final keys = arbFor(tag).keys.where((k) => !k.startsWith('@')).toSet();
 
       expect(keys, template, reason: tag);

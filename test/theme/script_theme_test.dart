@@ -70,7 +70,7 @@ void main() {
     });
 
     test('no slot in any locale falls to a system font', () {
-      for (final locale in <Locale>[_en, _de, _fa, kurdishSorani]) {
+      for (final locale in kSupportedLocales) {
         final text = buildDaybreakTheme(
           Brightness.light,
           scriptFor(locale),
@@ -107,7 +107,7 @@ void main() {
   });
 
   test('per locale, the theme carries exactly the script transform', () {
-    for (final locale in <Locale>[_en, _de, _fa, kurdishSorani]) {
+    for (final locale in kSupportedLocales) {
       final script = scriptFor(locale);
       final fromTheme = buildDaybreakTheme(
         Brightness.light,

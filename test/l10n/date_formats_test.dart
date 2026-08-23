@@ -83,7 +83,7 @@ void main() {
   });
 
   test('no date string mixes digit blocks', () {
-    for (final locale in <Locale>[_en, _de, _fa, kurdishSorani]) {
+    for (final locale in kSupportedLocales) {
       final label = formatDayLabel(fixture, locale);
       final digits = label.runes.where(
         (r) =>
@@ -120,7 +120,7 @@ void main() {
   });
 
   test('every month name list has twelve entries and weekdays seven', () {
-    for (final locale in <Locale>[_en, _de, _fa, kurdishSorani]) {
+    for (final locale in kSupportedLocales) {
       final l10n = lookupAppLocalizations(locale);
 
       expect(l10n.ckbMonthNames.split('|'), hasLength(12), reason: '$locale');

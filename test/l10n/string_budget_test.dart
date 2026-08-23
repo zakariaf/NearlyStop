@@ -9,11 +9,10 @@
 // What it must NOT become: a reason to reach for `FittedBox`,
 // `TextOverflow.ellipsis` or `MediaQuery.withClampedTextScaling`. Those turn a
 // loud test failure into a truncated instruction on a 78-year-old's phone.
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:characters/characters.dart';
 import 'package:test/test.dart';
+
+import '../support/arb.dart';
 
 /// The template with each placeholder replaced by the example the `@`-metadata
 /// declares for it.
@@ -33,14 +32,8 @@ String rendered(String value, Map<String, dynamic>? meta) {
   return out;
 }
 
-const locales = <String>['en', 'de', 'fa', 'ckb'];
-
-Map<String, dynamic> arbFor(String locale) =>
-    jsonDecode(File('lib/l10n/arb/app_$locale.arb').readAsStringSync())
-        as Map<String, dynamic>;
-
 void main() {
-  final template = arbFor('en');
+  final template = arbFor(arbTemplateTag);
   final budgets = <String, int>{
     for (final entry in template.entries)
       if (entry.key.startsWith('@') &&
@@ -55,7 +48,7 @@ void main() {
     expect(budgets.length, greaterThan(20));
   });
 
-  for (final locale in locales) {
+  for (final locale in arbLocaleTags) {
     final values = arbFor(locale);
 
     group('$locale fits its budgets', () {

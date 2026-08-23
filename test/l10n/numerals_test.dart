@@ -186,7 +186,7 @@ void main() {
   test('round trip in 0.25mg steps, every locale', () {
     // 0.25 and not 0.5: a half-step range never generates a quarter-milligram,
     // which is exactly how a rounding bug survives a test suite.
-    for (final locale in <Locale>[_en, _de, _fa, kurdishSorani]) {
+    for (final locale in kSupportedLocales) {
       for (var h = 25; h <= 6000; h += 25) {
         final dose = mg(h);
 
@@ -202,7 +202,7 @@ void main() {
   test('the same round trip against an INDEPENDENT oracle', () {
     // A second path that never calls NumberFormat.parse, so format and parse
     // cannot be jointly wrong.
-    for (final locale in <Locale>[_en, _de, _fa, kurdishSorani]) {
+    for (final locale in kSupportedLocales) {
       final symbols = numberFormatFor(locale).symbols;
       for (var h = 25; h <= 6000; h += 25) {
         final ascii = normalizeToAscii(formatDose(mg(h), locale))
@@ -224,7 +224,7 @@ void main() {
     final rng = Random(0x5EED);
     for (var i = 0; i < 500; i++) {
       final h = 25 + rng.nextInt(240) * 25;
-      for (final locale in <Locale>[_en, _de, _fa, kurdishSorani]) {
+      for (final locale in kSupportedLocales) {
         final back = okOf(parseDose(formatDose(mg(h), locale), locale));
 
         expect(back.hundredths, h, reason: 'locale=$locale h=$h');
