@@ -167,6 +167,40 @@ void main() {
     );
   });
 
+  testWidgets('the state word stays inside the row’s padding', (
+    tester,
+  ) async {
+    // Found on a device, not in a golden. `Row` hands a NON-flexible child
+    // unbounded main-axis constraints, so the trailing column took its full
+    // intrinsic width and the word ran out past the card's padding and over
+    // its border — "NOT TICKED" and "TODAY" both touching the edge. 402pt is
+    // an iPhone 16 Pro; the 390pt captures had just enough slack to hide it.
+    await pumpAt(tester, const Size(402, 874));
+    final shapes = DaybreakShapes.of(
+      tester.element(find.byType(ScheduleDayRow).first),
+    );
+
+    final rows = find.byType(ScheduleDayRow).evaluate().toList();
+    expect(rows, isNotEmpty);
+    for (final element in rows) {
+      final row = tester.getRect(find.byWidget(element.widget));
+      final word = find.descendant(
+        of: find.byWidget(element.widget),
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is Text && widget.data == widget.data?.toUpperCase(),
+        ),
+      );
+      if (word.evaluate().isEmpty) continue;
+      expect(
+        tester.getRect(word.first).right,
+        lessThanOrEqualTo(row.right - shapes.s4 + 0.5),
+        reason: 'the state word runs into the row border',
+      );
+    }
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('two panes at 200% do not clip the teaching sentence', (
     tester,
   ) async {
