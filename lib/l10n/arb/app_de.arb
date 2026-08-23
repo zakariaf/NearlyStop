@@ -25,6 +25,7 @@
   "stepOfTotal": "Schritt {current} von {total}",
   "dayOfStep": "Tag {day} von {length}",
   "blockOfTotal": "Block {current} von {total}",
+  "blockCompleted": "Abgeschlossen",
   "blockPattern": "einen Tag {newDose}, dann {oldDays, plural, =1{1 Tag} other{{oldDays} Tage}} {oldDose}",
   "doseTransition": "{from} auf {to}",
   "tabletBreakdown": "{parts}",

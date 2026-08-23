@@ -94,6 +94,9 @@ class AppLocalizationsCkb extends AppLocalizations {
   }
 
   @override
+  String get blockCompleted => 'تەواوبوو';
+
+  @override
   String blockPattern(String newDose, int oldDays, String oldDose) {
     String _temp0 = intl.Intl.pluralLogic(
       oldDays,

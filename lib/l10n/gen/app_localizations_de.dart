@@ -94,6 +94,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get blockCompleted => 'Abgeschlossen';
+
+  @override
   String blockPattern(String newDose, int oldDays, String oldDose) {
     String _temp0 = intl.Intl.pluralLogic(
       oldDays,

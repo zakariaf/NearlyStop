@@ -252,6 +252,12 @@ abstract class AppLocalizations {
   /// **'Block {current} of {total}'**
   String blockOfTotal(int current, int total);
 
+  /// The word on a finished block header. Said as a WORD, not only as a green tint: a reader who cannot see the tint still has to know the block is behind them.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get blockCompleted;
+
   /// The teaching sentence under a block header: the new dose is taken on one day, the old dose on the days between. Word order differs per language, so the counts are ICU branches rather than spliced numbers.
   ///
   /// In en, this message translates to:

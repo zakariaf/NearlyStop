@@ -44,6 +44,7 @@
 
   /* --- lines --- */
   --border:#F0DDCD;          /* decorative hairline */
+  --border-current-block:#F9735066; /* primary at 40% */
   --border-strong:#A67D68;   /* interactive boundary, 3.49:1 on bg */
   --overlay:rgba(59,42,37,.55);
 
@@ -109,6 +110,7 @@
   --tint-danger:#3E2624;
 
   --border:#45333A;
+  --border-current-block:#FF8A6666; /* primary at 40% */
   --border-strong:#9A7A82;
   --overlay:rgba(16,9,13,.66);
 
@@ -387,7 +389,7 @@ html[lang="fa"] .card h3{letter-spacing:0;text-transform:none;font-size:var(--fs
 }
 .blockhead.current{
   background:var(--tint-primary);
-  border-color:color-mix(in srgb, var(--primary) 40%, transparent);
+  border-color:var(--border-current-block);
 }
 .blockhead .bh-ico{
   width:36px;height:36px;border-radius:var(--r-sm);flex:0 0 auto;

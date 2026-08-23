@@ -35,6 +35,14 @@ Map<String, String> _tokensIn(String css) {
 
 Color _hex(String value) {
   final digits = value.replaceAll('#', '').trim();
+  // CSS writes 8-digit hex as #RRGGBBAA; Dart wants 0xAARRGGBB. Needed since
+  // `--border-current-block` is `primary` at 40% — a translucent token, which
+  // is what lets the current block's outline composite over its own tint.
+  if (digits.length == 8) {
+    return Color(
+      int.parse(digits.substring(6) + digits.substring(0, 6), radix: 16),
+    );
+  }
   return Color(int.parse('FF$digits', radix: 16));
 }
 
@@ -89,6 +97,7 @@ void main() {
     '--tint-danger': _tintDanger,
     '--border': _border,
     '--border-strong': _borderStrong,
+    '--border-current-block': _borderCurrentBlock,
     '--state-taken': _stateTaken,
     '--state-missed': _stateMissed,
     '--state-today': _stateToday,
@@ -349,6 +358,7 @@ Color _tintWarning(DaybreakColors c) => c.tintWarning;
 Color _tintDanger(DaybreakColors c) => c.tintDanger;
 Color _border(DaybreakColors c) => c.border;
 Color _borderStrong(DaybreakColors c) => c.borderStrong;
+Color _borderCurrentBlock(DaybreakColors c) => c.borderCurrentBlock;
 Color _stateTaken(DaybreakColors c) => c.stateTaken;
 Color _stateMissed(DaybreakColors c) => c.stateMissed;
 Color _stateToday(DaybreakColors c) => c.stateToday;

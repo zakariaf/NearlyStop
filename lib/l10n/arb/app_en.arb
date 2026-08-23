@@ -141,6 +141,10 @@
     "x-maxChars": 22
   },
   "blockOfTotal": "Block {current} of {total}",
+  "blockCompleted": "Completed",
+  "@blockCompleted": {
+    "description": "The word on a finished block header. Said as a WORD, not only as a green tint: a reader who cannot see the tint still has to know the block is behind them."
+  },
   "@blockOfTotal": {
     "description": "Which of the eleven blocks of the pattern this is.",
     "placeholders": {

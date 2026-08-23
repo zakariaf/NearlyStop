@@ -25,6 +25,7 @@
   "stepOfTotal": "هەنگاوی {current} لە {total}",
   "dayOfStep": "ڕۆژی {day} لە {length}",
   "blockOfTotal": "بەشی {current} لە {total}",
+  "blockCompleted": "تەواوبوو",
   "blockPattern": "یەک ڕۆژ {newDose}، پاشان {oldDays, plural, other{{oldDays} ڕۆژ}} {oldDose}",
   "doseTransition": "{from} بۆ {to}",
   "tabletBreakdown": "{parts}",

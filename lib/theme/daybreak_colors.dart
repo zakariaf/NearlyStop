@@ -45,6 +45,7 @@ class DaybreakColors extends ThemeExtension<DaybreakColors> {
     required this.tintDanger,
     required this.border,
     required this.borderStrong,
+    required this.borderCurrentBlock,
     required this.overlay,
     required this.stateTaken,
     required this.stateMissed,
@@ -149,6 +150,16 @@ class DaybreakColors extends ThemeExtension<DaybreakColors> {
   /// `Switch`, `Checkbox` and `OutlinedButton` edge from.
   final Color borderStrong;
 
+  /// The outline on the block the user is currently in.
+  ///
+  /// `primary` at 40%, and a **slot** rather than a `Color.lerp` at the call
+  /// site: a lerp there would put a computed colour outside `lib/theme/`, which
+  /// `tool/check_raw_values.sh` exists to prevent and which no parity test
+  /// could compare against the design source. Translucent, so it composites
+  /// over whatever fill the header has — which is why nothing measures text
+  /// against it.
+  final Color borderCurrentBlock;
+
   /// The scrim behind a modal sheet. Translucent, so nothing is ever measured
   /// against it — text over the disclaimer scrim sits on the sheet's opaque
   /// [surface].
@@ -218,6 +229,7 @@ class DaybreakColors extends ThemeExtension<DaybreakColors> {
     Color? tintDanger,
     Color? border,
     Color? borderStrong,
+    Color? borderCurrentBlock,
     Color? overlay,
     Color? stateTaken,
     Color? stateMissed,
@@ -250,6 +262,7 @@ class DaybreakColors extends ThemeExtension<DaybreakColors> {
       tintDanger: tintDanger ?? this.tintDanger,
       border: border ?? this.border,
       borderStrong: borderStrong ?? this.borderStrong,
+      borderCurrentBlock: borderCurrentBlock ?? this.borderCurrentBlock,
       overlay: overlay ?? this.overlay,
       stateTaken: stateTaken ?? this.stateTaken,
       stateMissed: stateMissed ?? this.stateMissed,
@@ -298,6 +311,11 @@ class DaybreakColors extends ThemeExtension<DaybreakColors> {
       tintDanger: Color.lerp(tintDanger, other.tintDanger, t)!,
       border: Color.lerp(border, other.border, t)!,
       borderStrong: Color.lerp(borderStrong, other.borderStrong, t)!,
+      borderCurrentBlock: Color.lerp(
+        borderCurrentBlock,
+        other.borderCurrentBlock,
+        t,
+      )!,
       overlay: Color.lerp(overlay, other.overlay, t)!,
       stateTaken: Color.lerp(stateTaken, other.stateTaken, t)!,
       stateMissed: Color.lerp(stateMissed, other.stateMissed, t)!,
@@ -339,6 +357,7 @@ class DaybreakColors extends ThemeExtension<DaybreakColors> {
     tintDanger,
     border,
     borderStrong,
+    borderCurrentBlock,
     overlay,
     stateTaken,
     stateMissed,
@@ -381,6 +400,9 @@ const DaybreakColors lightDaybreakColors = DaybreakColors(
   tintDanger: Primitives.rose92,
   border: Primitives.clay89,
   borderStrong: Primitives.clay56,
+  // `primary` at 40%. Declared as `--border-current-block` in the design
+  // source so the parity test has something to compare.
+  borderCurrentBlock: Color(0x66F97350),
   overlay: Color(0x8C3B2A25), // clay19 at 55%
   stateTaken: Primitives.moss52,
   stateMissed: Primitives.clay56,
@@ -421,6 +443,7 @@ const DaybreakColors darkDaybreakColors = DaybreakColors(
   tintDanger: Primitives.rose18,
   border: Primitives.plum24,
   borderStrong: Primitives.plum54,
+  borderCurrentBlock: Color(0x66FF8A66),
   overlay: Color(0xA810090D), // plum03 at 66%
   stateTaken: Primitives.moss70,
   stateMissed: Primitives.plum54,
@@ -469,6 +492,9 @@ final DaybreakColors lightHighContrastDaybreakColors = lightDaybreakColors
       danger: Primitives.rose32,
       border: Primitives.clay50,
       borderStrong: Primitives.clay50,
+      // Opaque in high contrast: a 40% outline is the first thing to vanish
+      // for the reader who turned high contrast on.
+      borderCurrentBlock: Primitives.coral33,
       stateTaken: Primitives.moss50,
       stateMissed: Primitives.clay50,
       stateToday: Primitives.coral50,
@@ -495,6 +521,7 @@ darkHighContrastDaybreakColors = darkDaybreakColors.copyWith(
   dangerFill: Primitives.rose70,
   border: Primitives.plum58,
   borderStrong: Primitives.plum58,
+  borderCurrentBlock: Primitives.coral76,
   stateMissed: Primitives.plum58,
 );
 

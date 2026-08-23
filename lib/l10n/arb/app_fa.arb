@@ -25,6 +25,7 @@
   "stepOfTotal": "گام {current} از {total}",
   "dayOfStep": "روز {day} از {length}",
   "blockOfTotal": "مرحله {current} از {total}",
+  "blockCompleted": "تکمیل شد",
   "blockPattern": "یک روز {newDose}، سپس {oldDays, plural, other{{oldDays} روز}} {oldDose}",
   "doseTransition": "{from} به {to}",
   "tabletBreakdown": "{parts}",
