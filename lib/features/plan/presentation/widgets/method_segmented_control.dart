@@ -22,13 +22,7 @@ class MethodSegmentedControl extends StatelessWidget {
     required this.labels,
     required this.onChanged,
     super.key,
-  }) : assert(
-         labels.length == TaperMethod.values.length,
-         'labels must cover every TaperMethod — a partial map throws "Null '
-         'check operator used on a null value" from inside build, which names '
-         'neither the widget nor the missing member. A fourth method added '
-         'without a string is exactly how that happens.',
-       );
+  });
 
   /// Above this text scale the segments stack.
   ///
@@ -47,6 +41,18 @@ class MethodSegmentedControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Checked HERE rather than in the constructor. As a constructor assert it
+    // reads `labels.length`, which is not a constant expression — so the
+    // widget stops being `const`-constructible and every call site pays for
+    // one check. In `build` it still fires on the first frame and still names
+    // the widget, which is the whole point: `labels[method]!` on a partial map
+    // throws "Null check operator used on a null value" from inside a build,
+    // naming neither. A fourth method added in EPIC-11 without a string is
+    // exactly how that arrives.
+    assert(
+      labels.length == TaperMethod.values.length,
+      'labels must cover every TaperMethod; got ${labels.keys.toList()}',
+    );
     final colors = DaybreakColors.of(context);
     final shapes = DaybreakShapes.of(context);
     final stacked =
