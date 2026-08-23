@@ -53,26 +53,164 @@ class TodayNotifier extends StreamNotifier<TodayViewState> {
       Err<List<DayPlan>, Failure>() => const <DayPlan>[],
     };
 
-    return repository.watchSnapshot().map(
-      (result) => switch (result) {
-        Ok<TaperSnapshot, StorageFailure>(:final value) => project(
-          snapshot: value,
-          schedule: days,
-          date: date,
-          l10n: l10n,
-          locale: locale,
-        ),
-        // Rethrown so the `AsyncValue` carries the error arm rather than a
-        // fabricated "no plan" — the screen must be able to tell "you have no
-        // plan" from "we could not read your plan".
-        // `StorageFailure` is a `Failure`, not an `Exception` — the typed
-        // spine deliberately does not extend it. `AsyncValue` carries any
-        // Object, so the arm is preserved either way, and wrapping it in an
-        // exception would lose the type the screen switches on.
-        // ignore: only_throw_errors
-        Err<TaperSnapshot, StorageFailure>(:final failure) => throw failure,
-      },
+    return repository
+        .watchSnapshot()
+        // A plan that EXISTS but has produced no schedule yet is mid-LOAD, not
+        // "you have no plan". `derivedScheduleProvider` returns an empty list
+        // before its first emission, and projecting that would flash "Your
+        // plan starts here" at somebody who has been on a taper for a year.
+        // Skipping the emission leaves the screen in `AsyncLoading` until the
+        // derivation lands and `ref.watch` rebuilds this.
+        .where(
+          (result) => switch (result) {
+            Ok<TaperSnapshot, StorageFailure>(:final value) =>
+              value.plan == null || days.isNotEmpty,
+            Err<TaperSnapshot, StorageFailure>() => true,
+          },
+        )
+        .map(
+          (result) => switch (result) {
+            Ok<TaperSnapshot, StorageFailure>(:final value) => project(
+              snapshot: value,
+              schedule: days,
+              date: date,
+              l10n: l10n,
+              locale: locale,
+            ),
+            // Rethrown so the `AsyncValue` carries the error arm rather than
+            // a fabricated "no plan" — the screen must be able to tell "you
+            // have no plan" from "we could not read your plan".
+            // `StorageFailure` is a `Failure`, not an `Exception` — the typed
+            // spine deliberately does not extend it. `AsyncValue` carries any
+            // Object, so the arm is preserved either way, and wrapping it in an
+            // exception would lose the type the screen switches on.
+            // ignore: only_throw_errors
+            Err<TaperSnapshot, StorageFailure>(:final failure) => throw failure,
+          },
+        );
+  }
+
+  // ---------------------------------------------------------------- writes
+  //
+  // Every one goes through `TaperRepository`. No mutation touches a DAO, and
+  // none keeps a local flag: the write commits, the watched stream re-emits,
+  // and every other surface — Schedule's row state, Progress's total, the
+  // notification's payload — sees the same fact without re-deriving it. A
+  // shortcut here becomes a divergence bug two years into a taper, by which
+  // time the evidence is gone.
+
+  /// Ticks today.
+  Future<void> markTakenToday() async {
+    final date = ref.read(todayDateProvider);
+    await _write(
+      (repository) => repository.markTaken(date, plannedMg: _planned(date)),
     );
+  }
+
+  /// Ticks an earlier day, with THAT day's planned dose.
+  ///
+  /// Not today's. Backfilling an earlier day with today's number records the
+  /// wrong dose against it, and the cumulative total is wrong forever.
+  Future<void> backfill(LocalDate date) async {
+    await _write(
+      (repository) => repository.markTaken(date, plannedMg: _planned(date)),
+    );
+  }
+
+  /// Un-ticks today.
+  Future<void> undoLast() async {
+    final date = ref.read(todayDateProvider);
+    await _write((repository) => repository.undoTaken(date));
+  }
+
+  /// Saves — or clears — today's note.
+  ///
+  /// Carries `plannedMg` because a note may be the first thing that creates
+  /// the row, and `DoseLogs.plannedMg` is non-null (CONTRACTS.md §3).
+  Future<void> saveNote(String? text) async {
+    final date = ref.read(todayDateProvider);
+    await _write(
+      (repository) => repository.setNote(date, text, plannedMg: _planned(date)),
+    );
+  }
+
+  /// Records a flare, reverting to a dose the reader CHOSE.
+  ///
+  /// Two arguments, per CONTRACTS.md §3. The next-step size the reader picked
+  /// reaches storage through the plan/step path, not through here.
+  Future<void> recordFlare(Milligrams revertTo) async {
+    final date = ref.read(todayDateProvider);
+    await _write(
+      (repository) => repository.recordFlare(on: date, revertTo: revertTo),
+    );
+  }
+
+  /// Holds the active step for [extraDays] more days.
+  ///
+  /// Out-of-range values are refused HERE, before any write. 28 is the ceiling
+  /// because a longer stall is a plan change rather than a hold, and a
+  /// database that rejected it would be a crash instead of an answer.
+  Future<void> recordHold(int extraDays) async {
+    final current = state.hasValue ? state.requireValue : null;
+    final prompt = switch (current) {
+      TodayDose(:final hold) => hold,
+      TodayStepFinished(:final hold) => hold,
+      TodayNoPlan() || TodayTaperComplete() || null => null,
+    };
+    if (prompt == null) return;
+    if (extraDays < prompt.minExtraDays || extraDays > prompt.maxExtraDays) {
+      return;
+    }
+    final date = ref.read(todayDateProvider);
+    await _write(
+      (repository) => repository.recordHold(
+        stepId: prompt.stepId,
+        from: date,
+        extraDays: extraDays,
+      ),
+    );
+  }
+
+  /// Begins the next step.
+  Future<void> startNextStep() async {
+    await _write((repository) => repository.startNextStep());
+  }
+
+  /// Today's planned dose, from the derivation the screen already holds.
+  ///
+  /// The repository does not run the generator, so the caller supplies this.
+  Milligrams _planned(LocalDate date) {
+    final derived = ref.read(derivedScheduleProvider);
+    final days = switch (derived) {
+      Ok<List<DayPlan>, Failure>(:final value) => value,
+      Err<List<DayPlan>, Failure>() => const <DayPlan>[],
+    };
+    for (final day in days) {
+      if (day.date == date) return day.dose;
+    }
+    return Milligrams.zero;
+  }
+
+  /// Runs a write and reports a failure WITHOUT disturbing the dose.
+  ///
+  /// The failure goes to [todayWriteFailureProvider], not into `state`. Two
+  /// reasons, and the second is the one that matters:
+  ///
+  /// * Riverpod 3 made `AsyncValue.copyWithPrevious` `@internal`, so the
+  ///   "error arm that still carries the previous value" trick the epic
+  ///   describes is no longer public API to reach for.
+  /// * A write failing is not the READ stream saying something. Putting it
+  ///   through the same channel is exactly what makes the dose vanish when a
+  ///   tick fails — and a reader who taps Taken and loses the number they
+  ///   opened the app for has lost more than the write.
+  ///
+  /// So the dose stays where it was, `AsyncData` and untouched, and the screen
+  /// shows the failure beside it.
+  Future<void> _write(
+    Future<Result<void, StorageFailure>> Function(TaperRepository) action,
+  ) async {
+    final result = await action(ref.read(taperRepositoryProvider));
+    ref.read(todayWriteFailureProvider.notifier).recordOutcome(result);
   }
 
   /// Facts in, one view state out.
@@ -359,5 +497,34 @@ class TodayNotifier extends StreamNotifier<TodayViewState> {
       );
     }
     return null;
+  }
+}
+
+/// The last write failure, or null.
+///
+/// **Separate from [todayViewProvider] on purpose.** A failed tick must not
+/// take the dose off the screen, and the read stream is not the place to say
+/// that a write went wrong.
+final NotifierProvider<TodayWriteFailure, StorageFailure?>
+todayWriteFailureProvider =
+    NotifierProvider<TodayWriteFailure, StorageFailure?>(
+      TodayWriteFailure.new,
+    );
+
+/// Holds the last write failure, so the screen can show it beside the dose.
+class TodayWriteFailure extends Notifier<StorageFailure?> {
+  @override
+  StorageFailure? build() => null;
+
+  /// Records the outcome of a write.
+  ///
+  /// Takes the `Result` rather than a nullable failure, so the "success clears
+  /// the last error" rule lives here once instead of at every call site — and
+  /// so a caller cannot report a failure and forget to clear it.
+  void recordOutcome(Result<void, StorageFailure> result) {
+    state = switch (result) {
+      Ok<void, StorageFailure>() => null,
+      Err<void, StorageFailure>(:final failure) => failure,
+    };
   }
 }
