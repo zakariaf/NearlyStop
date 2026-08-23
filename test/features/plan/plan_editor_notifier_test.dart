@@ -57,10 +57,10 @@ void main() {
   }
 
   test('a clean install seeds the region’s own drug and strengths', () async {
-    final container = containerAt();
-    container.listen(planEditorProvider, (_, _) {});
+    final container = containerAt()
+      ..listen(planEditorProvider, (_, _) {})
+      ..invalidate(planEditorProvider);
     await snapshotOf(container);
-    container.invalidate(planEditorProvider);
 
     final draft = container.read(planEditorProvider);
 
@@ -130,8 +130,7 @@ void main() {
       // Without this, NOTHING anywhere creates step 0: `generateSchedule` takes
       // a list of steps, so a plan with none produces an empty schedule and
       // Today, Schedule and Progress all render empty for ever (CONTRACTS §7).
-      final container = containerAt();
-      container.listen(planEditorProvider, (_, _) {});
+      final container = containerAt()..listen(planEditorProvider, (_, _) {});
       await container.read(taperSnapshotProvider.future);
       container
           .read(planEditorProvider.notifier)
@@ -173,8 +172,7 @@ void main() {
   test('an override beats the suggestion in the row that is written', () async {
     // 9mg with 5mg + 1mg and halves: the engine suggests 0.5mg. The doctor
     // said 1mg. The doctor wins (SPEC §3.2).
-    final container = containerAt();
-    container.listen(planEditorProvider, (_, _) {});
+    final container = containerAt()..listen(planEditorProvider, (_, _) {});
     await container.read(taperSnapshotProvider.future);
     container
         .read(planEditorProvider.notifier)
