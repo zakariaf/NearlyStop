@@ -503,6 +503,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'January|February|March|April|May|June|July|August|September|October|November|December'**
   String get ckbMonthNames;
+
+  /// Shown when a link or a restored location points nowhere. Warm and short — never the framework's red error screen.
+  ///
+  /// In en, this message translates to:
+  /// **'That page does not exist'**
+  String get unknownRouteTitle;
+
+  /// The single way out of the unknown-route page.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Today'**
+  String get unknownRouteAction;
+
+  /// A persistent banner in the shell when a write fails. Persistent, never a toast: this audience does not finish reading a message that times out.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong saving your data. Your plan is safe.'**
+  String get shellStorageError;
 }
 
 class _AppLocalizationsDelegate

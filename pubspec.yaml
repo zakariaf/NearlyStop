@@ -67,6 +67,9 @@ dev_dependencies:
   # under `dependencies` misstates the set the store listing is audited against.
   characters: ^1.3.0
   drift_dev: ">=2.31.0 <2.32.0" # must match drift; see the note on it above
+  # Fake time for the midnight-rollover suite. A rollover test that waits on a
+  # real clock is a test nobody runs twice.
+  fake_async: ^1.3.0
   flutter_test:
     sdk: flutter
   test: ^1.25.0

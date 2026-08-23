@@ -5,9 +5,13 @@
 // a build where the OS accessibility switches do nothing. For this audience
 // that is a defect, not a deferral (CLAUDE.md rule 4).
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/app/app.dart';
+import 'package:nearlystop/core/settings/app_settings.dart';
+import 'package:nearlystop/providers.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
+import 'package:riverpod/misc.dart' show Override;
 
 void main() {
   Future<DaybreakColors> paletteUnder(
@@ -18,7 +22,12 @@ void main() {
       MediaQuery(
         data: query,
         child: Builder(
-          builder: (_) => const NearlyStopApp(),
+          builder: (_) => ProviderScope(
+            overrides: <Override>[
+              bootstrapSettingsProvider.overrideWithValue(AppSettings.defaults),
+            ],
+            child: const NearlyStopApp(),
+          ),
         ),
       ),
     );
@@ -46,7 +55,12 @@ void main() {
       await tester.pumpWidget(
         MediaQuery(
           data: MediaQueryData(boldText: boldText),
-          child: const NearlyStopApp(),
+          child: ProviderScope(
+            overrides: <Override>[
+              bootstrapSettingsProvider.overrideWithValue(AppSettings.defaults),
+            ],
+            child: const NearlyStopApp(),
+          ),
         ),
       );
       final context = tester.element(find.byType(Scaffold));
@@ -59,9 +73,14 @@ void main() {
 
   testWidgets('high contrast and bold text compose', (tester) async {
     await tester.pumpWidget(
-      const MediaQuery(
-        data: MediaQueryData(highContrast: true, boldText: true),
-        child: NearlyStopApp(),
+      MediaQuery(
+        data: const MediaQueryData(highContrast: true, boldText: true),
+        child: ProviderScope(
+          overrides: <Override>[
+            bootstrapSettingsProvider.overrideWithValue(AppSettings.defaults),
+          ],
+          child: const NearlyStopApp(),
+        ),
       ),
     );
     final context = tester.element(find.byType(Scaffold));

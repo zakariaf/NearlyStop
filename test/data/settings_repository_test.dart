@@ -1,6 +1,7 @@
 // SettingsRepository against a real engine and an injected clock.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/core/result.dart';
+import 'package:nearlystop/core/settings/app_settings.dart';
 import 'package:nearlystop/data/db/app_database.dart';
 import 'package:nearlystop/data/settings_repository.dart';
 import 'package:nearlystop/data/storage_failure.dart';
@@ -27,7 +28,7 @@ void main() {
     final read = await settings.readOnce();
 
     expect(read, AppSettings.defaults);
-    expect(read.themeMode, 'system');
+    expect(read.themeMode, AppThemeMode.system);
     expect(read.textScale, 1.0);
     expect(read.hasAcceptedDisclaimer, isFalse);
   });
@@ -39,7 +40,7 @@ void main() {
     await expectOk(settings.ensureExists());
 
     expect(await db.select(db.settingsRows).get(), hasLength(1));
-    expect((await settings.readOnce()).themeMode, 'dark');
+    expect((await settings.readOnce()).themeMode, AppThemeMode.dark);
   });
 
   test('every setter writes its own field and no other', () async {
@@ -60,7 +61,7 @@ void main() {
     expect(read.textScale, 1.6);
     expect(read.highContrast, isTrue);
     expect(read.localeTag, 'fa');
-    expect(read.themeMode, 'dark');
+    expect(read.themeMode, AppThemeMode.dark);
     expect(read.disclaimerAcceptedAt, fixedNow);
     expect(read.hasAcceptedDisclaimer, isTrue);
   });

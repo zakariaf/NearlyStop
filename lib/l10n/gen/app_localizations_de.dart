@@ -271,4 +271,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get ckbMonthNames =>
       'Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember';
+
+  @override
+  String get unknownRouteTitle => 'Diese Seite gibt es nicht';
+
+  @override
+  String get unknownRouteAction => 'Zu Heute';
+
+  @override
+  String get shellStorageError =>
+      'Beim Speichern ist etwas schiefgegangen. Ihr Plan ist sicher.';
 }

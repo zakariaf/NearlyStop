@@ -169,6 +169,22 @@ add_rule lib code - \
   '[۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩]' \
   "never hand-roll a digit table — numberFormatFor(locale) carries the digits AND the separators"
 
+# Route paths live in lib/routing/routes.dart and nowhere else. A '/today'
+# typed into a screen is a navigation that compiles, runs, and silently goes
+# somewhere the router does not know about — go_router answers an unknown path
+# with the error page, not a compile error.
+add_rule lib code 'lib/routing/routes.dart' \
+  "'/(welcome|today|schedule|progress|plan|settings)" \
+  "route paths belong in lib/routing/routes.dart — a literal elsewhere is a navigation that compiles and goes nowhere"
+
+# The OS text-scale setting is the user's, not ours. `accessibility-as-code`:
+# never clamp it DOWN. Our own multiplier is bounded in the shell's builder,
+# because that one is our control; the product of the two is left unbounded and
+# the screens have to survive it.
+add_rule lib code - \
+  'withClampedTextScaling' \
+  "never clamp the OS text scale — bound the app's own multiplier instead, and let the product be unbounded"
+
 # Suppressions are line-scoped with a reason. A file-scoped ignore on a rule we
 # deliberately promoted to error leaves every later edit in that file
 # unprotected — exactly the leak the promotion exists to catch.

@@ -355,6 +355,46 @@ else
   pass "the real tree passes with no exemption for it"
 fi
 
+echo "case 12h: route paths live in one file"
+cat >"$scratch" <<'DART'
+/// Scratch.
+void scratch() {
+  const destination = '/today';
+  print(destination);
+}
+DART
+expect_flagged "a planted route literal is flagged" \
+  "$scratch" "routes.dart"
+
+cat >"$scratch" <<'DART'
+import 'package:nearlystop/routing/routes.dart';
+
+/// Scratch.
+String scratch() => Routes.today;
+DART
+expect_clean "reading the constant passes — that is the whole point"
+rm -f "$scratch"
+
+run_gate
+if [ "$code" -ne 0 ]; then
+  bad "routes.dart itself is flagged by its own rule (exit $code)"
+  echo "$out" | sed 's/^/         /'
+else
+  pass "routes.dart is exempt from the rule it exists to enforce"
+fi
+
+echo "case 12i: the OS text scale is never clamped down"
+cat >"$scratch" <<'DART'
+import 'package:flutter/widgets.dart';
+
+/// Scratch.
+Widget scratch(Widget child) =>
+    MediaQuery.withClampedTextScaling(maxScaleFactor: 1.3, child: child);
+DART
+expect_flagged "a planted withClampedTextScaling is flagged" \
+  "$scratch" "never clamp the OS text scale"
+rm -f "$scratch"
+
 echo "case 13: the gate works from an arbitrary ROOT, not just the repo root"
 alt="$(mktemp -d)"
 mkdir -p "$alt/lib/features"

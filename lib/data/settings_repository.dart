@@ -3,87 +3,11 @@ library;
 
 import 'package:clock/clock.dart';
 import 'package:drift/drift.dart';
-import 'package:meta/meta.dart';
 import 'package:nearlystop/core/result.dart';
+import 'package:nearlystop/core/settings/app_settings.dart';
 import 'package:nearlystop/data/db/app_database.dart' as db;
 import 'package:nearlystop/data/storage_failure.dart';
 import 'package:ulid/ulid.dart';
-
-/// The user's stored preferences.
-///
-/// A plain value type, not a drift row: `textScale`, `highContrast`,
-/// `themeMode` and `localeTag` are read **before first paint**, so the shape
-/// the bootstrap sees must not depend on the data layer.
-@immutable
-final class AppSettings {
-  /// Creates a settings value.
-  const AppSettings({
-    required this.reminderEnabled,
-    required this.reminderMinuteOfDay,
-    required this.textScale,
-    required this.highContrast,
-    required this.disclaimerAcceptedAt,
-    required this.localeTag,
-    required this.themeMode,
-  });
-
-  /// The defaults a fresh install starts from.
-  static const AppSettings defaults = AppSettings(
-    reminderEnabled: false,
-    reminderMinuteOfDay: null,
-    textScale: 1,
-    highContrast: false,
-    disclaimerAcceptedAt: null,
-    localeTag: null,
-    themeMode: 'system',
-  );
-
-  /// Whether the daily reminder is on.
-  final bool reminderEnabled;
-
-  /// Minutes since **local** midnight. A reminder is a wall-clock time.
-  final int? reminderMinuteOfDay;
-
-  /// The user's text-scale preference, on top of the OS setting.
-  final double textScale;
-
-  /// Whether the high-contrast palette is selected.
-  final bool highContrast;
-
-  /// When the disclaimer was accepted, in UTC.
-  final DateTime? disclaimerAcceptedAt;
-
-  /// The chosen locale tag, or `null` to follow the OS.
-  final String? localeTag;
-
-  /// `system`, `light` or `dark`.
-  final String themeMode;
-
-  /// Whether the first-run disclaimer has been accepted.
-  bool get hasAcceptedDisclaimer => disclaimerAcceptedAt != null;
-
-  @override
-  bool operator ==(Object other) =>
-      other is AppSettings &&
-      other.reminderEnabled == reminderEnabled &&
-      other.reminderMinuteOfDay == reminderMinuteOfDay &&
-      other.textScale == textScale &&
-      other.highContrast == highContrast &&
-      other.disclaimerAcceptedAt == disclaimerAcceptedAt &&
-      other.localeTag == localeTag &&
-      other.themeMode == themeMode;
-
-  @override
-  int get hashCode => Object.hash(
-    reminderEnabled,
-    reminderMinuteOfDay,
-    textScale,
-    highContrast,
-    disclaimerAcceptedAt,
-    localeTag,
-    themeMode,
-  );
-}
 
 /// The one object the rest of the app talks to about settings.
 final class SettingsRepository {
@@ -159,6 +83,11 @@ final class SettingsRepository {
   Future<Result<void, StorageFailure>> setThemeMode(String mode) =>
       _patch(db.SettingsRowsCompanion(themeMode: Value<String>(mode)));
 
+  /// Row → the domain's settings value.
+  ///
+  /// `themeMode` is parsed into the enum HERE, at the boundary: a stored string
+  /// that means nothing must become `system` rather than travelling upward as
+  /// text nobody validated. A preferences row is not worth a cold-start crash.
   AppSettings _from(db.SettingsRow row) => AppSettings(
     reminderEnabled: row.reminderEnabled,
     reminderMinuteOfDay: row.reminderMinuteOfDay,
@@ -166,7 +95,7 @@ final class SettingsRepository {
     highContrast: row.highContrast,
     disclaimerAcceptedAt: row.disclaimerAcceptedAt,
     localeTag: row.localeTag,
-    themeMode: row.themeMode,
+    themeMode: AppThemeMode.fromTag(row.themeMode),
   );
 
   Future<Result<void, StorageFailure>> _patch(
