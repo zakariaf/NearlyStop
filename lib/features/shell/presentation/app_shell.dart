@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nearlystop/features/shared/presentation/widgets/daybreak_tab_bar.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/providers.dart';
 
@@ -35,12 +36,35 @@ class _AppShellState extends ConsumerState<AppShell> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final destinations = <({IconData icon, String label})>[
-      (icon: Icons.wb_sunny_outlined, label: l10n.tabToday),
-      (icon: Icons.view_agenda_outlined, label: l10n.tabSchedule),
-      (icon: Icons.trending_down, label: l10n.tabProgress),
-      (icon: Icons.medication_outlined, label: l10n.tabPlan),
-      (icon: Icons.settings_outlined, label: l10n.tabSettings),
+    // Outlined AND filled for every destination: which tab is current is
+    // signalled by the glyph's fill as well as by the pill and the weight, so
+    // it survives greyscale and deuteranopia (EPIC-07 recipe 7).
+    final destinations = <DaybreakDestination>[
+      DaybreakDestination(
+        label: l10n.tabToday,
+        icon: Icons.wb_sunny_outlined,
+        selectedIcon: Icons.wb_sunny,
+      ),
+      DaybreakDestination(
+        label: l10n.tabSchedule,
+        icon: Icons.view_agenda_outlined,
+        selectedIcon: Icons.view_agenda,
+      ),
+      DaybreakDestination(
+        label: l10n.tabProgress,
+        icon: Icons.trending_down_outlined,
+        selectedIcon: Icons.trending_down,
+      ),
+      DaybreakDestination(
+        label: l10n.tabPlan,
+        icon: Icons.medication_outlined,
+        selectedIcon: Icons.medication,
+      ),
+      DaybreakDestination(
+        label: l10n.tabSettings,
+        icon: Icons.settings_outlined,
+        selectedIcon: Icons.settings,
+      ),
     ];
     final isWide = MediaQuery.sizeOf(context).width >= kRailBreakpoint;
     final failure = ref.watch(bootstrapErrorProvider);
@@ -65,25 +89,14 @@ class _AppShellState extends ConsumerState<AppShell> {
       return Scaffold(
         body: Row(
           children: <Widget>[
-            NavigationRail(
+            // Scrolls internally, for the reason EPIC-06 found the hard way:
+            // five always-labelled destinations clip 68px in landscape at the
+            // largest text size, and the two that fall off are Plan and
+            // Settings.
+            DaybreakNavigationRail(
+              destinations: destinations,
               selectedIndex: widget.shell.currentIndex,
               onDestinationSelected: _goBranch,
-              // Flutter only wraps the rail's destinations in a scroll view
-              // when this is set. Without it, five always-labelled
-              // destinations clip 68px in landscape at the largest text size
-              // — Plan and Settings become unreachable, with no way to get to
-              // them at all.
-              scrollable: true,
-              // Always visible, never icon-only: an unlabelled icon is a
-              // guessing game for the audience this app is for.
-              labelType: NavigationRailLabelType.all,
-              destinations: <NavigationRailDestination>[
-                for (final destination in destinations)
-                  NavigationRailDestination(
-                    icon: Icon(destination.icon),
-                    label: Text(destination.label),
-                  ),
-              ],
             ),
             Expanded(child: body),
           ],
@@ -93,19 +106,10 @@ class _AppShellState extends ConsumerState<AppShell> {
 
     return Scaffold(
       body: body,
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: DaybreakTabBar(
+        destinations: destinations,
         selectedIndex: widget.shell.currentIndex,
         onDestinationSelected: _goBranch,
-        // `alwaysShow`, and no fixed height anywhere: at 200% text scale the
-        // bar is allowed to grow taller rather than clip a label.
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        destinations: <NavigationDestination>[
-          for (final destination in destinations)
-            NavigationDestination(
-              icon: Icon(destination.icon),
-              label: destination.label,
-            ),
-        ],
       ),
     );
   }

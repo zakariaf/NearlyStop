@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/app/app.dart';
 import 'package:nearlystop/data/storage_failure.dart';
+import 'package:nearlystop/features/shared/presentation/widgets/daybreak_tab_bar.dart';
 import 'package:nearlystop/routing/app_router.dart';
 import 'package:nearlystop/routing/routes.dart';
 
@@ -55,7 +56,15 @@ void main() {
     final router = container.read(routerProvider);
 
     for (var index = 0; index < Routes.branches.length; index++) {
-      await tester.tap(find.byIcon(_icons[index]));
+      // By LABEL, not by icon: the current destination swaps to the FILLED
+      // glyph, so an icon-keyed tap finds nothing the moment the tab it names
+      // is the one already selected.
+      await tester.tap(
+        find.descendant(
+          of: find.byType(DaybreakTabDestination),
+          matching: find.text(_labels[index]),
+        ),
+      );
       await tester.pumpAndSettle();
 
       expect(
@@ -70,13 +79,13 @@ void main() {
     tester,
   ) async {
     await pumpShell(tester, size: const Size(599, 800));
-    expect(find.byType(NavigationBar), findsOneWidget);
-    expect(find.byType(NavigationRail), findsNothing);
+    expect(find.byType(DaybreakTabBar), findsOneWidget);
+    expect(find.byType(DaybreakNavigationRail), findsNothing);
 
     await pumpShell(tester, size: const Size(600, 800));
 
-    expect(find.byType(NavigationRail), findsOneWidget);
-    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.byType(DaybreakNavigationRail), findsOneWidget);
+    expect(find.byType(DaybreakTabBar), findsNothing);
   });
 
   testWidgets('labels are always shown, and survive German at 360dp', (
@@ -91,8 +100,8 @@ void main() {
       size: const Size(360, 800),
     );
 
-    final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
-    expect(bar.labelBehavior, NavigationDestinationLabelBehavior.alwaysShow);
+    // Always visible by construction — `DaybreakTabBar` has no icon-only
+    // mode to turn off — so the assertion is that the words are on screen.
     for (final label in <String>[
       'Heute',
       'Plan',
@@ -130,7 +139,7 @@ void main() {
     container.read(routerProvider).go(Routes.progress);
     await tester.pumpAndSettle();
 
-    final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+    final bar = tester.widget<DaybreakTabBar>(find.byType(DaybreakTabBar));
 
     expect(bar.selectedIndex, Routes.branches.indexOf(Routes.progress));
   });
@@ -150,10 +159,11 @@ void main() {
   });
 }
 
-const _icons = <IconData>[
-  Icons.wb_sunny_outlined,
-  Icons.view_agenda_outlined,
-  Icons.trending_down,
-  Icons.medication_outlined,
-  Icons.settings_outlined,
+/// The English destination labels, in branch order.
+const _labels = <String>[
+  'Today',
+  'Schedule',
+  'Progress',
+  'Plan',
+  'Settings',
 ];
