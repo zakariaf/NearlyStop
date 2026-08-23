@@ -394,9 +394,8 @@ final class TaperRepository {
   /// v1 holds at most one plan; a second `savePlan` is [Invariant] and appends
   /// nothing. EPIC-11's recreate flow deletes first.
   Future<Result<void, StorageFailure>> savePlan(TaperPlanDraft draft) async {
-    if (draft.strengths.isEmpty) {
-      return const Err(Invariant('a plan needs at least one tablet strength'));
-    }
+    final refusal = _refuse(draft);
+    if (refusal != null) return Err(refusal);
     try {
       await _db.transaction(() async {
         if (await _db.planDao.countPlans() > 0) {
@@ -446,9 +445,8 @@ final class TaperRepository {
   /// Future days recompose on the next emission because the generator is pure.
   Future<Result<void, StorageFailure>> updatePlanFacts(TaperPlanDraft draft) =>
       _write('updatePlanFacts', (plan) async {
-        if (draft.strengths.isEmpty) {
-          throw const _Refused('a plan needs at least one tablet strength');
-        }
+        final refusal = _refuse(draft);
+        if (refusal != null) throw _Refused(refusal.detail);
         await _db.planDao.updatePlan(
           plan.id,
           db.TaperPlansCompanion(
@@ -543,6 +541,32 @@ final class TaperRepository {
     } on Object catch (error) {
       return Err(_mapError(error));
     }
+  }
+
+  /// Why [draft] cannot be stored, or `null` if it can.
+  ///
+  /// These are the facts `generateSchedule` refuses. Writing one anyway leaves
+  /// a plan that renders nothing on every screen, in the only copy of the
+  /// patient's data — and the data layer is where the fact is created, so it is
+  /// where the refusal belongs.
+  Invariant? _refuse(TaperPlanDraft draft) {
+    if (draft.strengths.isEmpty) {
+      return const Invariant('a plan needs at least one tablet strength');
+    }
+    if (draft.targetDose > draft.currentDose) {
+      return const Invariant('the target is above the current dose');
+    }
+    return switch (draft.method) {
+      TaperMethod.dsns => null,
+      TaperMethod.percentage =>
+        draft.percentage == null
+            ? const Invariant('a percentage plan needs a percentage')
+            : null,
+      TaperMethod.fixedMg =>
+        draft.fixedStep == null
+            ? const Invariant('a fixed-step plan needs a step size')
+            : null,
+    };
   }
 
   /// The next dose after stepping down from [from], using the plan's own rule.

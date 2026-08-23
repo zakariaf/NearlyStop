@@ -147,14 +147,82 @@ void main() {
       expect(await db.select(db.taperPlans).get(), hasLength(1));
       expect(await db.select(db.steps).get(), hasLength(1));
     });
+  });
 
-    test('an empty strength list is Invariant and writes nothing', () async {
+  group('a draft the generator would refuse is refused at the write', () {
+    // Written here rather than left to the UI: this is the only copy of the
+    // patient's data, and a plan `generateSchedule` rejects renders nothing on
+    // every screen with nothing in the row to say why.
+    final refused = <String, TaperPlanDraft>{
+      'no strengths': seededDraft(strengths: <Milligrams>[]),
+      'percentage method with no percentage': seededDraft(
+        method: TaperMethod.percentage,
+      ),
+      'fixedMg method with no step': seededDraft(method: TaperMethod.fixedMg),
+    };
+
+    for (final entry in refused.entries) {
+      test('savePlan refuses ${entry.key}', () async {
+        expectErr<Invariant>(await repository.savePlan(entry.value));
+
+        expect(await db.select(db.taperPlans).get(), isEmpty);
+        expect(await db.select(db.steps).get(), isEmpty);
+      });
+
+      test('updatePlanFacts refuses ${entry.key}', () async {
+        await expectOk(repository.savePlan(seededDraft()));
+
+        expectErr<Invariant>(await repository.updatePlanFacts(entry.value));
+
+        // Rolled back: the plan the patient already had is untouched.
+        final plan = (await snapshot()).plan!;
+        expect(plan.method, TaperMethod.dsns);
+        expect(plan.tabletStrengths, hasLength(2));
+      });
+    }
+
+    test('savePlan refuses a target above the current dose', () async {
       expectErr<Invariant>(
-        await repository.savePlan(seededDraft(strengths: <Milligrams>[])),
+        await repository.savePlan(
+          TaperPlanDraft(
+            drugName: 'Prednisolone',
+            startDate: const LocalDate(2026, 4, 1),
+            currentDose: mg(5),
+            targetDose: mg(10),
+            strengths: <Milligrams>[mg(5)],
+            allowHalves: true,
+            method: TaperMethod.dsns,
+            stepSize: mg(1),
+          ),
+        ),
       );
 
       expect(await db.select(db.taperPlans).get(), isEmpty);
     });
+
+    test(
+      'a percentage plan WITH its percentage is accepted and generates',
+      () async {
+        // The other arm: the guard must not refuse a legal non-DSNS plan.
+        await expectOk(
+          repository.savePlan(
+            seededDraft(method: TaperMethod.percentage, percentage: 10),
+          ),
+        );
+
+        final snap = await snapshot();
+        expect(snap.plan!.percentage, 10);
+        expect(
+          generateSchedule(
+            plan: snap.plan!,
+            steps: snap.steps,
+            flares: snap.flares,
+            holds: snap.holds,
+          ),
+          isA<Ok<List<DayPlan>, DomainFailure>>(),
+        );
+      },
+    );
   });
 
   group('recordFlare', () {
