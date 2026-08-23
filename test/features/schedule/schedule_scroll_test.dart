@@ -169,13 +169,14 @@ void main() {
     final l10n = await pumpSchedule(tester);
     final currentTitle = l10n.blockOfTotal(3, 11);
 
-    /// Every header sitting AGAINST the top edge — a band, not "above it".
+    /// Every header whose own span COVERS the top edge of the viewport.
     ///
-    /// Headers scrolled past are still built inside the cache extent, at
-    /// offsets well above the viewport. A bare `dy < top` therefore collects
-    /// all of them and reports pinning that is not happening: the whole test
-    /// passes with `pinned: false`. The band is what makes this measure the
-    /// top edge rather than the direction of the top edge.
+    /// Not "sits at the top": during the handoff the outgoing header is being
+    /// pushed up by the incoming one, so for about one header's height neither
+    /// is at zero while the outgoing one still covers the edge. And not "is
+    /// above the top" either — headers scrolled past stay built inside the
+    /// cache extent at large negative offsets, and counting those reports
+    /// pinning that is not happening (`pinned: false` passes that version).
     List<String> pinnedTitles() {
       final top = tester.getTopLeft(find.byType(CustomScrollView)).dy;
       return find
@@ -183,37 +184,50 @@ void main() {
           .evaluate()
           .map((element) => element.widget as BlockHeader)
           .where((header) {
-            final dy = tester.getTopLeft(find.byWidget(header)).dy;
-            return dy >= top - 1 && dy < top + 8;
+            final finder = find.byWidget(header);
+            final dy = tester.getTopLeft(finder).dy;
+            return dy <= top && dy + tester.getSize(finder).height > top;
           })
           .map((header) => header.title)
           .toList();
     }
 
     expect(find.text(currentTitle), findsOneWidget);
-    await tester.drag(find.byType(Scrollable), const Offset(0, -600));
-    await tester.pump();
-    final atTop = pinnedTitles();
+    expect(pinnedTitles(), <String>[currentTitle]);
 
-    // The POSITIVE half: something IS pinned, and it STAYS pinned through a
-    // further drag. A header that never pins can land against the top edge by
-    // coincidence at one offset; it cannot stay there through two.
-    expect(atTop, isNotEmpty, reason: 'nothing is pinned at all');
-    await tester.drag(find.byType(Scrollable), const Offset(0, -40));
-    await tester.pump();
-    expect(
-      pinnedTitles(),
-      atTop,
-      reason: 'the header at the top moved with the scroll — it is not pinned',
-    );
+    // The invariant: at EVERY offset inside the trailing region, exactly one
+    // header sits against the top edge, and it is the one that owns the rows
+    // below it. A header that never pins satisfies this at the odd offset
+    // where it happens to be passing the top edge, never at all of them.
+    // Sampled finely: the failure mode is a NARROW band of scroll — the gap
+    // between two blocks — during which nothing is pinned, and a coarse sweep
+    // steps straight over it.
+    final seen = <String>{};
+    for (var step = 0; step < 40; step++) {
+      await tester.drag(find.byType(Scrollable), const Offset(0, -40));
+      await tester.pump();
+      final titles = pinnedTitles();
+      expect(
+        titles,
+        hasLength(1),
+        reason:
+            'no single header is pinned at offset ${positionOf(tester).pixels}',
+      );
+      seen.add(titles.single);
+    }
 
-    // The NEGATIVE half: and it is not block 3's, sitting over block 4's rows.
+    // And the pin CHANGED hands: block 3 did not follow us into block 4.
     expect(
-      pinnedTitles(),
-      isNot(contains(currentTitle)),
-      reason: 'block 3 pinned itself over block 4',
+      seen.length,
+      greaterThan(1),
+      reason: 'one header pinned itself over every block that followed',
     );
-    expect(find.text(l10n.blockOfTotal(4, 11)), findsOneWidget);
+    expect(pinnedTitles(), isNot(contains(currentTitle)));
+    expect(
+      seen,
+      containsAll(<String>[currentTitle, l10n.blockOfTotal(4, 11)]),
+      reason: 'the pin never handed over from block 3 to block 4',
+    );
   });
 
   testWidgets('at 2.0 the headers grow and nothing overflows', (tester) async {

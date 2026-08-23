@@ -136,12 +136,11 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
         for (var index = centre; index < blocks.length; index++)
           SliverPadding(
             key: index == centre ? centerKey : null,
-            padding: EdgeInsetsDirectional.fromSTEB(
-              inset,
-              index == centre ? 0 : shapes.s5,
-              inset,
-              shapes.s3,
-            ),
+            // Horizontal only. Vertical space between blocks belongs INSIDE
+            // the group that owns it, or it becomes a band of scroll during
+            // which one block has ended, the next has not begun, and the top
+            // of the screen stops saying which block you are in.
+            padding: EdgeInsetsDirectional.symmetric(horizontal: inset),
             sliver: ScheduleBlockGroup(
               block: blocks[index],
               onToggle: onToggle,

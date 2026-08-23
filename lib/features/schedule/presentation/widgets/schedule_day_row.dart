@@ -45,6 +45,10 @@ class ScheduleDayRow extends StatelessWidget {
       doseText: day.doseLabel,
       tabletsText: day.unachievable ? null : day.tabletsLabel,
       unachievableText: day.unachievable ? day.tabletsLabel : null,
+      isNewDose: day.isNewDose,
+      newDoseLabel: day.isNewDose ? l10n.stateNewDoseDay : null,
+      isHoldDay: day.isHoldDay,
+      holdLabel: day.holdLabel,
       stateLabel: stateWord(l10n, day.state),
       semanticsLabel: _sentence(l10n),
     );
@@ -70,6 +74,8 @@ class ScheduleDayRow extends StatelessWidget {
     day.dayLabel,
     day.doseLabel,
     day.tabletsLabel,
+    ?day.holdLabel,
+    if (day.isNewDose) l10n.stateNewDoseDay,
     stateWord(l10n, day.state),
   ].join(', ');
 }

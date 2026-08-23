@@ -58,6 +58,13 @@ class ScheduleBlockGroup extends StatelessWidget {
           addAutomaticKeepAlives: false,
         ),
       ),
+      // The gap to the next block lives INSIDE this group, not between the two
+      // of them. Outside, it is a band of scroll during which this block has
+      // ended and the next has not begun, so nothing is pinned and the top of
+      // the screen briefly stops saying which block you are in.
+      SliverToBoxAdapter(
+        child: SizedBox(height: DaybreakShapes.of(context).s5),
+      ),
     ],
   );
 

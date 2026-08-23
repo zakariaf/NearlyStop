@@ -34,10 +34,16 @@ final class ScheduleDayVm {
     required this.state,
     required this.isNewDose,
     required this.isHoldDay,
+    required this.holdLabel,
     required this.tickable,
     required this.plannedMg,
     required this.recordedSource,
   }) : assert(
+         isHoldDay == (holdLabel != null),
+         'a hold day is explained by a WORD, never by a glyph alone — and a '
+         'day that is not held has nothing to explain',
+       ),
+       assert(
          state != DayState.taken || recordedSource,
          'a TAKEN row must be labelled from what was RECORDED, not from the '
          'derived plan. SPEC.md 5.2: the generator recomposes every day from '
@@ -73,6 +79,13 @@ final class ScheduleDayVm {
   /// bug on the one screen whose job is making the structure legible.
   final bool isHoldDay;
 
+  /// "Held at block 3", or just "Held" on a day that belongs to no block.
+  ///
+  /// Pre-localized like every other string here. A hold on a steady-state day
+  /// has no block number, and inventing one would be a lie on the screen whose
+  /// job is making the structure legible.
+  final String? holdLabel;
+
   /// Whether this row can be ticked: the active step, and not in the future.
   final bool tickable;
 
@@ -96,6 +109,7 @@ final class ScheduleDayVm {
     state,
     isNewDose,
     isHoldDay,
+    holdLabel,
     tickable,
     plannedMg,
     recordedSource,

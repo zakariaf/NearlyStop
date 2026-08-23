@@ -390,6 +390,13 @@ class ScheduleNotifier extends StreamNotifier<ScheduleViewState> {
       state: _stateFor(day.date, today, taken: taken, logged: log != null),
       isNewDose: day.isNewDose,
       isHoldDay: day.isHoldDay,
+      // A hold on a steady-state day belongs to no block, and naming one there
+      // would be an invented number on the screen whose job is legibility.
+      holdLabel: switch ((day.isHoldDay, day.blockIndex)) {
+        (false, _) => null,
+        (true, final int block) => l10n.heldAtBlock(block),
+        (true, _) => l10n.held,
+      },
       tickable: isActive && day.date <= today,
       plannedMg: day.dose,
       recordedSource: taken,
