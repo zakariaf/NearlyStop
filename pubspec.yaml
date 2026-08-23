@@ -39,6 +39,7 @@ dependencies:
   go_router: ^17.0.0
   intl: ^0.20.2 # flutter_localizations pins intl exactly; a wider range will not resolve
   meta: ^1.15.0
+  package_info_plus: ^10.2.1
   path: ^1.9.0
   path_provider: ^2.1.0
   riverpod: ^3.0.0

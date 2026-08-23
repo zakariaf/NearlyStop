@@ -145,5 +145,19 @@
   "exportComingSoon": "Export kommt als Nächstes",
   "exportComingSoonBody": "Ein PDF und eine Tabelle für Ihren Termin. Noch nicht gebaut.",
   "chartOverlineCaps": "IHRE DOSIS IM ZEITVERLAUF",
-  "drugPrednisolone": "Prednisolon"
+  "drugPrednisolone": "Prednisolon",
+  "settingsSystemLanguage": "System",
+  "settingsAbout": "Über",
+  "settingsAppDescription": "Ein Offline-Begleiter für ein langsames Ausschleichen.",
+  "settingsVersion": "Version",
+  "settingsViewLicenses": "Lizenzen ansehen",
+  "settingsLicensesTitle": "Lizenzen",
+  "settingsVersionCopied": "Version kopiert",
+  "settingsAccessibility": "Lesen und Erinnerungen",
+  "settingsOn": "Ein",
+  "settingsOff": "Aus",
+  "settingsReminderAt": "Ein · {time}",
+  "settingsBackupNote": "Eine Kopie, die Ihnen gehört. Nichts verlässt dieses Telefon, außer Sie senden es.",
+  "settingsNotImplemented": "Noch nicht gebaut — kommt mit dem Export-Release.",
+  "settingsTextSizeSemantics": "Textgröße, {value}-fach"
 }

@@ -145,5 +145,19 @@
   "exportComingSoon": "خروجی گرفتن به‌زودی",
   "exportComingSoonBody": "یک PDF و یک صفحه‌گسترده برای قرار ملاقات شما. هنوز ساخته نشده است.",
   "chartOverlineCaps": "دوز شما در طول زمان",
-  "drugPrednisolone": "پردنیزولون"
+  "drugPrednisolone": "پردنیزولون",
+  "settingsSystemLanguage": "سیستم",
+  "settingsAbout": "درباره",
+  "settingsAppDescription": "همراهی آفلاین برای کاهش آهسته دوز.",
+  "settingsVersion": "نسخه",
+  "settingsViewLicenses": "مشاهده مجوزها",
+  "settingsLicensesTitle": "مجوزها",
+  "settingsVersionCopied": "نسخه کپی شد",
+  "settingsAccessibility": "خواندن و یادآوری‌ها",
+  "settingsOn": "روشن",
+  "settingsOff": "خاموش",
+  "settingsReminderAt": "روشن · {time}",
+  "settingsBackupNote": "نسخه‌ای که خودتان نگه می‌دارید. هیچ چیز از این گوشی خارج نمی‌شود مگر خودتان بفرستید.",
+  "settingsNotImplemented": "هنوز ساخته نشده — با نسخه خروجی می‌آید.",
+  "settingsTextSizeSemantics": "اندازه متن، {value} برابر"
 }

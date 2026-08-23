@@ -1005,6 +1005,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'prednisolone'**
   String get drugPrednisolone;
+
+  /// The language option that follows the phone.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get settingsSystemLanguage;
+
+  /// The About card heading.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsAbout;
+
+  /// One line under the app name.
+  ///
+  /// In en, this message translates to:
+  /// **'An offline companion for a slow steroid taper.'**
+  String get settingsAppDescription;
+
+  /// Label beside the version and build number.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get settingsVersion;
+
+  /// Opens the licences page.
+  ///
+  /// In en, this message translates to:
+  /// **'View licenses'**
+  String get settingsViewLicenses;
+
+  /// Title of the licences page.
+  ///
+  /// In en, this message translates to:
+  /// **'Licenses'**
+  String get settingsLicensesTitle;
+
+  /// Confirmation after long-pressing the version.
+  ///
+  /// In en, this message translates to:
+  /// **'Version copied'**
+  String get settingsVersionCopied;
+
+  /// The first settings card heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading and reminders'**
+  String get settingsAccessibility;
+
+  /// A switch that is on.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get settingsOn;
+
+  /// A switch that is off.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get settingsOff;
+
+  /// Reminder sublabel with its time.
+  ///
+  /// In en, this message translates to:
+  /// **'On · {time}'**
+  String settingsReminderAt(Object time);
+
+  /// One line under the backup buttons.
+  ///
+  /// In en, this message translates to:
+  /// **'A copy you keep. Nothing leaves this phone unless you send it.'**
+  String get settingsBackupNote;
+
+  /// Shown when a backup action is not built yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not built yet — this arrives with the export release.'**
+  String get settingsNotImplemented;
+
+  /// Screen-reader label for the text-size slider.
+  ///
+  /// In en, this message translates to:
+  /// **'Text size, {value} times'**
+  String settingsTextSizeSemantics(Object value);
 }
 
 class _AppLocalizationsDelegate

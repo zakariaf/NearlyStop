@@ -628,4 +628,52 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get drugPrednisolone => 'پردنیزولون';
+
+  @override
+  String get settingsSystemLanguage => 'سیستم';
+
+  @override
+  String get settingsAbout => 'درباره';
+
+  @override
+  String get settingsAppDescription => 'همراهی آفلاین برای کاهش آهسته دوز.';
+
+  @override
+  String get settingsVersion => 'نسخه';
+
+  @override
+  String get settingsViewLicenses => 'مشاهده مجوزها';
+
+  @override
+  String get settingsLicensesTitle => 'مجوزها';
+
+  @override
+  String get settingsVersionCopied => 'نسخه کپی شد';
+
+  @override
+  String get settingsAccessibility => 'خواندن و یادآوری‌ها';
+
+  @override
+  String get settingsOn => 'روشن';
+
+  @override
+  String get settingsOff => 'خاموش';
+
+  @override
+  String settingsReminderAt(Object time) {
+    return 'روشن · $time';
+  }
+
+  @override
+  String get settingsBackupNote =>
+      'نسخه‌ای که خودتان نگه می‌دارید. هیچ چیز از این گوشی خارج نمی‌شود مگر خودتان بفرستید.';
+
+  @override
+  String get settingsNotImplemented =>
+      'هنوز ساخته نشده — با نسخه خروجی می‌آید.';
+
+  @override
+  String settingsTextSizeSemantics(Object value) {
+    return 'اندازه متن، $value برابر';
+  }
 }

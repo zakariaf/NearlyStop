@@ -911,5 +911,67 @@
   "drugPrednisolone": "prednisolone",
   "@drugPrednisolone": {
     "description": "The default drug's name in running text, lower case."
+  },
+  "settingsSystemLanguage": "System",
+  "@settingsSystemLanguage": {
+    "description": "The language option that follows the phone."
+  },
+  "settingsAbout": "About",
+  "@settingsAbout": {
+    "description": "The About card heading."
+  },
+  "settingsAppDescription": "An offline companion for a slow steroid taper.",
+  "@settingsAppDescription": {
+    "description": "One line under the app name."
+  },
+  "settingsVersion": "Version",
+  "@settingsVersion": {
+    "description": "Label beside the version and build number."
+  },
+  "settingsViewLicenses": "View licenses",
+  "@settingsViewLicenses": {
+    "description": "Opens the licences page."
+  },
+  "settingsLicensesTitle": "Licenses",
+  "@settingsLicensesTitle": {
+    "description": "Title of the licences page."
+  },
+  "settingsVersionCopied": "Version copied",
+  "@settingsVersionCopied": {
+    "description": "Confirmation after long-pressing the version."
+  },
+  "settingsAccessibility": "Reading and reminders",
+  "@settingsAccessibility": {
+    "description": "The first settings card heading."
+  },
+  "settingsOn": "On",
+  "@settingsOn": {
+    "description": "A switch that is on."
+  },
+  "settingsOff": "Off",
+  "@settingsOff": {
+    "description": "A switch that is off."
+  },
+  "settingsReminderAt": "On · {time}",
+  "@settingsReminderAt": {
+    "description": "Reminder sublabel with its time.",
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "settingsBackupNote": "A copy you keep. Nothing leaves this phone unless you send it.",
+  "@settingsBackupNote": {
+    "description": "One line under the backup buttons."
+  },
+  "settingsNotImplemented": "Not built yet — this arrives with the export release.",
+  "@settingsNotImplemented": {
+    "description": "Shown when a backup action is not built yet."
+  },
+  "settingsTextSizeSemantics": "Text size, {value} times",
+  "@settingsTextSizeSemantics": {
+    "description": "Screen-reader label for the text-size slider.",
+    "placeholders": {
+      "value": {}
+    }
   }
 }

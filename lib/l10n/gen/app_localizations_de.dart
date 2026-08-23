@@ -643,4 +643,53 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get drugPrednisolone => 'Prednisolon';
+
+  @override
+  String get settingsSystemLanguage => 'System';
+
+  @override
+  String get settingsAbout => 'Über';
+
+  @override
+  String get settingsAppDescription =>
+      'Ein Offline-Begleiter für ein langsames Ausschleichen.';
+
+  @override
+  String get settingsVersion => 'Version';
+
+  @override
+  String get settingsViewLicenses => 'Lizenzen ansehen';
+
+  @override
+  String get settingsLicensesTitle => 'Lizenzen';
+
+  @override
+  String get settingsVersionCopied => 'Version kopiert';
+
+  @override
+  String get settingsAccessibility => 'Lesen und Erinnerungen';
+
+  @override
+  String get settingsOn => 'Ein';
+
+  @override
+  String get settingsOff => 'Aus';
+
+  @override
+  String settingsReminderAt(Object time) {
+    return 'Ein · $time';
+  }
+
+  @override
+  String get settingsBackupNote =>
+      'Eine Kopie, die Ihnen gehört. Nichts verlässt dieses Telefon, außer Sie senden es.';
+
+  @override
+  String get settingsNotImplemented =>
+      'Noch nicht gebaut — kommt mit dem Export-Release.';
+
+  @override
+  String settingsTextSizeSemantics(Object value) {
+    return 'Textgröße, $value-fach';
+  }
 }

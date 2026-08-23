@@ -628,4 +628,53 @@ class AppLocalizationsCkb extends AppLocalizations {
 
   @override
   String get drugPrednisolone => 'پرێدنیزۆلۆن';
+
+  @override
+  String get settingsSystemLanguage => 'سیستەم';
+
+  @override
+  String get settingsAbout => 'دەربارە';
+
+  @override
+  String get settingsAppDescription =>
+      'هاوڕێیەکی ئۆفلاین بۆ کەمکردنەوەی هێواشی دۆز.';
+
+  @override
+  String get settingsVersion => 'وەشان';
+
+  @override
+  String get settingsViewLicenses => 'بینینی مۆڵەتەکان';
+
+  @override
+  String get settingsLicensesTitle => 'مۆڵەتەکان';
+
+  @override
+  String get settingsVersionCopied => 'وەشان کۆپی کرا';
+
+  @override
+  String get settingsAccessibility => 'خوێندنەوە و بیرخەرەوەکان';
+
+  @override
+  String get settingsOn => 'کارا';
+
+  @override
+  String get settingsOff => 'ناکارا';
+
+  @override
+  String settingsReminderAt(Object time) {
+    return 'کارا · $time';
+  }
+
+  @override
+  String get settingsBackupNote =>
+      'کۆپییەک کە خۆت دەیهێڵیتەوە. هیچ شتێک لەم مۆبایلە دەرناچێت مەگەر خۆت بینێریت.';
+
+  @override
+  String get settingsNotImplemented =>
+      'هێشتا دروست نەکراوە — لەگەڵ وەشانی هەناردەکردن دێت.';
+
+  @override
+  String settingsTextSizeSemantics(Object value) {
+    return 'قەبارەی نووسین، $value جار';
+  }
 }

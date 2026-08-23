@@ -641,4 +641,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get drugPrednisolone => 'prednisolone';
+
+  @override
+  String get settingsSystemLanguage => 'System';
+
+  @override
+  String get settingsAbout => 'About';
+
+  @override
+  String get settingsAppDescription =>
+      'An offline companion for a slow steroid taper.';
+
+  @override
+  String get settingsVersion => 'Version';
+
+  @override
+  String get settingsViewLicenses => 'View licenses';
+
+  @override
+  String get settingsLicensesTitle => 'Licenses';
+
+  @override
+  String get settingsVersionCopied => 'Version copied';
+
+  @override
+  String get settingsAccessibility => 'Reading and reminders';
+
+  @override
+  String get settingsOn => 'On';
+
+  @override
+  String get settingsOff => 'Off';
+
+  @override
+  String settingsReminderAt(Object time) {
+    return 'On · $time';
+  }
+
+  @override
+  String get settingsBackupNote =>
+      'A copy you keep. Nothing leaves this phone unless you send it.';
+
+  @override
+  String get settingsNotImplemented =>
+      'Not built yet — this arrives with the export release.';
+
+  @override
+  String settingsTextSizeSemantics(Object value) {
+    return 'Text size, $value times';
+  }
 }
