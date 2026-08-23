@@ -1,0 +1,390 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "NearlyStop",
+  "@appTitle": {
+    "description": "The application name. A product name — never translated, in any locale."
+  },
+
+  "welcomeTitle": "Welcome to NearlyStop",
+  "@welcomeTitle": {
+    "description": "Heading of the first screen a new user sees."
+  },
+  "welcomeDisclaimer": "NearlyStop arranges the plan you and your doctor agreed. It does not give medical advice. Always follow your doctor's instructions.",
+  "@welcomeDisclaimer": {
+    "description": "The medical disclaimer, shown once before the app can be used and again from Settings. It must be unambiguous that the app never recommends a dose."
+  },
+  "welcomeAccept": "I understand",
+  "@welcomeAccept": {
+    "description": "The single button that dismisses the disclaimer.",
+    "x-maxChars": 24
+  },
+  "welcomeOffline": "Everything stays on this phone. No account, no internet.",
+  "@welcomeOffline": {
+    "description": "Reassurance under the disclaimer. The app makes no network calls at all."
+  },
+
+  "tabToday": "Today",
+  "@tabToday": {
+    "description": "Bottom navigation label for the home screen.",
+    "x-maxChars": 12
+  },
+  "tabSchedule": "Schedule",
+  "@tabSchedule": {
+    "description": "Bottom navigation label for the block list.",
+    "x-maxChars": 12
+  },
+  "tabProgress": "Progress",
+  "@tabProgress": {
+    "description": "Bottom navigation label for the statistics screen.",
+    "x-maxChars": 12
+  },
+  "tabPlan": "Plan",
+  "@tabPlan": {
+    "description": "Bottom navigation label for the taper plan form.",
+    "x-maxChars": 12
+  },
+  "tabSettings": "Settings",
+  "@tabSettings": {
+    "description": "Bottom navigation label for app settings.",
+    "x-maxChars": 12
+  },
+
+  "doseWithUnit": "{dose}mg",
+  "@doseWithUnit": {
+    "description": "A dose with its unit. The number arrives already formatted for the locale, so this string must not reformat it.",
+    "placeholders": {
+      "dose": {"type": "String", "example": "9"}
+    }
+  },
+  "milligramUnit": "mg",
+  "@milligramUnit": {
+    "description": "The milligram unit on its own, beside the large dose numeral.",
+    "x-maxChars": 12
+  },
+
+  "stateNewDoseDay": "New dose day",
+  "@stateNewDoseDay": {
+    "description": "Badge on a day that takes the reduced dose.",
+    "x-maxChars": 18
+  },
+  "stateTaken": "Taken",
+  "@stateTaken": {
+    "description": "A day whose dose was recorded as taken.",
+    "x-maxChars": 14
+  },
+  "stateNotTicked": "Not ticked",
+  "@stateNotTicked": {
+    "description": "A past day with no dose recorded. Deliberately not 'missed' — the app does not accuse.",
+    "x-maxChars": 16
+  },
+  "stateUpcoming": "Upcoming",
+  "@stateUpcoming": {
+    "description": "Section heading for days that have not happened yet.",
+    "x-maxChars": 16
+  },
+
+  "actionTaken": "Taken",
+  "@actionTaken": {
+    "description": "The primary button on Today. Records the planned dose as taken.",
+    "x-maxChars": 20
+  },
+  "actionAddNote": "Add note",
+  "@actionAddNote": {
+    "description": "Opens the note field for the day.",
+    "x-maxChars": 16
+  },
+  "actionHold": "Hold",
+  "@actionHold": {
+    "description": "Stay on the current block for a few more days.",
+    "x-maxChars": 16
+  },
+  "actionFlare": "Flare",
+  "@actionFlare": {
+    "description": "Record a flare and go back to the last dose that worked.",
+    "x-maxChars": 16
+  },
+  "actionNextStep": "Next step",
+  "@actionNextStep": {
+    "description": "Begin the next reduction. Enabled only when the current step is complete.",
+    "x-maxChars": 26
+  },
+
+  "stepOfTotal": "Step {current} of {total}",
+  "@stepOfTotal": {
+    "description": "Which reduction the patient is on, out of the plan's total.",
+    "placeholders": {
+      "current": {"type": "int", "example": "3"},
+      "total": {"type": "int", "example": "15"}
+    },
+    "x-maxChars": 22
+  },
+  "dayOfStep": "Day {day} of {length}",
+  "@dayOfStep": {
+    "description": "Position within the current 52-day step. Deliberately not a week number — the pattern ignores that a week has seven days.",
+    "placeholders": {
+      "day": {"type": "int", "example": "14"},
+      "length": {"type": "int", "example": "52"}
+    },
+    "x-maxChars": 22
+  },
+  "blockOfTotal": "Block {current} of {total}",
+  "@blockOfTotal": {
+    "description": "Which of the eleven blocks of the pattern this is.",
+    "placeholders": {
+      "current": {"type": "int", "example": "3"},
+      "total": {"type": "int", "example": "11"}
+    },
+    "x-maxChars": 24
+  },
+  "blockPattern": "one day at {newDose}, then {oldDays, plural, =1{1 day} other{{oldDays} days}} at {oldDose}",
+  "@blockPattern": {
+    "description": "The teaching sentence under a block header: the new dose is taken on one day, the old dose on the days between. Word order differs per language, so the counts are ICU branches rather than spliced numbers.",
+    "placeholders": {
+      "newDose": {"type": "String", "example": "9mg"},
+      "oldDays": {"type": "int", "example": "4"},
+      "oldDose": {"type": "String", "example": "10mg"}
+    }
+  },
+  "doseTransition": "{from} to {to}",
+  "@doseTransition": {
+    "description": "The step's reduction, read aloud and shown in the context line.",
+    "placeholders": {
+      "from": {"type": "String", "example": "10mg"},
+      "to": {"type": "String", "example": "9mg"}
+    }
+  },
+
+  "tabletBreakdown": "{parts}",
+  "@tabletBreakdown": {
+    "description": "The tablets that make up a dose, e.g. '1 x 5mg . 4 x 1mg'. The value is a Latin-script run inside a possibly right-to-left sentence and arrives already bidi-isolated; this message must not add punctuation around it.",
+    "placeholders": {
+      "parts": {"type": "String", "example": "1 × 5mg · 4 × 1mg"}
+    }
+  },
+
+  "yesterdayNotTicked": "Yesterday wasn't ticked — mark it now?",
+  "@yesterdayNotTicked": {
+    "description": "Offered on Today when the previous day has no record. A question, never a reprimand."
+  },
+
+  "takenDays": "{count, plural, =1{1 day taken} other{{count} days taken}}",
+  "@takenDays": {
+    "description": "How many days have been recorded as taken.",
+    "placeholders": {
+      "count": {"type": "int", "example": "341"}
+    }
+  },
+  "daysOnMedicine": "{count, plural, =1{1 day on {medicine}} other{{count} days on {medicine}}}",
+  "@daysOnMedicine": {
+    "description": "Total days since the plan started, with the medicine's name.",
+    "placeholders": {
+      "count": {"type": "int", "example": "581"},
+      "medicine": {"type": "String", "example": "prednisolone"}
+    }
+  },
+  "adherenceReassurance": "days ticked so far — a few gaps change nothing",
+  "@adherenceReassurance": {
+    "description": "Sits under the adherence figure. The taper's outcome does not turn on a handful of missed ticks, and the audience needs to be told so."
+  },
+  "totalTaken": "taken in total",
+  "@totalTaken": {
+    "description": "Caption under the cumulative milligram total."
+  },
+  "lowerThanStart": "You are {amount} lower than when you started.",
+  "@lowerThanStart": {
+    "description": "The headline on Progress: how far the dose has come down.",
+    "placeholders": {
+      "amount": {"type": "String", "example": "6mg"}
+    }
+  },
+  "flaresRecorded": "{count, plural, =1{1 flare recorded} other{{count} flares recorded}}",
+  "@flaresRecorded": {
+    "description": "How many flares are marked on the dose chart.",
+    "placeholders": {
+      "count": {"type": "int", "example": "2"}
+    }
+  },
+  "doseOverTime": "Your dose over time",
+  "@doseOverTime": {
+    "description": "Heading above the dose chart."
+  },
+  "startedAt": "Started {date} at {dose}",
+  "@startedAt": {
+    "description": "When the plan began and at what dose.",
+    "placeholders": {
+      "date": {"type": "String", "example": "12 September 2024"},
+      "dose": {"type": "String", "example": "15mg"}
+    }
+  },
+  "adherenceRatio": "{taken} of {total}",
+  "@adherenceRatio": {
+    "description": "Days ticked out of days elapsed.",
+    "placeholders": {
+      "taken": {"type": "String", "example": "574"},
+      "total": {"type": "String", "example": "581"}
+    }
+  },
+
+  "planMedicine": "Medicine",
+  "@planMedicine": {
+    "description": "Field label for the drug name. Free text — never looked up in a drug database.",
+    "x-maxChars": 22
+  },
+  "planCurrentDose": "Current dose",
+  "@planCurrentDose": {
+    "description": "Field label for the dose the patient is on now.",
+    "x-maxChars": 22
+  },
+  "planTarget": "Target",
+  "@planTarget": {
+    "description": "Field label for the dose the plan aims at, usually zero.",
+    "x-maxChars": 22
+  },
+  "planStrengths": "Tablet strengths held",
+  "@planStrengths": {
+    "description": "Field label for the tablet strengths the patient actually has.",
+    "x-maxChars": 30
+  },
+  "planAllowHalves": "I can split tablets",
+  "@planAllowHalves": {
+    "description": "Toggle: whether half tablets may appear in a dose.",
+    "x-maxChars": 30
+  },
+  "planMethod": "Method",
+  "@planMethod": {
+    "description": "Field label for which taper arithmetic the plan uses.",
+    "x-maxChars": 22
+  },
+  "methodDsns": "Dead Slow and Nearly Stop",
+  "@methodDsns": {
+    "description": "The community DSNS method. A proper name — keep the sense of 'very slowly, almost stopping'."
+  },
+  "methodPercentage": "Percentage",
+  "@methodPercentage": {
+    "description": "Reduce by a percentage of the current dose each step.",
+    "x-maxChars": 20
+  },
+  "methodFixed": "Fixed mg",
+  "@methodFixed": {
+    "description": "Reduce by a fixed number of milligrams each step.",
+    "x-maxChars": 20
+  },
+  "suggestedStep": "suggested step {amount}",
+  "@suggestedStep": {
+    "description": "The step size the app worked out. It is a suggestion the clinician overrides, never an instruction.",
+    "placeholders": {
+      "amount": {"type": "String", "example": "1mg"}
+    }
+  },
+  "percentageExplainer": "{percent}% of {dose} is {result} — your doctor's instruction wins",
+  "@percentageExplainer": {
+    "description": "Shown under the percentage field. The final clause is the point: the app arranges, the clinician decides.",
+    "placeholders": {
+      "percent": {"type": "String", "example": "10"},
+      "dose": {"type": "String", "example": "9mg"},
+      "result": {"type": "String", "example": "0.9mg"}
+    }
+  },
+
+  "settingsReminder": "Daily reminder",
+  "@settingsReminder": {
+    "description": "Row label for the morning notification.",
+    "x-maxChars": 26
+  },
+  "settingsTextSize": "Text size",
+  "@settingsTextSize": {
+    "description": "Row label for the in-app text scale, on top of the OS setting.",
+    "x-maxChars": 26
+  },
+  "settingsHighContrast": "High contrast",
+  "@settingsHighContrast": {
+    "description": "Row label for the high-contrast palette.",
+    "x-maxChars": 26
+  },
+  "settingsBackup": "Backup",
+  "@settingsBackup": {
+    "description": "Section heading for export and import.",
+    "x-maxChars": 20
+  },
+  "settingsExport": "Export data",
+  "@settingsExport": {
+    "description": "Write a backup file the user keeps themselves.",
+    "x-maxChars": 24
+  },
+  "settingsExportForDoctor": "Export for my doctor",
+  "@settingsExportForDoctor": {
+    "description": "A printable summary to take to an appointment.",
+    "x-maxChars": 30
+  },
+  "settingsImport": "Import data",
+  "@settingsImport": {
+    "description": "Restore from a backup file.",
+    "x-maxChars": 24
+  },
+  "settingsReadDisclaimer": "Read the disclaimer again",
+  "@settingsReadDisclaimer": {
+    "description": "Reopens the welcome disclaimer."
+  },
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {
+    "description": "Accessible name for the language picker.",
+    "x-maxChars": 22
+  },
+  "settingsTheme": "Theme",
+  "@settingsTheme": {
+    "description": "Accessible name for the light/dark picker.",
+    "x-maxChars": 22
+  },
+  "toggleOn": "On",
+  "@toggleOn": {
+    "description": "A setting that is enabled.",
+    "x-maxChars": 12
+  },
+  "toggleOff": "Off",
+  "@toggleOff": {
+    "description": "A setting that is disabled.",
+    "x-maxChars": 12
+  },
+  "textSizeLarge": "Large",
+  "@textSizeLarge": {
+    "description": "The larger of the text-size choices.",
+    "x-maxChars": 14
+  },
+  "themeLight": "Light",
+  "@themeLight": {
+    "description": "The light theme.",
+    "x-maxChars": 14
+  },
+  "themeDark": "Dark",
+  "@themeDark": {
+    "description": "The dark theme.",
+    "x-maxChars": 14
+  },
+
+  "todaySemantics": "Today, {dose} milligrams: {breakdown}. Not yet taken.",
+  "@todaySemantics": {
+    "description": "SPEC 5.4. What a screen reader announces on the Today screen before the dose is recorded. A semantics label is a user-facing string like any other, so it is translated rather than composed in code.",
+    "placeholders": {
+      "dose": {"type": "String", "example": "9"},
+      "breakdown": {"type": "String", "example": "one 5 milligram tablet, four 1 milligram tablets"}
+    }
+  },
+  "todaySemanticsTaken": "Today, {dose} milligrams: {breakdown}. Taken.",
+  "@todaySemanticsTaken": {
+    "description": "The same announcement once the dose has been recorded.",
+    "placeholders": {
+      "dose": {"type": "String", "example": "9"},
+      "breakdown": {"type": "String", "example": "one 5 milligram tablet, four 1 milligram tablets"}
+    }
+  },
+
+  "ckbWeekdayNames": "Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday",
+  "@ckbWeekdayNames": {
+    "description": "Weekday names, Monday first, pipe-separated. Only the ckb translation is ever read: `intl` ships no ckb date symbols, so Kurdish dates are composed from these lists rather than from DateFormat. The other locales carry it only to keep every ARB key-identical."
+  },
+  "ckbMonthNames": "January|February|March|April|May|June|July|August|September|October|November|December",
+  "@ckbMonthNames": {
+    "description": "Gregorian month names, January first, pipe-separated. See ckbWeekdayNames — read only for ckb."
+  }
+}
