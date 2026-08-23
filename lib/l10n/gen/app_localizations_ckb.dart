@@ -677,4 +677,100 @@ class AppLocalizationsCkb extends AppLocalizations {
   String settingsTextSizeSemantics(Object value) {
     return 'قەبارەی نووسین، $value جار';
   }
+
+  @override
+  String get planNextStep => 'هەنگاوی داهاتوو';
+
+  @override
+  String get planSave => 'پاشەکەوتکردنی پلان';
+
+  @override
+  String get planSaved => 'پلان پاشەکەوت کرا';
+
+  @override
+  String get planDangerZone => 'ناوچەی مەترسی';
+
+  @override
+  String get planDelete => 'سڕینەوەی پلان';
+
+  @override
+  String get planDeleteTitle => 'ئەم پلانە بسڕدرێتەوە؟';
+
+  @override
+  String planDeleteBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ڕۆژی تۆمارکراو',
+    );
+    return 'پلانەکەت و $_temp0 لەم مۆبایلە دەسڕدرێنەوە. ئەمە ناگەڕێتەوە.';
+  }
+
+  @override
+  String get planDeleteConfirm => 'سڕینەوەی هەموو شتێک';
+
+  @override
+  String get planExportFirst => 'سەرەتا هەناردە بکە';
+
+  @override
+  String planCaveat(Object percent, Object dose, Object tenPercent) {
+    return '$percentی $dose دەکاتە $tenPercent — ڕێنمایی پزیشکەکەت باڵادەستە';
+  }
+
+  @override
+  String get planStepOverride => 'گۆڕینی هەنگاو';
+
+  @override
+  String get planStrengthsNote =>
+      'ئەو قورساییانەی بەڕاستی هەتن. بەپێی سندوقەکەت دەستکاری بکە.';
+
+  @override
+  String get planStartDate => 'بەرواری دەستپێک';
+
+  @override
+  String get planHoldPeriod => 'ڕۆژ بۆ هەر دۆزێک';
+
+  @override
+  String get planPercentPerStep => 'ڕێژە بۆ هەر هەنگاوێک';
+
+  @override
+  String get planFixedStep => 'قەبارەی هەنگاو';
+
+  @override
+  String get planTaperComplete => 'گەیشتوویت بە ئامانجەکەت';
+
+  @override
+  String get planReachesTarget => 'ئەم هەنگاوە دەگاتە ئامانجەکەت.';
+
+  @override
+  String get planStepNotDue => 'ئەم هەنگاوە هێشتا تەواو نەبووە';
+
+  @override
+  String get planErrorDoseRequired => 'دۆز بنووسە';
+
+  @override
+  String planErrorDoseUnreadable(Object example) {
+    return 'تەنها یەک جیاکەرەوەی دەیی، وەک $example';
+  }
+
+  @override
+  String get planErrorTargetTooHigh => 'ئامانج دەبێت لە دۆزی ئێستا کەمتر بێت';
+
+  @override
+  String get planErrorDoseTooHigh => 'ئەمە دۆزێکی زۆر بەرزە — بیپشکنە';
+
+  @override
+  String get planErrorNameRequired => 'ناوی دەرمانەکە بنووسە';
+
+  @override
+  String get planErrorNameTooLong => 'زۆرترین شەست پیت';
+
+  @override
+  String get planErrorLastStrength => 'لانیکەم یەک قورسایی بهێڵەرەوە';
+
+  @override
+  String get planErrorPercent => 'لە نێوان ١ و ٥٠';
+
+  @override
+  String get planErrorHoldPeriod => 'لانیکەم یەک ڕۆژ';
 }

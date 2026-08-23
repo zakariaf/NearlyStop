@@ -692,4 +692,103 @@ class AppLocalizationsDe extends AppLocalizations {
   String settingsTextSizeSemantics(Object value) {
     return 'Textgröße, $value-fach';
   }
+
+  @override
+  String get planNextStep => 'Nächster Schritt';
+
+  @override
+  String get planSave => 'Plan speichern';
+
+  @override
+  String get planSaved => 'Plan gespeichert';
+
+  @override
+  String get planDangerZone => 'Gefahrenzone';
+
+  @override
+  String get planDelete => 'Plan löschen';
+
+  @override
+  String get planDeleteTitle => 'Diesen Plan löschen?';
+
+  @override
+  String planDeleteBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count erfasste Tage',
+      one: '1 erfasster Tag',
+    );
+    return 'Ihr Plan und $_temp0 werden von diesem Telefon entfernt. Das lässt sich nicht rückgängig machen.';
+  }
+
+  @override
+  String get planDeleteConfirm => 'Alles löschen';
+
+  @override
+  String get planExportFirst => 'Zuerst exportieren';
+
+  @override
+  String planCaveat(Object percent, Object dose, Object tenPercent) {
+    return '$percent von $dose sind $tenPercent — die Anweisung Ihrer Ärztin gilt';
+  }
+
+  @override
+  String get planStepOverride => 'Schritt ändern';
+
+  @override
+  String get planStrengthsNote =>
+      'Die Stärken, die Sie tatsächlich haben. Passen Sie sie an Ihre Packung an.';
+
+  @override
+  String get planStartDate => 'Startdatum';
+
+  @override
+  String get planHoldPeriod => 'Tage pro Dosis';
+
+  @override
+  String get planPercentPerStep => 'Prozent pro Schritt';
+
+  @override
+  String get planFixedStep => 'Schrittgröße';
+
+  @override
+  String get planTaperComplete => 'Sie haben Ihr Ziel erreicht';
+
+  @override
+  String get planReachesTarget => 'Dieser Schritt erreicht Ihr Ziel.';
+
+  @override
+  String get planStepNotDue => 'Dieser Schritt ist noch nicht abgeschlossen';
+
+  @override
+  String get planErrorDoseRequired => 'Dosis eingeben';
+
+  @override
+  String planErrorDoseUnreadable(Object example) {
+    return 'Nur ein Dezimaltrennzeichen, zum Beispiel $example';
+  }
+
+  @override
+  String get planErrorTargetTooHigh =>
+      'Das Ziel muss unter der aktuellen Dosis liegen';
+
+  @override
+  String get planErrorDoseTooHigh =>
+      'Das ist eine sehr hohe Dosis — bitte prüfen';
+
+  @override
+  String get planErrorNameRequired => 'Namen des Medikaments eingeben';
+
+  @override
+  String get planErrorNameTooLong => 'Höchstens sechzig Zeichen';
+
+  @override
+  String get planErrorLastStrength => 'Mindestens eine Stärke behalten';
+
+  @override
+  String get planErrorPercent => 'Zwischen 1 und 50';
+
+  @override
+  String get planErrorHoldPeriod => 'Mindestens ein Tag';
 }

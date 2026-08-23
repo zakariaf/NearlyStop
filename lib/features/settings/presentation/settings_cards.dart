@@ -1,4 +1,9 @@
 /// The four Settings cards and the footnote.
+///
+/// **Not under `widgets/`.** These are screen SECTIONS: they watch providers
+/// and write settings, which is exactly what the layering gate keeps out of
+/// the component directory. The dumb recipes they are built from —
+/// `SettingsCard`, `SettingsRow`, `SettingsDivider` — live there instead.
 library;
 
 import 'dart:ui' as ui;

@@ -676,4 +676,100 @@ class AppLocalizationsFa extends AppLocalizations {
   String settingsTextSizeSemantics(Object value) {
     return 'اندازه متن، $value برابر';
   }
+
+  @override
+  String get planNextStep => 'گام بعدی';
+
+  @override
+  String get planSave => 'ذخیره برنامه';
+
+  @override
+  String get planSaved => 'برنامه ذخیره شد';
+
+  @override
+  String get planDangerZone => 'ناحیه خطر';
+
+  @override
+  String get planDelete => 'حذف برنامه';
+
+  @override
+  String get planDeleteTitle => 'این برنامه حذف شود؟';
+
+  @override
+  String planDeleteBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count روز ثبت‌شده',
+    );
+    return 'برنامه شما و $_temp0 از این گوشی حذف می‌شود. این کار برگشت‌پذیر نیست.';
+  }
+
+  @override
+  String get planDeleteConfirm => 'حذف همه چیز';
+
+  @override
+  String get planExportFirst => 'ابتدا خروجی بگیرید';
+
+  @override
+  String planCaveat(Object percent, Object dose, Object tenPercent) {
+    return '$percent از $dose می‌شود $tenPercent — دستور پزشک شما اولویت دارد';
+  }
+
+  @override
+  String get planStepOverride => 'تغییر گام';
+
+  @override
+  String get planStrengthsNote =>
+      'قرص‌هایی که واقعاً دارید. آن‌ها را با جعبه خود تطبیق دهید.';
+
+  @override
+  String get planStartDate => 'تاریخ شروع';
+
+  @override
+  String get planHoldPeriod => 'روز در هر دوز';
+
+  @override
+  String get planPercentPerStep => 'درصد در هر گام';
+
+  @override
+  String get planFixedStep => 'اندازه گام';
+
+  @override
+  String get planTaperComplete => 'به هدف خود رسیده‌اید';
+
+  @override
+  String get planReachesTarget => 'این گام به هدف شما می‌رسد.';
+
+  @override
+  String get planStepNotDue => 'این گام هنوز تمام نشده است';
+
+  @override
+  String get planErrorDoseRequired => 'دوز را وارد کنید';
+
+  @override
+  String planErrorDoseUnreadable(Object example) {
+    return 'فقط یک جداکننده اعشاری، مانند $example';
+  }
+
+  @override
+  String get planErrorTargetTooHigh => 'هدف باید کمتر از دوز فعلی باشد';
+
+  @override
+  String get planErrorDoseTooHigh => 'این دوز بسیار بالاست — بررسی کنید';
+
+  @override
+  String get planErrorNameRequired => 'نام دارو را وارد کنید';
+
+  @override
+  String get planErrorNameTooLong => 'حداکثر شصت نویسه';
+
+  @override
+  String get planErrorLastStrength => 'دست‌کم یک قرص نگه دارید';
+
+  @override
+  String get planErrorPercent => 'بین ۱ تا ۵۰';
+
+  @override
+  String get planErrorHoldPeriod => 'دست‌کم یک روز';
 }

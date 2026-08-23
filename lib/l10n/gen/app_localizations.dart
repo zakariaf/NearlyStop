@@ -1089,6 +1089,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Text size, {value} times'**
   String settingsTextSizeSemantics(Object value);
+
+  /// Plan screen: planNextStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Next step'**
+  String get planNextStep;
+
+  /// Plan screen: planSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save plan'**
+  String get planSave;
+
+  /// Plan screen: planSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan saved'**
+  String get planSaved;
+
+  /// Plan screen: planDangerZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Danger zone'**
+  String get planDangerZone;
+
+  /// Plan screen: planDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete plan'**
+  String get planDelete;
+
+  /// Plan screen: planDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this plan?'**
+  String get planDeleteTitle;
+
+  /// Plan screen: planDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan and {count, plural, =1{1 recorded day} other{{count} recorded days}} are removed from this phone. This cannot be undone.'**
+  String planDeleteBody(int count);
+
+  /// Plan screen: planDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete everything'**
+  String get planDeleteConfirm;
+
+  /// Plan screen: planExportFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Export first'**
+  String get planExportFirst;
+
+  /// Plan screen: planCaveat.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent} of {dose} is {tenPercent} — your doctor’s instruction wins'**
+  String planCaveat(Object percent, Object dose, Object tenPercent);
+
+  /// Plan screen: planStepOverride.
+  ///
+  /// In en, this message translates to:
+  /// **'Change the step'**
+  String get planStepOverride;
+
+  /// Plan screen: planStrengthsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The strengths you actually hold. Edit them to match your box.'**
+  String get planStrengthsNote;
+
+  /// Plan screen: planStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get planStartDate;
+
+  /// Plan screen: planHoldPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Days at each dose'**
+  String get planHoldPeriod;
+
+  /// Plan screen: planPercentPerStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Percent per step'**
+  String get planPercentPerStep;
+
+  /// Plan screen: planFixedStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Step size'**
+  String get planFixedStep;
+
+  /// Plan screen: planTaperComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'You have reached your target'**
+  String get planTaperComplete;
+
+  /// Plan screen: planReachesTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'This step reaches your target.'**
+  String get planReachesTarget;
+
+  /// Plan screen: planStepNotDue.
+  ///
+  /// In en, this message translates to:
+  /// **'This step is not finished yet'**
+  String get planStepNotDue;
+
+  /// Plan screen: planErrorDoseRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a dose'**
+  String get planErrorDoseRequired;
+
+  /// Plan screen: planErrorDoseUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'Use one decimal separator, like {example}'**
+  String planErrorDoseUnreadable(Object example);
+
+  /// Plan screen: planErrorTargetTooHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'The target must be below the current dose'**
+  String get planErrorTargetTooHigh;
+
+  /// Plan screen: planErrorDoseTooHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'That is a very high dose — check it is right'**
+  String get planErrorDoseTooHigh;
+
+  /// Plan screen: planErrorNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the medicine’s name'**
+  String get planErrorNameRequired;
+
+  /// Plan screen: planErrorNameTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Sixty characters at most'**
+  String get planErrorNameTooLong;
+
+  /// Plan screen: planErrorLastStrength.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep at least one strength'**
+  String get planErrorLastStrength;
+
+  /// Plan screen: planErrorPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Between 1 and 50'**
+  String get planErrorPercent;
+
+  /// Plan screen: planErrorHoldPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'At least one day'**
+  String get planErrorHoldPeriod;
 }
 
 class _AppLocalizationsDelegate

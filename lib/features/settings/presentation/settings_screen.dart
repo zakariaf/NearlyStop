@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nearlystop/core/result.dart';
 import 'package:nearlystop/features/settings/application/settings_controller.dart';
-import 'package:nearlystop/features/settings/presentation/widgets/settings_cards.dart';
+import 'package:nearlystop/features/settings/presentation/settings_cards.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
