@@ -289,6 +289,30 @@ expect_flagged "a package:drift_dev import is flagged even inside lib/data/" \
   "$data_scratch" "dev dependency"
 rm -f "$data_scratch"
 
+echo "case 12d: text is never shrunk to fit"
+cat >"$scratch" <<'DART'
+import 'package:flutter/widgets.dart';
+
+/// Scratch.
+Widget scratch() => const FittedBox(child: Text('9'));
+DART
+expect_flagged "a planted FittedBox is flagged" "$scratch" "never shrink text"
+
+cat >"$scratch" <<'DART'
+/// Scratch. The BAN is discussed in a comment: FittedBox, .toUpperCase().
+String scratch() => 'ok';
+DART
+expect_clean "the same words in a COMMENT pass — the gate strips comments"
+rm -f "$scratch"
+
+echo "case 12e: casing lives in the ARB, not at render"
+cat >"$scratch" <<'DART'
+/// Scratch.
+String scratch(String label) => label.toUpperCase();
+DART
+expect_flagged "a planted .toUpperCase() is flagged" "$scratch" "casing belongs in the ARB"
+rm -f "$scratch"
+
 echo "case 13: the gate works from an arbitrary ROOT, not just the repo root"
 alt="$(mktemp -d)"
 mkdir -p "$alt/lib/features"

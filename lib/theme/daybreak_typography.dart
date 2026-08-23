@@ -104,6 +104,22 @@ DaybreakTypography daybreakTypography({
   required DaybreakScript script,
   required DaybreakColors colors,
 }) {
+  // VERIFIED 2026-08-23 with `bash tool/verify_tnum.sh` against the exact
+  // files in assets/fonts/ (Nunito-VariableFont_wght, Vazirmatn-VariableFont_
+  // wght), and the answer is not the expected one:
+  //
+  //   Nunito     GSUB has NO `tnum` record — this declaration is a NO-OP here.
+  //   Vazirmatn  GSUB has `tnum`.
+  //
+  // The declaration STAYS, for two reasons. Vazirmatn genuinely uses it, and
+  // it is the correct request to make of any face that replaces Nunito. What
+  // makes the Latin case work today is that Nunito's digits are natively
+  // equal-width — measured, not assumed:
+  // `test/theme/tabular_figures_test.dart` paints all ten glyphs in both
+  // scripts at display size and asserts identical advances, and asserts that
+  // 9 → 10 costs exactly one digit. If a font bump breaks that, the test goes
+  // red and the fix is to RESERVE the widest digit's width in the hero —
+  // never `FittedBox`, which shrinks the one number that must never shrink.
   const tabular = <FontFeature>[FontFeature.tabularFigures()];
   final isPerso = script == DaybreakScript.perso;
   // The overline is caption two steps up the ladder — w600 -> w800 normally,

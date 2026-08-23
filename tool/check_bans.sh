@@ -137,6 +137,23 @@ add_rule lib code - \
   "^[[:space:]]*(import|export)[[:space:]]+['\"]package:drift_dev/" \
   "drift_dev is a dev dependency — an import from lib/ puts analyzer and build on the shipping compile path"
 
+# Shrinking text to fit is always the wrong answer for this audience. A
+# `FittedBox` around the 72px dose numeral scales down the one number the
+# patient reads every morning; around a German button label it turns a loud
+# layout failure into an unreadable instruction on a 78-year-old's phone. The
+# fix for text that does not fit is a layout that reflows or a width that is
+# reserved — measured in test/theme/tabular_figures_test.dart.
+add_rule lib code - \
+  '\bFittedBox\b' \
+  "never shrink text to fit — reflow the layout or reserve the width; this audience cannot read a scaled-down instruction"
+
+# Casing lives in the ARB string, never at render: `.toUpperCase()` on a
+# Perso-Arabic string is a no-op that silently does nothing, and on German it
+# produces a word no translator approved.
+add_rule lib code - \
+  '\.toUpperCase\(\)' \
+  "casing belongs in the ARB string — .toUpperCase() no-ops on Perso-Arabic and bypasses the translator on Latin"
+
 # Suppressions are line-scoped with a reason. A file-scoped ignore on a rule we
 # deliberately promoted to error leaves every later edit in that file
 # unprotected — exactly the leak the promotion exists to catch.
