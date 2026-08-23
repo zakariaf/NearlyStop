@@ -52,6 +52,9 @@ class AppLocalizationsCkb extends AppLocalizations {
   String get stateNewDoseDay => 'ڕۆژی دۆزی نوێ';
 
   @override
+  String get stateToday => 'ئەمڕۆ';
+
+  @override
   String get stateTaken => 'وەرگیرا';
 
   @override

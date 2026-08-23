@@ -13,6 +13,7 @@
   "doseWithUnit": "{dose} میلی‌گرم",
   "milligramUnit": "میلی‌گرم",
   "stateNewDoseDay": "روز دوز جدید",
+  "stateToday": "امروز",
   "stateTaken": "مصرف شد",
   "stateNotTicked": "ثبت نشده",
   "stateUpcoming": "پیش‌رو",

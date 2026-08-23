@@ -62,6 +62,10 @@
     "x-maxChars": 12
   },
   "stateNewDoseDay": "New dose day",
+  "stateToday": "Today",
+  "@stateToday": {
+    "description": "The day-state word on a schedule row for today. Separate from `tabToday` even though English spells them the same: one names a tab, the other is one of four state words read as a sentence by a screen reader, and a locale is free to want different words."
+  },
   "@stateNewDoseDay": {
     "description": "Badge on a day that takes the reduced dose.",
     "x-maxChars": 18

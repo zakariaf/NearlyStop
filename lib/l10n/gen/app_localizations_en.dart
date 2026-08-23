@@ -52,6 +52,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stateNewDoseDay => 'New dose day';
 
   @override
+  String get stateToday => 'Today';
+
+  @override
   String get stateTaken => 'Taken';
 
   @override

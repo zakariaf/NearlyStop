@@ -52,6 +52,9 @@ class AppLocalizationsFa extends AppLocalizations {
   String get stateNewDoseDay => 'روز دوز جدید';
 
   @override
+  String get stateToday => 'امروز';
+
+  @override
   String get stateTaken => 'مصرف شد';
 
   @override

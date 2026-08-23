@@ -52,6 +52,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get stateNewDoseDay => 'Neuer Dosistag';
 
   @override
+  String get stateToday => 'Heute';
+
+  @override
   String get stateTaken => 'Eingenommen';
 
   @override

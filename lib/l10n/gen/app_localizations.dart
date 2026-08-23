@@ -180,6 +180,12 @@ abstract class AppLocalizations {
   /// **'New dose day'**
   String get stateNewDoseDay;
 
+  /// The day-state word on a schedule row for today. Separate from `tabToday` even though English spells them the same: one names a tab, the other is one of four state words read as a sentence by a screen reader, and a locale is free to want different words.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get stateToday;
+
   /// A day whose dose was recorded as taken.
   ///
   /// In en, this message translates to:
