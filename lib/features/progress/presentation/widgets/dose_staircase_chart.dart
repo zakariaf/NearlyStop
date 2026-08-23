@@ -39,6 +39,9 @@ class DoseStaircaseChart extends StatelessWidget {
   /// The card's plot height at 1.0, from the reference's `viewBox`.
   static const double plotHeight = 176;
 
+  /// The glyph beside the flare-and-hold count.
+  static const IconData eventGlyph = Icons.local_fire_department_outlined;
+
   /// Above this text scale the chart is replaced by [DoseHistoryList].
   ///
   /// **Measured, not chosen.** At 1.5× the axis labels still fit inside the
@@ -147,9 +150,21 @@ class DoseStaircaseChart extends StatelessWidget {
               ),
             ),
           SizedBox(height: shapes.s3),
-          Text(
-            eventCountLabel,
-            style: text.bodySmall?.copyWith(color: colors.inkMuted),
+          Row(
+            children: <Widget>[
+              // The same glyph the chart marks a flare with, so the sentence
+              // and the picture name the same thing.
+              ExcludeSemantics(
+                child: Icon(eventGlyph, size: 16, color: colors.danger),
+              ),
+              SizedBox(width: shapes.s2),
+              Flexible(
+                child: Text(
+                  eventCountLabel,
+                  style: text.bodySmall?.copyWith(color: colors.inkMuted),
+                ),
+              ),
+            ],
           ),
         ],
       ),

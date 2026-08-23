@@ -72,7 +72,11 @@ class DoseStaircasePainter extends CustomPainter {
   static const double plotTop = 14;
 
   /// Room below the plot for the date labels.
-  static const double plotBottom = 22;
+  ///
+  /// Deep enough to clear the TODAY MARKER as well as the text: the marker is
+  /// a 6px circle centred on the baseline, so a gutter sized for the labels
+  /// alone puts half of it through "Apr 2026".
+  static const double plotBottom = 32;
 
   /// How many gridlines the plot is ruled with, matching the reference SVG.
   static const int gridlineCount = 4;
@@ -146,6 +150,17 @@ class DoseStaircasePainter extends CustomPainter {
     return direction == TextDirection.ltr
         ? fraction * size.width
         : size.width - fraction * size.width;
+  }
+
+  /// [xFor], pulled inside the canvas by [radius] so a marker is never
+  /// half-clipped by the edge.
+  ///
+  /// The PATH still spans the full width — the staircase is the data and it
+  /// runs edge to edge — but a 9px ring centred on the last day would lose
+  /// half of itself, and the today marker is the one mark a reader looks for.
+  double markerX(int dayIndex, Size size, double radius) {
+    final x = xFor(dayIndex, size);
+    return x.clamp(radius, size.width - radius);
   }
 
   /// The y a dose maps to: the lowest on the baseline, the highest on top.
@@ -281,7 +296,10 @@ class DoseStaircasePainter extends CustomPainter {
 
   /// A ring with the flare glyph inside it — shape AND glyph, never colour.
   void _paintFlare(Canvas canvas, Size size, FlareMark flare, Paint mark) {
-    final centre = Offset(xFor(flare.dayIndex, size), yFor(flare.dose, size));
+    final centre = Offset(
+      markerX(flare.dayIndex, size, 9),
+      yFor(flare.dose, size),
+    );
     canvas
       ..drawCircle(
         centre,
@@ -314,7 +332,7 @@ class DoseStaircasePainter extends CustomPainter {
 
   void _paintToday(Canvas canvas, Size size, Paint mark) {
     final centre = Offset(
-      xFor(todayDayIndex, size),
+      markerX(todayDayIndex, size, 6),
       yFor(todayDose, size),
     );
     canvas
@@ -337,7 +355,7 @@ class DoseStaircasePainter extends CustomPainter {
   }
 
   void _paintLabels(Canvas canvas, Size size) {
-    final baseline = size.height - plotBottom + 6;
+    final baseline = size.height - plotBottom + 12;
     final startEdge = direction == TextDirection.ltr;
     labels.first.paint(
       canvas,
