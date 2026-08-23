@@ -59,12 +59,22 @@ class ScheduleScreen extends ConsumerStatefulWidget {
 }
 
 class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
+  ProviderSubscription<Map<LocalDate, int>>? _pendingFocus;
+
   @override
   void initState() {
     super.initState();
     // After the first frame: the deep link writes two providers, and writing
     // them during a build is what Riverpod's own assert exists to stop.
     WidgetsBinding.instance.addPostFrameCallback((_) => _applyFocus());
+    // And AGAIN whenever the derivation changes. On a cold start — a
+    // notification tap, a fresh launch — the date → step map is empty until
+    // the database read lands, so a link read once on the first frame is a
+    // link silently thrown away.
+    _pendingFocus = ref.listenManual(
+      scheduleFocusDatesProvider,
+      (_, _) => _applyFocus(),
+    );
   }
 
   @override
@@ -73,12 +83,19 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     if (oldWidget.focus != widget.focus) _applyFocus();
   }
 
+  @override
+  void dispose() {
+    _pendingFocus?.close();
+    super.dispose();
+  }
+
   /// Resolves `?focus=` to a step and a day, or leaves the screen on today.
   void _applyFocus() {
     if (!mounted) return;
     // Two ways to miss: an unparseable string, and a perfectly good date the
     // plan has never heard of. Both land on today, because a deep link is the
-    // one input this screen does not control.
+    // one input this screen does not control. A THIRD way is temporary — the
+    // derivation has not arrived yet — which is why this can be called again.
     final date = LocalDate.tryParse(widget.focus ?? '');
     final step = date == null
         ? null
@@ -86,6 +103,10 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     if (date == null || step == null) return;
     ref.read(scheduleFocusProvider.notifier).focus(date);
     ref.read(browsedStepProvider.notifier).show(step);
+    // Resolved. Later derivations must not drag the reader back to the link
+    // they arrived on after they have browsed somewhere else.
+    _pendingFocus?.close();
+    _pendingFocus = null;
   }
 
   Future<void> _openSwitcher(
@@ -222,6 +243,9 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
   /// Finds today's row, so "is today off screen" is measured, not estimated.
   final GlobalKey _todayKey = GlobalKey(debugLabel: 'schedule-today');
 
+  /// Finds the scroll view itself, which is what today has to be inside.
+  final GlobalKey _viewportKey = GlobalKey(debugLabel: 'schedule-viewport');
+
   final ScrollController _controller = ScrollController();
 
   ScheduleRefusal? _refusal;
@@ -267,14 +291,16 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
   /// every text scale but the one it was written at.
   bool _todayVisible() {
     final rowContext = _todayKey.currentContext;
-    final listObject = context.findRenderObject();
-    if (rowContext == null || listObject is! RenderBox) return false;
+    // The SCROLL VIEW's box, not this widget's. This widget is the Column
+    // that also holds the read-only strip and the refusal notice, so a row
+    // hidden behind one of those would measure as visible against it.
+    final viewportContext = _viewportKey.currentContext;
+    final viewport = viewportContext?.findRenderObject();
+    if (rowContext == null || viewport is! RenderBox) return false;
     final row = rowContext.findRenderObject();
-    if (row is! RenderBox || !row.attached || !listObject.attached) {
-      return false;
-    }
-    final top = row.localToGlobal(Offset.zero, ancestor: listObject).dy;
-    return top + row.size.height > 0 && top < listObject.size.height;
+    if (row is! RenderBox || !row.attached || !viewport.attached) return false;
+    final top = row.localToGlobal(Offset.zero, ancestor: viewport).dy;
+    return top + row.size.height > 0 && top < viewport.size.height;
   }
 
   /// Ticks or unticks [day], and SAYS SO when the write is refused.
@@ -352,6 +378,7 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
     final onToggle = widget.state.steps.isActive ? _toggle : null;
 
     final list = CustomScrollView(
+      key: _viewportKey,
       controller: _controller,
       center: _centreKey,
       slivers: <Widget>[

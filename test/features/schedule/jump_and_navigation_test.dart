@@ -17,6 +17,7 @@ import 'package:nearlystop/features/schedule/presentation/widgets/jump_to_today_
 import 'package:nearlystop/features/schedule/presentation/widgets/schedule_day_row.dart';
 import 'package:nearlystop/features/schedule/presentation/widgets/step_switcher_sheet.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
+import 'package:riverpod/misc.dart' show Override;
 
 import '../../support/harness.dart';
 import 'support/schedule_fixture.dart';
@@ -269,4 +270,96 @@ void main() {
       );
     }
   });
+  testWidgets('a deep link that arrives BEFORE the derivation still lands', (
+    tester,
+  ) async {
+    // The cold-start race. `?focus=` resolves through the date → step map,
+    // which is empty until the database read completes. On a warm app that is
+    // already loaded, so this never shows up in a test that seeds first — but
+    // a notification tap opens the app cold, and the link was being read once,
+    // on the first frame, and then silently dropped.
+    final dates = _LateDates();
+    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    final active = fixtureSchedule(l10n: l10n);
+    await pumpApp(
+      tester,
+      const ScheduleScreen(focus: '2026-04-06'),
+      overrides: <Override>[
+        ...scheduleOverrides(active: active, overrideFocusDates: false),
+        scheduleFocusDatesProvider.overrideWith(dates.build),
+      ],
+      surfaceSize: phone,
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(ScheduleScreen)),
+    );
+
+    // The derivation lands a moment later, as it does on a cold start.
+    dates.dates = <LocalDate, int>{const LocalDate(2026, 4, 6): 0};
+    container.invalidate(scheduleFocusDatesProvider);
+    await tester.pumpAndSettle();
+
+    expect(
+      container.read(scheduleFocusProvider),
+      const LocalDate(2026, 4, 6),
+      reason: 'the deep link was read once and thrown away',
+    );
+  });
+
+  testWidgets('once resolved, the link stops pulling the reader back', (
+    tester,
+  ) async {
+    // The other half of the retry. The derivation re-emits on every write —
+    // every tick, every note — and a subscription left open would drag the
+    // reader back to the day they arrived on each time they marked a dose.
+    final dates = _LateDates()
+      ..dates = <LocalDate, int>{const LocalDate(2026, 4, 6): 0};
+    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    await pumpApp(
+      tester,
+      const ScheduleScreen(focus: '2026-04-06'),
+      overrides: <Override>[
+        ...scheduleOverrides(
+          active: fixtureSchedule(l10n: l10n),
+          overrideFocusDates: false,
+        ),
+        scheduleFocusDatesProvider.overrideWith(dates.build),
+      ],
+      surfaceSize: phone,
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(ScheduleScreen)),
+    );
+    expect(container.read(scheduleFocusProvider), isNotNull);
+
+    // The reader navigates away from the linked day.
+    container.read(scheduleFocusProvider.notifier).clear();
+    await tester.pumpAndSettle();
+
+    // A write lands; the derivation re-emits.
+    container.invalidate(scheduleFocusDatesProvider);
+    await tester.pumpAndSettle();
+
+    expect(
+      container.read(scheduleFocusProvider),
+      isNull,
+      reason: 'the deep link re-applied itself after the reader left it',
+    );
+  });
+}
+
+/// A date → step map that is empty until it is told otherwise.
+final class _LateDates {
+  /// What the provider answers with. Assign to it to make the derivation land.
+  Map<LocalDate, int> dates = const <LocalDate, int>{};
+
+  /// The provider body handed to `overrideWith`.
+  ///
+  /// A COPY each time, so a rebuild is a new instance and Riverpod notifies.
+  /// The real provider rebuilds a fresh map from the derivation on every
+  /// write, which is exactly the churn the subscription has to stop reacting
+  /// to once the link has been honoured.
+  Map<LocalDate, int> build(Ref ref) => Map<LocalDate, int>.of(dates);
 }

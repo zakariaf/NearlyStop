@@ -113,6 +113,7 @@ List<Override> scheduleOverrides({
   Map<int, ScheduleViewState> otherSteps = const <int, ScheduleViewState>{},
   List<StepOption> options = const <StepOption>[],
   Map<LocalDate, int>? focusDates,
+  bool overrideFocusDates = true,
 }) => <Override>[
   currentStepIndexProvider.overrideWithValue(activeIndex),
   scheduleViewProvider(
@@ -122,10 +123,13 @@ List<Override> scheduleOverrides({
       in otherSteps.entries)
     scheduleViewProvider(key).overrideWith(() => FixedSchedule(value)),
   scheduleStepOptionsProvider.overrideWithValue(options),
-  scheduleFocusDatesProvider.overrideWithValue(
-    focusDates ??
-        <LocalDate, int>{
-          for (final day in fixtureDays()) day.date: activeIndex,
-        },
-  ),
+  // Skippable, so a test can supply its own body — the cold-start race needs
+  // a map that CHANGES, and a value override cannot.
+  if (overrideFocusDates)
+    scheduleFocusDatesProvider.overrideWithValue(
+      focusDates ??
+          <LocalDate, int>{
+            for (final day in fixtureDays()) day.date: activeIndex,
+          },
+    ),
 ];
