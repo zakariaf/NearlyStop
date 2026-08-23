@@ -23,8 +23,7 @@ class DayStateRow extends StatelessWidget {
   /// Creates a row for one day.
   const DayStateRow({
     required this.state,
-    required this.weekdayText,
-    required this.dateText,
+    required this.dayLabel,
     required this.doseText,
     required this.stateLabel,
     required this.semanticsLabel,
@@ -73,11 +72,12 @@ class DayStateRow extends StatelessWidget {
   /// Which of the four states this day is in.
   final DayState state;
 
-  /// The weekday name, already localized.
-  final String weekdayText;
-
-  /// The date, already formatted in the active calendar.
-  final String dateText;
+  /// "Wed 16 Apr" — weekday and date on ONE line, already localized and
+  /// already in the active calendar.
+  ///
+  /// One string, not a weekday and a date: frame 3's `.sday` is a single line,
+  /// and the second line of that column belongs to [tabletsText].
+  final String dayLabel;
 
   /// The dose with its unit, already formatted.
   final String doseText;
@@ -117,8 +117,9 @@ class DayStateRow extends StatelessWidget {
     final stacked =
         MediaQuery.textScalerOf(context).scale(1) > stackAboveTextScale;
     final dayBlock = _DayBlock(
-      weekdayText: weekdayText,
-      dateText: dateText,
+      dayLabel: dayLabel,
+      tabletsText: tabletsText,
+      unachievableText: unachievableText,
       isToday: isToday,
       isNewDose: isNewDose,
       newDoseLabel: newDoseLabel,
@@ -177,7 +178,6 @@ class DayStateRow extends StatelessWidget {
                       // line down the page.
                       _DayEndBlock(
                         doseText: doseText,
-                        tabletsText: tabletsText,
                         unachievableText: unachievableText,
                         stateLabel: stateLabel,
                         stateWordColor: _stateWordColor(colors),
@@ -195,7 +195,6 @@ class DayStateRow extends StatelessWidget {
                       Flexible(
                         child: _DayEndBlock(
                           doseText: doseText,
-                          tabletsText: tabletsText,
                           unachievableText: unachievableText,
                           stateLabel: stateLabel,
                           stateWordColor: _stateWordColor(colors),
@@ -334,15 +333,17 @@ class RowBorderPainter extends CustomPainter {
 /// be `const`. `widget-composition` bans them outright.
 class _DayBlock extends StatelessWidget {
   const _DayBlock({
-    required this.weekdayText,
-    required this.dateText,
+    required this.dayLabel,
+    required this.tabletsText,
+    required this.unachievableText,
     required this.isToday,
     required this.isNewDose,
     required this.newDoseLabel,
   });
 
-  final String weekdayText;
-  final String dateText;
+  final String dayLabel;
+  final String? tabletsText;
+  final String? unachievableText;
   final bool isToday;
   final bool isNewDose;
   final String? newDoseLabel;
@@ -358,19 +359,31 @@ class _DayBlock extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Text(
-          weekdayText,
+          dayLabel,
           style: text.bodyLarge?.copyWith(
             fontWeight: isToday ? FontWeight.w800 : FontWeight.w700,
             color: colors.ink,
           ),
         ),
-        Text(
-          dateText,
-          style: text.bodySmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: colors.inkMuted,
+        // `.stab`: what you actually swallow that day, directly under the day
+        // it belongs to. The trailing column carries the dose and the state,
+        // and nothing else.
+        if (tabletsText case final tablets?)
+          Text(
+            tablets,
+            style: text.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colors.inkMuted,
+            ),
           ),
-        ),
+        if (unachievableText case final flag?)
+          Text(
+            flag,
+            style: text.bodySmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: colors.warning,
+            ),
+          ),
         if (isNewDose) ...<Widget>[
           SizedBox(height: shapes.s1),
           // Colour AND glyph AND word — all three, always.
@@ -404,7 +417,6 @@ class _DayBlock extends StatelessWidget {
 class _DayEndBlock extends StatelessWidget {
   const _DayEndBlock({
     required this.doseText,
-    required this.tabletsText,
     required this.unachievableText,
     required this.stateLabel,
     required this.stateWordColor,
@@ -413,7 +425,6 @@ class _DayEndBlock extends StatelessWidget {
   });
 
   final String doseText;
-  final String? tabletsText;
   final String? unachievableText;
   final String stateLabel;
   final Color stateWordColor;
@@ -440,21 +451,6 @@ class _DayEndBlock extends StatelessWidget {
               fontWeight: FontWeight.w800,
               color: colors.ink,
             ),
-          ),
-        if (tabletsText case final tablets?)
-          Text(
-            tablets,
-            style: text.bodySmall?.copyWith(color: colors.inkMuted),
-            textAlign: textAlign,
-          ),
-        if (unachievableText case final flag?)
-          Text(
-            flag,
-            style: text.bodySmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: colors.warning,
-            ),
-            textAlign: textAlign,
           ),
         SizedBox(height: shapes.s1),
         Text(

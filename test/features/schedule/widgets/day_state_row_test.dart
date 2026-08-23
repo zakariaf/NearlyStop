@@ -59,8 +59,7 @@ void main() {
             child: Material(
               child: DayStateRow(
                 state: state,
-                weekdayText: 'Thursday',
-                dateText: '16 April',
+                dayLabel: 'Thursday 16 April',
                 doseText: '9mg',
                 tabletsText: flagText == null ? '1 × 5mg · 4 × 1mg' : null,
                 stateLabel: stateWord(l10n, state),
@@ -134,8 +133,7 @@ void main() {
             return const Material(
               child: DayStateRow(
                 state: DayState.missed,
-                weekdayText: 'Thursday',
-                dateText: '16 April',
+                dayLabel: 'Thursday 16 April',
                 doseText: '9mg',
                 tabletsText: '1 × 5mg',
                 stateLabel: 'Not ticked',
@@ -202,8 +200,7 @@ void main() {
           return const Material(
             child: DayStateRow(
               state: DayState.missed,
-              weekdayText: 'Thursday',
-              dateText: '16 April',
+              dayLabel: 'Thursday 16 April',
               doseText: '9mg',
               tabletsText: '1 × 5mg',
               stateLabel: 'Not ticked',
@@ -239,7 +236,7 @@ void main() {
         find.byKey(DayStateRow.containerKey),
       );
       final decoration = container.decoration! as BoxDecoration;
-      final weekday = tester.widget<Text>(find.text('Thursday'));
+      final weekday = tester.widget<Text>(find.text('Thursday 16 April'));
 
       if (state == DayState.today) {
         expect(rowBorder(tester).width, 2, reason: '$state');
@@ -273,8 +270,7 @@ void main() {
             return Material(
               child: DayStateRow(
                 state: state,
-                weekdayText: 'Thursday',
-                dateText: '16 April',
+                dayLabel: 'Thursday 16 April',
                 doseText: '9mg',
                 tabletsText: '1 × 5mg',
                 stateLabel: 'x',
@@ -398,7 +394,7 @@ void main() {
     // now BELOW the day block.
     expect(
       tester.getCenter(find.text('Today')).dy,
-      greaterThan(tester.getCenter(find.text('Thursday')).dy),
+      greaterThan(tester.getCenter(find.text('Thursday 16 April')).dy),
       reason: 'the end block should sit under the day block above 1.6x',
     );
   });
@@ -417,7 +413,7 @@ void main() {
     // centre is further along the reading direction rather than below it.
     expect(
       tester.getCenter(find.text('Today')).dx,
-      greaterThan(tester.getCenter(find.text('Thursday')).dx),
+      greaterThan(tester.getCenter(find.text('Thursday 16 April')).dx),
       reason: 'still side by side at 1.6x',
     );
   });
@@ -428,6 +424,34 @@ void main() {
     expect(
       tester.getSize(find.byType(DayStateRow)).height,
       greaterThanOrEqualTo(64),
+    );
+  });
+  testWidgets('the tablet breakdown sits UNDER the day, not beside the dose', (
+    tester,
+  ) async {
+    // Frame 3's `.srow`: the middle column is `.sday` over `.stab` — the day
+    // and the tablets you swallow that day, one above the other — and the
+    // trailing `.send` column is `.sdose` over `.sstate`, nothing else.
+    //
+    // This component was built against a contact sheet rather than against
+    // frame 3, and put the breakdown in the trailing column instead. Element
+    // order is a Tier-1 parity row: it has to match exactly, and it does not.
+    await pumpRow(tester, surfaceSize: const Size(390, 400));
+
+    final day = tester.getTopLeft(find.text('Thursday 16 April'));
+    final tablets = tester.getTopLeft(find.text('1 × 5mg · 4 × 1mg'));
+    final dose = tester.getTopLeft(find.text('9mg'));
+
+    expect(
+      tablets.dx,
+      day.dx,
+      reason: 'the breakdown is not in the day column',
+    );
+    expect(tablets.dy, greaterThan(day.dy), reason: 'it is not under the day');
+    expect(
+      tablets.dx,
+      lessThan(dose.dx),
+      reason: 'the breakdown drifted into the trailing column',
     );
   });
 }

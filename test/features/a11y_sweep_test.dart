@@ -109,8 +109,7 @@ Widget _dayStateRows() => Column(
     for (final state in DayState.values)
       DayStateRow(
         state: state,
-        weekdayText: 'Thursday',
-        dateText: '16 April',
+        dayLabel: 'Thursday 16 April',
         doseText: '9mg',
         tabletsText: '1 × 5mg · 4 × 1mg',
         stateLabel: switch (state) {

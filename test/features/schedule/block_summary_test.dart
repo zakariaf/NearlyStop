@@ -74,11 +74,11 @@ void main() {
     );
   });
 
-  test('every block: the two counts sum to the block table’s own day count', () {
+  test('every block: the two counts sum to the block table’s day count', () {
     // The independent oracle is the block table's `days` column, never the
     // summary builder. Swept over all eleven blocks and three step doses, so a
     // summary that is right for one pair and wrong for another cannot hide.
-    for (final doses in <(Milligrams, Milligrams)>[
+    for (final doses in const <(Milligrams, Milligrams)>[
       (Milligrams.fromHundredths(900), Milligrams.fromHundredths(1000)),
       (Milligrams.fromHundredths(50), Milligrams.fromHundredths(100)),
       (Milligrams.fromHundredths(1750), Milligrams.fromHundredths(2000)),
