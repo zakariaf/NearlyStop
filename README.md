@@ -40,16 +40,18 @@ roughly **780 days**. It is designed for the thousandth open, not the first.
 
 <table>
   <tr>
-    <td width="25%"><img src="store/screenshots/ios-6.7/01-today.png" alt="Today"></td>
-    <td width="25%"><img src="store/screenshots/ios-6.7/02-schedule.png" alt="Schedule"></td>
-    <td width="25%"><img src="store/screenshots/ios-6.7/03-progress.png" alt="Progress"></td>
-    <td width="25%"><img src="store/screenshots/ios-6.7/04-plan.png" alt="Plan"></td>
+    <td width="20%"><img src="docs/screenshots/01-today.png" alt="The Today screen: a large 5mg on a sunrise card, the tablets it is made from, and one big Taken button"></td>
+    <td width="20%"><img src="docs/screenshots/02-schedule.png" alt="The Schedule screen: days grouped under Block 10 of 11, each with its dose and a taken or upcoming state"></td>
+    <td width="20%"><img src="docs/screenshots/03-progress.png" alt="The Progress screen: a staircase chart falling from 10mg to 5mg over 249 days, with flare and hold marks"></td>
+    <td width="20%"><img src="docs/screenshots/04-settings.png" alt="The Settings screen: daily reminder, text size, high contrast, language and backup"></td>
+    <td width="20%"><img src="docs/screenshots/05-language.png" alt="The language picker: System, English, Deutsch, Persian and Kurdish Sorani"></td>
   </tr>
   <tr>
     <td align="center"><b>Today</b><br>the one number, and the tablets it is made from</td>
     <td align="center"><b>Schedule</b><br>grouped by block — never a seven-column grid</td>
     <td align="center"><b>Progress</b><br>the staircase down, flares and holds marked</td>
-    <td align="center"><b>Plan</b><br>your tablet strengths, your agreed step</td>
+    <td align="center"><b>Settings</b><br>reminder, text size, contrast, backup</td>
+    <td align="center"><b>Four languages</b><br>two of them right-to-left</td>
   </tr>
 </table>
 
@@ -153,10 +155,13 @@ Application id / bundle id: `com.buzzjective.nearlystop`. Android and iOS only.
 
 ## Licence
 
-**Not yet chosen.** The repository is public and the code is readable by anyone,
-but without a licence file the default is all-rights-reserved — so this is not
-yet open source in the sense that lets you fork or reuse it. A licence is the
-next thing to add here.
+[Apache License 2.0](LICENSE). You may use, modify and redistribute this code,
+including commercially, provided you keep the licence and notice and state what
+you changed. It also grants you a patent licence from the contributors.
+
+The bundled fonts are **not** covered by it: Nunito and Vazirmatn are under the
+SIL Open Font License, whose text ships inside the app and is registered on its
+own licences page.
 
 ## This is not medical advice
 
