@@ -191,6 +191,25 @@ void main() {
       expect(declared, localesFromArb());
     });
 
+    test('the name under the icon is the product name', () {
+      // Found by looking at a home screen after a fresh install, which is the
+      // only place this is visible: the Flutter template derives the display
+      // name from the package name and produces "Nearlystop", which nothing
+      // else in the app, the ARB or the store listing ever says.
+      final document = XmlDocument.parse(plist());
+      final keys = document.findAllElements('key').toList();
+
+      for (final name in <String>['CFBundleDisplayName', 'CFBundleName']) {
+        final index = keys.indexWhere((k) => k.innerText == name);
+        expect(index, isNot(-1), reason: '$name is missing');
+        expect(
+          keys[index].nextElementSibling!.innerText,
+          'NearlyStop',
+          reason: name,
+        );
+      }
+    });
+
     test('no NS*UsageDescription key exists at all', () {
       // Notifications are requested through the authorization API and need no
       // usage string. An unused usage description is a claim about what the
