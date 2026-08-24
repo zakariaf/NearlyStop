@@ -31,6 +31,61 @@ void main() {
     root.path,
   ]);
 
+  group('a weight override that reaches the renderer', () {
+    test('fontWeight under lib/features turns the build red', () async {
+      write(
+        'lib/features/today/presentation/planted.dart',
+        '/// Scratch.\n'
+            'final s = base.copyWith(\n  fontWeight: FontWeight.w700,\n);\n',
+      );
+
+      final result = await runGate();
+      final output = '${result.stdout}${result.stderr}';
+
+      expect(result.exitCode, 1);
+      expect(output, contains('planted.dart'));
+      expect(output, contains('atWeight'));
+    });
+
+    test('BOTH exempt globs are honoured, not just the first', () async {
+      // The rule exempts two unrelated paths, and the exempt field is
+      // space-separated because `|` in a `case` pattern is parsed before the
+      // variable expands — an alternation written that way silently matches
+      // nothing. A one-path test would pass with the list broken.
+      write(
+        'lib/theme/planted_tokens.dart',
+        '/// Scratch.\n'
+            'const s = TextStyle(fontWeight: FontWeight.w800);\n',
+      );
+      write(
+        'lib/features/export/data/dose_history_pdf.dart',
+        '/// Scratch.\n'
+            'const s = pw.TextStyle(fontWeight: pw.FontWeight.bold);\n',
+      );
+
+      final result = await runGate();
+      expect(
+        result.exitCode,
+        0,
+        reason: '${result.stdout}${result.stderr}',
+      );
+    });
+
+    test('the exemption is per-PATH, not a hole in the rule', () async {
+      // `lib/theme/*` is a glob over one directory. A file that merely has
+      // "theme" in its name elsewhere is not exempt.
+      write(
+        'lib/features/settings/theme_row.dart',
+        '/// Scratch.\n'
+            'final s = base.copyWith(fontWeight: FontWeight.w700);\n',
+      );
+
+      final result = await runGate();
+      expect(result.exitCode, 1);
+      expect('${result.stdout}${result.stderr}', contains('theme_row.dart'));
+    });
+  });
+
   group('one link leaves the app, and it leaves for good', () {
     const modes = <String>[
       'inAppWebView',

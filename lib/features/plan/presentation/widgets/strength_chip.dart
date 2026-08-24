@@ -6,6 +6,7 @@ import 'package:nearlystop/features/shared/presentation/widgets/daybreak_tappabl
 import 'package:nearlystop/features/today/presentation/widgets/tablet_breakdown_pill.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// One tablet strength the reader either holds or does not.
 ///
@@ -92,10 +93,9 @@ class StrengthChip extends StatelessWidget {
               ],
               Text(
                 label,
-                style: text.titleMedium?.copyWith(
-                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                  color: colors.ink,
-                ),
+                style: text.titleMedium
+                    ?.atWeight(selected ? FontWeight.w800 : FontWeight.w600)
+                    .copyWith(color: colors.ink),
               ),
             ],
           ),

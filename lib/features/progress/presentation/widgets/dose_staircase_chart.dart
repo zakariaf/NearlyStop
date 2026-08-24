@@ -13,6 +13,7 @@ import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_elevation.dart';
 import 'package:nearlystop/theme/daybreak_script.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// The dose over time, as a chart or — above 1.5× — as a list.
 ///
@@ -104,13 +105,14 @@ class DoseStaircaseChart extends StatelessWidget {
             // Cased by the ARB, never by `.toUpperCase()`: Dart's casing is
             // locale-blind and the decision belongs to a translator.
             perso ? l10n.chartOverline : l10n.chartOverlineCaps,
-            style: text.labelSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: colors.inkMuted,
-              letterSpacing: perso
-                  ? 0
-                  : (text.labelSmall?.fontSize ?? 12) * 0.09,
-            ),
+            style: text.labelSmall
+                ?.atWeight(FontWeight.w800)
+                .copyWith(
+                  color: colors.inkMuted,
+                  letterSpacing: perso
+                      ? 0
+                      : (text.labelSmall?.fontSize ?? 12) * 0.09,
+                ),
           ),
           SizedBox(height: shapes.s3),
           if (asList)

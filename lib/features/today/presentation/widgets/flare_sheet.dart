@@ -8,6 +8,7 @@ import 'package:nearlystop/features/today/presentation/today_view_state.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// Asks which earlier dose to revert to, and returns it — or null.
 ///
@@ -69,10 +70,9 @@ class _FlarePicker extends StatelessWidget {
       children: <Widget>[
         Text(
           l10n.flarePickDose,
-          style: text.labelLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: colors.ink,
-          ),
+          style: text.labelLarge
+              ?.atWeight(FontWeight.w800)
+              .copyWith(color: colors.ink),
         ),
         SizedBox(height: shapes.s2),
         ValueListenableBuilder<Milligrams>(
@@ -172,10 +172,9 @@ class FlareCandidateTile extends StatelessWidget {
                 Expanded(
                   child: Text(
                     candidate.label,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                      color: colors.ink,
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium
+                        ?.atWeight(selected ? FontWeight.w800 : FontWeight.w600)
+                        .copyWith(color: colors.ink),
                   ),
                 ),
               ],

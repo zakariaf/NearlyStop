@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// What a screen shows before there is a plan.
 ///
@@ -84,10 +85,9 @@ class TaperEmptyState extends StatelessWidget {
           Text(
             heading,
             textAlign: TextAlign.center,
-            style: text.titleLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: colors.ink,
-            ),
+            style: text.titleLarge
+                ?.atWeight(FontWeight.w800)
+                .copyWith(color: colors.ink),
           ),
           SizedBox(height: shapes.s3),
           Text(

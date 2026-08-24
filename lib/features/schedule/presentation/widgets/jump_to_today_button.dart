@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_elevation.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// A small pill that appears only while today is off screen.
 ///
@@ -64,10 +65,9 @@ class JumpToTodayButton extends StatelessWidget {
                 SizedBox(width: shapes.s2),
                 Text(
                   label,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: colors.primaryDeep,
-                  ),
+                  style: Theme.of(context).textTheme.labelLarge
+                      ?.atWeight(FontWeight.w800)
+                      .copyWith(color: colors.primaryDeep),
                 ),
               ],
             ),

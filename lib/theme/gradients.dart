@@ -24,6 +24,18 @@ library;
 import 'package:flutter/painting.dart';
 import 'package:nearlystop/theme/primitives.dart';
 
+/// The wash gradient's cream, `#FFF7EE`.
+///
+/// Named here rather than in `Primitives` because its CIE L\* rounds to 98 and
+/// `clay98` is already `#FFF9F2` — two different colours cannot share a name
+/// whose whole job is to say how far apart they are. This file is the one the
+/// primitive pool defers to for a stop it does not name.
+///
+/// It stopped being gradient-only when the hero card's rings started stroking
+/// it: `design/daybreak-screens.html` uses the same value for both, so they
+/// read it from the same place.
+const Color kWashCream = Color(0xFFFFF7EE);
+
 /// The Daybreak gradients.
 ///
 /// Stops that appear **only** inside a gradient stay inline here and get no
@@ -81,7 +93,7 @@ abstract final class DaybreakGradients {
   static const LinearGradient washLight = LinearGradient(
     begin: AlignmentDirectional.topCenter,
     end: AlignmentDirectional.bottomCenter,
-    colors: <Color>[Color(0xFFFFF7EE), Primitives.clay100],
+    colors: <Color>[kWashCream, Primitives.clay100],
   );
 
   /// The page wash (dark).

@@ -1,12 +1,10 @@
 /// The Today screen's reason to exist.
 library;
 
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
 import 'package:nearlystop/features/today/presentation/widgets/new_dose_badge.dart';
-import 'package:nearlystop/features/today/presentation/widgets/sunrise_arc_painter.dart';
+import 'package:nearlystop/features/today/presentation/widgets/sunrise_rings_painter.dart';
 import 'package:nearlystop/features/today/presentation/widgets/tablet_breakdown_pill.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_elevation.dart';
@@ -25,7 +23,9 @@ import 'package:nearlystop/theme/daybreak_typography.dart';
 /// `ellipsis`. Shrinking the one number the patient reads every morning turns a
 /// loud layout failure into a quietly wrong dose on a phone, and this audience
 /// will not notice the difference. If it does not fit, the layout degrades
-/// around it — see [_arcVisibleAtOrBelow].
+/// around it: the unit drops below the numeral, then the caption takes a
+/// second line. The rings never degrade, because they are painted BEHIND the
+/// content and take no layout — there is nothing for them to give back.
 class DoseHeroCard extends StatelessWidget {
   /// Creates the card from pre-formatted text.
   const DoseHeroCard({
@@ -96,30 +96,12 @@ class DoseHeroCard extends StatelessWidget {
   /// Reverses the tick. What the action does once [isTaken].
   final VoidCallback onUndo;
 
-  /// ABOVE this text scale the decorative arc is dropped.
-  ///
-  /// First rung of the degradation order: arc → amount/unit stack → the
-  /// caption's second line. Decoration goes before content, always.
-  ///
-  /// "Above", so the arc is still there AT 1.6 and gone at 1.61. The
-  /// comparison was `<` and dropped it at exactly 1.6 — an off-by-one at the
-  /// boundary that only a test asserting BOTH sides can see.
-  static const double _arcVisibleAtOrBelow = 1.6;
-
-  /// Above this, the amount and unit stack.
-  ///
-  /// 1.3, not 1.6: the numeral is `displayLarge` and the unit is `titleLarge`,
-  /// so the pair runs out of width well before the arc becomes the problem.
-  /// The rungs fire in the order the ladder declares them.
-  static const double _columnAbove = 1.3;
-
   @override
   Widget build(BuildContext context) {
     final colors = DaybreakColors.of(context);
     final shapes = DaybreakShapes.of(context);
     final elevation = DaybreakElevation.of(context);
     final type = DaybreakTypography.of(context);
-    final scale = MediaQuery.textScalerOf(context).scale(1);
 
     return Semantics(
       container: true,
@@ -133,81 +115,78 @@ class DoseHeroCard extends StatelessWidget {
           // `glow` is reserved for this card. One sunrise per screen.
           boxShadow: elevation.glow,
         ),
-        child: Padding(
-          padding: EdgeInsetsDirectional.all(shapes.s5),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+        // `overflow: hidden` on `.hero`. The rings are drawn full-size and
+        // CUT OFF by the card — that clipping is the effect, not a side
+        // effect: uncut they read as a target, cut they read as ripples.
+        child: ClipRRect(
+          borderRadius: BorderRadius.all(Radius.circular(shapes.radiusLg)),
+          child: Stack(
             children: <Widget>[
-              // Only the VISUAL content is excluded. The action stays outside
-              // the exclusion and keeps its own node: swallowing it too would
-              // leave a screen-reader user with a card they can hear and no
-              // way to record the dose — the one thing the screen is for.
-              ExcludeSemantics(
+              // Behind everything and outside the layout, exactly as
+              // `position: absolute` puts it. A `CustomPaint` with no child
+              // and no `semanticsBuilder` contributes no semantics node, so
+              // there is nothing here for a screen reader to trip over.
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: SunriseRingsPainter(
+                    textDirection: Directionality.of(context),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsetsDirectional.all(shapes.s5),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    _Header(
-                      dayKindLabel: dayKindLabel,
-                      isNewDoseDay: isNewDoseDay,
-                      colors: colors,
-                      shapes: shapes,
-                    ),
-                    SizedBox(height: shapes.s4),
-                    // The two rungs are INDEPENDENT. The amount/unit pair
-                    // stacks above 1.3 and the arc drops above 1.6, so between
-                    // those two the layout is a column that STILL has its arc
-                    // — which it cannot be if the arc only exists inside the
-                    // row branch. It did, and the arc vanished at 1.31.
-                    if (scale > _columnAbove) ...<Widget>[
-                      _Numerals(
-                        doseText: doseText,
-                        unitText: unitText,
-                        colors: colors,
-                        type: type,
-                      ),
-                      if (scale <= _arcVisibleAtOrBelow) ...<Widget>[
-                        SizedBox(height: shapes.s2),
-                        _Arc(colors: colors, shapes: shapes),
-                      ],
-                    ] else
-                      Row(
+                    // Only the VISUAL content is excluded. The action stays
+                    // outside the exclusion and keeps its own node: swallowing
+                    // it too would leave a screen-reader user with a card they
+                    // can hear and no way to record the dose — the one thing
+                    // the screen is for.
+                    ExcludeSemantics(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
+                          _Header(
+                            dayKindLabel: dayKindLabel,
+                            isNewDoseDay: isNewDoseDay,
+                            colors: colors,
+                            shapes: shapes,
+                          ),
+                          SizedBox(height: shapes.s4),
                           _Numerals(
                             doseText: doseText,
                             unitText: unitText,
                             colors: colors,
                             type: type,
                           ),
-                          if (scale <= _arcVisibleAtOrBelow) ...<Widget>[
-                            SizedBox(width: shapes.s4),
-                            Expanded(
-                              child: _Arc(colors: colors, shapes: shapes),
-                            ),
-                          ],
+                          SizedBox(height: shapes.s3),
+                          if (tabletsText case final tablets?)
+                            TabletBreakdownPill(text: tablets)
+                          else
+                            _UnachievableStrip(message: unachievableMessage!),
                         ],
                       ),
-                    SizedBox(height: shapes.s3),
-                    if (tabletsText case final tablets?)
-                      TabletBreakdownPill(text: tablets)
-                    else
-                      _UnachievableStrip(message: unachievableMessage!),
+                    ),
+                    SizedBox(height: shapes.s4),
+                    // `liveRegion` on the wrapper only: the confirmation is
+                    // spoken when the state flips, while the button keeps its
+                    // own node so a screen reader still has something named to
+                    // activate.
+                    Semantics(
+                      liveRegion: isTaken,
+                      child: TakenButton(
+                        label: takenLabel,
+                        // Once taken, the action UNDOES. It never becomes
+                        // dead: a reader who ticked the wrong day needs a way
+                        // back, and it is the same target their thumb already
+                        // found.
+                        onPressed: isTaken ? onUndo : onTaken,
+                      ),
+                    ),
                   ],
-                ),
-              ),
-              SizedBox(height: shapes.s4),
-              // `liveRegion` on the wrapper only: the confirmation is spoken
-              // when the state flips, while the button keeps its own node so a
-              // screen reader still has something named to activate.
-              Semantics(
-                liveRegion: isTaken,
-                child: TakenButton(
-                  label: takenLabel,
-                  // Once taken, the action UNDOES. It never becomes dead: a
-                  // reader who ticked the wrong day needs a way back, and it
-                  // is the same 88pt target their thumb already found.
-                  onPressed: isTaken ? onUndo : onTaken,
                 ),
               ),
             ],
@@ -286,9 +265,7 @@ class _Numerals extends StatelessWidget {
     );
     final unit = Text(
       unitText,
-      style: Theme.of(
-        context,
-      ).textTheme.titleLarge?.copyWith(color: colors.onPrimary),
+      style: type.doseUnit.copyWith(color: colors.onPrimary),
     );
 
     if (MediaQuery.textScalerOf(context).scale(1) > _stackUnitAbove) {
@@ -305,28 +282,6 @@ class _Numerals extends StatelessWidget {
       children: <Widget>[numeral, unit],
     );
   }
-}
-
-class _Arc extends StatelessWidget {
-  const _Arc({required this.colors, required this.shapes});
-
-  final DaybreakColors colors;
-  final DaybreakShapes shapes;
-
-  @override
-  Widget build(BuildContext context) => ExcludeSemantics(
-    child: SizedBox(
-      height: shapes.s9,
-      child: CustomPaint(
-        painter: SunriseArcPainter(
-          arcColor: colors.onPrimary,
-          strokeWidth: shapes.hairlineWidth * 3,
-          sweep: math.pi,
-          progress: 1,
-        ),
-      ),
-    ),
-  );
 }
 
 /// The strip that REPLACES the tablet pill when the dose cannot be made.

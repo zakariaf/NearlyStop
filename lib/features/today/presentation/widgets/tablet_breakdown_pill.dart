@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// "1 × 5mg · 4 × 1mg" — what to actually count out of the box.
 ///
@@ -46,10 +47,10 @@ class TabletBreakdownPill extends StatelessWidget {
           Flexible(
             child: Text(
               text,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: colors.ink,
-              ),
+              // `.hero .tablets`: --fs-body 17, weight 700.
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.atWeight(FontWeight.w700)
+                  .copyWith(color: colors.ink),
             ),
           ),
         ],

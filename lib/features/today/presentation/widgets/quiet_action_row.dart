@@ -6,6 +6,7 @@ import 'package:nearlystop/features/shared/presentation/widgets/daybreak_tappabl
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_elevation.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// The three actions that are not Taken.
 ///
@@ -180,10 +181,9 @@ class QuietActionTile extends StatelessWidget {
             Text(
               label,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: enabled ? colors.inkMuted : colors.inkFaint,
-              ),
+              style: Theme.of(context).textTheme.labelLarge
+                  ?.atWeight(FontWeight.w700)
+                  .copyWith(color: enabled ? colors.inkMuted : colors.inkFaint),
             ),
           ],
         ),

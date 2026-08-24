@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_elevation.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// "Wednesday 16 April" above "Today", with the note button trailing.
 ///
@@ -57,19 +58,23 @@ class TodayDateHeader extends StatelessWidget {
             children: <Widget>[
               Text(
                 dateLine,
-                style: text.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: colors.inkMuted,
-                ),
+                // `.datestamp { font-size: var(--fs-body); font-weight: 700 }`
+                // — body 17, not bodyLarge 20.
+                style: text.bodyMedium
+                    ?.atWeight(FontWeight.w700)
+                    .copyWith(color: colors.inkMuted),
               ),
               Semantics(
                 header: true,
                 child: Text(
                   title,
-                  style: text.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: colors.ink,
-                  ),
+                  // `.appbar h2 { font-size: var(--fs-title) }` — the page
+                  // heading is 34. It was `titleLarge` at 24, which is the
+                  // SECTION heading, and the screen read as a subsection of
+                  // something that was not there.
+                  style: text.headlineLarge
+                      ?.atWeight(FontWeight.w800)
+                      .copyWith(color: colors.ink),
                 ),
               ),
             ],
