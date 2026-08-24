@@ -109,6 +109,7 @@ TaperPlanDraft seededDraft({
 Future<int> seedPlan(
   AppDatabase db, {
   String uid = 'plan-1',
+  String drugName = 'Prednisolone',
   DateTime? createdAt,
   LocalDate startDate = const LocalDate(2026, 4, 1),
   Milligrams? startingDose,
@@ -119,6 +120,7 @@ Future<int> seedPlan(
 }) => db.planDao.insertPlan(
   TaperPlansCompanion.insert(
     uid: uid,
+    drugName: Value<String>(drugName),
     startDate: startDate,
     startingDose: startingDose ?? mg(10),
     targetDose: targetDose,
