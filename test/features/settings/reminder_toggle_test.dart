@@ -3,41 +3,36 @@
 // This is EPIC-12's acceptance gate. Everything else in the epic is asserted
 // in pieces; this is the one test that says the pieces compose — toggle on,
 // pick a time, and exactly one repeating notification is armed at that minute.
-import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:nearlystop/app/locale_providers.dart';
 import 'package:nearlystop/core/result.dart';
 import 'package:nearlystop/core/settings/app_settings.dart';
 import 'package:nearlystop/data/storage_failure.dart';
 import 'package:nearlystop/features/settings/application/settings_controller.dart';
 import 'package:nearlystop/features/settings/presentation/settings_screen.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
-import 'package:nearlystop/providers.dart';
 import 'package:nearlystop/services/notifications/fake_notification_gateway.dart';
 import 'package:nearlystop/services/notifications/notification_gateway.dart';
 import 'package:nearlystop/services/notifications/notification_providers.dart';
 import 'package:nearlystop/services/notifications/reconcile_triggers.dart';
 import 'package:riverpod/misc.dart' show Override;
-import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../fixtures/seeded_plan.dart';
 import '../../support/harness.dart';
+import '../../support/notification_harness.dart';
 
 void main() {
   setUpAll(() async {
     await initializeDateFormatting();
-    tzdata.initializeTimeZones();
+    initializeTestTimeZones();
   });
 
-  late tz.Location berlin;
   late FakeNotificationGateway gateway;
 
   setUp(() {
-    berlin = tz.getLocation('Europe/Berlin');
     gateway = FakeNotificationGateway();
   });
 
@@ -61,12 +56,7 @@ void main() {
         taperFactsReaderProvider.overrideWithValue(
           () async => seededSnapshot(),
         ),
-        notificationGatewayProvider.overrideWithValue(gateway),
-        notificationZoneProvider.overrideWithValue(berlin),
-        clockProvider.overrideWithValue(
-          Clock.fixed(DateTime.utc(2025, 4, 16, 5)),
-        ),
-        resolvedLocaleProvider.overrideWithValue(const Locale('en')),
+        ...notificationOverrides(gateway: gateway),
       ],
       surfaceSize: const Size(390, 1400),
     );
@@ -101,7 +91,7 @@ void main() {
 
     expect(gateway.pending, hasLength(1));
     final armed = gateway.pending.single;
-    expect(armed.fireAt, tz.TZDateTime(berlin, 2025, 4, 16, 8));
+    expect(armed.fireAt, tz.TZDateTime(testZone, 2025, 4, 16, 8));
     expect(armed.repeatsDaily, isTrue);
     expect(armed.title, l10n.reminderTitle);
     expect(armed.body, l10n.reminderBody);

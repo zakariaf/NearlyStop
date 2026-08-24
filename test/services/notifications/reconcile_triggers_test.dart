@@ -8,34 +8,25 @@
 // happens to work.
 import 'dart:io';
 
-import 'package:clock/clock.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nearlystop/app/locale_providers.dart';
 import 'package:nearlystop/core/settings/app_settings.dart';
 import 'package:nearlystop/data/providers.dart';
 import 'package:nearlystop/features/settings/application/settings_controller.dart';
 import 'package:nearlystop/services/notifications/fake_notification_gateway.dart';
 import 'package:nearlystop/services/notifications/notification_gateway.dart';
-import 'package:nearlystop/services/notifications/notification_providers.dart';
 import 'package:nearlystop/services/notifications/reconcile_triggers.dart';
 import 'package:nearlystop/services/notifications/sync_notifications.dart';
 import 'package:riverpod/misc.dart' show Override;
-import 'package:timezone/data/latest_all.dart' as tzdata;
-import 'package:timezone/timezone.dart' as tz;
 
 import '../../fixtures/seeded_plan.dart';
 import '../../support/db_harness.dart';
 import '../../support/harness.dart';
+import '../../support/notification_harness.dart';
 
 void main() {
-  late tz.Location berlin;
-
-  setUpAll(() {
-    tzdata.initializeTimeZones();
-    berlin = tz.getLocation('Europe/Berlin');
-  });
+  setUpAll(initializeTestTimeZones);
 
   late FakeNotificationGateway gateway;
   late AppDatabaseHolder holder;
@@ -54,12 +45,7 @@ void main() {
       overrides: <Override>[
         ...launchOverrides(settings: AppSettings.defaults),
         databaseProvider.overrideWithValue(holder.database),
-        notificationGatewayProvider.overrideWithValue(gateway),
-        notificationZoneProvider.overrideWithValue(berlin),
-        clockProvider.overrideWithValue(
-          Clock.fixed(DateTime.utc(2025, 4, 16, 5)),
-        ),
-        resolvedLocaleProvider.overrideWithValue(locale),
+        ...notificationOverrides(gateway: gateway, locale: locale),
       ],
     );
     addTearDown(container.dispose);

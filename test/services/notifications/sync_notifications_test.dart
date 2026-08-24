@@ -6,11 +6,9 @@
 // cancelled and re-armed everything, and the difference is a window in which a
 // process death leaves the reader with no alarm at all.
 
-import 'package:clock/clock.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nearlystop/app/locale_providers.dart';
 import 'package:nearlystop/core/dsns/facts.dart';
 import 'package:nearlystop/core/notifications/reminder_scheduler.dart';
 import 'package:nearlystop/core/result.dart';
@@ -25,20 +23,15 @@ import 'package:nearlystop/services/notifications/fake_notification_gateway.dart
 import 'package:nearlystop/services/notifications/notification_providers.dart';
 import 'package:nearlystop/services/notifications/sync_notifications.dart';
 import 'package:riverpod/misc.dart' show Override;
-import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../fixtures/seeded_plan.dart';
 import '../../support/db_harness.dart';
 import '../../support/harness.dart';
+import '../../support/notification_harness.dart';
 
 void main() {
-  late tz.Location berlin;
-
-  setUpAll(() {
-    tzdata.initializeTimeZones();
-    berlin = tz.getLocation('Europe/Berlin');
-  });
+  setUpAll(initializeTestTimeZones);
 
   late FakeNotificationGateway gateway;
 
@@ -67,12 +60,11 @@ void main() {
     final container = ProviderContainer(
       overrides: <Override>[
         databaseProvider.overrideWithValue(holder.database),
-        notificationGatewayProvider.overrideWithValue(gateway),
-        notificationZoneProvider.overrideWithValue(berlin),
-        clockProvider.overrideWithValue(
-          Clock.fixed(now ?? DateTime.utc(2025, 4, 16, 5)),
+        ...notificationOverrides(
+          gateway: gateway,
+          now: now,
+          locale: locale,
         ),
-        resolvedLocaleProvider.overrideWithValue(locale),
         settingsControllerProvider.overrideWith(
           () => FixedSettingsController.of(
             AppSettings.defaults.copyWith(
@@ -109,7 +101,7 @@ void main() {
     final desired = ReminderScheduler.compute(
       settings: container.read(settingsControllerProvider),
       taperActive: taperActive(facts),
-      zone: berlin,
+      zone: testZone,
       clock: container.read(clockProvider),
       copy: container.read(notificationCopyProvider),
     );
@@ -130,7 +122,7 @@ void main() {
     expect(gateway.cancelCount, 0);
     expect(
       gateway.pending.single.fireAt,
-      tz.TZDateTime(berlin, 2025, 4, 16, 8),
+      tz.TZDateTime(testZone, 2025, 4, 16, 8),
     );
     expect(gateway.pending.single.repeatsDaily, isTrue);
     await expectConverged(container);
@@ -288,7 +280,7 @@ void main() {
     await gateway.schedule(
       ScheduledNotification(
         id: 424242,
-        fireAt: tz.TZDateTime(berlin, 2025, 4, 16, 9),
+        fireAt: tz.TZDateTime(testZone, 2025, 4, 16, 9),
         title: 'from another phone',
         body: 'b',
         payload: kTodayPayload,

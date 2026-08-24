@@ -10,6 +10,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:nearlystop/app/app.dart';
+import 'package:nearlystop/app/app_lifecycle.dart';
 import 'package:nearlystop/app/day_ticker.dart';
 import 'package:nearlystop/core/diagnostics/crash_sink.dart';
 import 'package:nearlystop/core/result.dart';
@@ -21,10 +22,12 @@ import 'package:nearlystop/data/providers.dart';
 import 'package:nearlystop/data/settings_repository.dart';
 import 'package:nearlystop/data/storage_failure.dart';
 import 'package:nearlystop/providers.dart';
+import 'package:nearlystop/routing/app_router.dart';
 import 'package:nearlystop/services/notifications/fln_notification_gateway.dart';
 import 'package:nearlystop/services/notifications/notification_gateway.dart';
 import 'package:nearlystop/services/notifications/notification_providers.dart';
 import 'package:nearlystop/services/notifications/notification_startup.dart';
+import 'package:nearlystop/services/notifications/notification_tap.dart';
 import 'package:nearlystop/services/notifications/reconcile_triggers.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod/misc.dart' show Override;
@@ -98,8 +101,25 @@ void Function() installCrashSink(CrashSink sink) {
   };
 }
 
-/// The default tap handler: the router is not built yet at `startUp` time.
-void _ignoreTap(String? payload) {}
+/// A one-slot box, so the tap handler can be built before the container is.
+class _Holder<T> {
+  T? value;
+}
+
+/// Sends a tapped notification to the route its payload names.
+///
+/// **Through the router the app already has**, not a global navigator key: the
+/// container owns the router, and reading it from a holder keeps the single
+/// composition root single.
+///
+/// An unknown payload goes NOWHERE. A notification restored from a backup or
+/// armed by an older build can carry one this version has never heard of, and
+/// navigating on a guess is worse than leaving the reader where they were.
+void _openTappedRoute(_Holder<ProviderContainer> holder, String? payload) {
+  final route = payloadToRoute(payload);
+  if (route == null) return;
+  holder.value?.read(routerProvider).go(route);
+}
 
 /// Builds the app's infrastructure and runs it.
 ///
@@ -134,6 +154,7 @@ Future<void> bootstrap() async {
   // `package:timezone` defaults to UTC; a reminder scheduled before this ran
   // fires at the wrong local hour, and nothing anywhere reports it.
   await initializeNotificationTimeZone();
+  final containerHolder = _Holder<ProviderContainer>();
   final launched = await startUp(
     location: appDocumentsDatabaseFile,
     diagnosticsDirectory: diagnosticsDirectory,
@@ -141,8 +162,15 @@ Future<void> bootstrap() async {
     // platform channel, and under `flutter_test`'s binding it never answers —
     // so building it inside the seam would hang every widget test that drives
     // the launch order, which is most of what the seam exists for.
-    notificationGateway: await createNotificationGateway(onTap: _ignoreTap),
+    //
+    // The tap handler closes over `container`, which does not exist yet — so
+    // it reads it out of a late holder. The alternative is a global navigator
+    // key, which is the thing this project does not do.
+    notificationGateway: await createNotificationGateway(
+      onTap: (payload) => _openTappedRoute(containerHolder, payload),
+    ),
   );
+  containerHolder.value = launched.container;
   runApp(
     UncontrolledProviderScope(
       container: launched.container,
@@ -159,7 +187,12 @@ Future<void> bootstrap() async {
   // widget's `initState`. The first reconcile runs here, on every launch —
   // with no server there is no other way to discover a reminder the OS
   // dropped while the app was closed.
+  // The first reconcile, and the observer that runs every later one. Reading
+  // the triggers provider is also what registers the settings and locale
+  // listeners — they are created in its body, because `Ref.listen` is only
+  // valid there.
   unawaited(launched.container.read(reconcileTriggersProvider).onResume());
+  launched.container.read(notificationLifecycleProvider);
 }
 
 /// Everything [bootstrap] does **except** `runApp`.
