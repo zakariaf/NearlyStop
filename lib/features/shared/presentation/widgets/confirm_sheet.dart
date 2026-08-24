@@ -6,6 +6,7 @@ import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_sheet.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// How a [ConfirmSheet] ended.
 ///
@@ -176,10 +177,9 @@ class _ConfirmSheetState extends State<ConfirmSheet> {
                   focusNode: _title,
                   child: Text(
                     request.title,
-                    style: text.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: colors.ink,
-                    ),
+                    style: text.titleLarge
+                        ?.atWeight(FontWeight.w800)
+                        .copyWith(color: colors.ink),
                   ),
                 ),
                 SizedBox(height: shapes.s3),

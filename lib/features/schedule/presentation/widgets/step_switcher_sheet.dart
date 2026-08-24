@@ -10,6 +10,7 @@ import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_elevation.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// The app-bar control that opens the step switcher.
 ///
@@ -137,10 +138,9 @@ class StepSwitcherSheet extends StatelessWidget {
       children: <Widget>[
         Text(
           title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: colors.ink,
-          ),
+          style: Theme.of(context).textTheme.titleMedium
+              ?.atWeight(FontWeight.w800)
+              .copyWith(color: colors.ink),
         ),
         SizedBox(height: shapes.s2),
         Text(
@@ -295,10 +295,9 @@ class StepPane extends StatelessWidget {
           children: <Widget>[
             Text(
               title,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: colors.inkMuted,
-              ),
+              style: Theme.of(context).textTheme.titleSmall
+                  ?.atWeight(FontWeight.w800)
+                  .copyWith(color: colors.inkMuted),
             ),
             SizedBox(height: shapes.s3),
             for (final option in options)
@@ -328,10 +327,9 @@ class _StepLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
     option.label,
-    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-      fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w700,
-      color: DaybreakColors.of(context).ink,
-    ),
+    style: Theme.of(context).textTheme.bodyLarge
+        ?.atWeight(isCurrent ? FontWeight.w800 : FontWeight.w700)
+        .copyWith(color: DaybreakColors.of(context).ink),
   );
 }
 
@@ -353,10 +351,9 @@ class _CompletedMarker extends StatelessWidget {
         Flexible(
           child: Text(
             label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: colors.success,
-            ),
+            style: Theme.of(context).textTheme.labelMedium
+                ?.atWeight(FontWeight.w700)
+                .copyWith(color: colors.success),
           ),
         ),
       ],

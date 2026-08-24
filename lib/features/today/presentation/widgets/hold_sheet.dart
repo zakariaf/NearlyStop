@@ -7,6 +7,7 @@ import 'package:nearlystop/features/today/presentation/today_view_state.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// Asks how many extra days, and returns the number — or null.
 ///
@@ -69,10 +70,9 @@ class _HoldPicker extends StatelessWidget {
         children: <Widget>[
           Text(
             l10n.holdExtraDays,
-            style: text.labelLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: colors.ink,
-            ),
+            style: text.labelLarge
+                ?.atWeight(FontWeight.w800)
+                .copyWith(color: colors.ink),
           ),
           SizedBox(height: shapes.s2),
           Row(
@@ -89,10 +89,9 @@ class _HoldPicker extends StatelessWidget {
               ),
               Text(
                 '$value',
-                style: text.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: colors.ink,
-                ),
+                style: text.headlineSmall
+                    ?.atWeight(FontWeight.w800)
+                    .copyWith(color: colors.ink),
               ),
               HoldStepperButton(
                 key: HoldStepperButton.incrementKey,

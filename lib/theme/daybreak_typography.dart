@@ -16,6 +16,7 @@ class DaybreakTypography extends ThemeExtension<DaybreakTypography> {
   /// Creates the role set.
   const DaybreakTypography({
     required this.doseNumeral,
+    required this.doseUnit,
     required this.overline,
     required this.dayStateChip,
   });
@@ -25,6 +26,19 @@ class DaybreakTypography extends ThemeExtension<DaybreakTypography> {
   /// The display role plus [FontFeature.tabularFigures]: 9 → 10 must not shift
   /// the number the user reads every morning for 780 days.
   final TextStyle doseNumeral;
+
+  /// The `mg` beside the hero dose number.
+  ///
+  /// **28 / weight 700 / -0.01em, off the seven-step scale on purpose.** The
+  /// reference sets it explicitly (`.hero .dose .unit`), because the unit has
+  /// to read as a unit rather than as a second number: at the scale's 24 it
+  /// competes with the numeral, and at 34 it stops being subordinate to it.
+  /// Persian steps down to 24 for the same reason [doseNumeral] steps down to
+  /// 58 — Vazirmatn carries more ink at the same point size.
+  ///
+  /// Derived from [doseNumeral] rather than from a `TextTheme` slot so it
+  /// inherits the sealed `inherit: false` and the 1.05 height the pair shares.
+  final TextStyle doseUnit;
 
   /// The block-header kicker and the day-state chip's label.
   ///
@@ -50,11 +64,13 @@ class DaybreakTypography extends ThemeExtension<DaybreakTypography> {
   @override
   DaybreakTypography copyWith({
     TextStyle? doseNumeral,
+    TextStyle? doseUnit,
     TextStyle? overline,
     TextStyle? dayStateChip,
   }) {
     return DaybreakTypography(
       doseNumeral: doseNumeral ?? this.doseNumeral,
+      doseUnit: doseUnit ?? this.doseUnit,
       overline: overline ?? this.overline,
       dayStateChip: dayStateChip ?? this.dayStateChip,
     );
@@ -70,6 +86,7 @@ class DaybreakTypography extends ThemeExtension<DaybreakTypography> {
     if (t >= 1) return other;
     return DaybreakTypography(
       doseNumeral: TextStyle.lerp(doseNumeral, other.doseNumeral, t)!,
+      doseUnit: TextStyle.lerp(doseUnit, other.doseUnit, t)!,
       overline: TextStyle.lerp(overline, other.overline, t)!,
       dayStateChip: TextStyle.lerp(dayStateChip, other.dayStateChip, t)!,
     );
@@ -82,6 +99,7 @@ class DaybreakTypography extends ThemeExtension<DaybreakTypography> {
   /// dependent rebuilds on a theme that did not change.
   List<Object?> get _props => <Object?>[
     doseNumeral,
+    doseUnit,
     overline,
     dayStateChip,
   ];
@@ -142,6 +160,17 @@ DaybreakTypography daybreakTypography({
     // the numeral is drawn the same way wherever it is mounted.
     doseNumeral: text.displayLarge!.copyWith(
       fontFeatures: tabular,
+      inherit: false,
+      decoration: TextDecoration.none,
+    ),
+    // 28 in Latin, 24 in Perso-Arabic. `fontVariations` has to move with the
+    // weight: on a VARIABLE face `fontWeight` alone selects nothing, and the
+    // unit would render at the numeral's 800 while claiming 700.
+    doseUnit: text.displayLarge!.copyWith(
+      fontSize: isPerso ? 24 : 28,
+      fontWeight: FontWeight.w700,
+      fontVariations: const <FontVariation>[FontVariation('wght', 700)],
+      letterSpacing: isPerso ? 0 : -0.01 * 28,
       inherit: false,
       decoration: TextDecoration.none,
     ),

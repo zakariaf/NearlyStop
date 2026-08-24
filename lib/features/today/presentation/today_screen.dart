@@ -22,6 +22,7 @@ import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/routing/routes.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// What to swallow today, and one button.
 ///
@@ -176,7 +177,6 @@ class _TodayBody extends ConsumerWidget {
     ];
 
     return _Scroller(
-      padding: padding,
       children: <Widget>[
         TodayDateHeader(
           dateLine: state.dateLine,
@@ -224,7 +224,6 @@ class _StepFinishedBody extends ConsumerWidget {
     final notifier = ref.read(todayViewProvider.notifier);
 
     return _Scroller(
-      padding: padding,
       children: <Widget>[
         TodayDateHeader(
           dateLine: state.dateLine,
@@ -257,10 +256,9 @@ class _StepFinishedBody extends ConsumerWidget {
         SizedBox(height: padding),
         Text(
           state.nextStepPreview,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: colors.ink,
-          ),
+          style: Theme.of(context).textTheme.titleMedium
+              ?.atWeight(FontWeight.w800)
+              .copyWith(color: colors.ink),
         ),
         SizedBox(height: padding),
         PrimaryPillButton(
@@ -279,20 +277,35 @@ class _StepFinishedBody extends ConsumerWidget {
 /// nothing to scroll, and a screen that springs under a finger reads as broken
 /// to someone who did not mean to drag it.
 class _Scroller extends StatelessWidget {
-  const _Scroller({required this.padding, required this.children});
+  const _Scroller({required this.children});
 
-  final double padding;
   final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-    physics: const ClampingScrollPhysics(),
-    padding: EdgeInsetsDirectional.all(padding),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: children,
-    ),
-  );
+  Widget build(BuildContext context) {
+    final shapes = DaybreakShapes.of(context);
+    return SingleChildScrollView(
+      physics: const ClampingScrollPhysics(),
+      // `.screenbody { padding: var(--s-2) var(--s-5) var(--s-6) }`.
+      //
+      // NOT `all(padding)`. `padding` is the s3 VERTICAL rhythm between
+      // sections — chosen at 12 rather than 16 so a hero, a context line, a
+      // banner and three tiles fit the ~720 the shell leaves — and spreading it
+      // to all four sides took the horizontal frame down with it. The card came
+      // out 366 wide against the reference's 350, which is most of what "the
+      // cards are bigger" was.
+      padding: EdgeInsetsDirectional.fromSTEB(
+        shapes.s5,
+        shapes.s2,
+        shapes.s5,
+        shapes.s6,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
+      ),
+    );
+  }
 }
 
 /// The loading state, sized like the thing it is standing in for.
@@ -347,10 +360,9 @@ class _FinishCard extends StatelessWidget {
           Text(
             title,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: colors.ink,
-            ),
+            style: Theme.of(context).textTheme.titleLarge
+                ?.atWeight(FontWeight.w800)
+                .copyWith(color: colors.ink),
           ),
           SizedBox(height: shapes.s3),
           Text(
@@ -532,10 +544,9 @@ class _NoteSheet extends StatelessWidget {
                 SizedBox(height: shapes.s4),
                 Text(
                   l10n.noteTitle,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: colors.ink,
-                  ),
+                  style: Theme.of(context).textTheme.titleLarge
+                      ?.atWeight(FontWeight.w800)
+                      .copyWith(color: colors.ink),
                 ),
                 SizedBox(height: shapes.s3),
                 TextField(

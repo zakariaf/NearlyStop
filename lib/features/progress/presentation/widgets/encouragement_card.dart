@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// How much lower the dose is than at the start — or, when it is not, a warm
 /// neutral line.
@@ -41,10 +42,9 @@ class EncouragementCard extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: colors.ink,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.atWeight(FontWeight.w700)
+                  .copyWith(color: colors.ink),
             ),
           ),
         ],

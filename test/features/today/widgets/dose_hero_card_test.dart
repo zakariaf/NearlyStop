@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
 import 'package:nearlystop/features/today/presentation/widgets/dose_hero_card.dart';
 import 'package:nearlystop/features/today/presentation/widgets/new_dose_badge.dart';
-import 'package:nearlystop/features/today/presentation/widgets/sunrise_arc_painter.dart';
+import 'package:nearlystop/features/today/presentation/widgets/sunrise_rings_painter.dart';
 import 'package:nearlystop/features/today/presentation/widgets/tablet_breakdown_pill.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_typography.dart';
@@ -126,32 +126,35 @@ void main() {
     expect(node.label, 'Taken');
   });
 
-  testWidgets('degradation drops the ARC first, then the row', (tester) async {
-    // Decoration goes before content, always. The arc carries no meaning; the
-    // numeral and the tablet line do.
-    await pumpCard(tester, textScaler: const TextScaler.linear(1.5));
-    expect(find.byType(SunriseArcPainter), findsNothing);
+  testWidgets('the rings are painted BEHIND the content, and clipped', (
+    tester,
+  ) async {
+    // `sunrise_rings_test.dart` owns the geometry. This owns the wiring, which
+    // is where the defect actually was: the decoration was an inline sibling
+    // of the numeral, so it took layout width, pushed the content around and
+    // had to be dropped at 1.6 to get the width back. As a clipped background
+    // it does none of that.
+    await pumpCard(tester);
+
+    final rings = find.byWidgetPredicate(
+      (widget) =>
+          widget is CustomPaint && widget.painter is SunriseRingsPainter,
+    );
+    expect(rings, findsOneWidget);
+
+    // Clipped by the card, not spilling past it — `overflow: hidden` on
+    // `.hero`. Without the clip the outer rings paint over the shadow and the
+    // corner radius stops reading as a corner.
     expect(
-      tester
-          .widgetList<CustomPaint>(find.byType(CustomPaint))
-          .any(
-            (paint) => paint.painter is SunriseArcPainter,
-          ),
-      isTrue,
-      reason: 'the arc is still drawn at 1.5',
+      find.ancestor(of: rings, matching: find.byType(ClipRRect)),
+      findsOneWidget,
     );
 
-    await pumpCard(tester, textScaler: const TextScaler.linear(1.7));
-
-    expect(
-      tester
-          .widgetList<CustomPaint>(find.byType(CustomPaint))
-          .any(
-            (paint) => paint.painter is SunriseArcPainter,
-          ),
-      isFalse,
-      reason: 'the arc is gone at 1.7',
-    );
+    // Behind: the rings fill the card, the content sits inside its padding.
+    final card = tester.getRect(find.byKey(DoseHeroCard.cardKey));
+    final painted = tester.getRect(rings);
+    expect(painted.width, moreOrLessEquals(card.width, epsilon: 2));
+    expect(painted.top, moreOrLessEquals(card.top, epsilon: 2));
   });
 
   testWidgets('the numeral NEVER shrinks, at any scale', (tester) async {

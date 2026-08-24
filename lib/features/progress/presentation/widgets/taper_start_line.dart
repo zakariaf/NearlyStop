@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// Where the taper began, as one sentence.
 class TaperStartLine extends StatelessWidget {
@@ -34,10 +35,9 @@ class TaperStartLine extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: colors.inkMuted,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.atWeight(FontWeight.w700)
+                  .copyWith(color: colors.inkMuted),
             ),
           ),
         ],

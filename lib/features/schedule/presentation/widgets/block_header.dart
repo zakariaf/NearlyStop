@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_elevation.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// One block's identity and pattern, as a sentence.
 ///
@@ -78,28 +79,28 @@ class BlockHeader extends StatelessWidget {
   /// `--fs-body` (17), from `.blockhead .bh-txt b`. It is a LABEL on a group,
   /// not a page heading: at `titleLarge` (24) the header stops reading as a
   /// divider and the sentence under it wraps to two lines at 390pt.
-  static TextStyle titleStyle(BuildContext context) =>
-      Theme.of(context).textTheme.bodyMedium!.copyWith(
-        fontWeight: FontWeight.w800,
-        color: DaybreakColors.of(context).ink,
-      );
+  static TextStyle titleStyle(BuildContext context) => Theme.of(context)
+      .textTheme
+      .bodyMedium!
+      .atWeight(FontWeight.w800)
+      .copyWith(color: DaybreakColors.of(context).ink);
 
   /// The summary's style, shared with the delegate's measurement.
   ///
   /// `ink`, not `inkMuted`: the reference sets `.bh-txt` to full `ink`, and
   /// this is the teaching sentence rather than a caption. `--fs-label` (15).
-  static TextStyle summaryStyle(BuildContext context) =>
-      Theme.of(context).textTheme.bodySmall!.copyWith(
-        fontWeight: FontWeight.w700,
-        color: DaybreakColors.of(context).ink,
-      );
+  static TextStyle summaryStyle(BuildContext context) => Theme.of(context)
+      .textTheme
+      .bodySmall!
+      .atWeight(FontWeight.w700)
+      .copyWith(color: DaybreakColors.of(context).ink);
 
   /// The completed word's style.
-  static TextStyle completedStyle(BuildContext context) =>
-      Theme.of(context).textTheme.labelLarge!.copyWith(
-        fontWeight: FontWeight.w800,
-        color: DaybreakColors.of(context).success,
-      );
+  static TextStyle completedStyle(BuildContext context) => Theme.of(context)
+      .textTheme
+      .labelLarge!
+      .atWeight(FontWeight.w800)
+      .copyWith(color: DaybreakColors.of(context).success);
 
   @override
   Widget build(BuildContext context) {

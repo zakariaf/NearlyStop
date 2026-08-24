@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_elevation.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// A number, what it is a number of, and what it counts.
 ///
@@ -69,23 +70,23 @@ class ProgressStatBlock extends StatelessWidget {
                     if (valueUnit case final unit?)
                       TextSpan(
                         text: unit,
-                        style: text.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: colors.inkMuted,
-                        ),
+                        style: text.bodyMedium
+                            ?.atWeight(FontWeight.w800)
+                            .copyWith(color: colors.inkMuted),
                       ),
                   ],
                 ),
-                style: text.headlineLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: colors.ink,
-                  // Tabular, so a column of figures does not jitter sideways
-                  // as the digits change — on the one screen whose whole job
-                  // is showing a number getting smaller.
-                  fontFeatures: const <FontFeature>[
-                    FontFeature.tabularFigures(),
-                  ],
-                ),
+                style: text.headlineLarge
+                    ?.atWeight(FontWeight.w800)
+                    .copyWith(
+                      color: colors.ink,
+                      // Tabular, so a column of figures does not jitter
+                      // sideways as the digits change — on the one screen
+                      // whose whole job is showing a number getting smaller.
+                      fontFeatures: const <FontFeature>[
+                        FontFeature.tabularFigures(),
+                      ],
+                    ),
               ),
               SizedBox(height: shapes.s1),
               Text(

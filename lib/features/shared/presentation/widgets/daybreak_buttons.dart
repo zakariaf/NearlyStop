@@ -8,6 +8,7 @@ import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_elevation.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// The shared body of every Daybreak button.
 ///
@@ -211,9 +212,9 @@ class PrimaryPillButton extends StatelessWidget {
       onPressed: onPressed,
       minHeight: minHeight,
       ink: colors.onPrimary,
-      textStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
-        fontWeight: FontWeight.w800,
-      ),
+      textStyle: Theme.of(
+        context,
+      ).textTheme.titleMedium!.atWeight(FontWeight.w800),
       gradient: colors.sunrise,
       expand: expand,
       glyph: glyph,
@@ -256,9 +257,9 @@ class SecondaryButton extends StatelessWidget {
       busy: busy,
       minHeight: minHeight,
       ink: colors.ink,
-      textStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
-        fontWeight: FontWeight.w700,
-      ),
+      textStyle: Theme.of(
+        context,
+      ).textTheme.titleMedium!.atWeight(FontWeight.w700),
       fill: colors.surface,
       borderColor: colors.borderStrong,
       borderWidth: 2,
@@ -293,7 +294,7 @@ class TertiaryButton extends StatelessWidget {
     ink: DaybreakColors.of(context).primaryDeep,
     textStyle: Theme.of(
       context,
-    ).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w700),
+    ).textTheme.titleMedium!.atWeight(FontWeight.w700),
   );
 }
 
@@ -365,9 +366,9 @@ class DestructiveButton extends StatelessWidget {
             },
       minHeight: minHeight,
       ink: colors.danger,
-      textStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
-        fontWeight: FontWeight.w800,
-      ),
+      textStyle: Theme.of(
+        context,
+      ).textTheme.titleMedium!.atWeight(FontWeight.w800),
       fill: colors.tintDanger,
       borderColor: colors.dangerFill,
       borderWidth: 1,
@@ -408,9 +409,13 @@ class TakenButton extends StatelessWidget {
       onPressed: onPressed,
       minHeight: minHeight,
       ink: colors.ink,
-      textStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
-        fontWeight: FontWeight.w800,
-      ),
+      // `.btn { font-size: var(--fs-body-lg) }` — 20, the same as every other
+      // rung of the ladder. The HEIGHT is this button's deviation; the label
+      // was never meant to be a second one, and at 24 it made the deviation
+      // look twice as large as it is.
+      textStyle: Theme.of(
+        context,
+      ).textTheme.bodyLarge!.atWeight(FontWeight.w800),
       fill: colors.surface,
       shadow: DaybreakElevation.of(context).level2,
       expand: true,

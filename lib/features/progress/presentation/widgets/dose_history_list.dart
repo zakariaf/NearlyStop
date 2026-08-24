@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// Every tread, flare and hold as a row, in date order.
 ///
@@ -36,10 +37,9 @@ class DoseHistoryList extends StatelessWidget {
           header: true,
           child: Text(
             title,
-            style: text.titleSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: colors.ink,
-            ),
+            style: text.titleSmall
+                ?.atWeight(FontWeight.w800)
+                .copyWith(color: colors.ink),
           ),
         ),
         SizedBox(height: shapes.s3),

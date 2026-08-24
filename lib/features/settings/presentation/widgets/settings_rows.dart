@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/glyph_tile.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// One settings row: a glyph, a title, a sublabel and a trailing control.
 ///
@@ -70,10 +71,9 @@ class SettingsRow extends StatelessWidget {
       children: <Widget>[
         Text(
           title,
-          style: text.bodyLarge?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: colors.ink,
-          ),
+          style: text.bodyLarge
+              ?.atWeight(FontWeight.w700)
+              .copyWith(color: colors.ink),
         ),
         if (sublabel case final value?)
           Text(

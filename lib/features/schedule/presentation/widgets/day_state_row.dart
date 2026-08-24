@@ -9,6 +9,7 @@ import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_elevation.dart';
 import 'package:nearlystop/theme/daybreak_script.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// One schedule row: a marker, the day, the dose, and the state as a word.
 ///
@@ -431,10 +432,9 @@ class _DayBlock extends StatelessWidget {
         Text(
           dayLabel,
           key: DayStateRow.dayLabelKey,
-          style: text.bodyLarge?.copyWith(
-            fontWeight: isToday ? FontWeight.w800 : FontWeight.w700,
-            color: colors.ink,
-          ),
+          style: text.bodyLarge
+              ?.atWeight(isToday ? FontWeight.w800 : FontWeight.w700)
+              .copyWith(color: colors.ink),
         ),
         // `.stab`: what you actually swallow that day, directly under the day
         // it belongs to. The trailing column carries the dose and the state,
@@ -442,18 +442,16 @@ class _DayBlock extends StatelessWidget {
         if (tabletsText case final tablets?)
           Text(
             tablets,
-            style: text.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: colors.inkMuted,
-            ),
+            style: text.bodySmall
+                ?.atWeight(FontWeight.w600)
+                .copyWith(color: colors.inkMuted),
           ),
         if (unachievableText case final flag?)
           Text(
             flag,
-            style: text.bodySmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: colors.warning,
-            ),
+            style: text.bodySmall
+                ?.atWeight(FontWeight.w700)
+                .copyWith(color: colors.warning),
           ),
         if (isHoldDay) ...<Widget>[
           SizedBox(height: shapes.s1),
@@ -513,10 +511,9 @@ class _DayEndBlock extends StatelessWidget {
         if (unachievableText == null)
           Text(
             doseText,
-            style: text.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: colors.ink,
-            ),
+            style: text.titleMedium
+                ?.atWeight(FontWeight.w800)
+                .copyWith(color: colors.ink),
           ),
         SizedBox(height: shapes.s1),
         _StateWord(
@@ -569,13 +566,14 @@ class _StateWord extends StatelessWidget {
             // translator's call. In Perso-Arabic the cased key is the same
             // word, because the script has no case.
             label,
-            style: style?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: color,
-              letterSpacing: perso
-                  ? 0
-                  : (style.fontSize ?? 14) * DayStateRow.stateTracking,
-            ),
+            style: style
+                ?.atWeight(FontWeight.w800)
+                .copyWith(
+                  color: color,
+                  letterSpacing: perso
+                      ? 0
+                      : (style.fontSize ?? 14) * DayStateRow.stateTracking,
+                ),
             textAlign: textAlign,
           ),
         ),
@@ -611,10 +609,9 @@ class _DayChannelChip extends StatelessWidget {
         Flexible(
           child: Text(
             label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
+            style: Theme.of(context).textTheme.labelMedium
+                ?.atWeight(FontWeight.w700)
+                .copyWith(color: color),
           ),
         ),
       ],

@@ -44,6 +44,7 @@ import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_script.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
 import 'package:nearlystop/theme/daybreak_theme.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// A write through EPIC-06's controller, with the message to show if it fails.
 typedef SettingsWrite =
@@ -234,10 +235,9 @@ class TextSizeRow extends ConsumerWidget {
                   children: <Widget>[
                     Text(
                       l10n.settingsTextSize,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: colors.ink,
-                      ),
+                      style: Theme.of(context).textTheme.bodyLarge
+                          ?.atWeight(FontWeight.w700)
+                          .copyWith(color: colors.ink),
                     ),
                     // The size name reads as this row's VALUE, so above the
                     // threshold it drops under the title rather than being
@@ -400,10 +400,9 @@ class LanguagePickerSheet extends StatelessWidget {
       children: <Widget>[
         Text(
           title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: colors.ink,
-          ),
+          style: Theme.of(context).textTheme.titleMedium
+              ?.atWeight(FontWeight.w800)
+              .copyWith(color: colors.ink),
         ),
         SizedBox(height: shapes.s3),
         for (final option in LanguageSelection.values)
@@ -477,10 +476,11 @@ class LanguageOptionTile extends StatelessWidget {
                     label,
                     // The option's OWN script's face, whatever the app is
                     // currently rendering in.
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w700,
-                      color: colors.ink,
-                    ),
+                    style: theme.textTheme.bodyLarge
+                        ?.atWeight(
+                          isCurrent ? FontWeight.w800 : FontWeight.w700,
+                        )
+                        .copyWith(color: colors.ink),
                     textDirection: script == DaybreakScript.perso
                         ? ui.TextDirection.rtl
                         : ui.TextDirection.ltr,

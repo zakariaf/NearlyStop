@@ -20,6 +20,7 @@ import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/l10n/number_formats.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// Drug, current dose, target.
 class PlanSummaryCard extends StatelessWidget {
@@ -160,10 +161,9 @@ class _PlanStrengthsCardState extends State<PlanStrengthsCard> {
                 children: <Widget>[
                   Text(
                     l10n.planAllowHalves,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: colors.ink,
-                    ),
+                    style: Theme.of(context).textTheme.bodyLarge
+                        ?.atWeight(FontWeight.w700)
+                        .copyWith(color: colors.ink),
                   ),
                   // Which way it is set, in a word. A switch alone is a shape
                   // whose meaning depends on which end the knob is at, and
@@ -344,19 +344,17 @@ class PlanNextStepCard extends StatelessWidget {
           children: <Widget>[
             Text(
               _dose(state.from),
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: colors.ink,
-              ),
+              style: Theme.of(context).textTheme.headlineLarge
+                  ?.atWeight(FontWeight.w800)
+                  .copyWith(color: colors.ink),
             ),
             // Mirrors itself in RTL, where the taper reads right to left.
             Icon(Icons.adaptive.arrow_forward, color: colors.primaryDeep),
             Text(
               _dose(state.to),
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: colors.primaryDeep,
-              ),
+              style: Theme.of(context).textTheme.headlineLarge
+                  ?.atWeight(FontWeight.w800)
+                  .copyWith(color: colors.primaryDeep),
             ),
           ],
         ),

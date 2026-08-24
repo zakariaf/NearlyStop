@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// Where the reader is inside a 52-day pattern they did not design.
 ///
@@ -58,10 +59,9 @@ class DoseContextLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = DaybreakColors.of(context);
     final shapes = DaybreakShapes.of(context);
-    final style = Theme.of(context).textTheme.bodyMedium?.copyWith(
-      fontWeight: FontWeight.w600,
-      color: colors.inkMuted,
-    );
+    final style = Theme.of(context).textTheme.bodyMedium
+        ?.atWeight(FontWeight.w600)
+        .copyWith(color: colors.inkMuted);
 
     Widget separator() => Text(
       '·',

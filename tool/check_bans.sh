@@ -250,6 +250,28 @@ if [ -n "$promoted" ]; then
     "suppressions are line-scoped with a reason — // ignore_for_file: on a promoted rule disarms it for the whole file"
 fi
 
+# ------------------------------- a weight override that reaches the renderer
+# The rare mistake that looks exactly like the fix. Both faces ship as ONE
+# variable TTF, so `fontWeight` has no second asset to select and Flutter
+# synthesises nothing — `copyWith(fontWeight: ...)` paints text at the width it
+# already had. Measured: 149.58px before and after, against 154.30 with the
+# axis moved (test/theme/type_weight_test.dart).
+#
+# The BARE token, not `copyWith([^)]*fontWeight:` — this gate is line-based and
+# almost every call site wraps the argument onto its own line, so the narrow
+# pattern caught 2 of 57. Outside `lib/theme/` there is no legitimate use: a
+# `TextStyle` built from scratch in a feature is already refused by
+# check_raw_values.sh, so every remaining case is an override.
+#
+# `lib/theme/` is exempt because that is where the axis and the weight are set
+# together, and where `atWeight` itself lives. The PDF builder is exempt because
+# `pw.FontWeight` is `package:pdf`'s own enum over separately embedded faces —
+# a different mechanism with a different failure mode, and not one this rule
+# has anything true to say about.
+add_rule lib code "lib/theme/* lib/features/export/data/dose_history_pdf.dart" \
+  '\bfontWeight:' \
+  "use style.atWeight(w) from lib/theme/type_weight.dart — setting fontWeight does not move the wght axis on a variable face, so it paints no differently"
+
 # ------------------------------------- one link leaves, and it leaves for good
 # `url_launcher`'s in-app modes render the page INSIDE this process. That is a
 # network client in a binary whose store listing says there is none, and it
@@ -430,10 +452,30 @@ scan_scope() {
     raw_done=0
     for r in "${!rule_patterns[@]}"; do
       case " ${rule_scopes[$r]} " in *" $scope "*) ;; *) continue ;; esac
-      # A glob, so a rule can exempt a whole layer (`lib/data/*`) and not just
+      # Globs, so a rule can exempt a whole layer (`lib/data/*`) and not just
       # one file. An exact path is a glob with no wildcards, so the older rules
       # are unaffected.
-      case "$file" in ${rule_exempt[$r]}) [ "${rule_exempt[$r]}" = '-' ] || continue ;; esac
+      #
+      # SPACE-SEPARATED, like `rule_scopes`. `|` looks like it should work here
+      # and does not: a `case` pattern list is parsed before the variable is
+      # expanded, so a `|` arriving inside `$rule_exempt` is a literal
+      # character and the whole alternation silently matches nothing — which
+      # reads as "the exemption stopped working" rather than as a syntax error.
+      if [ "${rule_exempt[$r]}" != '-' ]; then
+        # `set -f` around the split. Unquoted, `lib/theme/*` is PATHNAME
+        # EXPANDED into the real files under it before the loop ever runs, and
+        # then every OTHER rule's exemption silently changes meaning too. The
+        # word split is wanted; the globbing is not.
+        exempted=0
+        set -f
+        for glob in ${rule_exempt[$r]}; do
+          set +f
+          case "$file" in $glob) exempted=1; break ;; esac
+          set -f
+        done
+        set +f
+        [ "$exempted" -eq 0 ] || continue
+      fi
       if [ "${rule_only[$r]}" != '-' ]; then
         case "$file" in ${rule_only[$r]}) ;; *) continue ;; esac
       fi

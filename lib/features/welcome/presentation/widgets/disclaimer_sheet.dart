@@ -7,6 +7,7 @@ import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons
 import 'package:nearlystop/features/welcome/presentation/widgets/sunrise_seal.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// "This is not medical advice", in two modes.
 ///
@@ -166,10 +167,8 @@ class _DisclaimerSheetState extends State<DisclaimerSheet> {
                               (widget.isGate
                                       ? text.headlineMedium
                                       : text.titleLarge)
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: colors.ink,
-                                  ),
+                                  ?.atWeight(FontWeight.w800)
+                                  .copyWith(color: colors.ink),
                         ),
                         SizedBox(height: shapes.s3),
                         Text(

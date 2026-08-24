@@ -13,7 +13,7 @@ import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons
 import 'package:nearlystop/features/today/presentation/today_view_state.dart';
 import 'package:nearlystop/features/today/presentation/widgets/dose_hero_card.dart';
 import 'package:nearlystop/features/today/presentation/widgets/quiet_action_row.dart';
-import 'package:nearlystop/features/today/presentation/widgets/sunrise_arc_painter.dart';
+import 'package:nearlystop/features/today/presentation/widgets/sunrise_rings_painter.dart';
 import 'package:nearlystop/theme/daybreak_typography.dart';
 
 import '../../support/harness.dart';
@@ -54,44 +54,55 @@ void main() {
   );
 
   group('the degradation ladder', () {
-    testWidgets('the arc is there at 1.6 and GONE at 1.61', (tester) async {
-      await pumpHero(tester, 1.6);
-      expect(
-        find.byWidgetPredicate(
-          (widget) =>
-              widget is CustomPaint && widget.painter is SunriseArcPainter,
-        ),
-        findsOneWidget,
-      );
-
-      await pumpHero(tester, 1.61);
-
-      expect(
-        find.byWidgetPredicate(
-          (widget) =>
-              widget is CustomPaint && widget.painter is SunriseArcPainter,
-        ),
-        findsNothing,
-      );
-    });
-
-    testWidgets('amount and unit stay a Row at 1.3 and stack at 1.31', (
+    testWidgets('the rings survive every scale, up to the ceiling', (
       tester,
     ) async {
-      // The SECOND rung, and it fires earlier than the arc's: the numeral is
-      // `displayLarge` beside a `titleLarge` unit, so the pair runs out of
-      // width before the arc becomes the problem.
-      await pumpHero(tester, 1.3);
+      // They used to be dropped above 1.6, because they were an inline sibling
+      // of the numeral and took width from it. As a background layer they take
+      // NO layout, so there is nothing for them to give back and no scale at
+      // which dropping them buys the numeral a single pixel.
+      //
+      // Asserted across the range rather than at one point: the failure this
+      // guards against is somebody re-introducing a scale conditional, and a
+      // single-scale test would only catch half of them.
+      for (final scale in <double>[1, 1.3, 1.6, 1.61, 2, 3]) {
+        await pumpHero(tester, scale);
+        expect(
+          find.byWidgetPredicate(
+            (widget) =>
+                widget is CustomPaint && widget.painter is SunriseRingsPainter,
+          ),
+          findsOneWidget,
+          reason: 'the rings vanished at $scale',
+        );
+        expect(tester.takeException(), isNull, reason: 'scale $scale');
+      }
+    });
+
+    testWidgets('amount and unit share a baseline until 2, then stack', (
+      tester,
+    ) async {
+      // The one rung the hero still has. `_Numerals` owns the threshold, and
+      // it is 2 rather than 1.3: the pair is a 72pt numeral beside a 28pt
+      // unit, which fits on one line for far longer than the old ladder — run
+      // through the arc's placement — assumed.
+      await pumpHero(tester, 2);
+      final together =
+          (tester.getCenter(find.text('9')).dy -
+                  tester.getCenter(find.text('mg')).dy)
+              .abs();
+      expect(together, lessThan(40), reason: 'they stacked at 2');
+
+      await pumpHero(tester, 2.01);
+      final apart =
+          (tester.getCenter(find.text('9')).dy -
+                  tester.getCenter(find.text('mg')).dy)
+              .abs();
       expect(
-        (tester.getCenter(find.text('9')).dy -
-                tester.getCenter(find.text('mg')).dy)
-            .abs(),
-        lessThan(40),
-        reason: 'they stacked at 1.3',
+        apart,
+        greaterThan(together),
+        reason: 'they did not stack above 2',
       );
-
-      await pumpHero(tester, 1.31);
-
       expect(tester.takeException(), isNull);
     });
 

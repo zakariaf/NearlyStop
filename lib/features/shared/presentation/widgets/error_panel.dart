@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// A read failure, with the one action that can help.
 ///
@@ -44,10 +45,9 @@ class ErrorPanel extends StatelessWidget {
           Text(
             title,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: colors.ink,
-            ),
+            style: Theme.of(context).textTheme.titleMedium
+                ?.atWeight(FontWeight.w800)
+                .copyWith(color: colors.ink),
           ),
           SizedBox(height: shapes.s5),
           SecondaryButton(label: retryLabel, expand: true, onPressed: onRetry),

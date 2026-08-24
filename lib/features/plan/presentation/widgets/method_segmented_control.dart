@@ -7,6 +7,7 @@ import 'package:nearlystop/features/shared/presentation/widgets/daybreak_tappabl
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_elevation.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// Chooses between the three taper methods.
 ///
@@ -140,7 +141,7 @@ class MethodSegmentedControl extends StatelessWidget {
     // the reader's finger.
     final style = Theme.of(
       context,
-    ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800);
+    ).textTheme.titleSmall?.atWeight(FontWeight.w800);
     final direction = Directionality.of(context);
     final inset = shapes.s3 * 2;
 
@@ -278,10 +279,9 @@ class MethodSegment extends StatelessWidget {
           child: Text(
             label,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-              color: selected ? colors.ink : colors.inkMuted,
-            ),
+            style: Theme.of(context).textTheme.titleSmall
+                ?.atWeight(selected ? FontWeight.w800 : FontWeight.w600)
+                .copyWith(color: selected ? colors.ink : colors.inkMuted),
           ),
         ),
       ),

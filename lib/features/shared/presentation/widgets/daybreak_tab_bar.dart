@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_tappable.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// One destination in the tab bar or the rail.
 @immutable
@@ -174,10 +175,9 @@ class DaybreakTabDestination extends StatelessWidget {
             Text(
               destination.label,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                color: ink,
-              ),
+              style: Theme.of(context).textTheme.labelSmall
+                  ?.atWeight(selected ? FontWeight.w800 : FontWeight.w600)
+                  .copyWith(color: ink),
             ),
           ],
         ),

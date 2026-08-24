@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// Says, in three channels, that today takes the step's new dose.
 ///
@@ -52,10 +53,10 @@ class NewDoseBadge extends StatelessWidget {
           Flexible(
             child: Text(
               label,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: colors.ink,
-              ),
+              // `.badge { font-size: var(--fs-caption) }` — caption 14, not 20.
+              style: Theme.of(context).textTheme.labelSmall
+                  ?.atWeight(FontWeight.w800)
+                  .copyWith(color: colors.ink),
             ),
           ),
         ],

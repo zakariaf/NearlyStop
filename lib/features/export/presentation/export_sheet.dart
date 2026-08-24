@@ -24,6 +24,7 @@ import 'package:nearlystop/features/shared/presentation/widgets/daybreak_tappabl
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
+import 'package:nearlystop/theme/type_weight.dart';
 
 /// The handout, built from whatever is on the phone right now.
 ///
@@ -364,10 +365,11 @@ class ExportOption extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     label,
-                    style: text.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: enabled ? colors.ink : colors.inkFaint,
-                    ),
+                    style: text.titleMedium
+                        ?.atWeight(FontWeight.w700)
+                        .copyWith(
+                          color: enabled ? colors.ink : colors.inkFaint,
+                        ),
                   ),
                   SizedBox(height: shapes.s1),
                   Text(
