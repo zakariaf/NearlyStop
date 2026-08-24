@@ -128,14 +128,14 @@
   },
   "stepOfTotal": "Step {current} of {total}",
   "@stepOfTotal": {
-    "description": "Which reduction the patient is on, out of the plan's total.",
+    "description": "Which reduction the patient is on, out of the plan's total. The numerals arrive ALREADY LOCALIZED, so the placeholders are String: an int placeholder interpolates raw ASCII digits, which put Latin numbers inside a Persian sentence.",
     "placeholders": {
       "current": {
-        "type": "int",
+        "type": "String",
         "example": "3"
       },
       "total": {
-        "type": "int",
+        "type": "String",
         "example": "15"
       }
     },
@@ -143,14 +143,14 @@
   },
   "dayOfStep": "Day {day} of {length}",
   "@dayOfStep": {
-    "description": "Position within the current 52-day step. Deliberately not a week number — the pattern ignores that a week has seven days.",
+    "description": "Position within the current 52-day step. Deliberately not a week number — the pattern ignores that a week has seven days. The numerals arrive ALREADY LOCALIZED, so the placeholders are String: an int placeholder interpolates raw ASCII digits, which put Latin numbers inside a Persian sentence.",
     "placeholders": {
       "day": {
-        "type": "int",
+        "type": "String",
         "example": "14"
       },
       "length": {
-        "type": "int",
+        "type": "String",
         "example": "52"
       }
     },

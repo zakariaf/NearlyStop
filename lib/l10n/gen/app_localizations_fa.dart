@@ -91,12 +91,12 @@ class AppLocalizationsFa extends AppLocalizations {
   String get stateUnavailable => 'در دسترس نیست';
 
   @override
-  String stepOfTotal(int current, int total) {
+  String stepOfTotal(String current, String total) {
     return 'گام $current از $total';
   }
 
   @override
-  String dayOfStep(int day, int length) {
+  String dayOfStep(String day, String length) {
     return 'روز $day از $length';
   }
 

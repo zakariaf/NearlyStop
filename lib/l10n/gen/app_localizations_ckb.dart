@@ -91,12 +91,12 @@ class AppLocalizationsCkb extends AppLocalizations {
   String get stateUnavailable => 'بەردەست نییە';
 
   @override
-  String stepOfTotal(int current, int total) {
+  String stepOfTotal(String current, String total) {
     return 'هەنگاوی $current لە $total';
   }
 
   @override
-  String dayOfStep(int day, int length) {
+  String dayOfStep(String day, String length) {
     return 'ڕۆژی $day لە $length';
   }
 

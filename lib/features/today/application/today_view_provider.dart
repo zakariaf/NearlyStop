@@ -512,9 +512,15 @@ class TodayNotifier extends StreamNotifier<TodayViewState> {
     DayPlan day,
     StepFacts step,
     AppLocalizations l10n,
+    Locale locale,
   ) {
     final block = day.blockIndex;
-    if (block == null) return l10n.stepOfTotal(step.index + 1, step.index + 1);
+    if (block == null) {
+      // ALREADY LOCALIZED. An int placeholder interpolates raw ASCII digits,
+      // which puts a Latin number inside a Persian sentence.
+      final index = _localizedInt(step.index + 1, locale);
+      return l10n.stepOfTotal(index, index);
+    }
     return l10n.blockOfTotal(block, _blockCount);
   }
 
@@ -532,7 +538,7 @@ class TodayNotifier extends StreamNotifier<TodayViewState> {
         stepId: step.id,
         // `blockOfTotal` takes ints and does its own locale-aware number
         // formatting, so the digits are right without being formatted twice.
-        blockLabel: _blockLabel(today, step, l10n),
+        blockLabel: _blockLabel(today, step, l10n, locale),
         defaultExtraDays: 7,
         minExtraDays: 1,
         maxExtraDays: 28,

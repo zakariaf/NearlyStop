@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/features/today/presentation/widgets/dose_context_line.dart';
 import 'package:nearlystop/features/today/presentation/widgets/quiet_action_row.dart';
 import 'package:nearlystop/features/today/presentation/widgets/today_date_header.dart';
+import 'package:nearlystop/l10n/gen/app_localizations.dart';
 
 import '../../../support/harness.dart';
 
@@ -132,12 +133,10 @@ void main() {
         alignment: Alignment.topCenter,
         child: Material(
           child: DoseContextLine(
-            stepIndex: '3',
-            stepCount: '15',
+            stepLabel: 'Step 3 of 15',
             fromDose: '10mg',
             toDose: '9mg',
-            dayInStep: isSteadyState ? null : '14',
-            stepLength: isSteadyState ? null : '52',
+            dayLabel: isSteadyState ? null : 'Day 14 of 52',
             holdingLabel: isSteadyState ? 'Holding at 9mg' : null,
             semanticsLabel:
                 'Step 3 of 15, reducing from 10mg to 9mg, day 14 of 52',
@@ -211,6 +210,27 @@ void main() {
         ).readAsStringSync(),
         contains('Icons.adaptive.arrow_forward'),
       );
+    });
+
+    testWidgets('it says the WORDS, not a pair of bare fractions', (
+      tester,
+    ) async {
+      // Found by EPIC-14's parity matrix, against this file's own doc
+      // comment and against frame 02 of the reference: the line is supposed
+      // to read "Step 3 of 15 · 10mg → 9mg · Day 14 of 52". It was rendering
+      // "3 / 15" and "14 / 52" — two unlabelled fractions on the one line
+      // whose entire job is to orient somebody inside a 52-day pattern they
+      // did not design.
+      final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+      await pumpLine(tester);
+
+      expect(find.text('Step 3 of 15'), findsOneWidget);
+      expect(find.text('Day 14 of 52'), findsOneWidget);
+      // The strings the screen composes, so a copy change fails in one place.
+      expect(l10n.stepOfTotal('3', '15'), 'Step 3 of 15');
+      expect(l10n.dayOfStep('14', '52'), 'Day 14 of 52');
+      expect(find.text('3 / 15'), findsNothing);
+      expect(find.text('14 / 52'), findsNothing);
     });
 
     testWidgets('at 2.0 it reflows instead of overflowing', (tester) async {

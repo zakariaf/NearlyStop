@@ -92,8 +92,8 @@ void main() {
       final l10n = lookupAppLocalizations(Locale(tag));
       final rendered = <String>[
         l10n.takenDays(341),
-        l10n.stepOfTotal(3, 15),
-        l10n.dayOfStep(14, 52),
+        l10n.stepOfTotal('3', '15'),
+        l10n.dayOfStep('14', '52'),
         l10n.blockOfTotal(3, 11),
         l10n.doseWithUnit('9'),
         l10n.todaySemantics('9', '1 × 5mg, 4 × 1mg'),
