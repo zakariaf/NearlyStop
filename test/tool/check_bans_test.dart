@@ -208,6 +208,167 @@ void main() {
     });
   });
 
+  group('accessibility is correctness, not polish', () {
+    /// Every new needle, with a line that trips it.
+    const offenders = <String, String>{
+      'withClampedTextScaling':
+          'final w = MediaQuery.withClampedTextScaling(maxScaleFactor: 1.3);',
+      'FittedBox': 'final w = FittedBox(child: Text("10mg"));',
+      'ellipsis': 'final s = TextStyle(overflow: TextOverflow.ellipsis);',
+      'setPreferredOrientations':
+          'final f = SystemChrome.setPreferredOrientations(<int>[]);',
+    };
+
+    for (final MapEntry<String, String>(key: needle, value: line)
+        in offenders.entries) {
+      test('$needle in lib turns the build red', () async {
+        write(
+          'lib/features/today/presentation/offender.dart',
+          '/// Scratch.\n$line\n',
+        );
+
+        final result = await runGate();
+
+        expect(result.exitCode, 1, reason: '${result.stdout}');
+        expect(result.stdout, contains('offender.dart'));
+      });
+    }
+
+    test('takeException in a tearDown turns the build red', () async {
+      // A swallowed overflow is the one failure mode this whole epic exists to
+      // catch, and a `tearDown` that eats it makes every later cell green.
+      write(
+        'test/features/swallowing_test.dart',
+        '/// Scratch.\n'
+            'void main() {\n'
+            '  tearDown(() {\n'
+            '    tester.takeException();\n'
+            '  });\n'
+            '}\n',
+      );
+
+      final result = await runGate();
+
+      expect(result.exitCode, 1, reason: '${result.stdout}');
+    });
+
+    test(
+      'takeException inside a TEST is how an assertion is written',
+      () async {
+        // `expect(tester.takeException(), isNull)` is the assertion the matrix
+        // is built on. A blunt rule would ban the thing it exists to require.
+        write(
+          'test/features/asserting_test.dart',
+          '/// Scratch.\n'
+              'void main() {\n'
+              '  testWidgets("x", (tester) async {\n'
+              '    expect(tester.takeException(), isNull);\n'
+              '  });\n'
+              '}\n',
+        );
+
+        final result = await runGate();
+
+        expect(result.exitCode, 0, reason: '${result.stdout}${result.stderr}');
+      },
+    );
+
+    test(
+      'textScaleFactor is legal ONLY where the override is declared',
+      () async {
+        // `TextScaler.textScaleFactor` is an abstract deprecated getter, so
+        // EPIC-11's `UserTextScaler` must implement it and cannot be
+        // restructured out of it. The rule bans the READS, by path.
+        write(
+          'lib/theme/composed_text_scaler.dart',
+          '/// Scratch.\n'
+              '// Required and deprecated: TextScaler declares it abstract.\n'
+              'double get textScaleFactor => 1;\n',
+        );
+
+        final legal = await runGate();
+        expect(legal.exitCode, 0, reason: '${legal.stdout}${legal.stderr}');
+
+        write(
+          'lib/features/today/presentation/elsewhere.dart',
+          '/// Scratch.\ndouble get textScaleFactor => 1;\n',
+        );
+
+        final illegal = await runGate();
+        expect(illegal.exitCode, 1, reason: '${illegal.stdout}');
+        expect(illegal.stdout, contains('elsewhere.dart'));
+        expect(
+          illegal.stdout,
+          isNot(contains('composed_text_scaler.dart')),
+          reason: 'the declaration site was reported as a hit',
+        );
+      },
+    );
+
+    test('MediaQuery.of(context).copyWith is legal; .size is not', () async {
+      // Same file, so this distinguishes the misuse from the one call EPIC-11
+      // task 8 cannot be written without.
+      write(
+        'lib/app/legal.dart',
+        '/// Scratch.\n'
+            'final data = MediaQuery.of(context).copyWith(boldText: true);\n',
+      );
+
+      final legal = await runGate();
+      expect(legal.exitCode, 0, reason: '${legal.stdout}${legal.stderr}');
+
+      write(
+        'lib/app/legal.dart',
+        '/// Scratch.\n'
+            'final data = MediaQuery.of(context).copyWith(boldText: true);\n'
+            'final s = MediaQuery.of(context).size;\n',
+      );
+
+      final illegal = await runGate();
+      expect(illegal.exitCode, 1, reason: '${illegal.stdout}');
+    });
+
+    test('no allowlist file exists anywhere in the tree', () {
+      // Asserted directly, so the narrow rules above cannot quietly become a
+      // side-car list of files that opt out of a rule that still applies.
+      final offenders = Directory('${Directory.current.path}/tool')
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where(
+            (f) =>
+                f.path.contains('allowlist') ||
+                f.path.contains('allow_list') ||
+                f.path.contains('ignore_list') ||
+                f.path.contains('exempt'),
+          )
+          .map((f) => f.path)
+          .toList();
+
+      expect(offenders, isEmpty);
+    });
+
+    test('three violations print three hits and exit 1 ONCE', () async {
+      // Accumulate, not fail-fast. A gate that stops at the first hit makes
+      // fixing a tree an N-round game.
+      write(
+        'lib/features/today/presentation/three.dart',
+        '/// Scratch.\n'
+            'final a = FittedBox(child: Text("x"));\n'
+            'final b = TextOverflow.ellipsis;\n'
+            'final c = MediaQuery.withClampedTextScaling(maxScaleFactor: 2);\n',
+      );
+
+      final result = await runGate();
+
+      expect(result.exitCode, 1, reason: '${result.stdout}');
+      final hits = '${result.stdout}'
+          .split('\n')
+          .where((line) => line.contains('three.dart'))
+          .length;
+      expect(hits, 3, reason: '${result.stdout}');
+    });
+  });
+
   test('a clean tree passes with nothing to say', () async {
     write('lib/features/schedule/presentation/fine.dart', '/// Scratch.\n');
 
