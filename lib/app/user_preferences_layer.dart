@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:nearlystop/theme/composed_text_scaler.dart';
 import 'package:nearlystop/theme/daybreak_script.dart';
 import 'package:nearlystop/theme/daybreak_theme.dart';
 
@@ -19,16 +20,6 @@ const double kMinUserTextScale = 0.9;
 /// `SPEC.md` §5.4 asks for a control ON TOP of the OS setting, for people
 /// whose phone is already at its maximum and it is still not enough.
 const double kMaxUserTextScale = 2;
-
-/// The ceiling on the PRODUCT of the two scalers.
-///
-/// iOS AX5 is about 3.1×, and 3.1 × 2.0 is 6.2× — a size no golden renders and
-/// no 320pt device survives. This bounds the product only: with the app slider
-/// at 1.0 the layer does not wrap at all, so the OS value passes through
-/// untouched at any setting and SPEC §10's "usable at the largest OS text
-/// size" is honoured in full. EPIC-14's overflow matrix is built on this
-/// number.
-const double kMaxComposedTextScale = 4;
 
 /// Applies the in-app preferences that only exist below `MaterialApp`.
 ///
@@ -99,47 +90,4 @@ class UserPreferencesLayer extends StatelessWidget {
       child: content,
     );
   }
-}
-
-/// The OS scaler MULTIPLIED by the app's own factor, product-capped.
-///
-/// Not `TextScaler.clamp`: clamping to a minimum of 1.5 leaves an OS setting
-/// of 2.0 at 2.0, when the user asked for both. Composition means OS 2.0 × app
-/// 1.5 is 3.0.
-///
-/// The PRODUCT is capped at [kMaxComposedTextScale], and only the product: the
-/// layer above does not wrap at all when the factor is 1.0, so the OS value
-/// passes through untouched at any setting. This app never shrinks a choice
-/// the user made in their phone's own accessibility settings.
-@immutable
-@visibleForTesting
-class ComposedTextScaler extends TextScaler {
-  /// Composes [_platform] with [_factor].
-  const ComposedTextScaler(this._platform, this._factor);
-
-  final TextScaler _platform;
-  final double _factor;
-
-  @override
-  double scale(double fontSize) {
-    final composed = _platform.scale(fontSize) * _factor;
-    final ceiling = fontSize * kMaxComposedTextScale;
-    return composed < ceiling ? composed : ceiling;
-  }
-
-  @override
-  // Deprecated upstream in favour of non-linear scaling, but still abstract on
-  // `TextScaler`, so it has to be implemented. Composed the same way as
-  // `scale`, so a caller reading either gets a consistent answer.
-  // ignore: deprecated_member_use
-  double get textScaleFactor => _platform.textScaleFactor * _factor;
-
-  @override
-  bool operator ==(Object other) =>
-      other is ComposedTextScaler &&
-      other._platform == _platform &&
-      other._factor == _factor;
-
-  @override
-  int get hashCode => Object.hash(_platform, _factor);
 }

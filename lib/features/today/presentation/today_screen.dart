@@ -130,12 +130,14 @@ class _TodayBody extends ConsumerWidget {
 
     final rest = <Widget>[
       DoseContextLine(
-        stepIndex: state.stepIndex,
-        stepCount: state.stepCount,
+        // The WORDS. "3 / 15" and "14 / 52" are four unlabelled numbers on
+        // the line whose whole job is orientation — see `DoseContextLine`.
+        stepLabel: l10n.stepOfTotal(state.stepIndex, state.stepCount),
         fromDose: state.fromDose,
         toDose: state.toDose,
-        dayInStep: state.dayInStep,
-        stepLength: state.stepLength,
+        dayLabel: state.dayInStep == null
+            ? null
+            : l10n.dayOfStep(state.dayInStep!, state.stepLength!),
         holdingLabel: state.holdingLabel,
         semanticsLabel: l10n.contextLineSemantics(
           state.stepIndex,

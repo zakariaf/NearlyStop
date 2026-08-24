@@ -174,6 +174,21 @@ class TextSizeRow extends ConsumerWidget {
   final SettingsWrite onWrite;
 
   /// The current size, in the reader's own words.
+  /// The size name, styled the one way both branches style it.
+  Widget _sizeNameText(
+    BuildContext context,
+    AppLocalizations l10n,
+    double value,
+  ) => Text(
+    _sizeName(l10n, value),
+    style:
+        Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(
+          color: DaybreakColors.of(context).inkMuted,
+        ),
+  );
+
   String _sizeName(AppLocalizations l10n, double value) =>
       switch (textSizeNameFor(value)) {
         TextSizeName.normal => l10n.settingsTextSizeNormal,
@@ -190,6 +205,11 @@ class TextSizeRow extends ConsumerWidget {
     final locale = ref.watch(resolvedLocaleProvider);
     final value = quantiseTextScale(settings.textScale);
     final numbers = numberFormatFor(locale);
+    // The same boundary `SettingsRow` degrades at, so the whole card changes
+    // shape at once rather than one row at a time.
+    final stacked =
+        MediaQuery.textScalerOf(context).scale(1) >
+        SettingsRow.stackAboveTextScale;
 
     return Padding(
       padding: EdgeInsetsDirectional.symmetric(
@@ -205,20 +225,30 @@ class TextSizeRow extends ConsumerWidget {
               const GlyphTile(glyph: Icons.format_size),
               SizedBox(width: shapes.s3),
               Expanded(
-                child: Text(
-                  l10n.settingsTextSize,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colors.ink,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      l10n.settingsTextSize,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colors.ink,
+                      ),
+                    ),
+                    // The size name reads as this row's VALUE, so above the
+                    // threshold it drops under the title rather than being
+                    // squeezed beside a 132pt glyph tile — where "Normal"
+                    // broke across two lines as "Norma" and "l", which is not
+                    // a word in any of the four languages.
+                    if (stacked) _sizeNameText(context, l10n, value),
+                  ],
                 ),
               ),
-              Text(
-                _sizeName(l10n, value),
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: colors.inkMuted),
-              ),
+              if (!stacked) ...<Widget>[
+                SizedBox(width: shapes.s2),
+                _sizeNameText(context, l10n, value),
+              ],
             ],
           ),
           Row(

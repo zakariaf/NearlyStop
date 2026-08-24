@@ -91,12 +91,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get stateUnavailable => 'Nicht verfügbar';
 
   @override
-  String stepOfTotal(int current, int total) {
+  String stepOfTotal(String current, String total) {
     return 'Schritt $current von $total';
   }
 
   @override
-  String dayOfStep(int day, int length) {
+  String dayOfStep(String day, String length) {
     return 'Tag $day von $length';
   }
 

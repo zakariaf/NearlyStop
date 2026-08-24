@@ -4,7 +4,7 @@
 // widget case is the composition reaching a `Text` through the real layer.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nearlystop/app/user_preferences_layer.dart';
+import 'package:nearlystop/theme/composed_text_scaler.dart';
 
 import '../support/harness.dart';
 

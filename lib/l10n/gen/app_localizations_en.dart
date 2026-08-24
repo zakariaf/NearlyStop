@@ -91,12 +91,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stateUnavailable => 'Unavailable';
 
   @override
-  String stepOfTotal(int current, int total) {
+  String stepOfTotal(String current, String total) {
     return 'Step $current of $total';
   }
 
   @override
-  String dayOfStep(int day, int length) {
+  String dayOfStep(String day, String length) {
     return 'Day $day of $length';
   }
 

@@ -16,26 +16,26 @@ import 'package:nearlystop/theme/daybreak_shapes.dart';
 class DoseContextLine extends StatelessWidget {
   /// Creates the line.
   const DoseContextLine({
-    required this.stepIndex,
-    required this.stepCount,
+    required this.stepLabel,
     required this.fromDose,
     required this.toDose,
-    required this.dayInStep,
-    required this.stepLength,
+    required this.dayLabel,
     required this.holdingLabel,
     required this.semanticsLabel,
     super.key,
   }) : assert(
-         (dayInStep == null) == (holdingLabel != null),
+         (dayLabel == null) == (holdingLabel != null),
          'a day either has a position in its step or is holding — never both, '
          'and never neither: there would be nothing to print',
        );
 
-  /// "3", already localized.
-  final String stepIndex;
-
-  /// "15", already localized.
-  final String stepCount;
+  /// "Step 3 of 15", already localized and already worded.
+  ///
+  /// **The words, not a fraction.** "3 / 15" was what shipped, and it is two
+  /// unlabelled numbers on the one line whose entire job is to orient
+  /// somebody inside a 52-day pattern they did not design. Composed by the
+  /// notifier from `stepOfTotal`, like every other string this widget takes.
+  final String stepLabel;
 
   /// "10mg".
   final String fromDose;
@@ -43,11 +43,10 @@ class DoseContextLine extends StatelessWidget {
   /// "9mg".
   final String toDose;
 
-  /// "14", or null on a steady-state day.
-  final String? dayInStep;
-
-  /// "52", or null on a steady-state day.
-  final String? stepLength;
+  /// "Day 14 of 52", or null on a steady-state day.
+  ///
+  /// Worded for the same reason [stepLabel] is.
+  final String? dayLabel;
 
   /// "Holding at 9mg" — what replaces the third segment on a steady-state day.
   final String? holdingLabel;
@@ -78,13 +77,17 @@ class DoseContextLine extends StatelessWidget {
           runSpacing: shapes.s1,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: <Widget>[
-            Text('$stepIndex / $stepCount', style: style),
+            Text(stepLabel, style: style),
             separator(),
-            Row(
-              mainAxisSize: MainAxisSize.min,
+            // A `Wrap`, not a `Row`: "10mg → 9mg" is three items, and at the
+            // composed ceiling three items are wider than the line the outer
+            // Wrap gave them. Nested so the arrow stays with the doses rather
+            // than drifting between the other chips.
+            Wrap(
+              spacing: shapes.s1,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: <Widget>[
                 Text(fromDose, style: style),
-                SizedBox(width: shapes.s1),
                 // `Icons.adaptive.arrow_forward` mirrors itself under RTL. The
                 // ban gate forbids `Icons.arrow_forward` precisely so this is
                 // the one that gets used: the logical reading is "from 10mg to
@@ -95,7 +98,6 @@ class DoseContextLine extends StatelessWidget {
                   size: 16,
                   color: colors.inkFaint,
                 ),
-                SizedBox(width: shapes.s1),
                 Text(toDose, style: style),
               ],
             ),
@@ -103,7 +105,7 @@ class DoseContextLine extends StatelessWidget {
             if (holdingLabel case final holding?)
               Text(holding, style: style)
             else
-              Text('$dayInStep / $stepLength', style: style),
+              Text(dayLabel!, style: style),
           ],
         ),
       ),

@@ -414,6 +414,11 @@ class TakenButton extends StatelessWidget {
       fill: colors.surface,
       shadow: DaybreakElevation.of(context).level2,
       expand: true,
+      // Frame 02 draws a check beside the word, and this is the one control
+      // on the screen a reader looks for before they have read anything.
+      // Decoration only — `DaybreakButtonSkin` excludes it from semantics, so
+      // the button is still announced once.
+      glyph: Icons.check,
     );
   }
 }

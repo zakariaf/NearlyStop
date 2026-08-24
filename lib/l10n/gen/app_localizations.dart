@@ -258,17 +258,17 @@ abstract class AppLocalizations {
   /// **'Unavailable'**
   String get stateUnavailable;
 
-  /// Which reduction the patient is on, out of the plan's total.
+  /// Which reduction the patient is on, out of the plan's total. The numerals arrive ALREADY LOCALIZED, so the placeholders are String: an int placeholder interpolates raw ASCII digits, which put Latin numbers inside a Persian sentence.
   ///
   /// In en, this message translates to:
   /// **'Step {current} of {total}'**
-  String stepOfTotal(int current, int total);
+  String stepOfTotal(String current, String total);
 
-  /// Position within the current 52-day step. Deliberately not a week number — the pattern ignores that a week has seven days.
+  /// Position within the current 52-day step. Deliberately not a week number — the pattern ignores that a week has seven days. The numerals arrive ALREADY LOCALIZED, so the placeholders are String: an int placeholder interpolates raw ASCII digits, which put Latin numbers inside a Persian sentence.
   ///
   /// In en, this message translates to:
   /// **'Day {day} of {length}'**
-  String dayOfStep(int day, int length);
+  String dayOfStep(String day, String length);
 
   /// Which of the eleven blocks of the pattern this is.
   ///

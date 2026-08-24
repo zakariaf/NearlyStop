@@ -250,6 +250,59 @@ if [ -n "$promoted" ]; then
     "suppressions are line-scoped with a reason — // ignore_for_file: on a promoted rule disarms it for the whole file"
 fi
 
+# ---------------------------------------------- EPIC-14: the a11y group
+# Accessibility is correctness for this audience, not polish. `FittedBox` and
+# `withClampedTextScaling` are already banned above; the rest of the group is
+# here.
+
+# An ellipsis is a dose the reader cannot finish reading. On a screen whose
+# whole job is "what do I swallow this morning", "1 × 5mg, 4 × …" is the same
+# defect class as computing the wrong number. Text that does not fit gets a
+# layout that reflows, or a width that is reserved.
+add_rule lib code - \
+  'TextOverflow\.ellipsis' \
+  "never truncate a label — reflow the layout or reserve the width; an ellipsis on a dose is unreadable, not tidy"
+
+# SPEC §5.4: people prop a tablet on the kitchen table. An orientation lock is
+# a decision made for them, and it is the one that stops a person who cannot
+# hold a phone upright from using the app at all.
+add_rule lib code - \
+  'SystemChrome\.setPreferredOrientations' \
+  "never lock orientation — SPEC §5.4 has people using this propped on a table (adaptive-layout rule 6)"
+
+# A `takeException()` whose result is DISCARDED drains the overflow the next
+# assertion was going to catch. `expect(tester.takeException(), isNull)` is how
+# the assertion is written and never ends the statement at the call, so the
+# discarded form is exactly the suppression and nothing else.
+#
+# The gate's own self-test is excluded: it is a fixture file that contains
+# every needle by construction, which is the same argument the header already
+# makes for never scanning `tool/`.
+add_rule test code test/tool/check_bans_test.dart \
+  'takeException\(\)[[:space:]]*;|ignoreOverflowErrors' \
+  "a swallowed overflow makes every later cell green — assert takeException(), never discard it"
+
+# `TextScaler.textScaleFactor` is an ABSTRACT DEPRECATED getter, so EPIC-11's
+# `UserTextScaler` must implement it and cannot be restructured out of it. So
+# the rule bans the READS and the passes — not the declaration — and excludes
+# the one file where the override legally lives.
+#
+# That path exclusion is not the forbidden allowlist. The forbidden thing is a
+# side-car list of files opting out of a rule that still applies to them; a
+# rule written to say what it actually means is just a correct rule. The file
+# holds ONE class, so the exclusion covers one class.
+add_rule lib code lib/theme/composed_text_scaler.dart \
+  'MediaQuery\.textScaleFactorOf|\.textScaleFactor\b|textScaleFactor:|\btextScaleFactor\b' \
+  "read MediaQuery.textScalerOf(context) — textScaleFactor is deprecated and loses the non-linear curve"
+
+# `MediaQuery.of(context)` subscribes a widget to EVERY MediaQuery change, so a
+# screen that wanted the width rebuilds when the keyboard opens. The aspect
+# getters are the misuse; `copyWith` is how EPIC-11 task 8 builds the data it
+# wraps the app in, and there is no other way to write it.
+add_rule lib code - \
+  'MediaQuery\.of\(context\)\.(size|padding|textScaler|viewInsets|orientation|devicePixelRatio|platformBrightness|boldText|disableAnimations)' \
+  "use the aspect accessor (MediaQuery.sizeOf, .textScalerOf, …) — MediaQuery.of subscribes to every change"
+
 # ------------------------------------------------------------------ the walk
 # One pass per file: read once, strip once, then apply every rule that governs
 # it. Stripping per rule re-reads the tree once for each rule, which grows with

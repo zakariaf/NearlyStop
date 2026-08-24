@@ -22,6 +22,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nearlystop/app/derived_schedule_provider.dart';
 import 'package:nearlystop/app/locale_providers.dart';
+import 'package:nearlystop/core/dsns/day_plan.dart';
 import 'package:nearlystop/core/dsns/facts.dart';
 import 'package:nearlystop/core/result.dart';
 import 'package:nearlystop/core/time/local_date.dart';
@@ -29,7 +30,15 @@ import 'package:nearlystop/core/units/milligrams.dart';
 import 'package:nearlystop/data/providers.dart';
 import 'package:nearlystop/data/storage_failure.dart';
 import 'package:nearlystop/data/taper_repository.dart';
+import 'package:nearlystop/features/progress/application/progress_view_provider.dart';
+import 'package:nearlystop/features/progress/presentation/progress_view_state.dart';
+import 'package:nearlystop/features/schedule/application/schedule_view_provider.dart';
+import 'package:nearlystop/features/schedule/presentation/schedule_view_state.dart';
+import 'package:nearlystop/features/today/application/today_view_provider.dart';
+import 'package:nearlystop/features/today/presentation/today_view_state.dart';
+import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:riverpod/misc.dart' show Override;
+import 'package:riverpod/riverpod.dart';
 import 'taper_fixture.dart' as domain;
 
 /// The plan under test.
@@ -113,4 +122,123 @@ Future<void> seedTaperInto(ProviderContainer container) async {
   if (result is Err<void, StorageFailure>) {
     throw StateError('seedTaperInto failed: ${result.failure}');
   }
+}
+
+/// The seeded snapshot with every day up to [seededToday] ticked.
+///
+/// A screen rendered from a plan with no history shows its empty states, which
+/// is a different screen from the one the sweeps are about.
+TaperSnapshot seededHistory() => seededSnapshot(
+  logs: <DoseLogFacts>[
+    for (final day in seededSchedule())
+      if (day.date < seededToday)
+        DoseLogFacts(
+          date: day.date,
+          plannedMg: day.dose,
+          actualMg: day.dose,
+          taken: true,
+        ),
+  ],
+);
+
+/// The derived schedule for [seededPlan], through the one app-wide derivation.
+List<DayPlan> seededSchedule() {
+  final result = scheduleFromSnapshot(
+    Ok<TaperSnapshot, StorageFailure>(seededSnapshot()),
+  );
+  if (result case Err<List<DayPlan>, Failure>(:final failure)) {
+    throw StateError('the seeded plan does not derive: ${failure.code}');
+  }
+  return (result as Ok<List<DayPlan>, Failure>).value;
+}
+
+/// Overrides that put the SEEDED plan on Today, Schedule and Progress.
+///
+/// Those three read the repository directly rather than
+/// `taperSnapshotProvider`, so [seededPlanOverrides] alone leaves them
+/// rendering their error panel — which is a different screen from the one a
+/// sweep is about, and a matrix that swept it would be green about the wrong
+/// thing.
+///
+/// The view states come from each notifier's own **pure projection**, off the
+/// one seeded snapshot. Not a hand-built state: a hand-built one is a second
+/// fixture, and it drifts the first time a projection changes.
+List<Override> seededScreenOverrides({
+  required AppLocalizations l10n,
+  Locale locale = const Locale('en'),
+}) {
+  final snapshot = seededHistory();
+  final schedule = seededSchedule();
+  return <Override>[
+    ...seededPlanOverrides(locale: locale),
+    todayViewProvider.overrideWith(
+      () => _FixedToday(
+        TodayNotifier.project(
+          snapshot: snapshot,
+          schedule: schedule,
+          date: seededToday,
+          l10n: l10n,
+          locale: locale,
+        ),
+      ),
+    ),
+    scheduleViewProvider(seededStep.index).overrideWith(
+      () => _FixedSchedule(
+        ScheduleNotifier.project(
+          snapshot: snapshot,
+          schedule: schedule,
+          stepIndex: seededStep.index,
+          today: seededToday,
+          l10n: l10n,
+          locale: locale,
+        ),
+      ),
+    ),
+    progressViewProvider.overrideWith(
+      () => _FixedProgress(
+        ProgressNotifier.project(
+          snapshot: snapshot,
+          schedule: schedule,
+          today: seededToday,
+          l10n: l10n,
+          locale: locale,
+        ),
+      ),
+    ),
+  ];
+}
+
+class _FixedToday extends StreamNotifier<TodayViewState>
+    implements TodayNotifier {
+  _FixedToday(this._state);
+
+  final TodayViewState _state;
+
+  @override
+  Stream<TodayViewState> build() => Stream<TodayViewState>.value(_state);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class _FixedSchedule extends ScheduleNotifier {
+  _FixedSchedule(this._state) : super(0);
+
+  final ScheduleViewState _state;
+
+  @override
+  Stream<ScheduleViewState> build() => Stream<ScheduleViewState>.value(_state);
+}
+
+class _FixedProgress extends StreamNotifier<ProgressViewState>
+    implements ProgressNotifier {
+  _FixedProgress(this._state);
+
+  final ProgressViewState _state;
+
+  @override
+  Stream<ProgressViewState> build() => Stream<ProgressViewState>.value(_state);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
 }

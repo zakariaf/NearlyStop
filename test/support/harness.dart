@@ -54,6 +54,12 @@ Future<void> pumpApp(
     ProviderScope(
       overrides: overrides,
       child: MaterialApp(
+        // OFF, like the app's own `MaterialApp`. It was on by default here,
+        // so every parity capture and contact sheet carried a red diagonal
+        // stripe across the top-right corner that the reference does not —
+        // a difference a reviewer has to learn to ignore, which is the worst
+        // kind of difference to have in a comparison sheet.
+        debugShowCheckedModeBanner: false,
         locale: locale,
         supportedLocales: kSupportedLocales,
         localizationsDelegates: kAppLocalizationsDelegates,
