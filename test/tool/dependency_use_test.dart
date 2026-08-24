@@ -19,6 +19,7 @@ void main() {
     'flutter': 'the SDK',
     'flutter_localizations': 'gen-l10n resolves the Material delegates',
     'sqlite3_flutter_libs': 'ships the native SQLite drift opens',
+    'printing': 'wired in the PDF share path — Printing.sharePdf also prints',
     'file_selector': 'wired in the real file-picker adapter',
     'share_plus': 'wired in the real share adapter',
   };
