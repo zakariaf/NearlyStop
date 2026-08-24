@@ -44,6 +44,18 @@ class DoseHeroCard extends StatelessWidget {
   });
 
   /// The dose, already in the locale's digits.
+  /// Finds the dose numeral itself, so its fit is assertable.
+  ///
+  /// The one number the reader is here for. EPIC-14's overflow matrix checks
+  /// it lands inside the card at every scale, because a clipped `Text` reports
+  /// no overflow at all.
+  static const Key numeralKey = Key('dose-hero-numeral');
+
+  /// Finds the card itself, so the numeral's fit can be measured against
+  /// the thing that draws it rather than against the screen.
+  static const Key cardKey = Key('dose-hero-card');
+
+  /// The dose itself, already formatted for the locale.
   final String doseText;
 
   /// The unit beside it, e.g. `mg`.
@@ -114,6 +126,7 @@ class DoseHeroCard extends StatelessWidget {
       explicitChildNodes: true,
       label: semanticsLabel,
       child: DecoratedBox(
+        key: cardKey,
         decoration: BoxDecoration(
           gradient: colors.sunrise,
           borderRadius: BorderRadius.all(Radius.circular(shapes.radiusLg)),
@@ -253,26 +266,45 @@ class _Numerals extends StatelessWidget {
   final DaybreakColors colors;
   final DaybreakTypography type;
 
+  /// Above this scale the unit drops below the numeral.
+  ///
+  /// At the composed ceiling the 72pt numeral alone is most of a 320pt screen
+  /// and "mg" does not fit beside it — and the one thing that may never happen
+  /// to this number is being shrunk to fit. Below the threshold the two stay
+  /// on one **baseline**, which a `Wrap` cannot do and which is what the
+  /// reference shows, so the shape changes rather than the alignment.
+  static const double _stackUnitAbove = 2;
+
   @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    textBaseline: TextBaseline.alphabetic,
-    crossAxisAlignment: CrossAxisAlignment.baseline,
-    children: <Widget>[
-      Text(
-        doseText,
-        // `doseNumeral` carries the tabular figures that stop 9 → 10 shifting
-        // the numeral's start edge. No override of its size here, ever.
-        style: type.doseNumeral.copyWith(color: colors.onPrimary),
-      ),
-      Text(
-        unitText,
-        style: Theme.of(
-          context,
-        ).textTheme.titleLarge?.copyWith(color: colors.onPrimary),
-      ),
-    ],
-  );
+  Widget build(BuildContext context) {
+    final numeral = Text(
+      doseText,
+      key: DoseHeroCard.numeralKey,
+      // `doseNumeral` carries the tabular figures that stop 9 → 10 shifting
+      // the numeral's start edge. No override of its size here, ever.
+      style: type.doseNumeral.copyWith(color: colors.onPrimary),
+    );
+    final unit = Text(
+      unitText,
+      style: Theme.of(
+        context,
+      ).textTheme.titleLarge?.copyWith(color: colors.onPrimary),
+    );
+
+    if (MediaQuery.textScalerOf(context).scale(1) > _stackUnitAbove) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[numeral, unit],
+      );
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      textBaseline: TextBaseline.alphabetic,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      children: <Widget>[numeral, unit],
+    );
+  }
 }
 
 class _Arc extends StatelessWidget {

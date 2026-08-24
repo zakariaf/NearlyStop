@@ -214,11 +214,15 @@ void main() {
     });
 
     testWidgets('at 2.0 it reflows instead of overflowing', (tester) async {
-      // A `Row` here overflows, which is why it is a `Wrap`.
+      // A `Row` here overflows, which is why it is a `Wrap`. TWO of them
+      // since EPIC-14: the "10mg → 9mg" transition is three items and, at the
+      // composed ceiling, wider than the line the outer Wrap gives it — so it
+      // reflows inside itself rather than pushing past the card.
       await pumpLine(tester, textScaler: const TextScaler.linear(2));
 
       expect(tester.takeException(), isNull);
-      expect(find.byType(Wrap), findsOneWidget);
+      expect(find.byType(Wrap), findsWidgets);
+      expect(find.byType(Row), findsNothing, reason: 'a Row here overflows');
     });
   });
 

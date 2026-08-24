@@ -34,6 +34,12 @@ class BlockHeader extends StatelessWidget {
   /// Finds the decorated container, for tests that measure it.
   static const Key containerKey = Key('block-header-container');
 
+  /// Finds the block's own title, so its fit is assertable.
+  ///
+  /// The block name is the teaching device this screen exists for. A
+  /// clipped `Text` reports no overflow, so the matrix measures it.
+  static const Key titleKey = Key('block-header-title');
+
   /// Finds the leading glyph tile.
   static const Key glyphTileKey = Key('block-header-glyph');
 
@@ -198,7 +204,11 @@ class _BlockSentence extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Text(title, style: BlockHeader.titleStyle(context)),
+        Text(
+          title,
+          key: BlockHeader.titleKey,
+          style: BlockHeader.titleStyle(context),
+        ),
         // An empty summary renders NOTHING, not an empty line: a landscape
         // phone drops the teaching sentence to keep the block's identity, and
         // a blank Text would keep its leading and half the height with it.

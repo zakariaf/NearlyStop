@@ -58,6 +58,12 @@ class DayStateRow extends StatelessWidget {
   /// Finds the `CustomPaint` that draws the row's outline.
   static const Key borderKey = Key('day-state-row-border');
 
+  /// Finds the day's own label, so its fit is assertable.
+  ///
+  /// The row answers "which day am I on". A clipped `Text` reports no
+  /// overflow, so EPIC-14's matrix measures it against the row.
+  static const Key dayLabelKey = Key('day-state-row-day-label');
+
   /// The glyph that sits beside the state word.
   ///
   /// A SECOND shape channel, next to the marker's. The reference puts one in
@@ -424,6 +430,7 @@ class _DayBlock extends StatelessWidget {
       children: <Widget>[
         Text(
           dayLabel,
+          key: DayStateRow.dayLabelKey,
           style: text.bodyLarge?.copyWith(
             fontWeight: isToday ? FontWeight.w800 : FontWeight.w700,
             color: colors.ink,

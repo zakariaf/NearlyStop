@@ -80,11 +80,15 @@ class DoseContextLine extends StatelessWidget {
           children: <Widget>[
             Text('$stepIndex / $stepCount', style: style),
             separator(),
-            Row(
-              mainAxisSize: MainAxisSize.min,
+            // A `Wrap`, not a `Row`: "10mg → 9mg" is three items, and at the
+            // composed ceiling three items are wider than the line the outer
+            // Wrap gave them. Nested so the arrow stays with the doses rather
+            // than drifting between the other chips.
+            Wrap(
+              spacing: shapes.s1,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: <Widget>[
                 Text(fromDose, style: style),
-                SizedBox(width: shapes.s1),
                 // `Icons.adaptive.arrow_forward` mirrors itself under RTL. The
                 // ban gate forbids `Icons.arrow_forward` precisely so this is
                 // the one that gets used: the logical reading is "from 10mg to
@@ -95,7 +99,6 @@ class DoseContextLine extends StatelessWidget {
                   size: 16,
                   color: colors.inkFaint,
                 ),
-                SizedBox(width: shapes.s1),
                 Text(toDose, style: style),
               ],
             ),

@@ -44,44 +44,69 @@ class SettingsRow extends StatelessWidget {
   /// The whole row as one sentence, when the parts do not read as one.
   final String? semanticsLabel;
 
+  /// Above this text scale the trailing control drops to its own line.
+  ///
+  /// 1.6 rather than the buttons' 1.3: a switch does not grow with the text,
+  /// so this row survives further than a pair of labels does.
+  static const double stackAboveTextScale = 1.6;
+
   @override
   Widget build(BuildContext context) {
     final colors = DaybreakColors.of(context);
     final shapes = DaybreakShapes.of(context);
     final text = Theme.of(context).textTheme;
 
+    // The glyph tile scales with the text, so at 3× it is 132pt of a 320pt
+    // screen and the trailing control has nowhere left to sit. Above the
+    // threshold the control drops to its own line — the declared degradation
+    // order, and the same one `BackupCard` and `ProgressStatGrid` follow.
+    final stacked =
+        MediaQuery.textScalerOf(context).scale(1) >
+        SettingsRow.stackAboveTextScale;
+
+    final label = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Text(
+          title,
+          style: text.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: colors.ink,
+          ),
+        ),
+        if (sublabel case final value?)
+          Text(
+            value,
+            style: text.bodySmall?.copyWith(color: colors.inkMuted),
+          ),
+      ],
+    );
+
     final content = Padding(
       padding: EdgeInsetsDirectional.symmetric(
         horizontal: shapes.s4,
         vertical: shapes.s3,
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          GlyphTile(glyph: glyph),
-          SizedBox(width: shapes.s3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  title,
-                  style: text.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colors.ink,
-                  ),
-                ),
-                if (sublabel case final value?)
-                  Text(
-                    value,
-                    style: text.bodySmall?.copyWith(color: colors.inkMuted),
-                  ),
-              ],
-            ),
+          Row(
+            children: <Widget>[
+              GlyphTile(glyph: glyph),
+              SizedBox(width: shapes.s3),
+              Expanded(child: label),
+              if (trailing case final control?)
+                if (!stacked) ...<Widget>[
+                  SizedBox(width: shapes.s3),
+                  control,
+                ],
+            ],
           ),
-          if (trailing case final control?) ...<Widget>[
-            SizedBox(width: shapes.s3),
-            control,
+          if (stacked && trailing != null) ...<Widget>[
+            SizedBox(height: shapes.s3),
+            Align(alignment: AlignmentDirectional.centerStart, child: trailing),
           ],
         ],
       ),
