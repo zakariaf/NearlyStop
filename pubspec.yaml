@@ -93,6 +93,8 @@ dev_dependencies:
   # would be a dependency the store audit has to explain, for a check that
   # never runs on a phone.
   xml: ^7.0.1
+  # Parsing the CI workflows in the release policy test. TEST-only.
+  yaml: ^3.1.2
 
 flutter:
   uses-material-design: true

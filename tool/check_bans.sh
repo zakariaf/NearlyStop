@@ -355,6 +355,12 @@ add_platform_rule '*.gradle.kts' \
   'version(Name|Code)[[:space:]]*=[[:space:]]*("|[0-9])' \
   "pubspec.yaml is the only version source — use flutter.versionName / flutter.versionCode"
 
+# **Matched against a JOINED view of the file**, not its raw lines. A plist
+# writes `<key>…</key>` and its `<string>…</string>` on separate lines, and
+# `grep -E` is line-based — so the obvious pattern goes red on a one-line test
+# fixture and passes over every real `Info.plist` ever written. That was this
+# rule's first version, and the fixture is two lines now precisely so it can
+# never happen again.
 add_platform_rule 'Info.plist' \
   '<key>CFBundle(ShortVersionString|Version)</key>[[:space:]]*<string>[0-9]' \
   "pubspec.yaml is the only version source — use \$(FLUTTER_BUILD_NAME) / \$(FLUTTER_BUILD_NUMBER)"
@@ -364,10 +370,27 @@ scan_platform() {
   for r in "${!platform_patterns[@]}"; do
     while IFS= read -r file; do
       [ -n "$file" ] || continue
+      # Each `<key>` line is joined with the line after it, keeping the KEY's
+      # own line number, so a two-line plist pair is matchable. Every other
+      # line passes through untouched, so the gradle rule is unaffected.
       while IFS= read -r hit; do
         [ -n "$hit" ] || continue
         offenders+=("$file:${hit%%:*}: ${platform_reasons[$r]}"$'\n'"        ${hit#*:}")
-      done < <(grep -nE "${platform_patterns[$r]}" "$file" || true)
+      done < <(awk '
+        {
+          lines[NR] = $0
+        }
+        END {
+          for (i = 1; i <= NR; i++) {
+            joined = lines[i]
+            if (joined ~ /<key>/ && joined !~ /<string>/ && i < NR) {
+              sub(/^[[:space:]]+/, "", lines[i + 1])
+              joined = joined lines[i + 1]
+            }
+            printf "%d:%s\n", i, joined
+          }
+        }
+      ' "$file" | grep -E ":.*(${platform_patterns[$r]})" || true)
     done < <(find android ios -type f -name "${platform_globs[$r]}" 2>/dev/null | sort)
   done
 }

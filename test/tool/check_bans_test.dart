@@ -382,13 +382,18 @@ void main() {
         'android/app/build.gradle.kts',
         'versionCode = 1',
       ),
+      // Written across TWO LINES, because that is how a real plist is
+      // written. The first version of this fixture put the key and the value
+      // on one line, and the rule — `grep -E`, which is line-based — passed
+      // over the real `Info.plist` while going red on the fixture. A gate
+      // that can only fail against a shape nothing produces is decoration.
       'a literal CFBundleShortVersionString': (
         'ios/Runner/Info.plist',
-        '<key>CFBundleShortVersionString</key><string>1.0.0</string>',
+        '<key>CFBundleShortVersionString</key>\n\t<string>1.0.0</string>',
       ),
       'a literal CFBundleVersion': (
         'ios/Runner/Info.plist',
-        '<key>CFBundleVersion</key><string>1</string>',
+        '<key>CFBundleVersion</key>\n\t<string>1</string>',
       ),
     };
 
@@ -415,9 +420,9 @@ void main() {
       write(
         'ios/Runner/Info.plist',
         '<key>CFBundleShortVersionString</key>\n'
-            '<string>\$(FLUTTER_BUILD_NAME)</string>\n'
+            '\t<string>\$(FLUTTER_BUILD_NAME)</string>\n'
             '<key>CFBundleVersion</key>\n'
-            '<string>\$(FLUTTER_BUILD_NUMBER)</string>\n',
+            '\t<string>\$(FLUTTER_BUILD_NUMBER)</string>\n',
       );
 
       final result = await runGate();
