@@ -54,6 +54,8 @@ class CrashSink {
   /// mattered.
   CrashSink({
     required this.directory,
+    required this.appVersion,
+    required this.platform,
     this.maxRecords = 50,
     this.maxBytes = 64 * 1024,
   });
@@ -61,6 +63,18 @@ class CrashSink {
   /// Where the log lives. Injected so tests never touch the real app support
   /// directory.
   final String directory;
+
+  /// `1.0.0+1`, from the generated build constant.
+  ///
+  /// **Every record carries it.** A release build is obfuscated, so a mailed
+  /// trace only decodes against the symbol archive for that exact version —
+  /// a stack with no version on it is a stack nobody can read.
+  final String appVersion;
+
+  /// `ios 18.0`, `android 14`. Enough to tell two reports apart, and no
+  /// device identifier: this file is written to be readable by the person who
+  /// mails it, and a device id in it is data collection.
+  final String platform;
 
   /// How many records to keep. The oldest are dropped first.
   final int maxRecords;
@@ -214,13 +228,32 @@ class CrashSink {
         .toList();
   }
 
+  /// The log, as a file the user can hand to their own share sheet.
+  ///
+  /// **Null when nothing has crashed**, and it does not create the file to say
+  /// so: an empty diagnostics report mailed to a stranger is worse than no
+  /// report, because somebody then waits for an answer to it.
+  ///
+  /// It returns a path and nothing else. It opens no share sheet, touches no
+  /// gateway and sends nothing — the share happens only from the reader's own
+  /// tap. That separation is asserted in `crash_log_test.dart` by grepping
+  /// this file, because it is a claim about what this code does NOT do.
+  File? diagnosticReport() => file.existsSync() ? file : null;
+
   /// One record, one line.
   ///
   /// A stack is multi-line by nature, so its newlines are escaped rather than
   /// written — otherwise counting records means parsing them, and the rotation
   /// above could not tell a record from a stack frame.
+  ///
+  /// **What is deliberately NOT here: anything from the plan.** No drug, no
+  /// dose, no note, no date. The fields are the error, its stack, where it
+  /// happened, the version and the platform — enough to fix a bug and nothing
+  /// a person would mind a stranger reading.
   String _encode(Object error, StackTrace? stack, String? context) {
     final parts = <String, String>{
+      'version': appVersion,
+      'platform': platform,
       'context': ?context,
       'error': error.toString(),
       'stack': ?stack?.toString(),

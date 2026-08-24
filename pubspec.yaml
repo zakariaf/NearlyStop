@@ -80,6 +80,10 @@ dev_dependencies:
   # Fake time for the midnight-rollover suite. A rollover test that waits on a
   # real clock is a test nobody runs twice.
   fake_async: ^1.3.0
+  # Icon and splash generation. Both DEV: they run once, write native assets
+  # that are committed, and never ship in the binary.
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.6
   flutter_test:
     sdk: flutter
   test: ^1.25.0
@@ -112,3 +116,49 @@ flutter:
   assets:
     - assets/fonts/OFL-Nunito.txt
     - assets/fonts/OFL-Vazirmatn.txt
+
+# ------------------------------------------------------------------ branding
+# Generated once, committed, and treated as codegen output: a regeneration
+# that produces a diff is a review item. The source PNGs come from
+# `test/branding/branding_assets_test.dart`, which renders them from the real
+# Daybreak tokens — so the icon on the home screen is the same mark as the
+# Welcome seal by construction, not by somebody matching a hex value.
+flutter_launcher_icons:
+  image_path: assets/branding/icon-1024.png
+
+  android: true
+  adaptive_icon_foreground: assets/branding/icon-foreground.png
+  # A flat layer, not an image: the launcher parallaxes the two against each
+  # other, and a gradient that moves under a gradient reads as a smear.
+  adaptive_icon_background: "#F9633F"
+  # Android 13+ themed icons. Without it the launcher falls back to a
+  # shrunken, washed-out version of the colour icon.
+  adaptive_icon_monochrome: assets/branding/icon-monochrome.png
+
+  ios: true
+  # Apple REJECTS an alpha channel in the marketing icon. The generator writes
+  # RGBA, so this flattens it onto the gradient rather than leaving the
+  # rejection to be discovered at upload.
+  remove_alpha_ios: true
+
+flutter_native_splash:
+  # Never white and never #000 — the launch ground is the app's own `bg`, so
+  # there is nothing to flash between the splash and the first frame.
+  color: "#FFF9F2"
+  color_dark: "#241A20"
+  image: assets/branding/splash-mark.png
+  image_dark: assets/branding/splash-mark.png
+
+  # The Android 12+ splash screen API is a different mechanism from the old
+  # windowBackground drawable. Configuring only one of them is what produces
+  # the double flash: the platform shows its own, then the app shows the
+  # legacy one over it.
+  android_12:
+    color: "#FFF9F2"
+    color_dark: "#241A20"
+    image: assets/branding/splash-mark.png
+    image_dark: assets/branding/splash-mark.png
+
+  android: true
+  ios: true
+  web: false

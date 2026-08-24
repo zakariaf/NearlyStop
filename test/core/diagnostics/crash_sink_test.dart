@@ -23,6 +23,8 @@ void main() {
   CrashSink sinkWith({int maxRecords = 50, int maxBytes = 64 * 1024}) =>
       CrashSink(
         directory: directory.path,
+        appVersion: '1.0.0+1',
+        platform: 'test',
         maxRecords: maxRecords,
         maxBytes: maxBytes,
       );
@@ -103,6 +105,8 @@ void main() {
       addTearDown(() => directory.deleteSync(recursive: true));
       CrashSink(
         directory: directory.path,
+        appVersion: '1.0.0+1',
+        platform: 'test',
         maxRecords: 1000,
         maxBytes: cap,
       ).record(StateError('میلی‌گرم ' * 60), null);
@@ -133,6 +137,8 @@ void main() {
     // record of why it died.
     final sink = CrashSink(
       directory: '${directory.path}/does/not/exist',
+      appVersion: '1.0.0+1',
+      platform: 'test',
       maxRecords: 10,
       maxBytes: 1024,
     );
