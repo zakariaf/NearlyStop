@@ -17,6 +17,14 @@ set -uo pipefail
 #   MANIFEST defaults to the release merged manifest, built by
 #   `flutter build apk --release` (or `--debug`, which adds INTERNET on
 #   purpose and is therefore NOT what this gate reads).
+#
+# **Two lanes, since EPIC-15.** A release build now fails without signing
+# credentials — correctly, because a debug-signed release installs and can
+# then never be updated on Play — so PR CI cannot produce a release manifest
+# and passes the PROFILE one instead. Profile carries INTERNET legitimately,
+# for the VM service, so the INTERNET check below is skipped on a profile
+# manifest and says so out loud rather than quietly passing. The full
+# assertion runs in `release.yml`, against the real signed build.
 
 expected=(
   android.permission.POST_NOTIFICATIONS
@@ -39,6 +47,21 @@ if [ ! -f "$manifest" ]; then
   echo "Build it first:  flutter build apk --release"
   echo "Refusing to report OK on a manifest that was never produced."
   exit 2
+fi
+
+# Which variant this manifest came from. A profile build adds INTERNET on
+# purpose; a release build must not have it, and that difference is the whole
+# reason the gate has to know which one it is looking at.
+case "$manifest" in
+  *[Pp]rofile*) variant=profile ;;
+  *[Dd]ebug*)   variant=debug ;;
+  *)            variant=release ;;
+esac
+
+if [ "$variant" != release ]; then
+  expected+=(android.permission.INTERNET)
+  echo "NOTE: reading the $variant manifest. INTERNET is expected here — the"
+  echo "      VM service needs it. The release lane asserts its ABSENCE."
 fi
 
 # One name per line, deduplicated and sorted, so the comparison is a set

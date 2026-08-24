@@ -105,10 +105,15 @@ proves it. If a dependency changed since the last release, re-run
 
 ## 8. Two CI lanes, and which checks what
 
-| Lane | Runs | Checks |
+| Lane | Builds | Checks |
 |---|---|---|
-| **PR CI** (`ci.yml`) | every push | the whole test suite, every gate script, and the locale declarations. Records but does not fail on `INTERNET` — profile builds legitimately carry it |
-| **Release** (manual dispatch) | on demand, secrets injected | the full merged-manifest assertion against a real signed release build: the whole permission set, and `INTERNET` **absent** |
+| **PR CI** (`ci.yml`) | `apk --profile` | the whole test suite, every gate script, the locale declarations, and the merged-manifest permission set. It reads the **profile** manifest, which carries `INTERNET` on purpose for the VM service — the gate detects the variant and says so rather than passing quietly |
+| **Release** (`release.yml`, manual dispatch) | `appbundle --release`, signed | the same set against the **release** merged manifest, where `INTERNET` must be **absent** |
+
+**Why PR CI cannot build `--release`:** since EPIC-15 a release build fails
+without signing credentials, and that job deliberately has no secrets — there
+is nothing in it to leak. The alternative, a CI-only signing fallback, is how a
+debug-signed release eventually ships, which is unrecoverable on Play.
 
 ## 9. Upload to internal tracks
 

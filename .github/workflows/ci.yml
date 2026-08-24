@@ -252,10 +252,19 @@ jobs:
       # — no signing secret in this job means there is nothing here to leak.
       - run: flutter build apk --debug
 
-      # Contract: the MERGED manifest — the one that ships — declares exactly
-      # POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED and VIBRATE, registers the
-      # plugin's boot receiver, and carries neither exact-alarm permission nor
-      # INTERNET. The release build is what produces it; the debug manifest
-      # adds INTERNET on purpose and is not what this reads.
-      - run: flutter build apk --release
-      - run: bash tool/check-manifest-permissions.sh
+      # Contract: the MERGED manifest declares exactly POST_NOTIFICATIONS,
+      # RECEIVE_BOOT_COMPLETED and VIBRATE, registers the plugin's boot
+      # receiver, and carries no exact-alarm permission.
+      #
+      # **PROFILE, not release, and this lane is honest about the difference.**
+      # Since EPIC-15 a release build FAILS without signing credentials —
+      # correctly, because a debug-signed release installs and can then never
+      # be updated on Play — and this job has no secrets by design, so there is
+      # nothing here to leak. Profile carries INTERNET on purpose for the VM
+      # service; the gate knows which variant it is reading and says so.
+      #
+      # `INTERNET` **absent** is asserted in `release.yml`, against the real
+      # signed release build. That is the only place a release merged manifest
+      # exists. See `docs/release/RELEASING.md` §8.
+      - run: flutter build apk --profile
+      - run: bash tool/check-manifest-permissions.sh build/app/intermediates/merged_manifests/profile/processProfileManifest/AndroidManifest.xml
