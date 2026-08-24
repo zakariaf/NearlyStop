@@ -20,6 +20,7 @@ import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/services/files/fake_file_picker_gateway.dart';
 import 'package:nearlystop/services/files/fake_share_gateway.dart';
 import 'package:nearlystop/services/files/file_picker_gateway.dart';
+import 'package:nearlystop/services/notifications/sync_notifications.dart';
 import 'package:riverpod/misc.dart' show Override;
 
 import '../../support/harness.dart';
@@ -59,6 +60,10 @@ void main() {
         backupRestoreProvider.overrideWithValue((file) async {
           calls.add('restore');
           return await restore?.call() ?? const Ok<void, Failure>(null);
+        }),
+        reconcileNotificationsProvider.overrideWithValue(() async {
+          calls.add('reconcile');
+          return const Ok<void, ReminderFailure>(null);
         }),
       ],
       surfaceSize: const Size(390, 1400),
@@ -226,6 +231,27 @@ void main() {
     final l10n = await pumpSettings(tester);
 
     expect(find.text(l10n.settingsBackupPlainText), findsOneWidget);
+  });
+
+  testWidgets('a restore reconciles the reminders it just replaced', (
+    tester,
+  ) async {
+    // The OS is holding notifications armed from the PRE-restore plan, and the
+    // restored settings may have the reminder off, or at a different hour. A
+    // restore that leaves them is a phone that pings at 07:00 for a plan its
+    // owner no longer has.
+    picker.picked = File('/tmp/chosen-backup.ndjson');
+    final l10n = await pumpSettings(tester);
+
+    await tester.ensureVisible(
+      find.widgetWithText(SecondaryButton, l10n.settingsImport),
+    );
+    await tester.tap(find.widgetWithText(SecondaryButton, l10n.settingsImport));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.settingsRestoreConfirmAction));
+    await tester.pumpAndSettle();
+
+    expect(calls, <String>['restore', 'reconcile']);
   });
 
   test('no NotImplementedYet stub is left in lib/', () {

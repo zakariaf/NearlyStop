@@ -36,6 +36,7 @@ import 'package:nearlystop/routing/routes.dart';
 import 'package:nearlystop/services/files/file_picker_gateway.dart';
 import 'package:nearlystop/services/notifications/notification_permissions.dart';
 import 'package:nearlystop/services/notifications/reconcile_triggers.dart';
+import 'package:nearlystop/services/notifications/sync_notifications.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_script.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
@@ -582,6 +583,12 @@ class _BackupCardState extends ConsumerState<BackupCard> {
       onConfirmed: () async {
         setState(() => _running = _Running.importing);
         restored = await ref.read(backupRestoreProvider)(file);
+        if (restored is! Ok) return;
+        // The OS is still holding notifications armed from the PRE-restore
+        // plan, and the restored settings may have the reminder off or at a
+        // different hour. Reconcile cancels before it schedules, so this is
+        // the one call that makes both true again.
+        await ref.read(reconcileNotificationsProvider)();
       },
     );
 

@@ -326,11 +326,14 @@ class DestructiveButton extends StatelessWidget {
     super.key,
   }) : _immediate = false;
 
-  /// The confirm action **inside** a [ConfirmSheet].
+  /// A destructive button whose confirmation lives somewhere ELSE.
   ///
-  /// The sheet IS the confirmation, so this one acts directly — the only
-  /// variant that may, and the reason it is a named constructor rather than a
-  /// flag anyone could pass.
+  /// Two callers, both legitimate: the action inside a [ConfirmSheet] — the
+  /// sheet IS the confirmation — and a button that opens an `ExportGuard`,
+  /// which is three exits rather than two and therefore cannot be expressed
+  /// as this widget's own [confirm]. A named constructor rather than a flag
+  /// anyone could pass, because "destructive, no confirmation here" has to be
+  /// a decision somebody wrote down.
   const DestructiveButton.immediate({
     required this.label,
     required VoidCallback? onPressed,

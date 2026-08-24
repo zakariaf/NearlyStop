@@ -17,7 +17,9 @@ import 'package:nearlystop/features/export/application/dose_history_document.dar
 import 'package:nearlystop/features/export/data/dose_history_csv.dart';
 import 'package:nearlystop/features/export/domain/export_failure.dart';
 import 'package:nearlystop/features/export/presentation/export_sheet.dart';
+import 'package:nearlystop/l10n/app_locales.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
+import 'package:nearlystop/theme/daybreak_script.dart';
 import 'package:riverpod/misc.dart' show Override;
 import 'package:riverpod/riverpod.dart';
 
@@ -100,16 +102,29 @@ void main() {
     expect(ascii, contains('Nunito'), reason: 'the Latin face is missing');
   });
 
-  test('a Persian handout carries the Perso-Arabic face', () async {
-    // Same call, the other script. What this catches is a fallback that only
-    // exists on the Latin path — the failure mode is a page of empty boxes.
-    final container = containerFor(document(locale: const Locale('fa')));
+  test('every shipped locale renders a handout', () async {
+    // All four, not a Latin one and a Persian one. `de` is the longest-string
+    // locale and `ckb` composes its dates from the app's own ARB — either can
+    // throw on a path the other never reaches.
+    for (final locale in kSupportedLocales) {
+      final container = containerFor(document(locale: locale));
 
-    final file = await unwrap(container.read(pdfExportProvider)());
+      final file = await unwrap(container.read(pdfExportProvider)());
 
-    final ascii = String.fromCharCodes(await file.readAsBytes());
-    expect(ascii, startsWith('%PDF-'));
-    expect(ascii, contains('Vazirmatn'));
+      final ascii = String.fromCharCodes(await file.readAsBytes());
+      expect(ascii, startsWith('%PDF-'), reason: locale.toLanguageTag());
+      expect(
+        ascii,
+        // The Perso-Arabic face is embedded for the RTL locales and the Latin
+        // one for the others. A fallback that only exists on the Latin path
+        // renders a Persian handout as a page of empty boxes, and nothing in
+        // the app would report it.
+        contains(
+          scriptFor(locale) == DaybreakScript.perso ? 'Vazirmatn' : 'Nunito',
+        ),
+        reason: locale.toLanguageTag(),
+      );
+    }
   });
 
   test('the CSV keeps its BOM and its header row', () async {
