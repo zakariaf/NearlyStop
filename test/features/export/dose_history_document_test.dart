@@ -124,6 +124,44 @@ void main() {
       expect(elapsed, hasLength(3));
     });
 
+    test('no bidi control character reaches the exported file', () {
+      // Found on a device. `formatTabletBreakdown` wraps its run in U+2066 /
+      // U+2069 so a Perso-Arabic screen does not reorder "1 × 5mg" — correct
+      // on screen, and in the handout it is two `.notdef` boxes on EVERY row,
+      // because the embedded font has no glyph for a control character and
+      // `pdf` draws one rather than skipping it. `bidi.dart` already says
+      // where the boundary is: these must never reach an export.
+      final document = _build(today: const LocalDate(2026, 4, 3));
+      final everything = <String>[
+        for (final row in document.rows) ...row.cells,
+        for (final row in document.pdfRows) ...row,
+        document.copy.title,
+        document.copy.subtitle,
+        document.copy.currentValue,
+        document.copy.targetValue,
+        ...document.copy.statValues,
+        ...document.copy.columns,
+        document.copy.disclaimer,
+        document.copy.footerPrefix,
+      ];
+
+      for (final cell in everything) {
+        expect(
+          cell.runes.any(
+            (r) =>
+                (r >= 0x200E && r <= 0x200F) ||
+                (r >= 0x202A && r <= 0x202E) ||
+                (r >= 0x2066 && r <= 0x2069),
+          ),
+          isFalse,
+          reason: 'a control character survived into "$cell"',
+        );
+      }
+      // And the fixture reaches the producer: without a tablet breakdown this
+      // assertion holds over a document that never had one.
+      expect(document.rows.first.tablets, contains('×'));
+    });
+
     test('the footer says the same sentence the code constant does', () {
       // `kPdfDisclaimer` is the English text the PDF layer's own tests pin.
       // Two copies of one sentence is how a handout ends up disclaiming

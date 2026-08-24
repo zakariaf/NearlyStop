@@ -17,6 +17,7 @@ import 'package:nearlystop/features/export/data/dose_history_csv.dart';
 import 'package:nearlystop/features/export/data/dose_history_pdf.dart';
 import 'package:nearlystop/features/progress/presentation/progress_view_state.dart';
 import 'package:nearlystop/l10n/app_locales.dart';
+import 'package:nearlystop/l10n/bidi.dart';
 import 'package:nearlystop/l10n/date_formats.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/l10n/number_formats.dart';
@@ -175,7 +176,7 @@ DoseHistoryRow _row({
   required NumberFormat numbers,
 }) => DoseHistoryRow(
   date: day.date.toIso8601(),
-  weekday: formatWeekdayName(day.date, locale),
+  weekday: _exported(formatWeekdayName(day.date, locale)),
   step: numbers.format(day.stepIndex + 1),
   block: day.blockIndex == null ? '' : numbers.format(day.blockIndex),
   plannedMg: asciiDose(day.dose),
@@ -183,7 +184,7 @@ DoseHistoryRow _row({
   // `0` in that cell is a doctor reading "they took nothing".
   actualMg: log == null ? '' : asciiDose(log.actualMg),
   taken: log != null && log.taken ? l10n.stateTaken : '',
-  tablets: switch (day.composition) {
+  tablets: _exported(switch (day.composition) {
     Ok<TabletComposition, DomainFailure>(:final value) => formatTabletBreakdown(
       value,
       locale,
@@ -194,10 +195,26 @@ DoseHistoryRow _row({
     Err<TabletComposition, DomainFailure>() => l10n.doseNotAchievable(
       formatDose(day.dose, locale),
     ),
-  },
-  note: log?.note,
+  }),
+  note: log?.note == null ? null : _exported(log!.note!),
   event: event,
 );
+
+/// A string on its way OUT of the app.
+///
+/// `bidi.dart` names this boundary: an isolate is a rendering instruction for
+/// Flutter's text engine, and it must never reach the database, a search or an
+/// export. Found on a device — the tablet breakdown carries `U+2066`/`U+2069`
+/// so a Perso-Arabic screen does not reorder "1 × 5mg", and the embedded font
+/// has no glyph for a control character, so the handout drew two `.notdef`
+/// boxes on every single row.
+///
+/// The patient's own note goes through it too. A control character is
+/// formatting, not a word: stripping it changes how the sentence renders and
+/// not what it says, and a tofu box in the middle of a doctor's copy is worse
+/// than a run that reorders. The BACKUP is untouched — that is the path where
+/// fidelity is the point.
+String _exported(String value) => stripIsolates(value);
 
 /// A dose as a spreadsheet parses it: ASCII digits, a full stop, no grouping.
 ///
