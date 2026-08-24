@@ -13,6 +13,8 @@ import 'package:nearlystop/core/time/local_date.dart';
 import 'package:nearlystop/data/providers.dart';
 import 'package:nearlystop/data/storage_failure.dart';
 import 'package:nearlystop/data/taper_repository.dart';
+import 'package:nearlystop/features/backup/presentation/backup_actions.dart';
+import 'package:nearlystop/features/backup/presentation/export_guard.dart';
 import 'package:nearlystop/features/plan/presentation/plan_cards.dart';
 import 'package:nearlystop/features/plan/presentation/plan_edit_form.dart';
 import 'package:nearlystop/features/plan/presentation/plan_editor_notifier.dart';
@@ -40,6 +42,9 @@ class PlanScreen extends ConsumerStatefulWidget {
 
 class _PlanScreenState extends ConsumerState<PlanScreen> {
   String? _notice;
+
+  /// The delete button's own bounds, for the iPad popover anchor.
+  final GlobalKey _deleteKey = GlobalKey();
 
   /// What each field last said, keyed by field.
   ///
@@ -86,8 +91,38 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     );
   }
 
-  Future<void> _delete() async {
-    await ref.read(taperRepositoryProvider).deletePlan();
+  /// Delete, behind SPEC §5.3's guard.
+  ///
+  /// The SAME guard the replace-all restore uses, on EPIC-07's shared confirm
+  /// sheet — the two operations that can lose two years get one answer, not
+  /// two that drift apart. A failed export deletes nothing.
+  Future<void> _delete(ConfirmRequest request) async {
+    final l10n = AppLocalizations.of(context);
+    // The BUTTON's bounds, not the screen's: see PlanDangerZone.buttonKey.
+    final anchor = originRectOf(_deleteKey.currentContext ?? context);
+    final outcome = await showExportGuard(
+      context: context,
+      request: request,
+      exportLabel: l10n.planExportFirst,
+      onExport: () => exportAndShareBackup(
+        ref,
+        subject: l10n.settingsBackupSubject,
+        originRect: anchor,
+      ),
+      onConfirmed: () => ref.read(taperRepositoryProvider).deletePlan(),
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _notice = switch (outcome) {
+        ExportGuardOutcome.cancelled ||
+        ExportGuardOutcome.exportedThenDestroyed ||
+        ExportGuardOutcome.destroyedWithoutBackup => null,
+        // Named as what did NOT happen: the plan is still there, which is the
+        // more important half of the sentence.
+        ExportGuardOutcome.exportFailed => l10n.settingsBackupFailed,
+      };
+    });
   }
 
   @override
@@ -186,15 +221,19 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
           SizedBox(height: shapes.s6),
           PlanDangerZone(
             l10n: l10n,
-            // The sheet names what is lost — the plan and the COUNT of
-            // recorded days, read from the snapshot rather than typed.
-            confirm: ConfirmRequest(
-              title: l10n.planDeleteTitle,
-              body: l10n.planDeleteBody(facts?.logs.length ?? 0),
-              confirmLabel: l10n.planDeleteConfirm,
-              cancelLabel: l10n.actionCancel,
-            ),
-            onConfirmed: facts?.plan == null ? null : _delete,
+            buttonKey: _deleteKey,
+            onDelete: facts?.plan == null
+                ? null
+                // The sheet names what is lost — the plan and the COUNT of
+                // recorded days, read from the snapshot rather than typed.
+                : () => _delete(
+                    ConfirmRequest(
+                      title: l10n.planDeleteTitle,
+                      body: l10n.planDeleteBody(facts?.logs.length ?? 0),
+                      confirmLabel: l10n.planDeleteConfirm,
+                      cancelLabel: l10n.actionCancel,
+                    ),
+                  ),
           ),
         ],
       ),

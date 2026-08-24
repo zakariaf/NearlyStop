@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nearlystop/app/window_size.dart';
+import 'package:nearlystop/features/export/presentation/export_sheet.dart';
 import 'package:nearlystop/features/progress/application/progress_view_provider.dart';
 import 'package:nearlystop/features/progress/presentation/progress_view_state.dart';
 import 'package:nearlystop/features/progress/presentation/widgets/dose_staircase_chart.dart';
@@ -100,9 +101,7 @@ class _Loaded extends StatelessWidget {
       SecondaryButton(
         label: l10n.settingsExportForDoctor,
         expand: true,
-        // Never `onPressed: null`. EPIC-13 has not landed, and the honest
-        // answer is a route that says so — not a control that looks broken.
-        onPressed: () => context.push(Routes.progressExport),
+        onPressed: () => showExportSheet(context),
       ),
     ];
 

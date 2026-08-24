@@ -142,8 +142,6 @@
   "historySegmentRow": "{dose} میلیگرام لە {date} بۆ ماوەی {days, plural, other{{days} ڕۆژ}}",
   "historyFlareRow": "هەڵگیرسان لە {date}، گەڕانەوە بۆ {dose} میلیگرام",
   "historyHoldRow": "ڕاگیراوە لە {dose} میلیگرام بۆ ماوەی {days, plural, other{{days} ڕۆژ}} لە {date}",
-  "exportComingSoon": "هەناردەکردن بەم زووانە",
-  "exportComingSoonBody": "PDF و خشتەیەک بۆ چاوپێکەوتنەکەت. هێشتا دروست نەکراوە.",
   "chartOverlineCaps": "دۆزەکەت بە درێژایی کات",
   "drugPrednisolone": "پرێدنیزۆلۆن",
   "settingsSystemLanguage": "سیستەم",
@@ -158,7 +156,6 @@
   "settingsOff": "ناکارا",
   "settingsReminderAt": "کارا · {time}",
   "settingsBackupNote": "کۆپییەک کە خۆت دەیهێڵیتەوە. هیچ شتێک لەم مۆبایلە دەرناچێت مەگەر خۆت بینێریت.",
-  "settingsNotImplemented": "هێشتا دروست نەکراوە — لەگەڵ وەشانی هەناردەکردن دێت.",
   "settingsTextSizeSemantics": "قەبارەی نووسین، {value} جار",
   "planNextStep": "هەنگاوی داهاتوو",
   "planSave": "پاشەکەوتکردنی پلان",
@@ -282,5 +279,146 @@
   "reminderBlockedAndroid": "ئاگادارییەکان بۆ نیەرلیستۆپ لە ڕێکخستن › ئەپەکان › نیەرلیستۆپ بکەرەوە.",
   "@reminderBlockedAndroid": {
     "description": "Settings: where to go on Android."
+  },
+  "settingsBackupPlainText": "فایلەکە دەقی سادەیە و کۆدنەکراوە. هەرکەسێک بیکاتەوە دەتوانێت پلانەکەت بخوێنێتەوە.",
+  "@settingsBackupPlainText": {
+    "description": "Settings backup card: SPEC §5.3’s honesty rule, said where the reader can see it."
+  },
+  "settingsBackupFailed": "پاڵپشتەکە هەڵنەگیرا. هیچ شتێک لەسەر ئەم مۆبایلە نەگۆڕاوە.",
+  "@settingsBackupFailed": {
+    "description": "Settings backup card: an export that failed. Names what did NOT happen."
+  },
+  "settingsRestoreFailed": "ئەو فایلە نەگەڕێندرایەوە. هیچ شتێک لەسەر ئەم مۆبایلە نەگۆڕاوە.",
+  "@settingsRestoreFailed": {
+    "description": "Settings backup card: a restore that refused. Names what did NOT happen."
+  },
+  "settingsRestoreDone": "لە پاڵپشتەکەت گەڕێندرایەوە.",
+  "@settingsRestoreDone": {
+    "description": "Settings backup card: a restore that worked."
+  },
+  "settingsBackupSubject": "پاڵپشتی نیەرلیستۆپ",
+  "@settingsBackupSubject": {
+    "description": "The share sheet’s subject line for a backup file."
+  },
+  "settingsRestoreConfirmTitle": "هەموو شتێک لەسەر ئەم مۆبایلە بگۆڕدرێت؟",
+  "@settingsRestoreConfirmTitle": {
+    "description": "Restore confirmation: the title. Names the whole phone, not \"the data\"."
+  },
+  "settingsRestoreConfirmBody": "پلانەکەت، مێژووی دۆزەکەت، تووشبوونەوەکان و وەستانەکانت هەموویان بەوانەی ناو ئەم فایلە دەگۆڕدرێن. ئەوەی ئێستا لەسەر ئەم مۆبایلەیە دەڕوات.",
+  "@settingsRestoreConfirmBody": {
+    "description": "Restore confirmation: says exactly what is lost, because it is two years of it."
+  },
+  "settingsRestoreConfirmAction": "هەموویان بگۆڕە",
+  "@settingsRestoreConfirmAction": {
+    "description": "Restore confirmation: the destructive action."
+  },
+  "settingsRestoreExportFirst": "سەرەتا پاڵپشت بکە، پاشان بگۆڕە",
+  "@settingsRestoreExportFirst": {
+    "description": "Restore confirmation: SPEC §5.3’s export-before-destruction, as the primary action."
+  },
+  "stateWorking": "لە کارکردندایە",
+  "@stateWorking": {
+    "description": "A button that is busy. Said as well as spun: a spinner is invisible to a screen reader."
+  },
+  "exportSheetTitle": "هەناردەکردن بۆ پزیشکەکەت",
+  "@exportSheetTitle": {
+    "description": "Export sheet: the title. Names the audience, because the two formats differ only by who reads them."
+  },
+  "exportPdfLabel": "PDF بۆ چاپکردن",
+  "@exportPdfLabel": {
+    "description": "Export sheet: the PDF option."
+  },
+  "exportPdfAudience": "لاپەڕەیەک کە دەتوانیت چاپی بکەیت یان لە کاتی ژوانەکەت پیشانی بدەیت.",
+  "@exportPdfAudience": {
+    "description": "Export sheet: who the PDF is for. Every option carries its audience line."
+  },
+  "exportCsvLabel": "خشتەی داتا",
+  "@exportCsvLabel": {
+    "description": "Export sheet: the CSV option. Named for what a reader opens, not for the file extension."
+  },
+  "exportCsvAudience": "هەموو ڕۆژێک وەک ڕیزێک، بۆ پزیشکێک کە خودی ژمارەکانی دەوێت.",
+  "@exportCsvAudience": {
+    "description": "Export sheet: who the spreadsheet is for."
+  },
+  "exportNotEncrypted": "فایلەکە کۆدنەکراوە. هەرکەسێک بۆی بنێریت دەتوانێت مێژووی دۆزەکەت بخوێنێتەوە.",
+  "@exportNotEncrypted": {
+    "description": "Export sheet: SPEC §5.3’s honesty rule, on the surface that hands the file to somebody else."
+  },
+  "exportFailed": "فایلەکە دروست نەکرا. هیچ شتێک لەسەر ئەم مۆبایلە نەگۆڕاوە.",
+  "@exportFailed": {
+    "description": "Export sheet: a render that failed. Names what did NOT happen."
+  },
+  "exportNothingYet": "هێشتا هیچ شتێک نییە بۆ هەناردەکردن. مێژووەکەت لە یەکەم ڕۆژتەوە دەست پێدەکات.",
+  "@exportNothingYet": {
+    "description": "Export sheet: no plan, or no elapsed day. Not an error."
+  },
+  "exportSubject": "مێژووی دۆزی نیەرلیستۆپ",
+  "@exportSubject": {
+    "description": "The share sheet’s subject line for a doctor export."
+  },
+  "exportDateRange": "{from} تا {to}",
+  "@exportDateRange": {
+    "description": "The handout’s subtitle: the range the document covers.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "exportFooterPrefix": "{app} · هەناردەکرا {date}",
+  "@exportFooterPrefix": {
+    "description": "The first half of the footer on every page, before the disclaimer.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "exportDisclaimer": "لەسەر ئامێری نەخۆشەکە لە پلانێکەوە کە خۆی داویەتی دروستکراوە. ڕاوێژی پزیشکی نییە.",
+  "@exportDisclaimer": {
+    "description": "The sentence on EVERY page of the handout. The en value must match kPdfDisclaimer exactly — a test asserts it."
+  },
+  "exportColumnDate": "بەروار",
+  "@exportColumnDate": {
+    "description": "Handout table column: the day."
+  },
+  "exportColumnPlanned": "پلاندراو",
+  "@exportColumnPlanned": {
+    "description": "Handout table column: the dose the plan calls for."
+  },
+  "exportColumnActual": "ڕاستەقینە",
+  "@exportColumnActual": {
+    "description": "Handout table column: the dose actually taken."
+  },
+  "exportColumnTablets": "حەبەکان",
+  "@exportColumnTablets": {
+    "description": "Handout table column: how the dose was built."
+  },
+  "exportColumnNote": "تێبینی",
+  "@exportColumnNote": {
+    "description": "Handout table column: the patient’s own words."
+  },
+  "exportEventFlare": "تووشبوونەوە",
+  "@exportEventFlare": {
+    "description": "Export event cell: a flare starts on this day."
+  },
+  "exportEventHold": "وەستان",
+  "@exportEventHold": {
+    "description": "Export event cell: a hold starts on this day."
+  },
+  "exportHandoutTitle": "مێژووی دۆزی {drug}",
+  "@exportHandoutTitle": {
+    "description": "The handout’s title. Names the drug, because a doctor reads it out of context.",
+    "placeholders": {
+      "drug": {
+        "type": "String"
+      }
+    }
   }
 }

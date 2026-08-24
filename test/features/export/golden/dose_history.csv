@@ -1,0 +1,7 @@
+﻿date,weekday,step,block,planned_mg,actual_mg,taken,tablets,note,event
+2026-04-01,Wednesday,1,1,10.25,10.25,Taken,"2 × 5mg, 1 × 0.25mg","felt fine, ""no aches""
+slept well",
+2026-04-02,Thursday,1,1,9,,,"1 × 5mg, 4 × 1mg","'=cmd()|""/c calc""!A1",Flare
+2026-04-03,Friday,1,2,9,9,Taken,"1 × 5mg, 4 × 1mg",‏درد کمتر شد ‎(10mg)‏,Hold
+2026-04-04,Saturday,1,2,9,9,Taken,"1 × 5mg, 4 × 1mg",—,
+2026-04-05,Sunday,1,3,9,9,Taken,"1 × 5mg, 4 × 1mg",'-2 today 🌅,

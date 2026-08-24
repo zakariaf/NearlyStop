@@ -896,14 +896,6 @@
       "date": {}
     }
   },
-  "exportComingSoon": "Export is coming next",
-  "@exportComingSoon": {
-    "description": "Heading of the placeholder export screen."
-  },
-  "exportComingSoonBody": "A PDF and a spreadsheet for your appointment. Not built yet.",
-  "@exportComingSoonBody": {
-    "description": "Body of the placeholder export screen."
-  },
   "chartOverlineCaps": "YOUR DOSE OVER TIME",
   "@chartOverlineCaps": {
     "description": "The chart overline as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See stateTakenCaps."
@@ -962,10 +954,6 @@
   "settingsBackupNote": "A copy you keep. Nothing leaves this phone unless you send it.",
   "@settingsBackupNote": {
     "description": "One line under the backup buttons."
-  },
-  "settingsNotImplemented": "Not built yet — this arrives with the export release.",
-  "@settingsNotImplemented": {
-    "description": "Shown when a backup action is not built yet."
   },
   "settingsTextSizeSemantics": "Text size, {value} times",
   "@settingsTextSizeSemantics": {
@@ -1194,5 +1182,146 @@
   "reminderBlockedAndroid": "Turn notifications on for NearlyStop in Settings › Apps › NearlyStop.",
   "@reminderBlockedAndroid": {
     "description": "Settings: where to go on Android."
+  },
+  "settingsBackupPlainText": "The file is plain text and is not encrypted. Anyone who opens it can read your plan.",
+  "@settingsBackupPlainText": {
+    "description": "Settings backup card: SPEC §5.3’s honesty rule, said where the reader can see it."
+  },
+  "settingsBackupFailed": "The backup could not be saved. Nothing on this phone has changed.",
+  "@settingsBackupFailed": {
+    "description": "Settings backup card: an export that failed. Names what did NOT happen."
+  },
+  "settingsRestoreFailed": "That file could not be restored. Nothing on this phone has changed.",
+  "@settingsRestoreFailed": {
+    "description": "Settings backup card: a restore that refused. Names what did NOT happen."
+  },
+  "settingsRestoreDone": "Restored from your backup.",
+  "@settingsRestoreDone": {
+    "description": "Settings backup card: a restore that worked."
+  },
+  "settingsBackupSubject": "NearlyStop backup",
+  "@settingsBackupSubject": {
+    "description": "The share sheet’s subject line for a backup file."
+  },
+  "settingsRestoreConfirmTitle": "Replace everything on this phone?",
+  "@settingsRestoreConfirmTitle": {
+    "description": "Restore confirmation: the title. Names the whole phone, not \"the data\"."
+  },
+  "settingsRestoreConfirmBody": "Your plan, your dose history, your flares and your holds are all replaced by the ones in this file. What is on this phone now is gone.",
+  "@settingsRestoreConfirmBody": {
+    "description": "Restore confirmation: says exactly what is lost, because it is two years of it."
+  },
+  "settingsRestoreConfirmAction": "Replace everything",
+  "@settingsRestoreConfirmAction": {
+    "description": "Restore confirmation: the destructive action."
+  },
+  "settingsRestoreExportFirst": "Back up first, then replace",
+  "@settingsRestoreExportFirst": {
+    "description": "Restore confirmation: SPEC §5.3’s export-before-destruction, as the primary action."
+  },
+  "stateWorking": "Working",
+  "@stateWorking": {
+    "description": "A button that is busy. Said as well as spun: a spinner is invisible to a screen reader."
+  },
+  "exportSheetTitle": "Export for your doctor",
+  "@exportSheetTitle": {
+    "description": "Export sheet: the title. Names the audience, because the two formats differ only by who reads them."
+  },
+  "exportPdfLabel": "PDF to print",
+  "@exportPdfLabel": {
+    "description": "Export sheet: the PDF option."
+  },
+  "exportPdfAudience": "A page you can print or show at your appointment.",
+  "@exportPdfAudience": {
+    "description": "Export sheet: who the PDF is for. Every option carries its audience line."
+  },
+  "exportCsvLabel": "Spreadsheet",
+  "@exportCsvLabel": {
+    "description": "Export sheet: the CSV option. Named for what a reader opens, not for the file extension."
+  },
+  "exportCsvAudience": "Every day as a row, for a doctor who wants the numbers themselves.",
+  "@exportCsvAudience": {
+    "description": "Export sheet: who the spreadsheet is for."
+  },
+  "exportNotEncrypted": "The file is not encrypted. Anyone you send it to can read your dose history.",
+  "@exportNotEncrypted": {
+    "description": "Export sheet: SPEC §5.3’s honesty rule, on the surface that hands the file to somebody else."
+  },
+  "exportFailed": "The file could not be made. Nothing on this phone has changed.",
+  "@exportFailed": {
+    "description": "Export sheet: a render that failed. Names what did NOT happen."
+  },
+  "exportNothingYet": "There is nothing to export yet. Your history starts on your first day.",
+  "@exportNothingYet": {
+    "description": "Export sheet: no plan, or no elapsed day. Not an error."
+  },
+  "exportSubject": "NearlyStop dose history",
+  "@exportSubject": {
+    "description": "The share sheet’s subject line for a doctor export."
+  },
+  "exportDateRange": "{from} to {to}",
+  "@exportDateRange": {
+    "description": "The handout’s subtitle: the range the document covers.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "exportFooterPrefix": "{app} · exported {date}",
+  "@exportFooterPrefix": {
+    "description": "The first half of the footer on every page, before the disclaimer.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "exportDisclaimer": "Generated on the patient's device from a plan they entered. Not medical advice.",
+  "@exportDisclaimer": {
+    "description": "The sentence on EVERY page of the handout. The en value must match kPdfDisclaimer exactly — a test asserts it."
+  },
+  "exportColumnDate": "Date",
+  "@exportColumnDate": {
+    "description": "Handout table column: the day."
+  },
+  "exportColumnPlanned": "Planned",
+  "@exportColumnPlanned": {
+    "description": "Handout table column: the dose the plan calls for."
+  },
+  "exportColumnActual": "Actual",
+  "@exportColumnActual": {
+    "description": "Handout table column: the dose actually taken."
+  },
+  "exportColumnTablets": "Tablets",
+  "@exportColumnTablets": {
+    "description": "Handout table column: how the dose was built."
+  },
+  "exportColumnNote": "Note",
+  "@exportColumnNote": {
+    "description": "Handout table column: the patient’s own words."
+  },
+  "exportEventFlare": "Flare",
+  "@exportEventFlare": {
+    "description": "Export event cell: a flare starts on this day."
+  },
+  "exportEventHold": "Hold",
+  "@exportEventHold": {
+    "description": "Export event cell: a hold starts on this day."
+  },
+  "exportHandoutTitle": "{drug} dose history",
+  "@exportHandoutTitle": {
+    "description": "The handout’s title. Names the drug, because a doctor reads it out of context.",
+    "placeholders": {
+      "drug": {
+        "type": "String"
+      }
+    }
   }
 }

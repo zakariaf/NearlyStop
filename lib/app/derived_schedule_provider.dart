@@ -46,7 +46,7 @@ final Provider<Result<List<DayPlan>, Failure>> derivedScheduleProvider =
 
       return switch (snapshot) {
         AsyncData<Result<TaperSnapshot, StorageFailure>>(:final value) =>
-          _generate(value),
+          scheduleFromSnapshot(value),
         AsyncError<Result<TaperSnapshot, StorageFailure>>(:final error) => Err(
           Io(error),
         ),
@@ -57,7 +57,12 @@ final Provider<Result<List<DayPlan>, Failure>> derivedScheduleProvider =
       };
     });
 
-Result<List<DayPlan>, Failure> _generate(
+/// The ONE derivation, as a function rather than only as a provider.
+///
+/// [derivedScheduleProvider] is what a screen watches. A caller holding a
+/// snapshot it read itself — EPIC-13's export — comes through here, so there
+/// is still exactly one place that turns stored facts into `DayPlan`s.
+Result<List<DayPlan>, Failure> scheduleFromSnapshot(
   Result<TaperSnapshot, StorageFailure> snapshot,
 ) => switch (snapshot) {
   Err<TaperSnapshot, StorageFailure>(:final failure) => Err(failure),

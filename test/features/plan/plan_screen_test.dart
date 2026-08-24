@@ -1,4 +1,6 @@
 // The Plan screen: four cards, one save, and two guarded destructions.
+import 'dart:io';
+
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +14,7 @@ import 'package:nearlystop/core/units/milligrams.dart';
 import 'package:nearlystop/data/providers.dart';
 import 'package:nearlystop/data/storage_failure.dart';
 import 'package:nearlystop/data/taper_repository.dart';
+import 'package:nearlystop/features/backup/presentation/backup_actions.dart';
 import 'package:nearlystop/features/plan/presentation/plan_cards.dart';
 import 'package:nearlystop/features/plan/presentation/plan_edit_form.dart';
 import 'package:nearlystop/features/plan/presentation/plan_editor_notifier.dart';
@@ -20,6 +23,7 @@ import 'package:nearlystop/features/plan/presentation/widgets/method_segmented_c
 import 'package:nearlystop/features/shared/presentation/widgets/confirm_sheet.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
+import 'package:nearlystop/services/files/fake_share_gateway.dart';
 import 'package:riverpod/misc.dart' show Override;
 
 import '../../support/db_harness.dart';
@@ -29,27 +33,45 @@ void main() {
   const today = LocalDate(2026, 4, 16);
 
   late AppDatabaseHolder holder;
-  setUp(() => holder = AppDatabaseHolder(openTestDatabase()));
+  late FakeShareGateway share;
+  late List<String> exports;
+  setUp(() {
+    holder = AppDatabaseHolder(openTestDatabase());
+    share = FakeShareGateway();
+    exports = <String>[];
+  });
 
-  List<Override> overrides({LocalDate at = today}) => <Override>[
+  List<Override> overrides({
+    LocalDate at = today,
+    Failure? exportFails,
+  }) => <Override>[
     databaseProvider.overrideWithValue(holder.database),
     todayDateProvider.overrideWithValue(at),
     clockProvider.overrideWithValue(
       Clock.fixed(DateTime.utc(at.year, at.month, at.day, 8)),
     ),
     resolvedLocaleProvider.overrideWithValue(const Locale('en')),
+    shareGatewayProvider.overrideWithValue(share),
+    backupExportProvider.overrideWithValue(() async {
+      exports.add('export');
+      if (exportFails case final failure?) {
+        return Err<File, Failure>(failure);
+      }
+      return Ok<File, Failure>(File('/tmp/nearlystop-backup.ndjson'));
+    }),
   ];
 
   Future<AppLocalizations> pumpPlan(
     WidgetTester tester, {
     LocalDate at = today,
     Size size = const Size(390, 1400),
+    Failure? exportFails,
   }) async {
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
     await pumpApp(
       tester,
       const PlanScreen(),
-      overrides: overrides(at: at),
+      overrides: overrides(at: at, exportFails: exportFails),
       surfaceSize: size,
     );
     await tester.pumpAndSettle();
@@ -291,6 +313,57 @@ void main() {
       expect(snapshotOf(tester)?.plan, isNull);
     },
   );
+
+  widgetTestWithDatabase('deleting offers a backup first, and takes it', (
+    tester,
+  ) async {
+    // SPEC §5.3: export before anything destructive, and the SAME guard the
+    // replace-all restore uses. Losing two years of history to a tap is the
+    // failure this app cannot recover from.
+    final l10n = await pumpPlan(tester);
+    await tester.ensureVisible(find.byType(PrimaryPillButton));
+    await tester.tap(find.byType(PrimaryPillButton));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byType(DestructiveButton));
+    await tester.tap(find.byType(DestructiveButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.planExportFirst), findsOneWidget);
+    expect(find.text(l10n.planDeleteConfirm), findsOneWidget);
+
+    await tester.tap(find.text(l10n.planExportFirst));
+    await tester.pumpAndSettle();
+
+    expect(exports, <String>['export']);
+    expect(share.calls, hasLength(1));
+    expect(snapshotOf(tester)?.plan, isNull);
+  });
+
+  widgetTestWithDatabase('a FAILED backup deletes nothing at all', (
+    tester,
+  ) async {
+    // Somebody who chose "back up first" chose it because they wanted the
+    // backup. Proceeding without one is the opposite of what they asked for,
+    // and a guard that does it anyway is a formality with a spinner.
+    final l10n = await pumpPlan(tester, exportFails: const Io('disk full'));
+    await tester.ensureVisible(find.byType(PrimaryPillButton));
+    await tester.tap(find.byType(PrimaryPillButton));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byType(DestructiveButton));
+    await tester.tap(find.byType(DestructiveButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.planExportFirst));
+    await tester.pumpAndSettle();
+
+    expect(exports, <String>['export']);
+    expect(
+      snapshotOf(tester)?.plan,
+      isNotNull,
+      reason: 'the export failed and it deleted the plan anyway',
+    );
+  });
 
   widgetTestWithDatabase('all three methods are live, not two dead segments', (
     tester,

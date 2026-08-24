@@ -2,8 +2,13 @@
 library;
 
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
+import 'package:nearlystop/core/dsns/cumulative.dart' as dsns;
 import 'package:nearlystop/core/dsns/day_plan.dart';
+import 'package:nearlystop/core/dsns/facts.dart';
+import 'package:nearlystop/core/time/local_date.dart';
 import 'package:nearlystop/core/units/milligrams.dart';
+import 'package:nearlystop/l10n/gen/app_localizations.dart';
 
 /// One horizontal tread of the staircase.
 ///
@@ -238,6 +243,41 @@ final class ProgressStats {
     required this.adherence,
     required this.adherenceCaption,
   });
+
+  /// The three numbers, from EPIC-04's pure primitives.
+  ///
+  /// **One place, two renderings.** The Progress screen and the doctor's
+  /// export both come through here, because a patient and a rheumatologist
+  /// comparing notes must not find two different totals — and two call sites
+  /// each doing their own arithmetic is exactly how that happens.
+  factory ProgressStats.from({
+    required TaperPlanFacts plan,
+    required List<DoseLogFacts> logs,
+    required List<DayPlan> days,
+    required LocalDate today,
+    required AppLocalizations l10n,
+    required NumberFormat numbers,
+  }) {
+    // Prefixed: the class's own `adherence` FIELD would otherwise shadow
+    // the pure function of the same name, and the shadowing is silent.
+    final onDrug = dsns.daysOnSteroids(plan.startDate, today);
+    final total = dsns.cumulativeTakenMg(logs);
+    final ticked = dsns.adherence(logs, days, today);
+    return ProgressStats(
+      daysOnDrug: numbers.format(onDrug),
+      // Rounded to the nearest milligram, not floored. Over 780 days of
+      // half-milligram steps the fractions add up, and `~/` quietly loses
+      // every one of them — on a number somebody hands to a rheumatologist.
+      // This is a TOTAL, not a dose to swallow: CLAUDE.md rule 5 governs the
+      // second, and it is why the per-day breakdown is never rounded at all.
+      cumulativeMg: numbers.format((total.hundredths / 100).round()),
+      adherence: l10n.adherenceRatio(
+        numbers.format(ticked.takenCount),
+        numbers.format(ticked.plannedCount),
+      ),
+      adherenceCaption: l10n.adherenceReassurance,
+    );
+  }
 
   /// "581", in the locale's numerals.
   final String daysOnDrug;

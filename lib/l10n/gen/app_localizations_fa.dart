@@ -617,13 +617,6 @@ class AppLocalizationsFa extends AppLocalizations {
   }
 
   @override
-  String get exportComingSoon => 'خروجی گرفتن به‌زودی';
-
-  @override
-  String get exportComingSoonBody =>
-      'یک PDF و یک صفحه‌گسترده برای قرار ملاقات شما. هنوز ساخته نشده است.';
-
-  @override
   String get chartOverlineCaps => 'دوز شما در طول زمان';
 
   @override
@@ -667,10 +660,6 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get settingsBackupNote =>
       'نسخه‌ای که خودتان نگه می‌دارید. هیچ چیز از این گوشی خارج نمی‌شود مگر خودتان بفرستید.';
-
-  @override
-  String get settingsNotImplemented =>
-      'هنوز ساخته نشده — با نسخه خروجی می‌آید.';
 
   @override
   String settingsTextSizeSemantics(Object value) {
@@ -845,4 +834,110 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get reminderBlockedAndroid =>
       'اعلان‌ها را برای نیرلی‌استاپ در تنظیمات › برنامه‌ها › نیرلی‌استاپ روشن کنید.';
+
+  @override
+  String get settingsBackupPlainText =>
+      'این فایل متن ساده است و رمزگذاری نشده. هر کسی آن را باز کند می‌تواند برنامه شما را بخواند.';
+
+  @override
+  String get settingsBackupFailed =>
+      'پشتیبان ذخیره نشد. هیچ چیز روی این گوشی تغییر نکرده است.';
+
+  @override
+  String get settingsRestoreFailed =>
+      'آن فایل بازگردانی نشد. هیچ چیز روی این گوشی تغییر نکرده است.';
+
+  @override
+  String get settingsRestoreDone => 'از پشتیبان شما بازگردانی شد.';
+
+  @override
+  String get settingsBackupSubject => 'پشتیبان نیرلی‌استاپ';
+
+  @override
+  String get settingsRestoreConfirmTitle => 'همه چیز روی این گوشی جایگزین شود؟';
+
+  @override
+  String get settingsRestoreConfirmBody =>
+      'برنامه، سابقه دوز، عودها و توقف‌های شما همگی با موارد داخل این فایل جایگزین می‌شوند. آنچه اکنون روی این گوشی است از بین می‌رود.';
+
+  @override
+  String get settingsRestoreConfirmAction => 'جایگزینی همه';
+
+  @override
+  String get settingsRestoreExportFirst => 'اول پشتیبان بگیر، بعد جایگزین کن';
+
+  @override
+  String get stateWorking => 'در حال انجام';
+
+  @override
+  String get exportSheetTitle => 'خروجی برای پزشک شما';
+
+  @override
+  String get exportPdfLabel => 'پی‌دی‌اف برای چاپ';
+
+  @override
+  String get exportPdfAudience =>
+      'یک صفحه که می‌توانید چاپ کنید یا سر قرار ملاقات نشان دهید.';
+
+  @override
+  String get exportCsvLabel => 'صفحه‌گسترده';
+
+  @override
+  String get exportCsvAudience =>
+      'هر روز یک ردیف، برای پزشکی که خود اعداد را می‌خواهد.';
+
+  @override
+  String get exportNotEncrypted =>
+      'این فایل رمزگذاری نشده است. هر کسی که برایش بفرستید می‌تواند سابقه دوز شما را بخواند.';
+
+  @override
+  String get exportFailed =>
+      'فایل ساخته نشد. هیچ چیز روی این گوشی تغییر نکرده است.';
+
+  @override
+  String get exportNothingYet =>
+      'هنوز چیزی برای خروجی گرفتن نیست. سابقه شما از روز اول شروع می‌شود.';
+
+  @override
+  String get exportSubject => 'سابقه دوز نیرلی‌استاپ';
+
+  @override
+  String exportDateRange(String from, String to) {
+    return '$from تا $to';
+  }
+
+  @override
+  String exportFooterPrefix(String app, String date) {
+    return '$app · خروجی $date';
+  }
+
+  @override
+  String get exportDisclaimer =>
+      'روی دستگاه بیمار و از برنامه‌ای که خودش وارد کرده ساخته شده است. توصیه پزشکی نیست.';
+
+  @override
+  String get exportColumnDate => 'تاریخ';
+
+  @override
+  String get exportColumnPlanned => 'برنامه‌ریزی‌شده';
+
+  @override
+  String get exportColumnActual => 'واقعی';
+
+  @override
+  String get exportColumnTablets => 'قرص‌ها';
+
+  @override
+  String get exportColumnNote => 'یادداشت';
+
+  @override
+  String get exportEventFlare => 'عود';
+
+  @override
+  String get exportEventHold => 'توقف';
+
+  @override
+  String exportHandoutTitle(String drug) {
+    return 'سابقه دوز $drug';
+  }
 }

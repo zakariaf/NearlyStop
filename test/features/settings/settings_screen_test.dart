@@ -12,6 +12,7 @@ import 'package:nearlystop/features/settings/presentation/settings_cards.dart';
 import 'package:nearlystop/features/settings/presentation/settings_screen.dart';
 import 'package:nearlystop/features/settings/presentation/widgets/settings_rows.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
+import 'package:nearlystop/l10n/app_locales.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:riverpod/misc.dart' show Override;
 
@@ -173,6 +174,36 @@ void main() {
     expect(find.textContaining('8:00'), findsOneWidget);
   });
 
+  testWidgets('the reminder time renders in every locale', (tester) async {
+    // Found on a device: switching the language to Kurdish killed Settings
+    // with `Invalid argument(s): Invalid locale "ckb-Arab"`. The suite missed
+    // it because `initializeDateFormatting()` with no arguments loads EVERY
+    // locale's symbol data, which the app deliberately does not — so the `fa`
+    // half of the same bug is only reachable from `date_formats_test.dart`.
+    // What is reachable here is the script subtag, which `intl` rejects
+    // outright no matter what has been initialized.
+    for (final locale in kSupportedLocales) {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await pumpSettings(
+        tester,
+        settings: const AppSettings(
+          themeMode: AppThemeMode.system,
+          textScale: 1,
+          highContrast: false,
+          reminderEnabled: true,
+          reminderMinuteOfDay: 545,
+        ),
+        locale: locale,
+      );
+
+      expect(
+        tester.takeException(),
+        isNull,
+        reason: 'Settings threw in ${locale.toLanguageTag()}',
+      );
+    }
+  });
+
   testWidgets('dismissing the TIME picker writes nothing either', (
     tester,
   ) async {
@@ -208,23 +239,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(controller.minuteWrites, isEmpty);
-  });
-
-  testWidgets('backup says what it is rather than sitting disabled', (
-    tester,
-  ) async {
-    // EPIC-13 has not landed. A control that looks broken is worse than one
-    // that explains itself.
-    final l10n = await pumpSettings(tester);
-    final export = find.widgetWithText(SecondaryButton, l10n.settingsExport);
-
-    expect(tester.widget<SecondaryButton>(export).onPressed, isNotNull);
-    await tester.ensureVisible(export);
-    await tester.tap(export);
-    await tester.pumpAndSettle();
-
-    expect(find.text(l10n.settingsNotImplemented), findsOneWidget);
-    expect(find.byType(SnackBar), findsNothing);
   });
 
   testWidgets('the two backup buttons stop sharing a row above 1.3', (

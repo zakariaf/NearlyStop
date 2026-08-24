@@ -617,13 +617,6 @@ class AppLocalizationsCkb extends AppLocalizations {
   }
 
   @override
-  String get exportComingSoon => 'هەناردەکردن بەم زووانە';
-
-  @override
-  String get exportComingSoonBody =>
-      'PDF و خشتەیەک بۆ چاوپێکەوتنەکەت. هێشتا دروست نەکراوە.';
-
-  @override
   String get chartOverlineCaps => 'دۆزەکەت بە درێژایی کات';
 
   @override
@@ -668,10 +661,6 @@ class AppLocalizationsCkb extends AppLocalizations {
   @override
   String get settingsBackupNote =>
       'کۆپییەک کە خۆت دەیهێڵیتەوە. هیچ شتێک لەم مۆبایلە دەرناچێت مەگەر خۆت بینێریت.';
-
-  @override
-  String get settingsNotImplemented =>
-      'هێشتا دروست نەکراوە — لەگەڵ وەشانی هەناردەکردن دێت.';
 
   @override
   String settingsTextSizeSemantics(Object value) {
@@ -847,4 +836,111 @@ class AppLocalizationsCkb extends AppLocalizations {
   @override
   String get reminderBlockedAndroid =>
       'ئاگادارییەکان بۆ نیەرلیستۆپ لە ڕێکخستن › ئەپەکان › نیەرلیستۆپ بکەرەوە.';
+
+  @override
+  String get settingsBackupPlainText =>
+      'فایلەکە دەقی سادەیە و کۆدنەکراوە. هەرکەسێک بیکاتەوە دەتوانێت پلانەکەت بخوێنێتەوە.';
+
+  @override
+  String get settingsBackupFailed =>
+      'پاڵپشتەکە هەڵنەگیرا. هیچ شتێک لەسەر ئەم مۆبایلە نەگۆڕاوە.';
+
+  @override
+  String get settingsRestoreFailed =>
+      'ئەو فایلە نەگەڕێندرایەوە. هیچ شتێک لەسەر ئەم مۆبایلە نەگۆڕاوە.';
+
+  @override
+  String get settingsRestoreDone => 'لە پاڵپشتەکەت گەڕێندرایەوە.';
+
+  @override
+  String get settingsBackupSubject => 'پاڵپشتی نیەرلیستۆپ';
+
+  @override
+  String get settingsRestoreConfirmTitle =>
+      'هەموو شتێک لەسەر ئەم مۆبایلە بگۆڕدرێت؟';
+
+  @override
+  String get settingsRestoreConfirmBody =>
+      'پلانەکەت، مێژووی دۆزەکەت، تووشبوونەوەکان و وەستانەکانت هەموویان بەوانەی ناو ئەم فایلە دەگۆڕدرێن. ئەوەی ئێستا لەسەر ئەم مۆبایلەیە دەڕوات.';
+
+  @override
+  String get settingsRestoreConfirmAction => 'هەموویان بگۆڕە';
+
+  @override
+  String get settingsRestoreExportFirst => 'سەرەتا پاڵپشت بکە، پاشان بگۆڕە';
+
+  @override
+  String get stateWorking => 'لە کارکردندایە';
+
+  @override
+  String get exportSheetTitle => 'هەناردەکردن بۆ پزیشکەکەت';
+
+  @override
+  String get exportPdfLabel => 'PDF بۆ چاپکردن';
+
+  @override
+  String get exportPdfAudience =>
+      'لاپەڕەیەک کە دەتوانیت چاپی بکەیت یان لە کاتی ژوانەکەت پیشانی بدەیت.';
+
+  @override
+  String get exportCsvLabel => 'خشتەی داتا';
+
+  @override
+  String get exportCsvAudience =>
+      'هەموو ڕۆژێک وەک ڕیزێک، بۆ پزیشکێک کە خودی ژمارەکانی دەوێت.';
+
+  @override
+  String get exportNotEncrypted =>
+      'فایلەکە کۆدنەکراوە. هەرکەسێک بۆی بنێریت دەتوانێت مێژووی دۆزەکەت بخوێنێتەوە.';
+
+  @override
+  String get exportFailed =>
+      'فایلەکە دروست نەکرا. هیچ شتێک لەسەر ئەم مۆبایلە نەگۆڕاوە.';
+
+  @override
+  String get exportNothingYet =>
+      'هێشتا هیچ شتێک نییە بۆ هەناردەکردن. مێژووەکەت لە یەکەم ڕۆژتەوە دەست پێدەکات.';
+
+  @override
+  String get exportSubject => 'مێژووی دۆزی نیەرلیستۆپ';
+
+  @override
+  String exportDateRange(String from, String to) {
+    return '$from تا $to';
+  }
+
+  @override
+  String exportFooterPrefix(String app, String date) {
+    return '$app · هەناردەکرا $date';
+  }
+
+  @override
+  String get exportDisclaimer =>
+      'لەسەر ئامێری نەخۆشەکە لە پلانێکەوە کە خۆی داویەتی دروستکراوە. ڕاوێژی پزیشکی نییە.';
+
+  @override
+  String get exportColumnDate => 'بەروار';
+
+  @override
+  String get exportColumnPlanned => 'پلاندراو';
+
+  @override
+  String get exportColumnActual => 'ڕاستەقینە';
+
+  @override
+  String get exportColumnTablets => 'حەبەکان';
+
+  @override
+  String get exportColumnNote => 'تێبینی';
+
+  @override
+  String get exportEventFlare => 'تووشبوونەوە';
+
+  @override
+  String get exportEventHold => 'وەستان';
+
+  @override
+  String exportHandoutTitle(String drug) {
+    return 'مێژووی دۆزی $drug';
+  }
 }

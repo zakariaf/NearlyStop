@@ -12,13 +12,6 @@ import 'package:nearlystop/theme/daybreak_shapes.dart';
 
 /// The app's version and build, read once.
 ///
-/// Backup, before EPIC-13 fills it in.
-///
-/// Wired to a stub that reports "not built yet" rather than left as a dead
-/// button, so the plumbing is proven before the feature lands.
-final Provider<Future<void> Function()?> backupActionProvider =
-    Provider<Future<void> Function()?>((ref) => null);
-
 /// The settings screen.
 class SettingsScreen extends ConsumerStatefulWidget {
   /// Creates the screen.

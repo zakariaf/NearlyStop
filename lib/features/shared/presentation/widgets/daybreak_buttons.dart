@@ -32,6 +32,7 @@ class DaybreakButtonSkin extends StatelessWidget {
     this.shadow = const <BoxShadow>[],
     this.expand = false,
     this.glyph,
+    this.busy = false,
     super.key,
   });
 
@@ -71,19 +72,40 @@ class DaybreakButtonSkin extends StatelessWidget {
   /// An optional leading mark. **Decoration**: the label already says it.
   final IconData? glyph;
 
+  /// Whether the button's own work is running.
+  ///
+  /// Progress belongs ON the control that started it, never on a barrier over
+  /// the app: a modal scrim while a file is written says "you may not look at
+  /// today's dose", which is the opposite of what this app is for. A busy
+  /// button is disabled by construction — a second tap would start the work
+  /// twice.
+  final bool busy;
+
+  /// The diameter of the inline spinner, at 1.0 text scale.
+  ///
+  /// Matched to the label's own size, so it reads as part of the word rather
+  /// than as an ornament beside it.
+  static const double spinnerSize = 18;
+
   @override
   Widget build(BuildContext context) {
     final colors = DaybreakColors.of(context);
     final shapes = DaybreakShapes.of(context);
     final l10n = AppLocalizations.of(context);
-    final enabled = onPressed != null;
+    final enabled = onPressed != null && !busy;
 
     return DaybreakTappable(
       // The disabled state is SAID, not only shown. `Semantics(enabled:)`
       // alone is read by VoiceOver but is invisible to a sighted reader with
       // low contrast vision, and a dimmed fill is invisible to a screen
-      // reader. Both channels, always.
-      semanticsLabel: enabled ? label : '$label, ${l10n.stateUnavailable}',
+      // reader. Both channels, always. A spinner has the same problem twice
+      // over: it is pure animation, so it says nothing at all.
+      semanticsLabel: busyAwareSemantics(
+        label,
+        busy: busy,
+        enabled: enabled,
+        l10n: l10n,
+      ),
       onPressed: onPressed,
       child: Container(
         constraints: BoxConstraints(minHeight: minHeight),
@@ -119,7 +141,10 @@ class DaybreakButtonSkin extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              if (glyph case final mark?) ...<Widget>[
+              if (busy) ...<Widget>[
+                InlineSpinner(diameter: spinnerSize, color: colors.inkFaint),
+                SizedBox(width: shapes.s2),
+              ] else if (glyph case final mark?) ...<Widget>[
                 // EXCLUDED from semantics: the glyph repeats the label, and
                 // "tick, I understand" is the button read to you twice.
                 ExcludeSemantics(
@@ -203,6 +228,7 @@ class SecondaryButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.expand = false,
+    this.busy = false,
     super.key,
   });
 
@@ -215,6 +241,9 @@ class SecondaryButton extends StatelessWidget {
   /// Whether it fills its parent's width.
   final bool expand;
 
+  /// Whether this button's own work is running. See [DaybreakButtonSkin.busy].
+  final bool busy;
+
   /// The floor on its height.
   static const double minHeight = 56;
 
@@ -224,6 +253,7 @@ class SecondaryButton extends StatelessWidget {
     return DaybreakButtonSkin(
       label: label,
       onPressed: onPressed,
+      busy: busy,
       minHeight: minHeight,
       ink: colors.ink,
       textStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
@@ -284,11 +314,14 @@ class DestructiveButton extends StatelessWidget {
     super.key,
   }) : _immediate = false;
 
-  /// The confirm action **inside** a [ConfirmSheet].
+  /// A destructive button whose confirmation lives somewhere ELSE.
   ///
-  /// The sheet IS the confirmation, so this one acts directly — the only
-  /// variant that may, and the reason it is a named constructor rather than a
-  /// flag anyone could pass.
+  /// Two callers, both legitimate: the action inside a [ConfirmSheet] — the
+  /// sheet IS the confirmation — and a button that opens an `ExportGuard`,
+  /// which is three exits rather than two and therefore cannot be expressed
+  /// as this widget's own [confirm]. A named constructor rather than a flag
+  /// anyone could pass, because "destructive, no confirmation here" has to be
+  /// a decision somebody wrote down.
   const DestructiveButton.immediate({
     required this.label,
     required VoidCallback? onPressed,
@@ -384,3 +417,51 @@ class TakenButton extends StatelessWidget {
     );
   }
 }
+
+/// The one inline spinner in the app.
+///
+/// Shared because a second copy is a second diameter and a second colour, on
+/// two controls a reader sees in the same session. It scales with the text so
+/// it does not shrink into a dot at the largest OS setting.
+///
+/// Carries **no semantics**: the control it sits in already says the working
+/// word, and a progress node beside that label reads as a second, unnamed
+/// thing.
+class InlineSpinner extends StatelessWidget {
+  /// Creates a spinner sized to [diameter] at 1.0 text scale.
+  const InlineSpinner({required this.diameter, required this.color, super.key});
+
+  /// The diameter at 1.0 text scale.
+  final double diameter;
+
+  /// The stroke's colour.
+  final Color color;
+
+  /// The stroke width, at every size.
+  static const double strokeWidth = 2;
+
+  @override
+  Widget build(BuildContext context) => ExcludeSemantics(
+    child: SizedBox.square(
+      dimension: MediaQuery.textScalerOf(context).scale(diameter),
+      child: CircularProgressIndicator(strokeWidth: strokeWidth, color: color),
+    ),
+  );
+}
+
+/// What a screen reader announces for a control that can be busy.
+///
+/// **Both channels, always.** A spinner is pure animation, so it says nothing
+/// at all to a screen reader; `Semantics(enabled:)` is invisible to a sighted
+/// reader with low contrast vision. One helper so two controls cannot answer
+/// this differently.
+String busyAwareSemantics(
+  String label, {
+  required bool busy,
+  required bool enabled,
+  required AppLocalizations l10n,
+}) => switch ((busy, enabled)) {
+  (true, _) => '$label, ${l10n.stateWorking}',
+  (false, false) => '$label, ${l10n.stateUnavailable}',
+  (false, true) => label,
+};

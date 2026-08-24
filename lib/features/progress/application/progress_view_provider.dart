@@ -3,11 +3,9 @@ library;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:nearlystop/app/derived_schedule_provider.dart';
 import 'package:nearlystop/app/locale_providers.dart';
 import 'package:nearlystop/app/retry_policy.dart';
-import 'package:nearlystop/core/dsns/cumulative.dart';
 import 'package:nearlystop/core/dsns/day_plan.dart';
 import 'package:nearlystop/core/dsns/facts.dart';
 import 'package:nearlystop/core/result.dart';
@@ -152,9 +150,9 @@ class ProgressNotifier extends StreamNotifier<ProgressViewState> {
         firstLabel: formatMonthLabel(days.first.date, locale),
         lastLabel: formatMonthLabel(days.last.date, locale),
       ),
-      stats: _stats(
+      stats: ProgressStats.from(
         plan: plan,
-        snapshot: snapshot,
+        logs: snapshot.logs,
         days: days,
         today: today,
         l10n: l10n,
@@ -216,33 +214,6 @@ class ProgressNotifier extends StreamNotifier<ProgressViewState> {
       if (swap) best = segment.dose;
     }
     return best;
-  }
-
-  static ProgressStats _stats({
-    required TaperPlanFacts plan,
-    required TaperSnapshot snapshot,
-    required List<DayPlan> days,
-    required LocalDate today,
-    required AppLocalizations l10n,
-    required NumberFormat numbers,
-  }) {
-    final onDrug = daysOnSteroids(plan.startDate, today);
-    final total = cumulativeTakenMg(snapshot.logs);
-    final ticked = adherence(snapshot.logs, days, today);
-    return ProgressStats(
-      daysOnDrug: numbers.format(onDrug),
-      // Rounded to the nearest milligram, not floored. Over 780 days of
-      // half-milligram steps the fractions add up, and `~/` quietly loses
-      // every one of them — on a number somebody hands to a rheumatologist.
-      // This is a TOTAL, not a dose to swallow: CLAUDE.md rule 5 governs the
-      // second, and it is why the per-day breakdown is never rounded at all.
-      cumulativeMg: numbers.format((total.hundredths / 100).round()),
-      adherence: l10n.adherenceRatio(
-        numbers.format(ticked.takenCount),
-        numbers.format(ticked.plannedCount),
-      ),
-      adherenceCaption: l10n.adherenceReassurance,
-    );
   }
 
   /// "2 flares and 1 hold recorded" — and never "0 holds".

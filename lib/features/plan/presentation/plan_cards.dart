@@ -14,7 +14,6 @@ import 'package:nearlystop/features/plan/presentation/plan_editor_notifier.dart'
 import 'package:nearlystop/features/plan/presentation/widgets/method_segmented_control.dart';
 import 'package:nearlystop/features/plan/presentation/widgets/strength_chip.dart';
 import 'package:nearlystop/features/plan/presentation/widgets/strength_editor_sheet.dart';
-import 'package:nearlystop/features/shared/presentation/widgets/confirm_sheet.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_card.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
@@ -493,30 +492,40 @@ class PlanDangerZone extends StatelessWidget {
   /// Creates the zone.
   const PlanDangerZone({
     required this.l10n,
-    required this.confirm,
-    required this.onConfirmed,
+    required this.onDelete,
+    this.buttonKey,
     super.key,
   });
 
   /// The strings.
   final AppLocalizations l10n;
 
-  /// What the sheet says, including how many recorded days are at stake.
-  final ConfirmRequest confirm;
+  /// Opens the guard and, if it is answered, deletes. Null when there is no
+  /// plan.
+  ///
+  /// **The confirmation is the caller's**, not this button's. Deleting a plan
+  /// routes through `ExportGuard`, which is three exits rather than two — and
+  /// a `confirm:` here would be a second, quieter sheet that skipped the
+  /// backup (SPEC §5.3).
+  final VoidCallback? onDelete;
 
-  /// Runs only after the sheet is confirmed. Null when there is no plan.
-  final VoidCallback? onConfirmed;
+  /// Put on the button itself, so the caller can read its bounds.
+  ///
+  /// The iPad share popover anchors to a source RECTANGLE, and anchoring the
+  /// backup sheet to the whole screen puts an arrowless popover in the middle
+  /// of it that nobody can trace back to the control they pressed.
+  final Key? buttonKey;
 
   @override
   Widget build(BuildContext context) => DaybreakCard(
     overline: l10n.planDangerZone,
     overlineCaps: l10n.planDangerZoneCaps,
     children: <Widget>[
-      DestructiveButton(
+      DestructiveButton.immediate(
+        key: buttonKey,
         label: l10n.planDelete,
         expand: true,
-        confirm: confirm,
-        onConfirmed: onConfirmed,
+        onPressed: onDelete,
       ),
     ],
   );

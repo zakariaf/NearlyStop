@@ -1,13 +1,11 @@
 // The screen, its non-happy states, and the export door.
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:nearlystop/core/units/milligrams.dart';
+import 'package:nearlystop/features/export/presentation/export_sheet.dart';
 import 'package:nearlystop/features/progress/application/progress_view_provider.dart';
-import 'package:nearlystop/features/progress/presentation/export_placeholder_screen.dart';
 import 'package:nearlystop/features/progress/presentation/progress_screen.dart';
 import 'package:nearlystop/features/progress/presentation/progress_view_state.dart';
 import 'package:nearlystop/features/progress/presentation/widgets/dose_staircase_chart.dart';
@@ -19,7 +17,6 @@ import 'package:nearlystop/features/shared/presentation/widgets/error_panel.dart
 import 'package:nearlystop/features/shared/presentation/widgets/taper_empty_state.dart';
 import 'package:nearlystop/l10n/app_locales.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
-import 'package:nearlystop/routing/routes.dart';
 import 'package:nearlystop/theme/daybreak_script.dart';
 import 'package:nearlystop/theme/daybreak_theme.dart';
 import 'package:riverpod/misc.dart' show Override;
@@ -239,40 +236,10 @@ void main() {
     handle.dispose();
   });
 
-  test('EPIC-13’s dependencies have not arrived early', () {
-    // `dependency-hygiene`: an unused package in `pubspec.yaml` is a package
-    // nobody audits, and this app's premise is that it opens no sockets.
-    final pubspec = File('pubspec.yaml').readAsStringSync();
-    for (final package in <String>['pdf:', 'csv:', 'share_plus:']) {
-      expect(
-        pubspec,
-        isNot(contains(package)),
-        reason: '$package is EPIC-13’s, and this epic builds only the door',
-      );
-    }
-  });
-
-  testWidgets('tapping export navigates to a REAL route', (tester) async {
-    // The difference between a live route and a dead tap. A local router with
-    // the same two paths, rather than the whole app: what is under test is the
-    // push, not the shell's redirects, which `app_router_test` owns.
-    final router = GoRouter(
-      initialLocation: Routes.progress,
-      routes: <RouteBase>[
-        GoRoute(
-          path: Routes.progress,
-          builder: (context, state) => const ProgressScreen(),
-          routes: <RouteBase>[
-            GoRoute(
-              path: 'export',
-              builder: (context, state) => const ExportPlaceholderScreen(),
-            ),
-          ],
-        ),
-      ],
-    );
-    addTearDown(router.dispose);
-
+  testWidgets('tapping export opens the format sheet', (tester) async {
+    // The difference between a live control and a dead tap. What is under test
+    // is that the sheet arrives with both formats on it; the sheet's own
+    // behaviour is `export_sheet_test.dart`.
     await tester.pumpWidget(
       ProviderScope(
         overrides: <Override>[
@@ -281,8 +248,8 @@ void main() {
                 FixedProgress(const AsyncValue<ProgressViewState>.data(loaded)),
           ),
         ],
-        child: MaterialApp.router(
-          routerConfig: router,
+        child: MaterialApp(
+          home: const ProgressScreen(),
           supportedLocales: kSupportedLocales,
           localizationsDelegates: kAppLocalizationsDelegates,
           theme: buildDaybreakTheme(Brightness.light, DaybreakScript.latin),
@@ -296,11 +263,7 @@ void main() {
     await tester.tap(find.byType(SecondaryButton));
     await tester.pumpAndSettle();
 
-    expect(find.byType(ExportPlaceholderScreen), findsOneWidget);
-    expect(
-      find.byType(BackButton),
-      findsOneWidget,
-      reason: 'a screen you cannot leave is worse than one you cannot reach',
-    );
+    expect(find.byType(ExportSheet), findsOneWidget);
+    expect(find.byType(ExportOption), findsExactly(2));
   });
 }

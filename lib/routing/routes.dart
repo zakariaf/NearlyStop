@@ -23,8 +23,6 @@ abstract final class Routes {
 
   /// The export flow. EPIC-13 fills it; EPIC-10 builds the door, because a
   /// disabled button and a dead tap are both worse than a screen that says
-  /// "coming next".
-  static const String progressExport = '/progress/export';
 
   /// The plan the patient and their doctor agreed.
   static const String plan = '/plan';
