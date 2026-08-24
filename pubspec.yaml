@@ -84,6 +84,11 @@ dev_dependencies:
     sdk: flutter
   test: ^1.25.0
   very_good_analysis: ^10.0.0
+  # Parsing the Android manifest and `Info.plist` in the release policy test.
+  # TEST-only, and deliberately so: an XML parser on the shipping compile path
+  # would be a dependency the store audit has to explain, for a check that
+  # never runs on a phone.
+  xml: ^7.0.1
 
 flutter:
   uses-material-design: true

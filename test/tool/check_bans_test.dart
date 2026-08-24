@@ -369,6 +369,63 @@ void main() {
     });
   });
 
+  group('one version, in one file', () {
+    // `pubspec.yaml` is the only source. A literal in a platform file is a
+    // version that disagrees with the one the store was told, and it
+    // disagrees silently — the build succeeds and the number is wrong.
+    const offenders = <String, (String, String)>{
+      'a literal Android versionName': (
+        'android/app/build.gradle.kts',
+        'versionName = "1.0.0"',
+      ),
+      'a literal Android versionCode': (
+        'android/app/build.gradle.kts',
+        'versionCode = 1',
+      ),
+      'a literal CFBundleShortVersionString': (
+        'ios/Runner/Info.plist',
+        '<key>CFBundleShortVersionString</key><string>1.0.0</string>',
+      ),
+      'a literal CFBundleVersion': (
+        'ios/Runner/Info.plist',
+        '<key>CFBundleVersion</key><string>1</string>',
+      ),
+    };
+
+    for (final MapEntry<String, (String, String)>(key: what, value: pair)
+        in offenders.entries) {
+      test('$what turns the build red', () async {
+        write(pair.$1, pair.$2);
+
+        final result = await runGate();
+
+        expect(result.exitCode, 1, reason: '${result.stdout}');
+        expect(result.stdout, contains(pair.$1));
+      });
+    }
+
+    test('the Flutter-resolved forms stay green', () async {
+      // These are what the templates actually ship, and the rule must not
+      // ban the thing it exists to require.
+      write(
+        'android/app/build.gradle.kts',
+        'versionCode = flutter.versionCode\n'
+            'versionName = flutter.versionName\n',
+      );
+      write(
+        'ios/Runner/Info.plist',
+        '<key>CFBundleShortVersionString</key>\n'
+            '<string>\$(FLUTTER_BUILD_NAME)</string>\n'
+            '<key>CFBundleVersion</key>\n'
+            '<string>\$(FLUTTER_BUILD_NUMBER)</string>\n',
+      );
+
+      final result = await runGate();
+
+      expect(result.exitCode, 0, reason: '${result.stdout}${result.stderr}');
+    });
+  });
+
   test('a clean tree passes with nothing to say', () async {
     write('lib/features/schedule/presentation/fine.dart', '/// Scratch.\n');
 

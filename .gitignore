@@ -61,3 +61,17 @@ test/zzz_coverage_all_files_test.dart
 
 # Golden diff artefacts. Written on a red run, never committed.
 **/failures/
+
+# ---------------------------------------------------------------- EPIC-15
+# Signing material NEVER lives in this repo. CI injects it from secrets at
+# build time. `tool/check_release_hygiene.sh` checks the working tree AND the
+# whole of `git log --all` — a credential committed and later deleted is
+# invisible to a working-tree check and permanently present in every clone.
+key.properties
+*.jks
+*.keystore
+*.p12
+*.p8
+*.mobileprovision
+service-account*.json
+AuthKey_*.p8

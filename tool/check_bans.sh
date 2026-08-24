@@ -303,6 +303,48 @@ add_rule lib code - \
   'MediaQuery\.of\(context\)\.(size|padding|textScaler|viewInsets|orientation|devicePixelRatio|platformBrightness|boldText|disableAnimations)' \
   "use the aspect accessor (MediaQuery.sizeOf, .textScalerOf, …) — MediaQuery.of subscribes to every change"
 
+# ------------------------------------------ EPIC-15: the platform files
+# A second, small walker, because these are a different KIND of file: not
+# Dart, not comment-strippable, and outside `lib`/`test` entirely. Its own
+# arrays rather than a fifth column on `add_rule`, so the Dart walk above is
+# untouched.
+platform_globs=()
+platform_patterns=()
+platform_reasons=()
+add_platform_rule() {
+  platform_globs+=("$1")
+  platform_patterns+=("$2")
+  platform_reasons+=("$3")
+}
+
+# `pubspec.yaml` is the ONLY version source. `1.0.0` becomes `versionName` and
+# `CFBundleShortVersionString`; `+1` becomes `versionCode` and
+# `CFBundleVersion`. A literal in a platform file is a version that disagrees
+# with the one the store was told, and it disagrees silently — the build
+# succeeds and the number is wrong. The Flutter-resolved forms
+# (`flutter.versionName`, `$(FLUTTER_BUILD_NAME)`) are what must stay, so the
+# patterns match a LITERAL and nothing else.
+add_platform_rule '*.gradle.kts' \
+  'version(Name|Code)[[:space:]]*=[[:space:]]*("|[0-9])' \
+  "pubspec.yaml is the only version source — use flutter.versionName / flutter.versionCode"
+
+add_platform_rule 'Info.plist' \
+  '<key>CFBundle(ShortVersionString|Version)</key>[[:space:]]*<string>[0-9]' \
+  "pubspec.yaml is the only version source — use \$(FLUTTER_BUILD_NAME) / \$(FLUTTER_BUILD_NUMBER)"
+
+scan_platform() {
+  local file hit r
+  for r in "${!platform_patterns[@]}"; do
+    while IFS= read -r file; do
+      [ -n "$file" ] || continue
+      while IFS= read -r hit; do
+        [ -n "$hit" ] || continue
+        offenders+=("$file:${hit%%:*}: ${platform_reasons[$r]}"$'\n'"        ${hit#*:}")
+      done < <(grep -nE "${platform_patterns[$r]}" "$file" || true)
+    done < <(find android ios -type f -name "${platform_globs[$r]}" 2>/dev/null | sort)
+  done
+}
+
 # ------------------------------------------------------------------ the walk
 # One pass per file: read once, strip once, then apply every rule that governs
 # it. Stripping per rule re-reads the tree once for each rule, which grows with
@@ -354,6 +396,7 @@ scan_scope() {
 for scope in lib test; do
   scan_scope "$scope"
 done
+scan_platform
 
 # ------------------------------------------------- delegated rule groups
 # EPIC-02's design-value gates. They live in their own files because their

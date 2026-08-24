@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  How `flutter build ipa` exports the archive.
+
+	  TEAM ID IS A PLACEHOLDER. It must be replaced with the real one before
+	  any upload, and the bundle identifier is changing too — see
+	  `docs/release/RELEASING.md`. Nothing here has been used against a real
+	  App Store Connect account.
+	-->
+	<key>method</key>
+	<string>app-store-connect</string>
+
+	<key>teamID</key>
+	<string>REPLACE_WITH_TEAM_ID</string>
+
+	<!--
+	  Release builds are obfuscated, so a crash report is unreadable without
+	  symbols. This uploads the dSYMs with the build; `build/symbols/<version>/`
+	  is the Dart half and is archived separately (RELEASING.md step 4).
+	-->
+	<key>uploadSymbols</key>
+	<true/>
+
+	<!-- Bitcode is gone from the App Store; declaring it is a warning. -->
+	<key>uploadBitcode</key>
+	<false/>
+
+	<key>signingStyle</key>
+	<string>automatic</string>
+
+	<!--
+	  Play and the App Store both re-sign and re-compress, so what a tester
+	  installs is never the local artifact. Thinning is left to the store.
+	-->
+	<key>destination</key>
+	<string>export</string>
+</dict>
+</plist>
