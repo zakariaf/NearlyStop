@@ -16,6 +16,7 @@ import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import '../support/fonts.dart';
 import '../support/harness.dart';
 import 'app_screens.dart';
+import 'semantics_probe.dart';
 
 /// The floor every interactive target clears, in logical pixels.
 ///
@@ -53,12 +54,7 @@ void main() {
     final sizes = <String, Size>{};
     for (final node in tester.semantics.simulatedAccessibilityTraversal()) {
       final data = node.getSemanticsData();
-      final isControl =
-          data.flagsCollection.isButton ||
-          data.flagsCollection.isLink ||
-          data.flagsCollection.isTextField ||
-          data.flagsCollection.isSlider;
-      if (!isControl) continue;
+      if (!isControl(data)) continue;
       // Keyed by label so a failure names the control rather than an id.
       sizes[data.label.isEmpty ? 'node ${node.id}' : data.label] =
           node.rect.size;

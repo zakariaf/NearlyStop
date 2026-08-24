@@ -14,6 +14,7 @@ import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import '../support/fonts.dart';
 import '../support/harness.dart';
 import 'app_screens.dart';
+import 'semantics_probe.dart';
 
 void main() {
   setUpAll(() async {
@@ -55,25 +56,10 @@ void main() {
           // reader actually visits, which is exactly the set that has to be
           // nameable.
           //
-          // **Interactive means the FLAG, not the tap action.** This app's
-          // `DaybreakTappable` puts `Semantics(button: true, label: …)` around
-          // an `ExcludeSemantics` that holds the real `GestureDetector`, so
-          // the node a reader lands on carries no tap action at all. A filter
-          // on `SemanticsAction.tap` matched nothing on any screen and 24
-          // cells reported green over an empty list — which is how this
-          // version came to be written.
-          bool interactive(SemanticsData data) =>
-              data.flagsCollection.isButton ||
-              data.flagsCollection.isLink ||
-              data.flagsCollection.isTextField ||
-              data.flagsCollection.isSlider ||
-              data.hasAction(SemanticsAction.tap) ||
-              data.hasAction(SemanticsAction.longPress);
-
           final controls = <SemanticsData>[
             for (final node
                 in tester.semantics.simulatedAccessibilityTraversal())
-              if (interactive(node.getSemanticsData())) node.getSemanticsData(),
+              if (isControl(node.getSemanticsData())) node.getSemanticsData(),
           ];
           final unnamed = <String>[
             for (final data in controls)
