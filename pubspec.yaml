@@ -26,7 +26,10 @@ dependencies:
   # (2.34.0 — 2.34.5 wants analyzer ^13, which `test` forbids) fails to compile
   # against it, taking `drift_dev schema dump` with it. 2.31.x is the newest
   # matched pair. Revisit when the SDK's analyzer floor moves.
+  convert: ^3.1.2
+  crypto: ^3.0.7
   drift: ">=2.31.0 <2.32.0"
+  file_selector: ^1.1.0
   flutter:
     sdk: flutter
   flutter_local_notifications: ^22.3.0
@@ -43,6 +46,8 @@ dependencies:
   meta: ^1.15.0
   path: ^1.9.0
   path_provider: ^2.1.0
+  pdf: ^3.13.0
+  printing: ^5.15.0
   riverpod: ^3.0.0
   # The Jalali calendar. A DEPENDENCY, not an exercise: the leap cycle has
   # irregular exceptions, and a hand-rolled converter is right for a year and
@@ -53,6 +58,7 @@ dependencies:
   # On the shipping path already via `package:drift/native.dart`; declared so
   # `_mapError` can name `SqliteException` without tripping
   # depend_on_referenced_packages.
+  share_plus: ^13.3.0
   sqlite3: ">=2.4.6 <4.0.0"
   sqlite3_flutter_libs: ^0.5.0
   # A ULID per row, minted at insert. EPIC-13's backup format is built on stable
