@@ -4,10 +4,8 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nearlystop/core/notifications/reminder_scheduler.dart';
 import 'package:nearlystop/core/result.dart';
-import 'package:nearlystop/data/providers.dart';
-import 'package:nearlystop/data/storage_failure.dart';
-import 'package:nearlystop/data/taper_repository.dart';
 import 'package:nearlystop/features/settings/application/settings_controller.dart';
+import 'package:nearlystop/providers.dart';
 import 'package:nearlystop/services/notifications/notification_gateway.dart';
 import 'package:nearlystop/services/notifications/notification_providers.dart';
 import 'package:nearlystop/services/notifications/reminder_failure.dart';
@@ -40,21 +38,9 @@ reconcileNotificationsProvider =
 Future<Result<void, ReminderFailure>> syncNotifications(Ref ref) async {
   final gateway = ref.read(notificationGatewayProvider);
 
-  // Read from the REPOSITORY's own stream, not from `taperSnapshotProvider`.
-  // Riverpod 3 disposes a provider the moment nothing listens, and the first
-  // reconcile runs at bootstrap with no widget attached — so awaiting a
-  // `StreamProvider`'s future there hangs for ever. Not an error: no reminder,
-  // no clue. One subscription, one event, closed.
-  final snapshot = await ref
-      .read(taperRepositoryProvider)
-      .watchSnapshot()
-      .first;
-  final facts = switch (snapshot) {
-    Ok<TaperSnapshot, StorageFailure>(:final value) => value,
-    // An unreadable database is not a reason to cancel somebody's reminder.
-    // Leave the pending set alone and let the next run decide.
-    Err<TaperSnapshot, StorageFailure>() => null,
-  };
+  final facts = await ref.read(taperFactsReaderProvider)();
+  // An unreadable database is not a reason to cancel somebody's reminder.
+  // Leave the pending set alone and let the next run decide.
   if (facts == null) return const Ok<void, ReminderFailure>(null);
 
   final desired = ReminderScheduler.compute(

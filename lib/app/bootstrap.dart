@@ -21,8 +21,12 @@ import 'package:nearlystop/data/providers.dart';
 import 'package:nearlystop/data/settings_repository.dart';
 import 'package:nearlystop/data/storage_failure.dart';
 import 'package:nearlystop/providers.dart';
+import 'package:nearlystop/services/notifications/fln_notification_gateway.dart';
+import 'package:nearlystop/services/notifications/notification_gateway.dart';
+import 'package:nearlystop/services/notifications/notification_providers.dart';
+import 'package:nearlystop/services/notifications/notification_startup.dart';
+import 'package:nearlystop/services/notifications/reconcile_triggers.dart';
 import 'package:path_provider/path_provider.dart';
-// `Override` is not in riverpod 3's default barrel.
 import 'package:riverpod/misc.dart' show Override;
 
 /// The bundled faces, and the OFL text file that licenses each.
@@ -94,6 +98,9 @@ void Function() installCrashSink(CrashSink sink) {
   };
 }
 
+/// The default tap handler: the router is not built yet at `startUp` time.
+void _ignoreTap(String? payload) {}
+
 /// Builds the app's infrastructure and runs it.
 ///
 /// **Order is the whole point**, and each step earns its place:
@@ -123,9 +130,18 @@ Future<void> bootstrap() async {
   } on Object {
     diagnosticsDirectory = Directory.systemTemp.path;
   }
+  // BEFORE the container, and before anything can arm a notification.
+  // `package:timezone` defaults to UTC; a reminder scheduled before this ran
+  // fires at the wrong local hour, and nothing anywhere reports it.
+  await initializeNotificationTimeZone();
   final launched = await startUp(
     location: appDocumentsDatabaseFile,
     diagnosticsDirectory: diagnosticsDirectory,
+    // Constructed HERE, not inside `startUp`. `plugin.initialize` is a
+    // platform channel, and under `flutter_test`'s binding it never answers —
+    // so building it inside the seam would hang every widget test that drives
+    // the launch order, which is most of what the seam exists for.
+    notificationGateway: await createNotificationGateway(onTap: _ignoreTap),
   );
   runApp(
     UncontrolledProviderScope(
@@ -139,6 +155,11 @@ Future<void> bootstrap() async {
   // belongs to the container's lifetime anyway; it must keep running while the
   // app is up whether or not anything is currently watching the date.
   launched.container.read(dayTickerProvider);
+  // Same reasoning: the triggers belong to the container's lifetime, not to a
+  // widget's `initState`. The first reconcile runs here, on every launch —
+  // with no server there is no other way to discover a reminder the OS
+  // dropped while the app was closed.
+  unawaited(launched.container.read(reconcileTriggersProvider).onResume());
 }
 
 /// Everything [bootstrap] does **except** `runApp`.
@@ -167,6 +188,7 @@ startUp({
   required String diagnosticsDirectory,
   AppDatabase Function(DatabaseLocation location) openDatabase =
       AppDatabase.new,
+  NotificationGateway? notificationGateway,
 }) async {
   registerFontLicenses();
   final sink = CrashSink(directory: diagnosticsDirectory);
@@ -189,6 +211,12 @@ startUp({
         if (opened.database case final database?) databaseOverride(database),
         bootstrapSettingsProvider.overrideWithValue(opened.settings),
         bootstrapErrorProvider.overrideWithValue(opened.failure),
+        // Overridden only when one is SUPPLIED. The provider throws when read
+        // without an override, so a widget test that never touches
+        // notifications is unaffected and one that does fails loudly rather
+        // than arming nothing and passing.
+        if (notificationGateway case final gateway?)
+          notificationGatewayProvider.overrideWithValue(gateway),
       ],
     ),
     failure: opened.failure,

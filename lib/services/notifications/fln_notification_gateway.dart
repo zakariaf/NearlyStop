@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:nearlystop/core/notifications/scheduled_notification.dart';
 import 'package:nearlystop/services/notifications/notification_gateway.dart';
 
@@ -178,3 +179,58 @@ class FlnNotificationGateway implements NotificationGateway {
     null => PermissionState.notDetermined,
   };
 }
+
+/// Builds the real gateway, plugin and all.
+///
+/// A function rather than a construction at the call site, so `bootstrap.dart`
+/// never names `FlutterLocalNotificationsPlugin` — the whole point of confining
+/// the plugin to one file.
+///
+/// The initialization settings request NOTHING: `requestAlertPermission` and
+/// friends are false so merely initialising does not fire the OS prompt behind
+/// the reader's back. The prompt happens when they turn the reminder on, which
+/// is the one moment it explains itself.
+Future<FlnNotificationGateway> createNotificationGateway({
+  required void Function(String? payload) onTap,
+}) async {
+  final plugin = FlutterLocalNotificationsPlugin();
+  await plugin.initialize(
+    settings: const InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+      iOS: DarwinInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+      ),
+    ),
+    onDidReceiveNotificationResponse: (response) => onTap(response.payload),
+    onDidReceiveBackgroundNotificationResponse: notificationTappedInBackground,
+  );
+  return FlnNotificationGateway(plugin);
+}
+
+/// The background tap handler.
+///
+/// **Top level and `@pragma('vm:entry-point')`**, because it runs in a
+/// separate isolate the engine spawns for it — a method or a closure is not
+/// addressable from there.
+///
+/// It does NOTHING, and that is deliberate: two isolates writing one SQLite
+/// file risks corrupting the two years of history this app exists to keep. The
+/// tap that matters is the foreground one, which lands in the main isolate
+/// with the database already open.
+@pragma('vm:entry-point')
+void notificationTappedInBackground(NotificationResponse response) {
+  // Intentionally empty. See the dartdoc: no database, no isolate state.
+}
+
+/// The device's own IANA zone name, e.g. `Europe/Berlin`.
+///
+/// Lives here because it is a PLATFORM CALL, and `flutter_timezone` is
+/// confined to this file for the same reason the plugin is.
+///
+/// `.identifier`, not the object: `flutter_timezone` v5 returns a
+/// `TimezoneInfo` whose `toString()` is not the IANA name, and
+/// `tz.getLocation` on that throws — at bootstrap, before the first frame.
+Future<String> deviceTimeZoneName() async =>
+    (await FlutterTimezone.getLocalTimezone()).identifier;

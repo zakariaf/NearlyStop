@@ -7,6 +7,7 @@
 library;
 
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,6 +29,8 @@ import 'package:nearlystop/l10n/app_locales.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/l10n/number_formats.dart';
 import 'package:nearlystop/routing/routes.dart';
+import 'package:nearlystop/services/notifications/notification_permissions.dart';
+import 'package:nearlystop/services/notifications/reconcile_triggers.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
 import 'package:nearlystop/theme/daybreak_script.dart';
 import 'package:nearlystop/theme/daybreak_shapes.dart';
@@ -61,6 +64,7 @@ class AccessibilityCard extends ConsumerWidget {
     final locale = ref.watch(resolvedLocaleProvider);
     final controller = ref.read(settingsControllerProvider.notifier);
     final minute = settings.reminderMinuteOfDay;
+    final blocked = ref.watch(notificationsBlockedProvider);
 
     return DaybreakCard(
       overline: l10n.settingsAccessibility,
@@ -70,7 +74,12 @@ class AccessibilityCard extends ConsumerWidget {
         SettingsRow(
           glyph: Icons.notifications_none,
           title: l10n.settingsReminder,
-          sublabel: settings.reminderEnabled && minute != null
+          sublabel: blocked
+              // The OS is refusing to post, though the setting is on. Saying
+              // "On · 8:00 am" here would be the app lying to somebody who is
+              // relying on it every morning.
+              ? l10n.reminderBlocked
+              : settings.reminderEnabled && minute != null
               ? l10n.settingsReminderAt(_formatTime(context, minute, locale))
               : l10n.settingsOff,
           onTap: settings.reminderEnabled
@@ -79,11 +88,23 @@ class AccessibilityCard extends ConsumerWidget {
           trailing: Switch(
             value: settings.reminderEnabled,
             onChanged: (value) => onWrite(
-              () => controller.setReminderEnabled(enabled: value),
+              () => ref.read(setReminderEnabledProvider)(enabled: value),
               l10n.errorTitle,
             ),
           ),
         ),
+        if (blocked) ...<Widget>[
+          const SettingsDivider(),
+          // INLINE, never a SnackBar: information the reader has to act on
+          // does not time out. Spelled out in words per platform because
+          // nothing available here can open the OS notification settings, and
+          // this app is not taking a dependency for one string.
+          SettingsInlineError(
+            message: defaultTargetPlatform == TargetPlatform.iOS
+                ? l10n.reminderBlockedIos
+                : l10n.reminderBlockedAndroid,
+          ),
+        ],
         const SettingsDivider(),
         TextSizeRow(settings: settings, onWrite: onWrite),
         const SettingsDivider(),
