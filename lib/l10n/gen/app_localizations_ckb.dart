@@ -823,4 +823,28 @@ class AppLocalizationsCkb extends AppLocalizations {
 
   @override
   String get settingsAccessibilityCaps => 'خوێندنەوە و بیرخەرەوەکان';
+
+  @override
+  String get reminderTitle => 'پلانی ئەمڕۆت';
+
+  @override
+  String get reminderBody => 'بۆ بینینی پلانی ئەمڕۆ، نیەرلیستۆپ بکەرەوە.';
+
+  @override
+  String get reminderChannelName => 'بیرخەرەوەی ڕۆژانە';
+
+  @override
+  String get reminderChannelDescription =>
+      'هەموو بەیانییەک یەک بیرخەرەوەی نەرم.';
+
+  @override
+  String get reminderBlocked => 'لە ڕێکخستنەکانی سیستەم بلۆک کراوە';
+
+  @override
+  String get reminderBlockedIos =>
+      'ئاگادارییەکان بۆ نیەرلیستۆپ لە ڕێکخستن › ئاگادارییەکان بکەرەوە.';
+
+  @override
+  String get reminderBlockedAndroid =>
+      'ئاگادارییەکان بۆ نیەرلیستۆپ لە ڕێکخستن › ئەپەکان › نیەرلیستۆپ بکەرەوە.';
 }

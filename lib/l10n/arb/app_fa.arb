@@ -254,5 +254,33 @@
   "settingsAccessibilityCaps": "خواندن و یادآوری‌ها",
   "@settingsAccessibilityCaps": {
     "description": "The settingsAccessibility heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "reminderTitle": "برنامه امروز شما",
+  "@reminderTitle": {
+    "description": "Notification heading. NEVER an imperative: the app arranges a plan, it does not tell anybody to swallow anything (SPEC §11.4)."
+  },
+  "reminderBody": "برای دیدن برنامه امروز، نیرلی‌استاپ را باز کنید.",
+  "@reminderBody": {
+    "description": "Notification body. Carries NO dose, no drug name and no digit: a lock-screen preview must not tell a stranger holding the phone that its owner has a chronic illness."
+  },
+  "reminderChannelName": "یادآوری روزانه",
+  "@reminderChannelName": {
+    "description": "The Android channel name, as the OS settings list shows it."
+  },
+  "reminderChannelDescription": "هر صبح یک یادآوری ملایم.",
+  "@reminderChannelDescription": {
+    "description": "The Android channel description, as the OS settings list shows it."
+  },
+  "reminderBlocked": "در تنظیمات سیستم مسدود شده است",
+  "@reminderBlocked": {
+    "description": "Settings: the reminder row when the OS will not post, though the setting is on."
+  },
+  "reminderBlockedIos": "اعلان‌ها را برای نیرلی‌استاپ در تنظیمات › اعلان‌ها روشن کنید.",
+  "@reminderBlockedIos": {
+    "description": "Settings: where to go on iOS. Spelled out in words because no plugin here can open that page."
+  },
+  "reminderBlockedAndroid": "اعلان‌ها را برای نیرلی‌استاپ در تنظیمات › برنامه‌ها › نیرلی‌استاپ روشن کنید.",
+  "@reminderBlockedAndroid": {
+    "description": "Settings: where to go on Android."
   }
 }

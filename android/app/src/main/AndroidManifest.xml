@@ -1,4 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Exactly three, and tool/check-manifest-permissions.sh asserts the whole
+         MERGED set — libraries contribute nodes of their own, and a grep of
+         this file alone would never see them.
+
+         SCHEDULE_EXACT_ALARM and USE_EXACT_ALARM are deliberately absent
+         (CONTRACTS §12): a daily "your plan for today" does not need
+         alarm-clock precision, Android 14+ denies the first by default, and
+         Play policy restricts the second to alarm/timer/calendar apps. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <application
         android:label="nearlystop"
         android:name="${applicationName}"
@@ -25,6 +36,21 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- The plugin's own receivers. No Dart runs at boot: this is what
+             re-registers the alarms Android dropped, and without it every
+             scheduled reminder is lost at the next restart. -->
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

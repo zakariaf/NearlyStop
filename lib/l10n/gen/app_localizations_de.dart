@@ -842,4 +842,29 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsAccessibilityCaps => 'LESEN UND ERINNERUNGEN';
+
+  @override
+  String get reminderTitle => 'Ihr Plan für heute';
+
+  @override
+  String get reminderBody =>
+      'Öffnen Sie NearlyStop, um den heutigen Plan zu sehen.';
+
+  @override
+  String get reminderChannelName => 'Tägliche Erinnerung';
+
+  @override
+  String get reminderChannelDescription =>
+      'Eine sanfte Erinnerung jeden Morgen.';
+
+  @override
+  String get reminderBlocked => 'In den Systemeinstellungen blockiert';
+
+  @override
+  String get reminderBlockedIos =>
+      'Aktivieren Sie Mitteilungen für NearlyStop unter Einstellungen › Mitteilungen.';
+
+  @override
+  String get reminderBlockedAndroid =>
+      'Aktivieren Sie Benachrichtigungen für NearlyStop unter Einstellungen › Apps › NearlyStop.';
 }

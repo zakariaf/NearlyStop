@@ -19,16 +19,17 @@ library;
 
 import 'package:clock/clock.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nearlystop/app/derived_schedule_provider.dart';
 import 'package:nearlystop/app/locale_providers.dart';
 import 'package:nearlystop/core/dsns/facts.dart';
 import 'package:nearlystop/core/result.dart';
 import 'package:nearlystop/core/time/local_date.dart';
+import 'package:nearlystop/core/units/milligrams.dart';
 import 'package:nearlystop/data/providers.dart';
 import 'package:nearlystop/data/storage_failure.dart';
 import 'package:nearlystop/data/taper_repository.dart';
 import 'package:riverpod/misc.dart' show Override;
-
 import 'taper_fixture.dart' as domain;
 
 /// The plan under test.
@@ -81,3 +82,35 @@ List<Override> seededPlanOverrides({Locale locale = const Locale('en')}) =>
       clockProvider.overrideWithValue(Clock.fixed(seededNow)),
       resolvedLocaleProvider.overrideWithValue(locale),
     ];
+
+/// Writes [seededPlan] into whatever database [container] is wired to.
+///
+/// Named apart from `db_harness.dart`'s `seedPlan`, which inserts a row: this
+/// one goes through the repository so `Step 0` exists.
+///
+/// The repository, not the DAO: the same transaction the app uses, so the
+/// `Step 0` CONTRACTS §7 requires exists here too. A test that inserted rows
+/// directly would produce a plan with no step and a schedule of nothing.
+Future<void> seedTaperInto(ProviderContainer container) async {
+  final result = await container
+      .read(taperRepositoryProvider)
+      .savePlan(
+        TaperPlanDraft(
+          drugName: seededPlan.drugName,
+          startDate: seededPlan.startDate,
+          currentDose: seededPlan.startingDose,
+          targetDose: seededPlan.targetDose,
+          strengths: <Milligrams>[
+            for (final strength in seededPlan.tabletStrengths)
+              Milligrams.fromHundredths(strength.hundredths),
+          ],
+          allowHalves: seededPlan.allowHalves,
+          method: seededPlan.method,
+          stepSize: seededStep.fromDose - seededStep.toDose,
+          holdPeriodDays: seededPlan.holdPeriodDays,
+        ),
+      );
+  if (result is Err<void, StorageFailure>) {
+    throw StateError('seedTaperInto failed: ${result.failure}');
+  }
+}

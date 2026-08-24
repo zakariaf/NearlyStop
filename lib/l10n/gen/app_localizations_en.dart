@@ -840,4 +840,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsAccessibilityCaps => 'READING AND REMINDERS';
+
+  @override
+  String get reminderTitle => 'Your plan for today';
+
+  @override
+  String get reminderBody => 'Open NearlyStop to see today\'s plan.';
+
+  @override
+  String get reminderChannelName => 'Daily reminder';
+
+  @override
+  String get reminderChannelDescription => 'One gentle reminder each morning.';
+
+  @override
+  String get reminderBlocked => 'Blocked in system settings';
+
+  @override
+  String get reminderBlockedIos =>
+      'Turn notifications on for NearlyStop in Settings › Notifications.';
+
+  @override
+  String get reminderBlockedAndroid =>
+      'Turn notifications on for NearlyStop in Settings › Apps › NearlyStop.';
 }

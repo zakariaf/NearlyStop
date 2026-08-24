@@ -70,6 +70,8 @@ jobs:
       - run: bash tool/check_raw_values_selftest.sh
       - run: bash tool/check_arb_parity_selftest.sh
       - run: bash tool/check_forms_selftest.sh
+      - run: bash tool/check-notification-gates-selftest.sh
+      - run: bash tool/check-manifest-permissions-selftest.sh
 
       # Contract: the committed generated code IS the generated code. Without
       # this, a stale `.g.dart` compiles fine locally and diverges from
@@ -130,6 +132,13 @@ jobs:
       # skips the locale. All three are source-graph properties: a field that
       # leaks or reads German 7,5 as a FormatException keeps every test green.
       - run: bash tool/check_forms.sh
+
+      # Contract: the notification plugin lives in ONE file, `package:timezone`
+      # reaches only the scheduling core and its seam, and `syncNotifications`
+      # is the only thing that arms or cancels. Together they are why every
+      # test in that stack runs against a fake with no channel mocking.
+      - run: bash tool/check-single-fln-import.sh
+      - run: bash tool/check-adhoc-schedule-calls.sh
 
       # Contract: no junk-drawer folder, no barrel in the app package, no
       # MethodChannel outside services/native/.
@@ -226,3 +235,11 @@ jobs:
       # Contract: the app still compiles for a real target. Unsigned on purpose
       # — no signing secret in this job means there is nothing here to leak.
       - run: flutter build apk --debug
+
+      # Contract: the MERGED manifest — the one that ships — declares exactly
+      # POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED and VIBRATE, registers the
+      # plugin's boot receiver, and carries neither exact-alarm permission nor
+      # INTERNET. The release build is what produces it; the debug manifest
+      # adds INTERNET on purpose and is not what this reads.
+      - run: flutter build apk --release
+      - run: bash tool/check-manifest-permissions.sh

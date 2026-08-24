@@ -1353,6 +1353,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'READING AND REMINDERS'**
   String get settingsAccessibilityCaps;
+
+  /// Notification heading. NEVER an imperative: the app arranges a plan, it does not tell anybody to swallow anything (SPEC §11.4).
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan for today'**
+  String get reminderTitle;
+
+  /// Notification body. Carries NO dose, no drug name and no digit: a lock-screen preview must not tell a stranger holding the phone that its owner has a chronic illness.
+  ///
+  /// In en, this message translates to:
+  /// **'Open NearlyStop to see today\'s plan.'**
+  String get reminderBody;
+
+  /// The Android channel name, as the OS settings list shows it.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily reminder'**
+  String get reminderChannelName;
+
+  /// The Android channel description, as the OS settings list shows it.
+  ///
+  /// In en, this message translates to:
+  /// **'One gentle reminder each morning.'**
+  String get reminderChannelDescription;
+
+  /// Settings: the reminder row when the OS will not post, though the setting is on.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked in system settings'**
+  String get reminderBlocked;
+
+  /// Settings: where to go on iOS. Spelled out in words because no plugin here can open that page.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn notifications on for NearlyStop in Settings › Notifications.'**
+  String get reminderBlockedIos;
+
+  /// Settings: where to go on Android.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn notifications on for NearlyStop in Settings › Apps › NearlyStop.'**
+  String get reminderBlockedAndroid;
 }
 
 class _AppLocalizationsDelegate
