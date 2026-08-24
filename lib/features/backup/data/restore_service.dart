@@ -39,6 +39,7 @@ Future<Result<void, RestoreFailure>> restoreBackup({
   required Directory stagingDirectory,
   required int appSchemaVersion,
   Future<void> Function(AppDatabase reopened)? verifyPublished,
+  Map<int, PayloadUpgrader> upgraders = kPayloadUpgraders,
 }) async {
   final String text;
   try {
@@ -107,6 +108,7 @@ Future<Result<void, RestoreFailure>> restoreBackup({
     rows: rows,
     from: header.schemaVersion,
     to: appSchemaVersion,
+    ladder: upgraders,
   );
   if (upgraded is Err<List<UpgradedRow>, RestoreFailure>) {
     return Err(upgraded.failure);

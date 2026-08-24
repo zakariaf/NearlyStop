@@ -15,10 +15,11 @@ import 'package:nearlystop/core/units/milligrams.dart';
 import 'package:nearlystop/data/db/app_database.dart';
 import 'package:nearlystop/features/backup/data/backup_writer.dart';
 import 'package:nearlystop/features/backup/data/restore_service.dart';
+import 'package:nearlystop/features/backup/domain/backup_envelope.dart';
 import 'package:nearlystop/features/backup/domain/restore_failure.dart';
 import 'package:test/test.dart';
 
-import '../../support/db_harness.dart';
+import '../../fixtures/hostile_plan.dart';
 
 void main() {
   late Directory workspace;
@@ -31,40 +32,6 @@ void main() {
   tearDown(() => workspace.deleteSync(recursive: true));
 
   AppDatabase openLive() => AppDatabase.forTesting(NativeDatabase(liveFile));
-
-  /// A plan with the awkward values, not the tidy ones.
-  Future<void> seedHostile(AppDatabase db) async {
-    final planId = await seedPlan(
-      db,
-      drugName: 'Prednisolon "Actavis", 5mg',
-      // A quarter-milligram target, which only survives if doses are stored
-      // and encoded as hundredths.
-      startingDose: const Milligrams.fromHundredths(1025),
-      strengths: const <Milligrams>[
-        Milligrams.fromHundredths(500),
-        Milligrams.fromHundredths(250),
-        Milligrams.fromHundredths(100),
-      ],
-    );
-    await seedStep(db, planId);
-    await seedStep(db, planId, index: 1, uid: 'step-1');
-    await seedLog(
-      db,
-      planId,
-      const LocalDate(2026, 4, 1),
-      uid: 'log-a',
-      note: 'felt fine, "no aches"\nslept well',
-    );
-    await seedLog(db, planId, const LocalDate(2026, 4, 2), uid: 'log-b');
-    // A leap day, and a note that is empty rather than absent.
-    await seedLog(
-      db,
-      planId,
-      const LocalDate(2024, 2, 29),
-      uid: 'log-leap',
-      note: '',
-    );
-  }
 
   /// Everything the app stores, as comparable values.
   Future<Map<String, Object?>> snapshotOf(AppDatabase db) async => {
@@ -137,7 +104,7 @@ void main() {
 
   test('export, wipe, import — and it is the same taper', () async {
     final live = openLive();
-    await seedHostile(live);
+    await seedHostilePlan(live);
     final before = await snapshotOf(live);
     final backup = await exportFrom(live);
     await live.close();
@@ -159,7 +126,7 @@ void main() {
     // worth asserting, because a reader who taps Import twice must not end up
     // with two plans and a schedule that cannot be generated.
     final live = openLive();
-    await seedHostile(live);
+    await seedHostilePlan(live);
     final before = await snapshotOf(live);
     final backup = await exportFrom(live);
     await live.close();
@@ -177,7 +144,7 @@ void main() {
     // to split one row into two. JSON escapes it; this is the test that says
     // so rather than assuming it.
     final live = openLive();
-    await seedHostile(live);
+    await seedHostilePlan(live);
     final backup = await exportFrom(live);
     await live.close();
     liveFile.deleteSync();
@@ -198,7 +165,7 @@ void main() {
     // CONTRACTS §11's regression, end to end: 10.25mg is 1025 hundredths, and
     // any unit confusion in the codec shows up here as 102.5mg or 1.025mg.
     final live = openLive();
-    await seedHostile(live);
+    await seedHostilePlan(live);
     final backup = await exportFrom(live);
     await live.close();
     liveFile.deleteSync();
@@ -217,7 +184,7 @@ void main() {
 
   test('a leap day and an empty note both survive', () async {
     final live = openLive();
-    await seedHostile(live);
+    await seedHostilePlan(live);
     final backup = await exportFrom(live);
     await live.close();
     liveFile.deleteSync();
@@ -235,4 +202,133 @@ void main() {
       reason: 'an empty note came back as null — a different fact',
     );
   });
+
+  test('export, import, export — and the BYTES are identical', () async {
+    // The strongest statement the feature can make. With `exportedAtUtc`
+    // frozen by the fixed clock, any difference between the two files is a
+    // real one: a reordered row, a dropped field, a re-encoded dose.
+    final live = openLive();
+    await seedHostilePlan(live);
+    final first = await exportFrom(live);
+    final firstBytes = first.readAsBytesSync();
+    await live.close();
+    liveFile.deleteSync();
+
+    await importInto(first);
+    final reopened = openLive();
+    final second = await exportFrom(reopened);
+    await reopened.close();
+
+    expect(second.readAsBytesSync(), firstBytes);
+  });
+
+  test('a shuffled insertion order produces the same bytes', () async {
+    // What `ORDER BY uid` in the writer buys. Without it the file records the
+    // order rows happened to be written in, and two phones holding the same
+    // taper export two different files.
+    final forward = openLive();
+    await seedHostilePlan(forward);
+    final firstBytes = (await exportFrom(forward)).readAsBytesSync();
+    await forward.close();
+    liveFile.deleteSync();
+
+    // The same rows, arriving through a restore — which inserts in payload
+    // order, not in the order they were originally typed.
+    final backup = File('${workspace.path}/replay.ndjson')
+      ..writeAsBytesSync(firstBytes);
+    await importInto(backup);
+    final replayed = openLive();
+    final secondBytes = (await exportFrom(replayed)).readAsBytesSync();
+    await replayed.close();
+
+    expect(secondBytes, firstBytes);
+  });
+
+  test('a double import leaves no duplicate uid in any of the six', () async {
+    // The uid is what makes a restore idempotent. A table where COUNT(*) has
+    // drifted past COUNT(DISTINCT uid) is a plan the generator will refuse to
+    // derive, on a phone whose owner just wanted their history back.
+    final live = openLive();
+    await seedHostilePlan(live);
+    final backup = await exportFrom(live);
+    await live.close();
+
+    await importInto(backup);
+    await importInto(backup);
+
+    final reopened = openLive();
+    addTearDown(reopened.close);
+    // Enumerated from drift's own metadata rather than from `kBackupTables`:
+    // those are PAYLOAD names (`settings`, not `settings_rows`) and, more to
+    // the point, a seventh table added to the schema and forgotten by the
+    // backup would still be checked here.
+    final tables = <String>[
+      for (final table in reopened.allTables)
+        if (table.$columns.any((c) => c.name == 'uid')) table.actualTableName,
+    ];
+    expect(tables, hasLength(kBackupTables.length));
+
+    for (final table in tables) {
+      final row = await reopened
+          .customSelect(
+            'SELECT COUNT(*) AS total, COUNT(DISTINCT uid) AS distinct_uids '
+            'FROM $table;',
+          )
+          .getSingle();
+      expect(
+        row.data['total'],
+        row.data['distinct_uids'],
+        reason: '$table has duplicate uids after two imports',
+      );
+      expect(
+        row.data['total'],
+        greaterThan(0),
+        reason: '$table is empty, so this assertion proves nothing',
+      );
+    }
+  });
+
+  test('the cumulative total and the taken count survive exactly', () async {
+    // SPEC §5.2's conservation invariant, end to end. `==` on integer
+    // hundredths and never `closeTo`: a total that is off by a hundredth of a
+    // milligram is a codec bug, and rounding it away is how it ships.
+    final live = openLive();
+    await seedHostilePlan(live);
+    final before = await _conserved(live);
+    final backup = await exportFrom(live);
+    await live.close();
+    liveFile.deleteSync();
+
+    await importInto(backup);
+
+    final reopened = openLive();
+    addTearDown(reopened.close);
+    expect(await _conserved(reopened), before);
+    // And the fixture actually distinguishes the two numbers — one log is
+    // recorded but not taken, so a count that mistook "logged" for "taken"
+    // would differ.
+    expect(before.takenDays, lessThan(before.loggedDays));
+  });
+}
+
+/// The two numbers SPEC §5.2 says a restore must not move.
+///
+/// Read straight out of SQL rather than through the domain, so the assertion
+/// is about what is ON DISK rather than about a projection agreeing with
+/// itself.
+Future<({int cumulativeHundredths, int takenDays, int loggedDays})> _conserved(
+  AppDatabase db,
+) async {
+  final row = await db
+      .customSelect(
+        'SELECT COALESCE(SUM(CASE WHEN taken THEN actual_mg END), 0) AS total, '
+        'COUNT(CASE WHEN taken THEN 1 END) AS taken_days, '
+        'COUNT(*) AS logged_days FROM dose_logs;',
+      )
+      .getSingle();
+  return (
+    cumulativeHundredths: row.data['total']! as int,
+    takenDays: row.data['taken_days']! as int,
+    loggedDays: row.data['logged_days']! as int,
+  );
 }

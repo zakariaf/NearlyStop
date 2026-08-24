@@ -30,14 +30,19 @@ const Map<int, PayloadUpgrader> kPayloadUpgraders = <int, PayloadUpgrader>{};
 /// A missing rung is a refusal, never a pass-through: an unmigrated payload
 /// inserted into a current-schema database is the silent data loss this whole
 /// ladder exists to prevent.
+///
+/// [ladder] defaults to the shipped one. It is a parameter because at v1 there
+/// is no real rung to run, and machinery whose only test is "the empty map
+/// does nothing" is machinery nobody has ever seen work.
 Result<List<UpgradedRow>, RestoreFailure> upgradePayload({
   required List<UpgradedRow> rows,
   required int from,
   required int to,
+  Map<int, PayloadUpgrader> ladder = kPayloadUpgraders,
 }) {
   var current = rows;
   for (var version = from; version < to; version++) {
-    final upgrader = kPayloadUpgraders[version];
+    final upgrader = ladder[version];
     if (upgrader == null) {
       return Err(
         PublishFailed(
