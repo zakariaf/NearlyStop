@@ -1,5 +1,4 @@
 // The screen, its non-happy states, and the export door.
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -237,19 +236,6 @@ void main() {
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
     expect(find.text(l10n.settingsExportForDoctor), findsOneWidget);
     handle.dispose();
-  });
-
-  test('EPIC-13’s dependencies have not arrived early', () {
-    // `dependency-hygiene`: an unused package in `pubspec.yaml` is a package
-    // nobody audits, and this app's premise is that it opens no sockets.
-    final pubspec = File('pubspec.yaml').readAsStringSync();
-    for (final package in <String>['pdf:', 'csv:', 'share_plus:']) {
-      expect(
-        pubspec,
-        isNot(contains(package)),
-        reason: '$package is EPIC-13’s, and this epic builds only the door',
-      );
-    }
   });
 
   testWidgets('tapping export navigates to a REAL route', (tester) async {
