@@ -639,6 +639,21 @@ class AppLocalizationsCkb extends AppLocalizations {
   String get settingsViewLicenses => 'بینینی مۆڵەتەکان';
 
   @override
+  String get settingsSourceCode => 'سەرچاوە کراوە';
+
+  @override
+  String get settingsSourceCodeNote =>
+      'کۆدی ئەم ئەپە گشتییە. هەرکەسێک دەتوانێت بیخوێنێتەوە و خۆی دڵنیا بێت کە هیچ شتێک لەوەی لێرە تۆماری دەکەیت لەم مۆبایلە دەرناچێت.';
+
+  @override
+  String settingsSourceCodeSemantics(String url) {
+    return 'سەرچاوە کراوە. $url لە وێبگەڕەکەتدا دەکاتەوە.';
+  }
+
+  @override
+  String get settingsSourceCodeCopied => 'بەستەر لەبەرگیرایەوە';
+
+  @override
   String get settingsLicensesTitle => 'مۆڵەتەکان';
 
   @override

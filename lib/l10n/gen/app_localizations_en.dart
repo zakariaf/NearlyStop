@@ -652,6 +652,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsViewLicenses => 'View licenses';
 
   @override
+  String get settingsSourceCode => 'Open source';
+
+  @override
+  String get settingsSourceCodeNote =>
+      'The code for this app is public. Anyone can read it and check for themselves that nothing you enter here leaves this phone.';
+
+  @override
+  String settingsSourceCodeSemantics(String url) {
+    return 'Open source. Opens $url in your browser.';
+  }
+
+  @override
+  String get settingsSourceCodeCopied => 'Link copied';
+
+  @override
   String get settingsLicensesTitle => 'Licenses';
 
   @override

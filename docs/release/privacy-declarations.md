@@ -60,6 +60,8 @@ remembered to look at.
 | Layer | What | Where |
 |---|---|---|
 | Static | `package:http`, `dio`, `google_fonts`, `HttpClient`, `WebSocket`, `Socket` banned anywhere in `lib/` — each with a must-fail fixture | `tool/check_bans.sh`, `test/tool/check_bans_test.dart` |
+| Static | `LaunchMode.inAppWebView`, `inAppBrowserView` and `platformDefault` banned anywhere in `lib/`, and `package:url_launcher` importable in exactly one file | `tool/check_bans.sh`, `test/tool/check_bans_test.dart` |
+| Call site | The mode `launchUrl` is actually given, against the real platform interface — the grep cannot see a **dropped** `mode:`, which defaults to an in-app browser on Android | `test/core/links/link_opener_test.dart` |
 | Dependency | The **resolved** tree, not the pubspec. A banned package three hops down fails | `tool/audit_deps.py`, `test/tool/audit_deps_test.dart` |
 | Runtime | Every `HttpClient` the process can create is made to throw, then all six screens are driven in two languages | `test/policy/no_network_test.dart` |
 | Manifest | `INTERNET` absent from the **release** merged manifest — on Android this makes a network call impossible, not merely absent | `test/policy/permissions_test.dart` |
@@ -94,6 +96,28 @@ the reasoning is ever wrong.
 device".** It is not true — export through the share sheet is a real path the
 user can take, and a privacy claim that a user can personally disprove is
 worse than a modest one.
+
+### The one link that leaves
+
+Settings → **Open source** opens `https://github.com/zakariaf/NearlyStop`.
+
+It is the second user-initiated departure, alongside the share sheet, and it
+exists for the same reason this document does: a negative claim cannot be
+demonstrated by the app making it. Somebody who does not want to take "no
+network calls" on trust can read the code.
+
+What it does and does not change:
+
+| | |
+|---|---|
+| Who makes the request | The reader's browser, after their tap. `LaunchMode.externalApplication` hands the URL to the OS and this process is done |
+| What is sent | The URL. No identifier, no query string, no referrer this app controls, nothing about the taper |
+| Android `INTERNET` | Still absent. `url_launcher` fires `ACTION_VIEW`; an intent is not a socket, and layer 4 above is unchanged |
+| What the merged manifest gains | `io.flutter.plugins.urllauncher.WebViewActivity`, `exported="false"`, from `url_launcher_android`. It is the in-app-webview path, it is **unreachable** — the static layer refuses the modes that would launch it — and it is listed here so a reviewer reading the manifest is not surprised by it |
+| The runtime layer | Unchanged and still passing: `no_network_test.dart` drives every screen with `HttpClient` made to throw |
+
+Recorded rather than assumed: this is a departure, and a document that only
+listed the share sheet would be one path out of date.
 
 The sanctioned wording states the mechanism instead:
 

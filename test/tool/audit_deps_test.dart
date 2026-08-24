@@ -35,10 +35,16 @@ void main() {
   ///
   /// `kind` matters and is easy to get wrong: the auditor walks from the
   /// packages the app DECLARES (`direct`), not from the root node, because
-  /// what ships is what `dependencies:` drags in — `dev` packages never reach
-  /// the binary. A fixture that marked everything `transitive` would leave the
-  /// walk with no starting point and report clean over a banned tree, which is
-  /// how the first version of this file passed.
+  /// what ships is what `dependencies:` drags in. A fixture that marked
+  /// everything `transitive` would leave the walk with no starting point and
+  /// report clean over a banned tree, which is how the first version of this
+  /// file passed.
+  ///
+  /// **`dev` is a label, not a guarantee.** Declaring a package under
+  /// `dev_dependencies:` that something in `dependencies:` also needs makes
+  /// `pub deps` call it `dev` while it ships regardless — this app does
+  /// exactly that with `url_launcher_platform_interface`. So the walk follows
+  /// edges, never kinds, and the test below is what says so.
   Map<String, Object?> node(
     String name, {
     List<String> deps = const <String>[],
@@ -99,6 +105,32 @@ void main() {
     expect(result.exitCode, 1, reason: '${result.stdout}');
     expect(result.stdout, contains('dio'));
   });
+
+  test(
+    'a banned package labelled dev still fails if a direct root needs it',
+    () async {
+      // The trap this tree walks into on purpose. `pub deps` labels a package
+      // `dev` the moment it appears under `dev_dependencies:`, even when a
+      // shipping package depends on it too — and it ships. An auditor that
+      // skipped `dev` nodes would report clean over a telemetry SDK sitting on
+      // the compile path.
+      final result = await auditFixture(<String, Object?>{
+        'root': 'nearlystop',
+        'packages': <Map<String, Object?>>[
+          node('nearlystop', deps: <String>['url_launcher'], kind: 'root'),
+          node(
+            'url_launcher',
+            deps: <String>['sentry_flutter'],
+            kind: 'direct',
+          ),
+          node('sentry_flutter', kind: 'dev'),
+        ],
+      });
+
+      expect(result.exitCode, 1, reason: '${result.stdout}${result.stderr}');
+      expect(result.stdout, contains('sentry_flutter'));
+    },
+  );
 
   test(
     'the real tree is clean, and that is the claim the store reads',
