@@ -303,6 +303,33 @@ add_rule lib code - \
   'MediaQuery\.of\(context\)\.(size|padding|textScaler|viewInsets|orientation|devicePixelRatio|platformBrightness|boldText|disableAnimations)' \
   "use the aspect accessor (MediaQuery.sizeOf, .textScalerOf, …) — MediaQuery.of subscribes to every change"
 
+# -------------------------------------- EPIC-15: no debug affordance ships
+# R8, tree-shaking and obfuscation only run in a release build, so a dev
+# backdoor survives every debug run and every green CI lane. There is no test
+# that can see one either — it is a property of the source graph, which is what
+# this script is for.
+#
+# Scoped to `lib/`. `test/fixtures/` seeds a plan on purpose and always has; a
+# blunt rule would ban the fixtures the whole suite is built on.
+
+# drift's dev-only escape hatch. It DROPS EVERY TABLE when the schema version
+# moves — on a phone holding a 780-day taper, which is the only copy that
+# exists. There is no recoverable version of this shipping.
+add_rule lib code - \
+  'eraseDatabaseOnSchemaChange' \
+  "eraseDatabaseOnSchemaChange DROPS the user's whole taper on a schema bump — never in lib/"
+
+# A dev menu is a door with no lock on it: it is reachable in the shipped
+# binary whether or not the build was meant to expose it.
+add_rule lib code - \
+  '\b(showDevMenu|devMenu|DebugMenu|DeveloperMenu|kDebugPanel)\b' \
+  "no developer menu in lib/ — it ships, and it is reachable"
+
+# Fixture seeding in `lib/` writes invented plan data into a real database.
+add_rule lib code - \
+  '\b(seedFixtureData|seedDemoData|insertDemoPlan|seedSampleTaper)\b' \
+  "fixture seeding belongs in test/, never in lib/ — it writes invented doses into a real database"
+
 # ------------------------------------------ EPIC-15: the platform files
 # A second, small walker, because these are a different KIND of file: not
 # Dart, not comment-strippable, and outside `lib`/`test` entirely. Its own

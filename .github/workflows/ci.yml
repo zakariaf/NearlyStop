@@ -38,6 +38,11 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          # `check_release_hygiene.sh` walks `git log --all` for a credential
+          # that was committed and later deleted. A shallow clone cannot see
+          # one, and the gate would report OK over a leaked key.
+          fetch-depth: 0
 
       # subosito/flutter-action's `flutter-version-file` parses STRUCTURED files
       # (pubspec.yaml's environment block, .fvmrc JSON). Our .flutter-version is
@@ -147,6 +152,17 @@ jobs:
       # Contract: caret ranges, a committed lock, and nothing in the transitive
       # tree that opens a network or telemetry path.
       - run: bash tool/audit-deps.sh
+
+      # Contract: no signing material in the working tree OR anywhere in
+      # history. A credential committed and later deleted is invisible to a
+      # working-tree check and permanently present in every clone, so this
+      # walks `git log --all` too — which needs the full history below.
+      - run: bash tool/check_release_hygiene.sh
+
+      # Contract: the identifier inventory is printable, so changing the bundle
+      # ID before release is a mechanical sweep rather than a hunt. Informational
+      # — it exits 0 and its output is the point.
+      - run: bash tool/check_bundle_id.sh
 
       # REQUIRED before the suite: `flutter test --coverage` omits files no test
       # imports, so an untested file contributes zero DENOMINATOR lines and the

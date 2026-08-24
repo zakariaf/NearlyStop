@@ -469,6 +469,44 @@ void main() {
     });
   });
 
+  group('no debug affordance survives into a release', () {
+    // R8 and tree-shaking only run in release, so this is the first moment a
+    // dev backdoor could ship. "Proved by a grep gate, not by memory" only
+    // holds if the grep was proved too — hence a must-fail fixture per needle.
+    const offenders = <String, String>{
+      'eraseDatabaseOnSchemaChange':
+          'final o = DriftOptions(eraseDatabaseOnSchemaChange: true);',
+      'a dev menu': 'void showDevMenu() {}',
+      'fixture seeding in lib': 'Future<void> seedFixtureData() async {}',
+    };
+
+    for (final MapEntry<String, String>(key: what, value: line)
+        in offenders.entries) {
+      test('$what turns the build red', () async {
+        write('lib/app/backdoor.dart', '/// Scratch.\n$line\n');
+
+        final result = await runGate();
+
+        expect(result.exitCode, 1, reason: '${result.stdout}');
+        expect(result.stdout, contains('backdoor.dart'));
+      });
+    }
+
+    test('a test-side fixture seeder stays legal', () async {
+      // `test/fixtures/` seeds a plan on purpose and always has. The rule is
+      // about `lib/`, and a blunt version would ban the fixtures the whole
+      // suite is built on.
+      write(
+        'test/fixtures/seeded_plan.dart',
+        '/// Scratch.\nFuture<void> seedFixtureData() async {}\n',
+      );
+
+      final result = await runGate();
+
+      expect(result.exitCode, 0, reason: '${result.stdout}${result.stderr}');
+    });
+  });
+
   test('a clean tree passes with nothing to say', () async {
     write('lib/features/schedule/presentation/fine.dart', '/// Scratch.\n');
 
