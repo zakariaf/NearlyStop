@@ -41,11 +41,25 @@ Future<void> pumpApp(
   bool disableAnimations = false,
   double userTextScale = 1,
   Size? surfaceSize,
+  double? devicePixelRatio,
 }) async {
+  // Only the PARITY captures pass this, and they pass 2 because the reference
+  // PNGs are 390×844 at DPR 2. Everything else keeps the binding's default of
+  // 3: an ordinary widget golden is compared against its own past, so its
+  // scale only has to be stable, and moving it would re-baseline the whole
+  // repo for no gain.
+  if (devicePixelRatio != null) {
+    tester.view.devicePixelRatio = devicePixelRatio;
+    addTearDown(tester.view.resetDevicePixelRatio);
+  }
   if (surfaceSize != null) {
     // `tester.view`, not `setSurfaceSize`: the latter does not take effect
     // until a later pump, so a breakpoint test would lay out at the default
     // 800×600 and pass for the wrong reason.
+    //
+    // Read AFTER the ratio is set above, never before — the physical size is
+    // derived from it, and setting them the other way round sizes the surface
+    // for a scale the view is no longer at.
     tester.view.physicalSize = surfaceSize * tester.view.devicePixelRatio;
     addTearDown(tester.view.resetPhysicalSize);
   }

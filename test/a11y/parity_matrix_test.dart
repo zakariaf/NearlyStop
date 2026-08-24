@@ -31,8 +31,16 @@ import 'app_screens.dart';
 /// Where the pairs live.
 const String _out = '../../parity/14-design-review';
 
-/// The reference frames' logical size, at DPR 2.
+/// The reference frames' logical size.
 const Size _frame = Size(390, 844);
+
+/// The reference frames' scale. `daybreak-visual-parity` rule 6.
+///
+/// Passed EXPLICITLY. It used to be a comment saying "at DPR 2" over a pump
+/// that never set one, so the captures came out at the binding's default of 3
+/// — 1170×2532 against a 780×1688 reference, i.e. every pair was two different
+/// scales laid side by side and called a comparison.
+const double _dpr = 2;
 
 void main() {
   setUpAll(() async {
@@ -62,6 +70,7 @@ void main() {
             // The reference frame's size exactly, so a capture and a crop are
             // comparable without scaling either.
             surfaceSize: _frame,
+            devicePixelRatio: _dpr,
           );
           await tester.pump();
           await tester.pump(const Duration(milliseconds: 400));
