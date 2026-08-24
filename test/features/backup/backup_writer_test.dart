@@ -9,9 +9,8 @@ import 'dart:io';
 import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
 import 'package:nearlystop/core/result.dart';
-import 'package:nearlystop/data/db/app_database.dart';
 import 'package:nearlystop/core/time/local_date.dart';
-import 'package:nearlystop/core/units/milligrams.dart';
+import 'package:nearlystop/data/db/app_database.dart';
 import 'package:nearlystop/features/backup/data/backup_writer.dart';
 import 'package:nearlystop/features/backup/domain/backup_envelope.dart';
 import 'package:test/test.dart';
@@ -160,7 +159,7 @@ void main() {
       final row = (PayloadLine.parse(line) as Ok<PayloadLine, EnvelopeFailure>)
           .value
           .row;
-      for (final MapEntry(key: field, value: value) in row.entries) {
+      for (final MapEntry(key: field, :final value) in row.entries) {
         if (!field.endsWith('_hundredths_mg')) continue;
         if (value == null) continue;
         // A list of strengths is a list of hundredths; every element still has
