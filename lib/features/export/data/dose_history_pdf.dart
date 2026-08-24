@@ -1,6 +1,7 @@
 /// The dose history, as something a rheumatologist can read.
 library;
 
+import 'package:nearlystop/theme/pdf_type_scale.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -134,26 +135,33 @@ pw.Document buildDoseHistoryPdf({
         header: (context) => context.pageNumber == 1
             ? pw.SizedBox()
             : pw.Padding(
-                padding: const pw.EdgeInsets.only(bottom: 8),
+                padding: const pw.EdgeInsetsDirectional.only(
+                  bottom: PdfTypeScale.edgeGap,
+                ),
                 child: pw.Text(copy.title),
               ),
         footer: (context) => pw.Padding(
-          padding: const pw.EdgeInsets.only(top: 8),
+          padding: const pw.EdgeInsetsDirectional.only(
+            top: PdfTypeScale.edgeGap,
+          ),
           child: pw.Text(
             '${copy.footerPrefix} · ${copy.disclaimer}',
-            style: const pw.TextStyle(fontSize: 8),
+            style: const pw.TextStyle(fontSize: PdfTypeScale.footnote),
           ),
         ),
         build: (context) => <pw.Widget>[
           pw.Text(
             copy.title,
             style: const pw.TextStyle(
-              fontSize: 20,
+              fontSize: PdfTypeScale.title,
               fontWeight: pw.FontWeight.bold,
             ),
           ),
           pw.SizedBox(height: 4),
-          pw.Text(copy.subtitle, style: const pw.TextStyle(fontSize: 11)),
+          pw.Text(
+            copy.subtitle,
+            style: const pw.TextStyle(fontSize: PdfTypeScale.subtitle),
+          ),
           pw.SizedBox(height: 12),
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -182,9 +190,9 @@ pw.Document buildDoseHistoryPdf({
             // should live.
             // ignore: avoid_redundant_argument_values
             headerCount: 1,
-            cellStyle: const pw.TextStyle(fontSize: 9),
+            cellStyle: const pw.TextStyle(fontSize: PdfTypeScale.body),
             headerStyle: const pw.TextStyle(
-              fontSize: 9,
+              fontSize: PdfTypeScale.body,
               fontWeight: pw.FontWeight.bold,
             ),
             data: doseHistoryTable(columns: copy.columns, rows: rows),
@@ -200,11 +208,11 @@ pw.Document buildDoseHistoryPdf({
 pw.Widget _pair(String label, String value) => pw.Column(
   crossAxisAlignment: pw.CrossAxisAlignment.start,
   children: <pw.Widget>[
-    pw.Text(label, style: const pw.TextStyle(fontSize: 9)),
+    pw.Text(label, style: const pw.TextStyle(fontSize: PdfTypeScale.body)),
     pw.Text(
       value,
       style: const pw.TextStyle(
-        fontSize: 14,
+        fontSize: PdfTypeScale.statValue,
         fontWeight: pw.FontWeight.bold,
       ),
     ),

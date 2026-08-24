@@ -65,4 +65,34 @@ void main() {
 
     expect(container.read(databaseProvider), same(only));
   });
+
+  test('the connection is not rebuilt just because nobody is watching', () {
+    // Found in review. A `Provider` disposes the moment its last listener
+    // goes, so a container that only ever `read`s the database — which is
+    // every non-widget caller, the export and the restore included — would
+    // build a NEW connection per read at generation 1 and up, and close each
+    // one behind itself. The file would be opened dozens of times over a
+    // single restore.
+    var opens = 0;
+    final first = AppDatabase.forTesting(NativeDatabase.memory());
+    final container = ProviderContainer(
+      overrides: <Override>[
+        databaseOverride(
+          first,
+          reopen: () {
+            opens++;
+            return AppDatabase.forTesting(NativeDatabase.memory());
+          },
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    container.read(databaseGenerationProvider.notifier).replaced();
+
+    final a = container.read(databaseProvider);
+    final b = container.read(databaseProvider);
+
+    expect(opens, 1, reason: 'the database file was opened $opens times');
+    expect(a, same(b));
+  });
 }

@@ -158,10 +158,16 @@ final class TaperRepository {
         },
       )
       .watch()
-      .asyncMap((_) => _readSnapshot());
+      .asyncMap((_) => readSnapshot());
 
   /// One consistent read of every fact the generator needs.
-  Future<Result<TaperSnapshot, StorageFailure>> _readSnapshot() async {
+  ///
+  /// Public as well as the stream, because a one-shot caller that subscribes
+  /// to [watchSnapshot] and takes `.first` gets whatever the stream has
+  /// CACHED — which, in a container nothing else is listening to, is nothing
+  /// at all. EPIC-13's export is that caller, and the symptom was an export
+  /// that said "nothing to export yet" over a two-year history.
+  Future<Result<TaperSnapshot, StorageFailure>> readSnapshot() async {
     try {
       return await _db.transaction(() async {
         final plan = await _db.planDao.readActivePlan();
@@ -200,7 +206,7 @@ final class TaperRepository {
   ///
   /// No error arm: every conversion that can fail — a `method` column holding
   /// `'weekly'`, a malformed date — throws while drift builds the ROW, which
-  /// is upstream of here and caught by [_readSnapshot].
+  /// is upstream of here and caught by [readSnapshot].
   TaperSnapshot _assemble(
     db.TaperPlanRow plan,
     List<db.StepRow> steps,

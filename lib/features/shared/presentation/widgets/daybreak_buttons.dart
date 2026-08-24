@@ -83,8 +83,8 @@ class DaybreakButtonSkin extends StatelessWidget {
 
   /// The diameter of the inline spinner, at 1.0 text scale.
   ///
-  /// Matched to the label's own size so it scales with the text rather than
-  /// shrinking into a dot at the largest OS setting.
+  /// Matched to the label's own size, so it reads as part of the word rather
+  /// than as an ornament beside it.
   static const double spinnerSize = 18;
 
   @override
@@ -100,11 +100,12 @@ class DaybreakButtonSkin extends StatelessWidget {
       // low contrast vision, and a dimmed fill is invisible to a screen
       // reader. Both channels, always. A spinner has the same problem twice
       // over: it is pure animation, so it says nothing at all.
-      semanticsLabel: switch ((busy, enabled)) {
-        (true, _) => '$label, ${l10n.stateWorking}',
-        (false, false) => '$label, ${l10n.stateUnavailable}',
-        (false, true) => label,
-      },
+      semanticsLabel: busyAwareSemantics(
+        label,
+        busy: busy,
+        enabled: enabled,
+        l10n: l10n,
+      ),
       onPressed: onPressed,
       child: Container(
         constraints: BoxConstraints(minHeight: minHeight),
@@ -141,20 +142,7 @@ class DaybreakButtonSkin extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               if (busy) ...<Widget>[
-                // EXCLUDED from semantics: the label above already carries
-                // the working word, and a progress node reads as a second,
-                // unlabelled thing.
-                ExcludeSemantics(
-                  child: SizedBox.square(
-                    dimension: MediaQuery.textScalerOf(
-                      context,
-                    ).scale(spinnerSize),
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: colors.inkFaint,
-                    ),
-                  ),
-                ),
+                InlineSpinner(diameter: spinnerSize, color: colors.inkFaint),
                 SizedBox(width: shapes.s2),
               ] else if (glyph case final mark?) ...<Widget>[
                 // EXCLUDED from semantics: the glyph repeats the label, and
@@ -429,3 +417,51 @@ class TakenButton extends StatelessWidget {
     );
   }
 }
+
+/// The one inline spinner in the app.
+///
+/// Shared because a second copy is a second diameter and a second colour, on
+/// two controls a reader sees in the same session. It scales with the text so
+/// it does not shrink into a dot at the largest OS setting.
+///
+/// Carries **no semantics**: the control it sits in already says the working
+/// word, and a progress node beside that label reads as a second, unnamed
+/// thing.
+class InlineSpinner extends StatelessWidget {
+  /// Creates a spinner sized to [diameter] at 1.0 text scale.
+  const InlineSpinner({required this.diameter, required this.color, super.key});
+
+  /// The diameter at 1.0 text scale.
+  final double diameter;
+
+  /// The stroke's colour.
+  final Color color;
+
+  /// The stroke width, at every size.
+  static const double strokeWidth = 2;
+
+  @override
+  Widget build(BuildContext context) => ExcludeSemantics(
+    child: SizedBox.square(
+      dimension: MediaQuery.textScalerOf(context).scale(diameter),
+      child: CircularProgressIndicator(strokeWidth: strokeWidth, color: color),
+    ),
+  );
+}
+
+/// What a screen reader announces for a control that can be busy.
+///
+/// **Both channels, always.** A spinner is pure animation, so it says nothing
+/// at all to a screen reader; `Semantics(enabled:)` is invisible to a sighted
+/// reader with low contrast vision. One helper so two controls cannot answer
+/// this differently.
+String busyAwareSemantics(
+  String label, {
+  required bool busy,
+  required bool enabled,
+  required AppLocalizations l10n,
+}) => switch ((busy, enabled)) {
+  (true, _) => '$label, ${l10n.stateWorking}',
+  (false, false) => '$label, ${l10n.stateUnavailable}',
+  (false, true) => label,
+};

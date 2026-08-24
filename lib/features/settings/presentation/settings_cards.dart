@@ -495,8 +495,13 @@ class _BackupCardState extends ConsumerState<BackupCard> {
   _Running _running = _Running.none;
   String? _notice;
 
-  /// The export button's own bounds, for the iPad popover anchor.
+  /// Each button's own bounds, for the iPad popover anchor.
+  ///
+  /// Two keys, not one: the guard's "back up first" is reached from Import, so
+  /// anchoring its share sheet to the Export button puts the popover's arrow
+  /// on a control the reader did not press.
   final GlobalKey _exportKey = GlobalKey();
+  final GlobalKey _importKey = GlobalKey();
 
   Future<void> _export() async {
     final l10n = AppLocalizations.of(context);
@@ -526,7 +531,7 @@ class _BackupCardState extends ConsumerState<BackupCard> {
 
   Future<void> _import() async {
     final l10n = AppLocalizations.of(context);
-    final anchor = originRectOf(_exportKey.currentContext ?? context);
+    final anchor = originRectOf(_importKey.currentContext ?? context);
     setState(() {
       _running = _Running.importing;
       _notice = null;
@@ -630,6 +635,7 @@ class _BackupCardState extends ConsumerState<BackupCard> {
       onPressed: idle ? _export : null,
     );
     final importButton = SecondaryButton(
+      key: _importKey,
       label: l10n.settingsImport,
       expand: true,
       busy: _running == _Running.importing,

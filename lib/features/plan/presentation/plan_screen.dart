@@ -43,6 +43,9 @@ class PlanScreen extends ConsumerStatefulWidget {
 class _PlanScreenState extends ConsumerState<PlanScreen> {
   String? _notice;
 
+  /// The delete button's own bounds, for the iPad popover anchor.
+  final GlobalKey _deleteKey = GlobalKey();
+
   /// What each field last said, keyed by field.
   ///
   /// The Save button is derived from this rather than from a stored `bool`:
@@ -95,7 +98,8 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
   /// two that drift apart. A failed export deletes nothing.
   Future<void> _delete(ConfirmRequest request) async {
     final l10n = AppLocalizations.of(context);
-    final anchor = originRectOf(context);
+    // The BUTTON's bounds, not the screen's: see PlanDangerZone.buttonKey.
+    final anchor = originRectOf(_deleteKey.currentContext ?? context);
     final outcome = await showExportGuard(
       context: context,
       request: request,
@@ -217,6 +221,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
           SizedBox(height: shapes.s6),
           PlanDangerZone(
             l10n: l10n,
+            buttonKey: _deleteKey,
             onDelete: facts?.plan == null
                 ? null
                 // The sheet names what is lost — the plan and the COUNT of

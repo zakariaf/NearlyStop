@@ -493,6 +493,7 @@ class PlanDangerZone extends StatelessWidget {
   const PlanDangerZone({
     required this.l10n,
     required this.onDelete,
+    this.buttonKey,
     super.key,
   });
 
@@ -508,12 +509,20 @@ class PlanDangerZone extends StatelessWidget {
   /// backup (SPEC §5.3).
   final VoidCallback? onDelete;
 
+  /// Put on the button itself, so the caller can read its bounds.
+  ///
+  /// The iPad share popover anchors to a source RECTANGLE, and anchoring the
+  /// backup sheet to the whole screen puts an arrowless popover in the middle
+  /// of it that nobody can trace back to the control they pressed.
+  final Key? buttonKey;
+
   @override
   Widget build(BuildContext context) => DaybreakCard(
     overline: l10n.planDangerZone,
     overlineCaps: l10n.planDangerZoneCaps,
     children: <Widget>[
       DestructiveButton.immediate(
+        key: buttonKey,
         label: l10n.planDelete,
         expand: true,
         onPressed: onDelete,

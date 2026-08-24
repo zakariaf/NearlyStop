@@ -6,11 +6,14 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:nearlystop/app/locale_providers.dart';
 import 'package:nearlystop/core/dsns/facts.dart';
 import 'package:nearlystop/core/result.dart';
 import 'package:nearlystop/core/time/local_date.dart';
+import 'package:nearlystop/data/providers.dart';
 import 'package:nearlystop/data/taper_repository.dart';
 import 'package:nearlystop/features/backup/presentation/backup_actions.dart';
 import 'package:nearlystop/features/export/application/dose_history_document.dart';
@@ -23,7 +26,9 @@ import 'package:nearlystop/theme/daybreak_script.dart';
 import 'package:riverpod/misc.dart' show Override;
 import 'package:riverpod/riverpod.dart';
 
+import '../../fixtures/hostile_plan.dart';
 import '../../fixtures/taper_fixture.dart';
+import '../../support/db_harness.dart' show openTestDatabase;
 
 void main() {
   // The bundled faces are read through `rootBundle`, which needs the binding.
@@ -41,7 +46,7 @@ void main() {
     final container = ProviderContainer(
       overrides: <Override>[
         workingDirectoryProvider.overrideWithValue(() async => workspace),
-        doseHistoryDocumentProvider.overrideWithValue(document),
+        doseHistoryProvider.overrideWithValue(() async => document),
       ],
     );
     addTearDown(container.dispose);
@@ -160,6 +165,32 @@ void main() {
 
     expect(second.path, first.path);
     expect((await second.readAsString()).split('\r\n').length, firstLines);
+  });
+
+  test('the document builds when nothing else is watching the data', () async {
+    // Found in review. The builder used to read `taperSnapshotProvider.value`,
+    // which is whatever that stream has CACHED — nothing, in a container no
+    // screen is subscribed in. The export worked only because the Progress
+    // screen behind the sheet happened to be listening, and said "nothing to
+    // export yet" over a two-year history the moment it was not.
+    final db = openTestDatabase();
+    addTearDown(db.close);
+    await seedHostilePlan(db);
+    final container = ProviderContainer(
+      overrides: <Override>[
+        databaseProvider.overrideWithValue(db),
+        clockProvider.overrideWithValue(Clock.fixed(DateTime.utc(2026, 4, 10))),
+        resolvedLocaleProvider.overrideWithValue(const Locale('en')),
+        workingDirectoryProvider.overrideWithValue(() async => workspace),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    expect(await container.read(doseHistoryProvider)(), isNotNull);
+    expect(
+      await container.read(csvExportProvider)(),
+      isA<Ok<File, Failure>>(),
+    );
   });
 
   test('nothing to export is its own failure, not a broken write', () async {

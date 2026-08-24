@@ -9,6 +9,7 @@ import 'package:nearlystop/app/derived_schedule_provider.dart';
 import 'package:nearlystop/app/locale_providers.dart';
 import 'package:nearlystop/core/dsns/day_plan.dart';
 import 'package:nearlystop/core/result.dart';
+import 'package:nearlystop/data/providers.dart';
 import 'package:nearlystop/data/storage_failure.dart';
 import 'package:nearlystop/data/taper_repository.dart';
 import 'package:nearlystop/features/backup/presentation/backup_actions.dart';
@@ -17,6 +18,7 @@ import 'package:nearlystop/features/export/data/dose_history_csv.dart';
 import 'package:nearlystop/features/export/data/dose_history_pdf.dart';
 import 'package:nearlystop/features/export/data/pdf_fonts.dart';
 import 'package:nearlystop/features/export/domain/export_failure.dart';
+import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_sheet.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_tappable.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
@@ -28,22 +30,31 @@ import 'package:nearlystop/theme/daybreak_shapes.dart';
 /// Null when there is no plan or no day has elapsed. See
 /// [buildDoseHistoryDocument] for why that is a null rather than an empty
 /// document.
-final Provider<DoseHistoryDocument?> doseHistoryDocumentProvider =
-    Provider<DoseHistoryDocument?>((ref) {
-      final snapshot = ref.watch(taperSnapshotProvider).value;
-      if (snapshot is! Ok<TaperSnapshot, StorageFailure>) return null;
-      final schedule = ref.watch(derivedScheduleProvider);
-      if (schedule is! Ok<List<DayPlan>, Failure>) return null;
-      final today = ref.watch(todayDateProvider);
-      return buildDoseHistoryDocument(
-        snapshot: snapshot.value,
-        schedule: schedule.value,
-        today: today,
-        exportedAt: today,
-        l10n: ref.watch(appLocalizationsProvider),
-        locale: ref.watch(resolvedLocaleProvider),
-      );
-    });
+///
+/// **It READS the snapshot rather than watching one.** Reading
+/// `taperSnapshotProvider.value` returns whatever that stream has cached, and
+/// in a container nothing else is listening to that is nothing at all — so the
+/// export worked only because the Progress screen behind the sheet happened to
+/// be subscribed. The same coupling made the first seconds after a restore,
+/// when the connection has just been replaced, export an empty file.
+final Provider<Future<DoseHistoryDocument?> Function()> doseHistoryProvider =
+    Provider<Future<DoseHistoryDocument?> Function()>(
+      (ref) => () async {
+        final snapshot = await ref.read(taperRepositoryProvider).readSnapshot();
+        if (snapshot is! Ok<TaperSnapshot, StorageFailure>) return null;
+        final schedule = scheduleFromSnapshot(snapshot);
+        if (schedule is! Ok<List<DayPlan>, Failure>) return null;
+        final today = ref.read(todayDateProvider);
+        return buildDoseHistoryDocument(
+          snapshot: snapshot.value,
+          schedule: schedule.value,
+          today: today,
+          exportedAt: today,
+          l10n: ref.read(appLocalizationsProvider),
+          locale: ref.read(resolvedLocaleProvider),
+        );
+      },
+    );
 
 /// Loads the two bundled faces a handout embeds.
 final Provider<Future<PdfFonts> Function()> pdfFontsProvider =
@@ -53,7 +64,7 @@ final Provider<Future<PdfFonts> Function()> pdfFontsProvider =
 final Provider<Future<Result<File, Failure>> Function()> pdfExportProvider =
     Provider<Future<Result<File, Failure>> Function()>(
       (ref) => () async {
-        final document = ref.read(doseHistoryDocumentProvider);
+        final document = await ref.read(doseHistoryProvider)();
         if (document == null) {
           return const Err<File, Failure>(NothingToExport());
         }
@@ -81,7 +92,7 @@ final Provider<Future<Result<File, Failure>> Function()> pdfExportProvider =
 final Provider<Future<Result<File, Failure>> Function()> csvExportProvider =
     Provider<Future<Result<File, Failure>> Function()>(
       (ref) => () async {
-        final document = ref.read(doseHistoryDocumentProvider);
+        final document = await ref.read(doseHistoryProvider)();
         if (document == null) {
           return const Err<File, Failure>(NothingToExport());
         }
@@ -302,6 +313,9 @@ class ExportOption extends StatelessWidget {
   /// The diameter of the inline spinner, at 1.0 text scale.
   static const double spinnerSize = 20;
 
+  /// The leading glyph's size, at 1.0 text scale.
+  static const double glyphSize = 24;
+
   @override
   Widget build(BuildContext context) {
     final colors = DaybreakColors.of(context);
@@ -313,11 +327,12 @@ class ExportOption extends StatelessWidget {
     return DaybreakTappable(
       // Both channels, always: a spinner is invisible to a screen reader and
       // `Semantics(enabled:)` is invisible to a sighted reader.
-      semanticsLabel: switch ((busy, enabled)) {
-        (true, _) => '$label, $audience, ${l10n.stateWorking}',
-        (false, false) => '$label, $audience, ${l10n.stateUnavailable}',
-        (false, true) => '$label, $audience',
-      },
+      semanticsLabel: busyAwareSemantics(
+        '$label, $audience',
+        busy: busy,
+        enabled: enabled,
+        l10n: l10n,
+      ),
       onPressed: onPressed,
       child: Container(
         padding: EdgeInsetsDirectional.all(shapes.s4),
@@ -331,25 +346,16 @@ class ExportOption extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            ExcludeSemantics(
-              child: busy
-                  ? SizedBox.square(
-                      dimension: MediaQuery.textScalerOf(
-                        context,
-                      ).scale(spinnerSize),
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: colors.inkMuted,
-                      ),
-                    )
-                  : Icon(
-                      glyph,
-                      size: MediaQuery.textScalerOf(
-                        context,
-                      ).scale(spinnerSize + 4),
-                      color: enabled ? colors.ink : colors.inkFaint,
-                    ),
-            ),
+            if (busy)
+              InlineSpinner(diameter: spinnerSize, color: colors.inkMuted)
+            else
+              ExcludeSemantics(
+                child: Icon(
+                  glyph,
+                  size: MediaQuery.textScalerOf(context).scale(glyphSize),
+                  color: enabled ? colors.ink : colors.inkFaint,
+                ),
+              ),
             SizedBox(width: shapes.s3),
             Expanded(
               child: Column(
