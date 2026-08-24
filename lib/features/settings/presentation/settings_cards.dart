@@ -6,29 +6,34 @@
 /// `SettingsCard`, `SettingsRow`, `SettingsDivider` — live there instead.
 library;
 
+import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:nearlystop/app/app_version.dart';
 import 'package:nearlystop/app/locale_providers.dart';
 import 'package:nearlystop/core/result.dart';
 import 'package:nearlystop/core/settings/app_settings.dart';
+import 'package:nearlystop/features/backup/presentation/backup_actions.dart';
+import 'package:nearlystop/features/backup/presentation/export_guard.dart';
 import 'package:nearlystop/features/settings/application/settings_controller.dart';
 import 'package:nearlystop/features/settings/application/settings_view_state.dart';
 import 'package:nearlystop/features/settings/presentation/settings_screen.dart';
 import 'package:nearlystop/features/settings/presentation/widgets/settings_rows.dart';
+import 'package:nearlystop/features/shared/presentation/widgets/confirm_sheet.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_buttons.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_card.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_sheet.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/glyph_tile.dart';
 import 'package:nearlystop/l10n/app_locales.dart';
+import 'package:nearlystop/l10n/date_formats.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/l10n/number_formats.dart';
 import 'package:nearlystop/routing/routes.dart';
+import 'package:nearlystop/services/files/file_picker_gateway.dart';
 import 'package:nearlystop/services/notifications/notification_permissions.dart';
 import 'package:nearlystop/services/notifications/reconcile_triggers.dart';
 import 'package:nearlystop/theme/daybreak_colors.dart';
@@ -131,8 +136,7 @@ class AccessibilityCard extends ConsumerWidget {
   /// English label they cannot read.
   String _formatTime(BuildContext context, int minute, Locale locale) {
     final time = minutesToTimeOfDay(minute);
-    final at = DateTime(2000, 1, 1, time.hour, time.minute);
-    return DateFormat.jm(locale.toLanguageTag()).format(at);
+    return formatTimeOfDay(time.hour, time.minute, locale);
   }
 
   Future<void> _pickTime(
@@ -459,7 +463,7 @@ class LanguageOptionTile extends StatelessWidget {
   }
 }
 
-/// Export and import, wired to the stub EPIC-13 replaces.
+/// Export and import: the two ways a 780-day history leaves or arrives.
 class BackupCard extends ConsumerStatefulWidget {
   /// Creates the card.
   const BackupCard({super.key});
@@ -474,17 +478,128 @@ class BackupCard extends ConsumerStatefulWidget {
   ConsumerState<BackupCard> createState() => _BackupCardState();
 }
 
+/// Which of the card's two operations is running.
+enum _Running {
+  /// Neither.
+  none,
+
+  /// Writing and sharing a backup.
+  exporting,
+
+  /// Choosing a file, confirming, and replacing everything.
+  importing,
+}
+
 class _BackupCardState extends ConsumerState<BackupCard> {
+  _Running _running = _Running.none;
   String? _notice;
 
-  Future<void> _run() async {
+  /// The export button's own bounds, for the iPad popover anchor.
+  final GlobalKey _exportKey = GlobalKey();
+
+  Future<void> _export() async {
     final l10n = AppLocalizations.of(context);
-    final action = ref.read(backupActionProvider);
-    if (action == null) {
-      setState(() => _notice = l10n.settingsNotImplemented);
-      return;
+    // Read BEFORE the await: by the time the file is written the button may
+    // have been rebuilt, and `findRenderObject` on a dead element throws.
+    final anchor = originRectOf(_exportKey.currentContext ?? context);
+    setState(() {
+      _running = _Running.exporting;
+      _notice = null;
+    });
+
+    final result = await exportAndShareBackup(
+      ref,
+      subject: l10n.settingsBackupSubject,
+      originRect: anchor,
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _running = _Running.none;
+      // The typed failure's own message, never `e.toString()`. Every branch
+      // here names what did NOT happen, because "failed" on its own reads as
+      // "your history is gone" to somebody two years into a taper.
+      _notice = result is Ok ? null : l10n.settingsBackupFailed;
+    });
+  }
+
+  Future<void> _import() async {
+    final l10n = AppLocalizations.of(context);
+    final anchor = originRectOf(_exportKey.currentContext ?? context);
+    setState(() {
+      _running = _Running.importing;
+      _notice = null;
+    });
+
+    final picked = await ref.read(filePickerGatewayProvider).pickBackupFile();
+    if (!mounted) return;
+    switch (picked) {
+      // Changing your mind is not an error, and a message for a dismissal
+      // teaches somebody that the app complains when they touch it.
+      case Err<File, PickFailure>(failure: PickCancelled()):
+        setState(() => _running = _Running.none);
+        return;
+      case Err<File, PickFailure>():
+        setState(() {
+          _running = _Running.none;
+          _notice = l10n.settingsRestoreFailed;
+        });
+        return;
+      case Ok<File, PickFailure>(:final value):
+        // Idle again while the sheet is up. The sheet IS the progress signal,
+        // and a spinner behind a modal is an animation nobody can see that
+        // stops `pumpAndSettle` ever returning.
+        setState(() => _running = _Running.none);
+        await _confirmThenRestore(l10n, value, anchor);
     }
-    await action();
+  }
+
+  /// The confirmation, then the replacement — SPEC §5.3's guard around the one
+  /// operation in this app that can lose two years.
+  Future<void> _confirmThenRestore(
+    AppLocalizations l10n,
+    File file,
+    Rect anchor,
+  ) async {
+    Result<void, Failure>? restored;
+    final outcome = await showExportGuard(
+      context: context,
+      request: ConfirmRequest(
+        title: l10n.settingsRestoreConfirmTitle,
+        body: l10n.settingsRestoreConfirmBody,
+        confirmLabel: l10n.settingsRestoreConfirmAction,
+        cancelLabel: l10n.actionCancel,
+      ),
+      exportLabel: l10n.settingsRestoreExportFirst,
+      onExport: () {
+        setState(() => _running = _Running.exporting);
+        return exportAndShareBackup(
+          ref,
+          subject: l10n.settingsBackupSubject,
+          originRect: anchor,
+        );
+      },
+      onConfirmed: () async {
+        setState(() => _running = _Running.importing);
+        restored = await ref.read(backupRestoreProvider)(file);
+      },
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _running = _Running.none;
+      _notice = switch (outcome) {
+        ExportGuardOutcome.cancelled => null,
+        // Nothing was replaced. That is the guard working, and it is the more
+        // important half of the sentence.
+        ExportGuardOutcome.exportFailed => l10n.settingsBackupFailed,
+        ExportGuardOutcome.exportedThenDestroyed ||
+        ExportGuardOutcome.destroyedWithoutBackup =>
+          restored is Ok
+              ? l10n.settingsRestoreDone
+              : l10n.settingsRestoreFailed,
+      };
+    });
   }
 
   @override
@@ -495,16 +610,23 @@ class _BackupCardState extends ConsumerState<BackupCard> {
     final stacked =
         MediaQuery.textScalerOf(context).scale(1) >
         BackupCard.stackAboveTextScale;
+    final idle = _running == _Running.none;
 
     final exportButton = SecondaryButton(
+      key: _exportKey,
       label: l10n.settingsExport,
       expand: true,
-      onPressed: _run,
+      busy: _running == _Running.exporting,
+      // Disabled while the OTHER one runs, and busy while this one does. Two
+      // concurrent writes to the same working directory is a file racing
+      // itself; a disabled button says so without a barrier over the app.
+      onPressed: idle ? _export : null,
     );
     final importButton = SecondaryButton(
       label: l10n.settingsImport,
       expand: true,
-      onPressed: _run,
+      busy: _running == _Running.importing,
+      onPressed: idle ? _import : null,
     );
 
     return DaybreakCard(
@@ -544,6 +666,16 @@ class _BackupCardState extends ConsumerState<BackupCard> {
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: _notice == null ? colors.inkMuted : colors.warning,
                 ),
+              ),
+              SizedBox(height: shapes.s2),
+              // Said where the reader can see it, not only in a policy
+              // document: SPEC §5.3's honesty rule, and the claim the store
+              // privacy copy rests on.
+              Text(
+                l10n.settingsBackupPlainText,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: colors.inkMuted),
               ),
             ],
           ),

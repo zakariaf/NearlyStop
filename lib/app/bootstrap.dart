@@ -21,8 +21,11 @@ import 'package:nearlystop/data/db/database_location.dart';
 import 'package:nearlystop/data/providers.dart';
 import 'package:nearlystop/data/settings_repository.dart';
 import 'package:nearlystop/data/storage_failure.dart';
+import 'package:nearlystop/features/backup/presentation/backup_actions.dart';
 import 'package:nearlystop/providers.dart';
 import 'package:nearlystop/routing/app_router.dart';
+import 'package:nearlystop/services/files/file_selector_gateway.dart';
+import 'package:nearlystop/services/files/share_plus_gateway.dart';
 import 'package:nearlystop/services/notifications/fln_notification_gateway.dart';
 import 'package:nearlystop/services/notifications/notification_gateway.dart';
 import 'package:nearlystop/services/notifications/notification_providers.dart';
@@ -241,7 +244,11 @@ startUp({
     restoreHandlers: restoreHandlers,
     container: ProviderContainer(
       overrides: <Override>[
-        if (opened.database case final database?) databaseOverride(database),
+        if (opened.database case final database?)
+          // `reopen` is what makes a restore visible without a relaunch: the
+          // publish renames a new file over this one, and a handle held across
+          // that rename keeps answering with the pre-restore plan.
+          databaseOverride(database, reopen: () => openDatabase(location)),
         bootstrapSettingsProvider.overrideWithValue(opened.settings),
         bootstrapErrorProvider.overrideWithValue(opened.failure),
         // Overridden only when one is SUPPLIED. The provider throws when read
@@ -250,6 +257,13 @@ startUp({
         // than arming nothing and passing.
         if (notificationGateway case final gateway?)
           notificationGatewayProvider.overrideWithValue(gateway),
+        // The two file seams. Const platform wrappers, so constructing them
+        // costs nothing and touches no channel until they are called.
+        shareGatewayProvider.overrideWithValue(const SharePlusGateway()),
+        filePickerGatewayProvider.overrideWithValue(
+          const FileSelectorGateway(),
+        ),
+        databaseFileProvider.overrideWithValue(location),
       ],
     ),
     failure: opened.failure,

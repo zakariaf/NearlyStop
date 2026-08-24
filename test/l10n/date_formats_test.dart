@@ -42,6 +42,42 @@ void main() {
     expect(formatDayLabel(fixture, _de), 'Mi., 16. Apr.');
   });
 
+  group('formatTimeOfDay', () {
+    test('every supported locale answers, including ckb-Arab', () {
+      // Found on a device: Settings crashed with `Invalid locale "ckb-Arab"`
+      // the moment the language was switched to Kurdish. `intl` was handed the
+      // full language TAG, and Sorani carries a script subtag — but the same
+      // call would also have thrown for `fa`, whose symbol data the launch
+      // deliberately does not load (only `en` and `de` reach `DateFormat`).
+      for (final locale in kSupportedLocales) {
+        expect(
+          () => formatTimeOfDay(9, 5, locale),
+          returnsNormally,
+          reason: '${locale.toLanguageTag()} cannot render a reminder time',
+        );
+        expect(formatTimeOfDay(9, 5, locale), isNotEmpty);
+      }
+    });
+
+    test('the Perso-Arabic locales get their own digits, zero-padded', () {
+      // ۰۹:۰۵ — a 24-hour clock, which is what both communities read, and the
+      // minutes padded. `9:5` is not a time.
+      expect(formatTimeOfDay(9, 5, _fa), '۰۹:۰۵');
+      expect(formatTimeOfDay(9, 5, kurdishSorani), '۰۹:۰۵');
+    });
+
+    test('the Latin locales keep their own conventions', () {
+      // Spaces squeezed: CLDR separates the meridiem with U+202F, and pinning
+      // which invisible space `intl` uses this year is pinning the wrong fact.
+      String squeezed(int hour, Locale locale) =>
+          formatTimeOfDay(hour, 5, locale).replaceAll(RegExp(r'\s+'), ' ');
+
+      expect(squeezed(9, _en), '9:05 AM');
+      expect(squeezed(21, _en), '9:05 PM');
+      expect(squeezed(21, _de), '21:05');
+    });
+  });
+
   test('every locale label carries the WEEKDAY', () {
     // The Schedule screen exists to answer "which day am I on" inside a 52-day
     // pattern that ignores weeks. A label without the weekday answers the one

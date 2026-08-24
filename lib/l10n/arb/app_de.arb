@@ -142,8 +142,6 @@
   "historySegmentRow": "{dose} Milligramm ab {date} für {days, plural, =1{1 Tag} other{{days} Tage}}",
   "historyFlareRow": "Schub am {date}, zurück auf {dose} Milligramm",
   "historyHoldRow": "Gehalten bei {dose} Milligramm für {days, plural, =1{1 Tag} other{{days} Tage}} ab {date}",
-  "exportComingSoon": "Export kommt als Nächstes",
-  "exportComingSoonBody": "Ein PDF und eine Tabelle für Ihren Termin. Noch nicht gebaut.",
   "chartOverlineCaps": "IHRE DOSIS IM ZEITVERLAUF",
   "drugPrednisolone": "Prednisolon",
   "settingsSystemLanguage": "System",
@@ -158,7 +156,6 @@
   "settingsOff": "Aus",
   "settingsReminderAt": "Ein · {time}",
   "settingsBackupNote": "Eine Kopie, die Ihnen gehört. Nichts verlässt dieses Telefon, außer Sie senden es.",
-  "settingsNotImplemented": "Noch nicht gebaut — kommt mit dem Export-Release.",
   "settingsTextSizeSemantics": "Textgröße, {value}-fach",
   "planNextStep": "Nächster Schritt",
   "planSave": "Plan speichern",
@@ -282,5 +279,146 @@
   "reminderBlockedAndroid": "Aktivieren Sie Benachrichtigungen für NearlyStop unter Einstellungen › Apps › NearlyStop.",
   "@reminderBlockedAndroid": {
     "description": "Settings: where to go on Android."
+  },
+  "settingsBackupPlainText": "Die Datei ist Klartext und nicht verschlüsselt. Wer sie öffnet, kann Ihren Plan lesen.",
+  "@settingsBackupPlainText": {
+    "description": "Settings backup card: SPEC §5.3’s honesty rule, said where the reader can see it."
+  },
+  "settingsBackupFailed": "Die Sicherung konnte nicht gespeichert werden. Auf diesem Telefon hat sich nichts geändert.",
+  "@settingsBackupFailed": {
+    "description": "Settings backup card: an export that failed. Names what did NOT happen."
+  },
+  "settingsRestoreFailed": "Diese Datei konnte nicht wiederhergestellt werden. Auf diesem Telefon hat sich nichts geändert.",
+  "@settingsRestoreFailed": {
+    "description": "Settings backup card: a restore that refused. Names what did NOT happen."
+  },
+  "settingsRestoreDone": "Aus Ihrer Sicherung wiederhergestellt.",
+  "@settingsRestoreDone": {
+    "description": "Settings backup card: a restore that worked."
+  },
+  "settingsBackupSubject": "NearlyStop-Sicherung",
+  "@settingsBackupSubject": {
+    "description": "The share sheet’s subject line for a backup file."
+  },
+  "settingsRestoreConfirmTitle": "Alles auf diesem Telefon ersetzen?",
+  "@settingsRestoreConfirmTitle": {
+    "description": "Restore confirmation: the title. Names the whole phone, not \"the data\"."
+  },
+  "settingsRestoreConfirmBody": "Ihr Plan, Ihr Dosisverlauf, Ihre Schübe und Ihre Pausen werden alle durch die aus dieser Datei ersetzt. Was jetzt auf diesem Telefon ist, ist weg.",
+  "@settingsRestoreConfirmBody": {
+    "description": "Restore confirmation: says exactly what is lost, because it is two years of it."
+  },
+  "settingsRestoreConfirmAction": "Alles ersetzen",
+  "@settingsRestoreConfirmAction": {
+    "description": "Restore confirmation: the destructive action."
+  },
+  "settingsRestoreExportFirst": "Erst sichern, dann ersetzen",
+  "@settingsRestoreExportFirst": {
+    "description": "Restore confirmation: SPEC §5.3’s export-before-destruction, as the primary action."
+  },
+  "stateWorking": "Läuft",
+  "@stateWorking": {
+    "description": "A button that is busy. Said as well as spun: a spinner is invisible to a screen reader."
+  },
+  "exportSheetTitle": "Für Ihre Ärztin oder Ihren Arzt exportieren",
+  "@exportSheetTitle": {
+    "description": "Export sheet: the title. Names the audience, because the two formats differ only by who reads them."
+  },
+  "exportPdfLabel": "PDF zum Ausdrucken",
+  "@exportPdfLabel": {
+    "description": "Export sheet: the PDF option."
+  },
+  "exportPdfAudience": "Eine Seite zum Ausdrucken oder Vorzeigen beim Termin.",
+  "@exportPdfAudience": {
+    "description": "Export sheet: who the PDF is for. Every option carries its audience line."
+  },
+  "exportCsvLabel": "Tabelle",
+  "@exportCsvLabel": {
+    "description": "Export sheet: the CSV option. Named for what a reader opens, not for the file extension."
+  },
+  "exportCsvAudience": "Jeder Tag eine Zeile, für Ärztinnen und Ärzte, die die Zahlen selbst wollen.",
+  "@exportCsvAudience": {
+    "description": "Export sheet: who the spreadsheet is for."
+  },
+  "exportNotEncrypted": "Die Datei ist nicht verschlüsselt. Wer sie erhält, kann Ihren Dosisverlauf lesen.",
+  "@exportNotEncrypted": {
+    "description": "Export sheet: SPEC §5.3’s honesty rule, on the surface that hands the file to somebody else."
+  },
+  "exportFailed": "Die Datei konnte nicht erstellt werden. Auf diesem Telefon hat sich nichts geändert.",
+  "@exportFailed": {
+    "description": "Export sheet: a render that failed. Names what did NOT happen."
+  },
+  "exportNothingYet": "Es gibt noch nichts zu exportieren. Ihr Verlauf beginnt an Ihrem ersten Tag.",
+  "@exportNothingYet": {
+    "description": "Export sheet: no plan, or no elapsed day. Not an error."
+  },
+  "exportSubject": "NearlyStop-Dosisverlauf",
+  "@exportSubject": {
+    "description": "The share sheet’s subject line for a doctor export."
+  },
+  "exportDateRange": "{from} bis {to}",
+  "@exportDateRange": {
+    "description": "The handout’s subtitle: the range the document covers.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "exportFooterPrefix": "{app} · exportiert am {date}",
+  "@exportFooterPrefix": {
+    "description": "The first half of the footer on every page, before the disclaimer.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "exportDisclaimer": "Auf dem Gerät der Patientin oder des Patienten aus einem selbst eingegebenen Plan erstellt. Keine medizinische Beratung.",
+  "@exportDisclaimer": {
+    "description": "The sentence on EVERY page of the handout. The en value must match kPdfDisclaimer exactly — a test asserts it."
+  },
+  "exportColumnDate": "Datum",
+  "@exportColumnDate": {
+    "description": "Handout table column: the day."
+  },
+  "exportColumnPlanned": "Geplant",
+  "@exportColumnPlanned": {
+    "description": "Handout table column: the dose the plan calls for."
+  },
+  "exportColumnActual": "Tatsächlich",
+  "@exportColumnActual": {
+    "description": "Handout table column: the dose actually taken."
+  },
+  "exportColumnTablets": "Tabletten",
+  "@exportColumnTablets": {
+    "description": "Handout table column: how the dose was built."
+  },
+  "exportColumnNote": "Notiz",
+  "@exportColumnNote": {
+    "description": "Handout table column: the patient’s own words."
+  },
+  "exportEventFlare": "Schub",
+  "@exportEventFlare": {
+    "description": "Export event cell: a flare starts on this day."
+  },
+  "exportEventHold": "Pause",
+  "@exportEventHold": {
+    "description": "Export event cell: a hold starts on this day."
+  },
+  "exportHandoutTitle": "{drug}: Dosisverlauf",
+  "@exportHandoutTitle": {
+    "description": "The handout’s title. Names the drug, because a doctor reads it out of context.",
+    "placeholders": {
+      "drug": {
+        "type": "String"
+      }
+    }
   }
 }

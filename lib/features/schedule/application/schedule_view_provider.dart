@@ -20,10 +20,10 @@ import 'package:nearlystop/data/providers.dart';
 import 'package:nearlystop/data/storage_failure.dart';
 import 'package:nearlystop/data/taper_repository.dart';
 import 'package:nearlystop/features/schedule/presentation/schedule_view_state.dart';
-import 'package:nearlystop/l10n/bidi.dart';
 import 'package:nearlystop/l10n/date_formats.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/l10n/number_formats.dart';
+import 'package:nearlystop/l10n/tablet_labels.dart';
 import 'package:riverpod/misc.dart' show StreamNotifierProviderFamily;
 
 /// Why a tick was refused.
@@ -463,7 +463,7 @@ class ScheduleNotifier extends StreamNotifier<ScheduleViewState> {
 
     final tablets = switch (composition) {
       Ok<TabletComposition, DomainFailure>(:final value) => (
-        text: _composition(value, locale, l10n),
+        text: formatTabletBreakdown(value, locale, l10n),
         unachievable: false,
       ),
       Err<TabletComposition, DomainFailure>() => (
@@ -519,29 +519,6 @@ class ScheduleNotifier extends StreamNotifier<ScheduleViewState> {
     if (date == today) return DayState.today;
     if (date < today) return DayState.missed;
     return DayState.upcoming;
-  }
-
-  static String _composition(
-    TabletComposition composition,
-    Locale locale,
-    AppLocalizations l10n,
-  ) {
-    final parts = <String>[
-      for (final count in composition.counts)
-        _tabletPart(count.count, count.strength, locale),
-      if (composition.half case final half?)
-        '½ × ${formatDose(half.strength, locale)}mg',
-    ];
-    // The separator comes from the ARB: frame 3's `.stab` uses a comma, and
-    // in Perso-Arabic that comma is U+060C. Isolated as a unit so the whole
-    // breakdown keeps its LTR order inside an RTL sentence.
-    return isolateLtr(parts.join(l10n.tabletSeparator));
-  }
-
-  /// "4 × 1mg" — a count, a multiplication sign, a strength.
-  static String _tabletPart(int count, Milligrams strength, Locale locale) {
-    final counted = numberFormatFor(locale).format(count);
-    return '$counted × ${formatDose(strength, locale)}mg';
   }
 
   static String _dose(Milligrams dose, Locale locale, AppLocalizations l10n) =>

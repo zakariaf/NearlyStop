@@ -32,6 +32,7 @@ class DaybreakButtonSkin extends StatelessWidget {
     this.shadow = const <BoxShadow>[],
     this.expand = false,
     this.glyph,
+    this.busy = false,
     super.key,
   });
 
@@ -71,19 +72,39 @@ class DaybreakButtonSkin extends StatelessWidget {
   /// An optional leading mark. **Decoration**: the label already says it.
   final IconData? glyph;
 
+  /// Whether the button's own work is running.
+  ///
+  /// Progress belongs ON the control that started it, never on a barrier over
+  /// the app: a modal scrim while a file is written says "you may not look at
+  /// today's dose", which is the opposite of what this app is for. A busy
+  /// button is disabled by construction — a second tap would start the work
+  /// twice.
+  final bool busy;
+
+  /// The diameter of the inline spinner, at 1.0 text scale.
+  ///
+  /// Matched to the label's own size so it scales with the text rather than
+  /// shrinking into a dot at the largest OS setting.
+  static const double spinnerSize = 18;
+
   @override
   Widget build(BuildContext context) {
     final colors = DaybreakColors.of(context);
     final shapes = DaybreakShapes.of(context);
     final l10n = AppLocalizations.of(context);
-    final enabled = onPressed != null;
+    final enabled = onPressed != null && !busy;
 
     return DaybreakTappable(
       // The disabled state is SAID, not only shown. `Semantics(enabled:)`
       // alone is read by VoiceOver but is invisible to a sighted reader with
       // low contrast vision, and a dimmed fill is invisible to a screen
-      // reader. Both channels, always.
-      semanticsLabel: enabled ? label : '$label, ${l10n.stateUnavailable}',
+      // reader. Both channels, always. A spinner has the same problem twice
+      // over: it is pure animation, so it says nothing at all.
+      semanticsLabel: switch ((busy, enabled)) {
+        (true, _) => '$label, ${l10n.stateWorking}',
+        (false, false) => '$label, ${l10n.stateUnavailable}',
+        (false, true) => label,
+      },
       onPressed: onPressed,
       child: Container(
         constraints: BoxConstraints(minHeight: minHeight),
@@ -119,7 +140,23 @@ class DaybreakButtonSkin extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              if (glyph case final mark?) ...<Widget>[
+              if (busy) ...<Widget>[
+                // EXCLUDED from semantics: the label above already carries
+                // the working word, and a progress node reads as a second,
+                // unlabelled thing.
+                ExcludeSemantics(
+                  child: SizedBox.square(
+                    dimension: MediaQuery.textScalerOf(
+                      context,
+                    ).scale(spinnerSize),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colors.inkFaint,
+                    ),
+                  ),
+                ),
+                SizedBox(width: shapes.s2),
+              ] else if (glyph case final mark?) ...<Widget>[
                 // EXCLUDED from semantics: the glyph repeats the label, and
                 // "tick, I understand" is the button read to you twice.
                 ExcludeSemantics(
@@ -203,6 +240,7 @@ class SecondaryButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.expand = false,
+    this.busy = false,
     super.key,
   });
 
@@ -215,6 +253,9 @@ class SecondaryButton extends StatelessWidget {
   /// Whether it fills its parent's width.
   final bool expand;
 
+  /// Whether this button's own work is running. See [DaybreakButtonSkin.busy].
+  final bool busy;
+
   /// The floor on its height.
   static const double minHeight = 56;
 
@@ -224,6 +265,7 @@ class SecondaryButton extends StatelessWidget {
     return DaybreakButtonSkin(
       label: label,
       onPressed: onPressed,
+      busy: busy,
       minHeight: minHeight,
       ink: colors.ink,
       textStyle: Theme.of(context).textTheme.titleMedium!.copyWith(

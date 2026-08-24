@@ -982,18 +982,6 @@ abstract class AppLocalizations {
   /// **'Held at {dose} milligrams for {days, plural, =1{1 day} other{{days} days}} from {date}'**
   String historyHoldRow(Object dose, int days, Object date);
 
-  /// Heading of the placeholder export screen.
-  ///
-  /// In en, this message translates to:
-  /// **'Export is coming next'**
-  String get exportComingSoon;
-
-  /// Body of the placeholder export screen.
-  ///
-  /// In en, this message translates to:
-  /// **'A PDF and a spreadsheet for your appointment. Not built yet.'**
-  String get exportComingSoonBody;
-
   /// The chart overline as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See stateTakenCaps.
   ///
   /// In en, this message translates to:
@@ -1077,12 +1065,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A copy you keep. Nothing leaves this phone unless you send it.'**
   String get settingsBackupNote;
-
-  /// Shown when a backup action is not built yet.
-  ///
-  /// In en, this message translates to:
-  /// **'Not built yet — this arrives with the export release.'**
-  String get settingsNotImplemented;
 
   /// Screen-reader label for the text-size slider.
   ///
@@ -1395,6 +1377,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Turn notifications on for NearlyStop in Settings › Apps › NearlyStop.'**
   String get reminderBlockedAndroid;
+
+  /// Settings backup card: SPEC §5.3’s honesty rule, said where the reader can see it.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is plain text and is not encrypted. Anyone who opens it can read your plan.'**
+  String get settingsBackupPlainText;
+
+  /// Settings backup card: an export that failed. Names what did NOT happen.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup could not be saved. Nothing on this phone has changed.'**
+  String get settingsBackupFailed;
+
+  /// Settings backup card: a restore that refused. Names what did NOT happen.
+  ///
+  /// In en, this message translates to:
+  /// **'That file could not be restored. Nothing on this phone has changed.'**
+  String get settingsRestoreFailed;
+
+  /// Settings backup card: a restore that worked.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored from your backup.'**
+  String get settingsRestoreDone;
+
+  /// The share sheet’s subject line for a backup file.
+  ///
+  /// In en, this message translates to:
+  /// **'NearlyStop backup'**
+  String get settingsBackupSubject;
+
+  /// Restore confirmation: the title. Names the whole phone, not "the data".
+  ///
+  /// In en, this message translates to:
+  /// **'Replace everything on this phone?'**
+  String get settingsRestoreConfirmTitle;
+
+  /// Restore confirmation: says exactly what is lost, because it is two years of it.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan, your dose history, your flares and your holds are all replaced by the ones in this file. What is on this phone now is gone.'**
+  String get settingsRestoreConfirmBody;
+
+  /// Restore confirmation: the destructive action.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace everything'**
+  String get settingsRestoreConfirmAction;
+
+  /// Restore confirmation: SPEC §5.3’s export-before-destruction, as the primary action.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up first, then replace'**
+  String get settingsRestoreExportFirst;
+
+  /// A button that is busy. Said as well as spun: a spinner is invisible to a screen reader.
+  ///
+  /// In en, this message translates to:
+  /// **'Working'**
+  String get stateWorking;
+
+  /// Export sheet: the title. Names the audience, because the two formats differ only by who reads them.
+  ///
+  /// In en, this message translates to:
+  /// **'Export for your doctor'**
+  String get exportSheetTitle;
+
+  /// Export sheet: the PDF option.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF to print'**
+  String get exportPdfLabel;
+
+  /// Export sheet: who the PDF is for. Every option carries its audience line.
+  ///
+  /// In en, this message translates to:
+  /// **'A page you can print or show at your appointment.'**
+  String get exportPdfAudience;
+
+  /// Export sheet: the CSV option. Named for what a reader opens, not for the file extension.
+  ///
+  /// In en, this message translates to:
+  /// **'Spreadsheet'**
+  String get exportCsvLabel;
+
+  /// Export sheet: who the spreadsheet is for.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day as a row, for a doctor who wants the numbers themselves.'**
+  String get exportCsvAudience;
+
+  /// Export sheet: SPEC §5.3’s honesty rule, on the surface that hands the file to somebody else.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is not encrypted. Anyone you send it to can read your dose history.'**
+  String get exportNotEncrypted;
+
+  /// Export sheet: a render that failed. Names what did NOT happen.
+  ///
+  /// In en, this message translates to:
+  /// **'The file could not be made. Nothing on this phone has changed.'**
+  String get exportFailed;
+
+  /// Export sheet: no plan, or no elapsed day. Not an error.
+  ///
+  /// In en, this message translates to:
+  /// **'There is nothing to export yet. Your history starts on your first day.'**
+  String get exportNothingYet;
+
+  /// The share sheet’s subject line for a doctor export.
+  ///
+  /// In en, this message translates to:
+  /// **'NearlyStop dose history'**
+  String get exportSubject;
+
+  /// The handout’s subtitle: the range the document covers.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String exportDateRange(String from, String to);
+
+  /// The first half of the footer on every page, before the disclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'{app} · exported {date}'**
+  String exportFooterPrefix(String app, String date);
+
+  /// The sentence on EVERY page of the handout. The en value must match kPdfDisclaimer exactly — a test asserts it.
+  ///
+  /// In en, this message translates to:
+  /// **'Generated on the patient\'s device from a plan they entered. Not medical advice.'**
+  String get exportDisclaimer;
+
+  /// Handout table column: the day.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get exportColumnDate;
+
+  /// Handout table column: the dose the plan calls for.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned'**
+  String get exportColumnPlanned;
+
+  /// Handout table column: the dose actually taken.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual'**
+  String get exportColumnActual;
+
+  /// Handout table column: how the dose was built.
+  ///
+  /// In en, this message translates to:
+  /// **'Tablets'**
+  String get exportColumnTablets;
+
+  /// Handout table column: the patient’s own words.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get exportColumnNote;
+
+  /// Export event cell: a flare starts on this day.
+  ///
+  /// In en, this message translates to:
+  /// **'Flare'**
+  String get exportEventFlare;
+
+  /// Export event cell: a hold starts on this day.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold'**
+  String get exportEventHold;
+
+  /// The handout’s title. Names the drug, because a doctor reads it out of context.
+  ///
+  /// In en, this message translates to:
+  /// **'{drug} dose history'**
+  String exportHandoutTitle(String drug);
 }
 
 class _AppLocalizationsDelegate

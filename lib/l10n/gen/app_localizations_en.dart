@@ -630,13 +630,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get exportComingSoon => 'Export is coming next';
-
-  @override
-  String get exportComingSoonBody =>
-      'A PDF and a spreadsheet for your appointment. Not built yet.';
-
-  @override
   String get chartOverlineCaps => 'YOUR DOSE OVER TIME';
 
   @override
@@ -681,10 +674,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsBackupNote =>
       'A copy you keep. Nothing leaves this phone unless you send it.';
-
-  @override
-  String get settingsNotImplemented =>
-      'Not built yet — this arrives with the export release.';
 
   @override
   String settingsTextSizeSemantics(Object value) {
@@ -863,4 +852,110 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reminderBlockedAndroid =>
       'Turn notifications on for NearlyStop in Settings › Apps › NearlyStop.';
+
+  @override
+  String get settingsBackupPlainText =>
+      'The file is plain text and is not encrypted. Anyone who opens it can read your plan.';
+
+  @override
+  String get settingsBackupFailed =>
+      'The backup could not be saved. Nothing on this phone has changed.';
+
+  @override
+  String get settingsRestoreFailed =>
+      'That file could not be restored. Nothing on this phone has changed.';
+
+  @override
+  String get settingsRestoreDone => 'Restored from your backup.';
+
+  @override
+  String get settingsBackupSubject => 'NearlyStop backup';
+
+  @override
+  String get settingsRestoreConfirmTitle => 'Replace everything on this phone?';
+
+  @override
+  String get settingsRestoreConfirmBody =>
+      'Your plan, your dose history, your flares and your holds are all replaced by the ones in this file. What is on this phone now is gone.';
+
+  @override
+  String get settingsRestoreConfirmAction => 'Replace everything';
+
+  @override
+  String get settingsRestoreExportFirst => 'Back up first, then replace';
+
+  @override
+  String get stateWorking => 'Working';
+
+  @override
+  String get exportSheetTitle => 'Export for your doctor';
+
+  @override
+  String get exportPdfLabel => 'PDF to print';
+
+  @override
+  String get exportPdfAudience =>
+      'A page you can print or show at your appointment.';
+
+  @override
+  String get exportCsvLabel => 'Spreadsheet';
+
+  @override
+  String get exportCsvAudience =>
+      'Every day as a row, for a doctor who wants the numbers themselves.';
+
+  @override
+  String get exportNotEncrypted =>
+      'The file is not encrypted. Anyone you send it to can read your dose history.';
+
+  @override
+  String get exportFailed =>
+      'The file could not be made. Nothing on this phone has changed.';
+
+  @override
+  String get exportNothingYet =>
+      'There is nothing to export yet. Your history starts on your first day.';
+
+  @override
+  String get exportSubject => 'NearlyStop dose history';
+
+  @override
+  String exportDateRange(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String exportFooterPrefix(String app, String date) {
+    return '$app · exported $date';
+  }
+
+  @override
+  String get exportDisclaimer =>
+      'Generated on the patient\'s device from a plan they entered. Not medical advice.';
+
+  @override
+  String get exportColumnDate => 'Date';
+
+  @override
+  String get exportColumnPlanned => 'Planned';
+
+  @override
+  String get exportColumnActual => 'Actual';
+
+  @override
+  String get exportColumnTablets => 'Tablets';
+
+  @override
+  String get exportColumnNote => 'Note';
+
+  @override
+  String get exportEventFlare => 'Flare';
+
+  @override
+  String get exportEventHold => 'Hold';
+
+  @override
+  String exportHandoutTitle(String drug) {
+    return '$drug dose history';
+  }
 }

@@ -70,6 +70,48 @@ String formatFullDayLabel(LocalDate date, Locale locale) =>
       ).format(date.toUtcMidnight()),
     };
 
+/// A time of day, in the app's locale rather than the phone's.
+///
+/// **Not `DateFormat.jm(locale.toLanguageTag())`.** That was the shipped bug:
+/// Sorani's tag is `ckb-Arab`, `intl` rejects it outright, and Settings died
+/// red the moment somebody picked Kurdish. The same call would have thrown for
+/// `fa` too — the launch loads symbol data for `en` and `de` only, on purpose,
+/// and a locale without it raises rather than falling back.
+///
+/// So the two Perso-Arabic locales are composed here, on a 24-hour clock,
+/// which is what both communities read.
+String formatTimeOfDay(int hour, int minute, Locale locale) =>
+    switch (locale.languageCode) {
+      'fa' || 'ckb' => _clock24(hour, minute, locale),
+      // `languageCode`, never the tag: the same trap one line up.
+      _ => DateFormat.jm(
+        locale.languageCode,
+      ).format(DateTime.utc(2000, 1, 1, hour, minute)),
+    };
+
+/// `۰۹:۰۵` — padded, in the locale's own digits.
+String _clock24(int hour, int minute, Locale locale) {
+  final numbers = numberFormatFor(locale)..minimumIntegerDigits = 2;
+  return '${numbers.format(hour)}:${numbers.format(minute)}';
+}
+
+/// The day's NAME on its own — "Wednesday", "چهارشنبه".
+///
+/// The doctor's export carries `date` and `weekday` as two columns: one a
+/// machine parses, one a person reads. A weekday cell that repeats the date is
+/// a wasted column in the only file this feature exists to produce.
+///
+/// `ckb` comes from the app's own ARB for the reason the library note above
+/// gives: `DateFormat('ckb')` throws, and this is called on the path whose
+/// whole job is to hand a file to a doctor.
+String formatWeekdayName(LocalDate date, Locale locale) =>
+    switch (locale.languageCode) {
+      'fa' => Jalali.fromDateTime(date.toUtcMidnight()).formatter.wN,
+      // `DateTime.weekday` is 1 for Monday, and the ARB list is Monday-first.
+      'ckb' => _kurdishNames(locale).weekdays[date.toUtcMidnight().weekday - 1],
+      _ => DateFormat.EEEE(locale.languageCode).format(date.toUtcMidnight()),
+    };
+
 String _jalaliLabel(LocalDate date, Locale locale) {
   final jalali = Jalali.fromDateTime(date.toUtcMidnight());
   final day = _localizedInt(jalali.day, locale);

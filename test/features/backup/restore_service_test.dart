@@ -346,6 +346,29 @@ void main() {
       expect(plans.single.drugName, 'Restored');
     });
 
+    test('a staging file left by a crash is not reused', () async {
+      // A restore that died mid-stage leaves a half-filled
+      // `staging_restore.sqlite` behind. Opening it and inserting on top gives
+      // either duplicate rows or a unique-constraint failure on a file the
+      // reader has every reason to think is fine.
+      await prepareLive();
+      final backup = await makeBackup();
+      final stale = AppDatabase.forTesting(
+        NativeDatabase(File('${workspace.path}/staging_restore.sqlite')),
+      );
+      await seedPlan(stale, drugName: 'Half-written');
+      await stale.close();
+
+      final result = await restore(backup);
+
+      expect(result, isA<Ok<void, RestoreFailure>>());
+      final reopened = openLive();
+      addTearDown(reopened.close);
+      final plans = await reopened.select(reopened.taperPlans).get();
+      expect(plans, hasLength(1));
+      expect(plans.single.drugName, 'Restored');
+    });
+
     test('nothing is left behind in the staging directory', () async {
       await prepareLive();
       final backup = await makeBackup();

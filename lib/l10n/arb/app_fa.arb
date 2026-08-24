@@ -142,8 +142,6 @@
   "historySegmentRow": "{dose} میلی‌گرم از {date} به مدت {days, plural, other{{days} روز}}",
   "historyFlareRow": "عود در {date}، بازگشت به {dose} میلی‌گرم",
   "historyHoldRow": "توقف در {dose} میلی‌گرم به مدت {days, plural, other{{days} روز}} از {date}",
-  "exportComingSoon": "خروجی گرفتن به‌زودی",
-  "exportComingSoonBody": "یک PDF و یک صفحه‌گسترده برای قرار ملاقات شما. هنوز ساخته نشده است.",
   "chartOverlineCaps": "دوز شما در طول زمان",
   "drugPrednisolone": "پردنیزولون",
   "settingsSystemLanguage": "سیستم",
@@ -158,7 +156,6 @@
   "settingsOff": "خاموش",
   "settingsReminderAt": "روشن · {time}",
   "settingsBackupNote": "نسخه‌ای که خودتان نگه می‌دارید. هیچ چیز از این گوشی خارج نمی‌شود مگر خودتان بفرستید.",
-  "settingsNotImplemented": "هنوز ساخته نشده — با نسخه خروجی می‌آید.",
   "settingsTextSizeSemantics": "اندازه متن، {value} برابر",
   "planNextStep": "گام بعدی",
   "planSave": "ذخیره برنامه",
@@ -282,5 +279,146 @@
   "reminderBlockedAndroid": "اعلان‌ها را برای نیرلی‌استاپ در تنظیمات › برنامه‌ها › نیرلی‌استاپ روشن کنید.",
   "@reminderBlockedAndroid": {
     "description": "Settings: where to go on Android."
+  },
+  "settingsBackupPlainText": "این فایل متن ساده است و رمزگذاری نشده. هر کسی آن را باز کند می‌تواند برنامه شما را بخواند.",
+  "@settingsBackupPlainText": {
+    "description": "Settings backup card: SPEC §5.3’s honesty rule, said where the reader can see it."
+  },
+  "settingsBackupFailed": "پشتیبان ذخیره نشد. هیچ چیز روی این گوشی تغییر نکرده است.",
+  "@settingsBackupFailed": {
+    "description": "Settings backup card: an export that failed. Names what did NOT happen."
+  },
+  "settingsRestoreFailed": "آن فایل بازگردانی نشد. هیچ چیز روی این گوشی تغییر نکرده است.",
+  "@settingsRestoreFailed": {
+    "description": "Settings backup card: a restore that refused. Names what did NOT happen."
+  },
+  "settingsRestoreDone": "از پشتیبان شما بازگردانی شد.",
+  "@settingsRestoreDone": {
+    "description": "Settings backup card: a restore that worked."
+  },
+  "settingsBackupSubject": "پشتیبان نیرلی‌استاپ",
+  "@settingsBackupSubject": {
+    "description": "The share sheet’s subject line for a backup file."
+  },
+  "settingsRestoreConfirmTitle": "همه چیز روی این گوشی جایگزین شود؟",
+  "@settingsRestoreConfirmTitle": {
+    "description": "Restore confirmation: the title. Names the whole phone, not \"the data\"."
+  },
+  "settingsRestoreConfirmBody": "برنامه، سابقه دوز، عودها و توقف‌های شما همگی با موارد داخل این فایل جایگزین می‌شوند. آنچه اکنون روی این گوشی است از بین می‌رود.",
+  "@settingsRestoreConfirmBody": {
+    "description": "Restore confirmation: says exactly what is lost, because it is two years of it."
+  },
+  "settingsRestoreConfirmAction": "جایگزینی همه",
+  "@settingsRestoreConfirmAction": {
+    "description": "Restore confirmation: the destructive action."
+  },
+  "settingsRestoreExportFirst": "اول پشتیبان بگیر، بعد جایگزین کن",
+  "@settingsRestoreExportFirst": {
+    "description": "Restore confirmation: SPEC §5.3’s export-before-destruction, as the primary action."
+  },
+  "stateWorking": "در حال انجام",
+  "@stateWorking": {
+    "description": "A button that is busy. Said as well as spun: a spinner is invisible to a screen reader."
+  },
+  "exportSheetTitle": "خروجی برای پزشک شما",
+  "@exportSheetTitle": {
+    "description": "Export sheet: the title. Names the audience, because the two formats differ only by who reads them."
+  },
+  "exportPdfLabel": "پی‌دی‌اف برای چاپ",
+  "@exportPdfLabel": {
+    "description": "Export sheet: the PDF option."
+  },
+  "exportPdfAudience": "یک صفحه که می‌توانید چاپ کنید یا سر قرار ملاقات نشان دهید.",
+  "@exportPdfAudience": {
+    "description": "Export sheet: who the PDF is for. Every option carries its audience line."
+  },
+  "exportCsvLabel": "صفحه‌گسترده",
+  "@exportCsvLabel": {
+    "description": "Export sheet: the CSV option. Named for what a reader opens, not for the file extension."
+  },
+  "exportCsvAudience": "هر روز یک ردیف، برای پزشکی که خود اعداد را می‌خواهد.",
+  "@exportCsvAudience": {
+    "description": "Export sheet: who the spreadsheet is for."
+  },
+  "exportNotEncrypted": "این فایل رمزگذاری نشده است. هر کسی که برایش بفرستید می‌تواند سابقه دوز شما را بخواند.",
+  "@exportNotEncrypted": {
+    "description": "Export sheet: SPEC §5.3’s honesty rule, on the surface that hands the file to somebody else."
+  },
+  "exportFailed": "فایل ساخته نشد. هیچ چیز روی این گوشی تغییر نکرده است.",
+  "@exportFailed": {
+    "description": "Export sheet: a render that failed. Names what did NOT happen."
+  },
+  "exportNothingYet": "هنوز چیزی برای خروجی گرفتن نیست. سابقه شما از روز اول شروع می‌شود.",
+  "@exportNothingYet": {
+    "description": "Export sheet: no plan, or no elapsed day. Not an error."
+  },
+  "exportSubject": "سابقه دوز نیرلی‌استاپ",
+  "@exportSubject": {
+    "description": "The share sheet’s subject line for a doctor export."
+  },
+  "exportDateRange": "{from} تا {to}",
+  "@exportDateRange": {
+    "description": "The handout’s subtitle: the range the document covers.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "exportFooterPrefix": "{app} · خروجی {date}",
+  "@exportFooterPrefix": {
+    "description": "The first half of the footer on every page, before the disclaimer.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "exportDisclaimer": "روی دستگاه بیمار و از برنامه‌ای که خودش وارد کرده ساخته شده است. توصیه پزشکی نیست.",
+  "@exportDisclaimer": {
+    "description": "The sentence on EVERY page of the handout. The en value must match kPdfDisclaimer exactly — a test asserts it."
+  },
+  "exportColumnDate": "تاریخ",
+  "@exportColumnDate": {
+    "description": "Handout table column: the day."
+  },
+  "exportColumnPlanned": "برنامه‌ریزی‌شده",
+  "@exportColumnPlanned": {
+    "description": "Handout table column: the dose the plan calls for."
+  },
+  "exportColumnActual": "واقعی",
+  "@exportColumnActual": {
+    "description": "Handout table column: the dose actually taken."
+  },
+  "exportColumnTablets": "قرص‌ها",
+  "@exportColumnTablets": {
+    "description": "Handout table column: how the dose was built."
+  },
+  "exportColumnNote": "یادداشت",
+  "@exportColumnNote": {
+    "description": "Handout table column: the patient’s own words."
+  },
+  "exportEventFlare": "عود",
+  "@exportEventFlare": {
+    "description": "Export event cell: a flare starts on this day."
+  },
+  "exportEventHold": "توقف",
+  "@exportEventHold": {
+    "description": "Export event cell: a hold starts on this day."
+  },
+  "exportHandoutTitle": "سابقه دوز {drug}",
+  "@exportHandoutTitle": {
+    "description": "The handout’s title. Names the drug, because a doctor reads it out of context.",
+    "placeholders": {
+      "drug": {
+        "type": "String"
+      }
+    }
   }
 }

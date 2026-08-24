@@ -632,13 +632,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get exportComingSoon => 'Export kommt als Nächstes';
-
-  @override
-  String get exportComingSoonBody =>
-      'Ein PDF und eine Tabelle für Ihren Termin. Noch nicht gebaut.';
-
-  @override
   String get chartOverlineCaps => 'IHRE DOSIS IM ZEITVERLAUF';
 
   @override
@@ -683,10 +676,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settingsBackupNote =>
       'Eine Kopie, die Ihnen gehört. Nichts verlässt dieses Telefon, außer Sie senden es.';
-
-  @override
-  String get settingsNotImplemented =>
-      'Noch nicht gebaut — kommt mit dem Export-Release.';
 
   @override
   String settingsTextSizeSemantics(Object value) {
@@ -867,4 +856,111 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get reminderBlockedAndroid =>
       'Aktivieren Sie Benachrichtigungen für NearlyStop unter Einstellungen › Apps › NearlyStop.';
+
+  @override
+  String get settingsBackupPlainText =>
+      'Die Datei ist Klartext und nicht verschlüsselt. Wer sie öffnet, kann Ihren Plan lesen.';
+
+  @override
+  String get settingsBackupFailed =>
+      'Die Sicherung konnte nicht gespeichert werden. Auf diesem Telefon hat sich nichts geändert.';
+
+  @override
+  String get settingsRestoreFailed =>
+      'Diese Datei konnte nicht wiederhergestellt werden. Auf diesem Telefon hat sich nichts geändert.';
+
+  @override
+  String get settingsRestoreDone => 'Aus Ihrer Sicherung wiederhergestellt.';
+
+  @override
+  String get settingsBackupSubject => 'NearlyStop-Sicherung';
+
+  @override
+  String get settingsRestoreConfirmTitle =>
+      'Alles auf diesem Telefon ersetzen?';
+
+  @override
+  String get settingsRestoreConfirmBody =>
+      'Ihr Plan, Ihr Dosisverlauf, Ihre Schübe und Ihre Pausen werden alle durch die aus dieser Datei ersetzt. Was jetzt auf diesem Telefon ist, ist weg.';
+
+  @override
+  String get settingsRestoreConfirmAction => 'Alles ersetzen';
+
+  @override
+  String get settingsRestoreExportFirst => 'Erst sichern, dann ersetzen';
+
+  @override
+  String get stateWorking => 'Läuft';
+
+  @override
+  String get exportSheetTitle => 'Für Ihre Ärztin oder Ihren Arzt exportieren';
+
+  @override
+  String get exportPdfLabel => 'PDF zum Ausdrucken';
+
+  @override
+  String get exportPdfAudience =>
+      'Eine Seite zum Ausdrucken oder Vorzeigen beim Termin.';
+
+  @override
+  String get exportCsvLabel => 'Tabelle';
+
+  @override
+  String get exportCsvAudience =>
+      'Jeder Tag eine Zeile, für Ärztinnen und Ärzte, die die Zahlen selbst wollen.';
+
+  @override
+  String get exportNotEncrypted =>
+      'Die Datei ist nicht verschlüsselt. Wer sie erhält, kann Ihren Dosisverlauf lesen.';
+
+  @override
+  String get exportFailed =>
+      'Die Datei konnte nicht erstellt werden. Auf diesem Telefon hat sich nichts geändert.';
+
+  @override
+  String get exportNothingYet =>
+      'Es gibt noch nichts zu exportieren. Ihr Verlauf beginnt an Ihrem ersten Tag.';
+
+  @override
+  String get exportSubject => 'NearlyStop-Dosisverlauf';
+
+  @override
+  String exportDateRange(String from, String to) {
+    return '$from bis $to';
+  }
+
+  @override
+  String exportFooterPrefix(String app, String date) {
+    return '$app · exportiert am $date';
+  }
+
+  @override
+  String get exportDisclaimer =>
+      'Auf dem Gerät der Patientin oder des Patienten aus einem selbst eingegebenen Plan erstellt. Keine medizinische Beratung.';
+
+  @override
+  String get exportColumnDate => 'Datum';
+
+  @override
+  String get exportColumnPlanned => 'Geplant';
+
+  @override
+  String get exportColumnActual => 'Tatsächlich';
+
+  @override
+  String get exportColumnTablets => 'Tabletten';
+
+  @override
+  String get exportColumnNote => 'Notiz';
+
+  @override
+  String get exportEventFlare => 'Schub';
+
+  @override
+  String get exportEventHold => 'Pause';
+
+  @override
+  String exportHandoutTitle(String drug) {
+    return '$drug: Dosisverlauf';
+  }
 }
