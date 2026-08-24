@@ -426,6 +426,49 @@ void main() {
     });
   });
 
+  group('zero network calls, the whole rule group', () {
+    // The product's central claim, and the store listing depends on it. The
+    // import ban and the socket ban already exist from EPIC-01; this asserts
+    // every needle in the group can actually fail, because a rule that has
+    // never matched anything is indistinguishable from one with a typo.
+    const offenders = <String, String>{
+      'package:http': "import 'package:http/http.dart' as http;",
+      'package:dio': "import 'package:dio/dio.dart';",
+      'google_fonts': "import 'package:google_fonts/google_fonts.dart';",
+      'HttpClient': 'final c = HttpClient();',
+      'WebSocket': 'final s = WebSocket.connect("wss://x");',
+      'Socket': 'final s = Socket.connect("host", 80);',
+    };
+
+    for (final MapEntry<String, String>(key: needle, value: line)
+        in offenders.entries) {
+      test('$needle in lib turns the build red', () async {
+        write(
+          'lib/features/today/presentation/networked.dart',
+          '/// Scratch.\n$line\n',
+        );
+
+        final result = await runGate();
+
+        expect(result.exitCode, 1, reason: '${result.stdout}');
+        expect(result.stdout, contains('networked.dart'));
+      });
+    }
+
+    test('dart:io itself stays legal — EPIC-13 writes a backup file', () async {
+      // The ban is on the SOCKET half. A blunt `dart:io` rule would ban the
+      // file writing the whole export feature is built on.
+      write(
+        'lib/features/backup/data/writes_a_file.dart',
+        "/// Scratch.\nimport 'dart:io';\nfinal f = File('/tmp/x');\n",
+      );
+
+      final result = await runGate();
+
+      expect(result.exitCode, 0, reason: '${result.stdout}${result.stderr}');
+    });
+  });
+
   test('a clean tree passes with nothing to say', () async {
     write('lib/features/schedule/presentation/fine.dart', '/// Scratch.\n');
 
