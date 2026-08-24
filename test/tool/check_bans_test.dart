@@ -31,6 +31,67 @@ void main() {
     root.path,
   ]);
 
+  group('one link leaves the app, and it leaves for good', () {
+    const modes = <String>[
+      'inAppWebView',
+      'inAppBrowserView',
+      // Not a paranoid extra: on Android `platformDefault` IS
+      // `inAppBrowserView`, so leaving it legal legalises the ban.
+      'platformDefault',
+    ];
+
+    for (final mode in modes) {
+      test('LaunchMode.$mode turns the build red', () async {
+        write(
+          'lib/services/links/planted.dart',
+          '/// Scratch.\n'
+              'final f = launchUrl(u, mode: LaunchMode.$mode);\n',
+        );
+
+        final result = await runGate();
+        final output = '${result.stdout}${result.stderr}';
+
+        expect(result.exitCode, 1, reason: mode);
+        expect(output, contains('planted.dart'));
+        expect(
+          output,
+          contains('externalApplication'),
+          reason: 'the failure must name the mode that IS allowed',
+        );
+      });
+    }
+
+    test('LaunchMode.externalApplication stays legal', () async {
+      write(
+        'lib/services/links/link_opener.dart',
+        '/// Scratch.\n'
+            "import 'package:url_launcher/url_launcher.dart';\n"
+            'final f = launchUrl(u, mode: LaunchMode.externalApplication);\n',
+      );
+
+      final result = await runGate();
+      expect(
+        result.exitCode,
+        0,
+        reason: '${result.stdout}${result.stderr}',
+      );
+    });
+
+    test('importing url_launcher anywhere else turns the build red', () async {
+      write(
+        'lib/features/settings/presentation/planted.dart',
+        "/// Scratch.\nimport 'package:url_launcher/url_launcher.dart';\n",
+      );
+
+      final result = await runGate();
+      final output = '${result.stdout}${result.stderr}';
+
+      expect(result.exitCode, 1);
+      expect(output, contains('planted.dart'));
+      expect(output, contains('link_opener.dart'));
+    });
+  });
+
   group('the Schedule may not become a calendar', () {
     /// Every needle, with a line that trips it.
     const offenders = <String, String>{

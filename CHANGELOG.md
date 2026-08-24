@@ -31,6 +31,10 @@ Nearly Stop* prednisolone taper.
   default; the app never decides a dose.
 - **Settings.** A daily reminder, an in-app text-size control on top of the OS
   one, high contrast, and a language picker for all four languages.
+- **Open source, and linked from inside the app.** Settings names the public
+  repository and opens it in the system browser. It is the app's only outbound
+  link, and it exists because "nothing leaves your phone" is a claim the app
+  cannot demonstrate about itself — the code can be read instead of trusted.
 - **Backup and restore.** One NDJSON file with a SHA-256 header. Restore is
   replace-all, behind a guard that offers a backup first, and either restores
   or leaves the database byte-unchanged.

@@ -68,6 +68,12 @@ There is nothing to review here, and that is the point:
 - The taper lives in one SQLite file in the app's own container.
 - Data leaves only when the user picks a file out of the share sheet
   themselves: a backup, or a PDF/spreadsheet for their doctor.
+- **Settings → Open source** opens `github.com/zakariaf/NearlyStop` in the
+  system browser. It is the app's only outbound link, it carries nothing but
+  the URL, and it uses `LaunchMode.externalApplication` — never an in-app
+  webview, which is enforced by a build gate rather than by convention. The
+  app is open source so that the claims above can be checked rather than
+  taken on trust.
 
 ## How to try it
 
@@ -79,7 +85,8 @@ There is nothing to review here, and that is the point:
 4. **Schedule** shows the 52-day step grouped into its eleven blocks.
 5. **Progress** → "Export for my doctor" produces a PDF.
 
-No network is required at any point. Airplane mode is a fine way to try it.
+No network is required at any point. Airplane mode is a fine way to try it — the only thing that will not work is the Settings → Open source link,
+which hands the URL to the browser and needs the phone to be online.
 
 ## Category
 

@@ -1024,6 +1024,30 @@ abstract class AppLocalizations {
   /// **'View licenses'**
   String get settingsViewLicenses;
 
+  /// Row opening the public source repository.
+  ///
+  /// In en, this message translates to:
+  /// **'Open source'**
+  String get settingsSourceCode;
+
+  /// Why the repository is linked: the reader can verify the no-network claim instead of trusting it.
+  ///
+  /// In en, this message translates to:
+  /// **'The code for this app is public. Anyone can read it and check for themselves that nothing you enter here leaves this phone.'**
+  String get settingsSourceCodeNote;
+
+  /// The open-source row read as one sentence, naming the destination before the tap.
+  ///
+  /// In en, this message translates to:
+  /// **'Open source. Opens {url} in your browser.'**
+  String settingsSourceCodeSemantics(String url);
+
+  /// Confirmation when no browser took the link and it was copied instead.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get settingsSourceCodeCopied;
+
   /// Title of the licences page.
   ///
   /// In en, this message translates to:

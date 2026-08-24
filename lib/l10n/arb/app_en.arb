@@ -924,6 +924,29 @@
   "@settingsViewLicenses": {
     "description": "Opens the licences page."
   },
+  "settingsSourceCode": "Open source",
+  "@settingsSourceCode": {
+    "description": "Row opening the public source repository.",
+    "x-maxChars": 26
+  },
+  "settingsSourceCodeNote": "The code for this app is public. Anyone can read it and check for themselves that nothing you enter here leaves this phone.",
+  "@settingsSourceCodeNote": {
+    "description": "Why the repository is linked: the reader can verify the no-network claim instead of trusting it."
+  },
+  "settingsSourceCodeSemantics": "Open source. Opens {url} in your browser.",
+  "@settingsSourceCodeSemantics": {
+    "description": "The open-source row read as one sentence, naming the destination before the tap.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "github.com/zakariaf/NearlyStop"
+      }
+    }
+  },
+  "settingsSourceCodeCopied": "Link copied",
+  "@settingsSourceCodeCopied": {
+    "description": "Confirmation when no browser took the link and it was copied instead."
+  },
   "settingsLicensesTitle": "Licenses",
   "@settingsLicensesTitle": {
     "description": "Title of the licences page."

@@ -67,6 +67,27 @@ dependencies:
   # migration this schema exists to avoid (CONTRACTS.md §11).
   timezone: ^0.11.1
   ulid: ^2.0.0
+  # ONE link leaves this app: Settings → Open source. Audited before adding,
+  # because "zero network calls" is the product's premise and not a preference.
+  #
+  # What it does: hands a URL to the OS and returns. It opens no socket of its
+  # own — the same shape as `share_plus` and `printing`, both already here.
+  # Its whole dependency tree is flutter/packages federated plugins
+  # (url_launcher_{android,ios,linux,macos,web,windows},
+  # url_launcher_platform_interface, plugin_platform_interface, web); none
+  # matches a pattern in tool/audit_deps.py, and none is a client.
+  #
+  # The distinction that MATTERS, and the reason there is a ban rule for it:
+  # `LaunchMode.externalApplication` makes the reader's browser the client, at
+  # their tap. An in-app webview would make THIS app the client, inside this
+  # app's process, against a store listing that says it never is. So
+  # tool/check_bans.sh refuses `inAppWebView` and `inAppBrowserView` anywhere
+  # under lib/, and lib/services/links/link_opener.dart is the only call site.
+  # The grep cannot see the subtle version of that mistake — dropping the
+  # `mode:` argument defaults to `platformDefault`, which on Android IS an
+  # in-app browser — so test/services/links/link_opener_test.dart pins the mode
+  # against the real platform interface as well.
+  url_launcher: ^6.3.0
 
 dev_dependencies:
   build_runner: ^2.4.0
@@ -86,7 +107,19 @@ dev_dependencies:
   flutter_native_splash: ^2.4.6
   flutter_test:
     sdk: flutter
+  # Standing in for the url_launcher platform so the LAUNCH MODE can be
+  # asserted at the call site rather than only banned by grep.
+  #
+  # NOT test-only, and the block they sit in does not make them so: both are
+  # regular dependencies of `url_launcher` and both SHIP. Declaring them here
+  # buys one thing — VGA's depend_on_referenced_packages stops rejecting the
+  # fake's imports. `dart pub deps` relabels them `dev` because of it, which is
+  # exactly the misreading tool/audit_deps.py is built not to make: it walks
+  # transitively from the `direct` roots, so `url_launcher` still reaches them
+  # and the shipping count does not move.
+  plugin_platform_interface: ^2.1.0
   test: ^1.25.0
+  url_launcher_platform_interface: ^2.3.0
   very_good_analysis: ^10.0.0
   # Parsing the Android manifest and `Info.plist` in the release policy test.
   # TEST-only, and deliberately so: an XML parser on the shipping compile path

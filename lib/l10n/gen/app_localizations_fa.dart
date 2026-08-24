@@ -638,6 +638,21 @@ class AppLocalizationsFa extends AppLocalizations {
   String get settingsViewLicenses => 'مشاهده مجوزها';
 
   @override
+  String get settingsSourceCode => 'متن‌باز';
+
+  @override
+  String get settingsSourceCodeNote =>
+      'کد این برنامه عمومی است. هرکسی می‌تواند آن را بخواند و خودش بررسی کند که هیچ‌چیز از آنچه اینجا وارد می‌کنید از این گوشی خارج نمی‌شود.';
+
+  @override
+  String settingsSourceCodeSemantics(String url) {
+    return 'متن‌باز. $url را در مرورگر شما باز می‌کند.';
+  }
+
+  @override
+  String get settingsSourceCodeCopied => 'پیوند کپی شد';
+
+  @override
   String get settingsLicensesTitle => 'مجوزها';
 
   @override

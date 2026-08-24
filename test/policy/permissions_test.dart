@@ -136,6 +136,47 @@ void main() {
       }
     });
 
+    test('the webview url_launcher merges in stays unexported', () {
+      // `url_launcher_android` contributes `WebViewActivity` to the merged
+      // manifest whether or not anything launches it, and this app never
+      // does — tool/check_bans.sh refuses every LaunchMode that would.
+      //
+      // So it is dead weight, and dead weight is fine. What would not be fine
+      // is dead weight that is REACHABLE: an exported activity taking a URL
+      // is a component any other app on the phone can point at a page of its
+      // choosing, inside this app's process, in a binary whose store listing
+      // says it has no network client. Pinned so a plugin upgrade that flips
+      // the flag is caught here rather than in a store review.
+      final files = mergedManifests().where((f) => f.existsSync());
+      var seen = 0;
+
+      for (final file in files) {
+        final activities = XmlDocument.parse(file.readAsStringSync())
+            .findAllElements('activity')
+            .where(
+              (e) => (e.getAttribute('android:name') ?? '').contains(
+                'urllauncher',
+              ),
+            );
+
+        for (final activity in activities) {
+          seen++;
+          expect(
+            activity.getAttribute('android:exported'),
+            'false',
+            reason:
+                '${file.path} exports ${activity.getAttribute('android:name')}',
+          );
+        }
+      }
+
+      if (seen == 0) {
+        // Said out loud rather than passing quietly: zero activities means
+        // either no build in this tree, or the plugin stopped merging it.
+        printOnFailure('no merged manifest names the launcher webview');
+      }
+    });
+
     test('INTERNET is absent from every merged manifest that is a RELEASE', () {
       // On Android an absent INTERNET permission makes a network call
       // impossible, not merely absent — which is the hardest proof this

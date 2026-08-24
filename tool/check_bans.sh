@@ -250,6 +250,23 @@ if [ -n "$promoted" ]; then
     "suppressions are line-scoped with a reason — // ignore_for_file: on a promoted rule disarms it for the whole file"
 fi
 
+# ------------------------------------- one link leaves, and it leaves for good
+# `url_launcher`'s in-app modes render the page INSIDE this process. That is a
+# network client in a binary whose store listing says there is none, and it
+# would sit in the one row a reader taps precisely because they wanted to check
+# that claim. The external mode hands the URL to their browser and this app is
+# done. `LaunchMode.platformDefault` is banned with them: on Android it is
+# already `inAppBrowserView`, so the default is the ban by another name.
+add_rule lib code - \
+  'LaunchMode\.(inAppWebView|inAppBrowserView|platformDefault)' \
+  "hand the URL to the OS with LaunchMode.externalApplication — an in-app webview puts a network client in a binary whose store listing says there is none"
+
+# One call site, so there is one place the mode is decided. An import anywhere
+# else is a second answer waiting to disagree with lib/services/links/.
+add_rule lib code lib/services/links/link_opener.dart \
+  "^[[:space:]]*import[[:space:]]+['\"]package:url_launcher/" \
+  "import url_launcher only in lib/services/links/link_opener.dart — it owns the launch mode, and a second import is a second answer"
+
 # ---------------------------------------------- EPIC-14: the a11y group
 # Accessibility is correctness for this audience, not polish. `FittedBox` and
 # `withClampedTextScaling` are already banned above; the rest of the group is

@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nearlystop/app/app_links.dart';
 import 'package:nearlystop/app/app_version.dart';
 import 'package:nearlystop/app/locale_providers.dart';
 import 'package:nearlystop/core/result.dart';
@@ -29,11 +30,13 @@ import 'package:nearlystop/features/shared/presentation/widgets/daybreak_card.da
 import 'package:nearlystop/features/shared/presentation/widgets/daybreak_sheet.dart';
 import 'package:nearlystop/features/shared/presentation/widgets/glyph_tile.dart';
 import 'package:nearlystop/l10n/app_locales.dart';
+import 'package:nearlystop/l10n/bidi.dart';
 import 'package:nearlystop/l10n/date_formats.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
 import 'package:nearlystop/l10n/number_formats.dart';
 import 'package:nearlystop/routing/routes.dart';
 import 'package:nearlystop/services/files/file_picker_gateway.dart';
+import 'package:nearlystop/services/links/link_opener.dart';
 import 'package:nearlystop/services/notifications/notification_permissions.dart';
 import 'package:nearlystop/services/notifications/reconcile_triggers.dart';
 import 'package:nearlystop/services/notifications/sync_notifications.dart';
@@ -741,6 +744,8 @@ class AboutCard extends ConsumerWidget {
     // `package:http` into the binary of an app whose whole premise is that it
     // has no network path.
     const version = kAppVersionLabel;
+    final colors = DaybreakColors.of(context);
+    final shapes = DaybreakShapes.of(context);
 
     return DaybreakCard(
       overline: l10n.settingsAbout,
@@ -776,9 +781,56 @@ class AboutCard extends ConsumerWidget {
           trailing: Icon(
             Icons.adaptive.arrow_forward,
             size: 20,
-            color: DaybreakColors.of(context).inkMuted,
+            color: colors.inkMuted,
           ),
           onTap: () => context.push(Routes.disclaimerReread),
+        ),
+        const SettingsDivider(),
+        SettingsRow(
+          glyph: Icons.code,
+          title: l10n.settingsSourceCode,
+          // The address, spelled out. A reader deciding whether to trust a
+          // medical app should see where the tap sends them first.
+          sublabel: kSourceRepositoryLabel,
+          semanticsLabel: l10n.settingsSourceCodeSemantics(
+            // An ARB placeholder, never a splice: a Latin URL inside a
+            // Perso-Arabic sentence reorders without it (lib/l10n/bidi.dart).
+            isolateLtr(kSourceRepositoryLabel),
+          ),
+          trailing: Icon(Icons.open_in_new, size: 20, color: colors.inkMuted),
+          onTap: () async {
+            final messenger = ScaffoldMessenger.maybeOf(context);
+            final opened = await ref.read(linkOpenerProvider)(
+              kSourceRepositoryUrl,
+            );
+            if (opened) return;
+            // No browser took it — a locked-down phone, or a work profile.
+            // Leaving the tap to do nothing at all is the worse answer: the
+            // reader concludes the link is broken and the claim with it.
+            await Clipboard.setData(
+              ClipboardData(text: kSourceRepositoryUrl.toString()),
+            );
+            messenger?.showSnackBar(
+              SnackBar(content: Text(l10n.settingsSourceCodeCopied)),
+            );
+          },
+        ),
+        // Under the row rather than as its sublabel: the sublabel is the
+        // destination, and a sentence of reassurance competing with an address
+        // for the same line makes neither readable at the largest text size.
+        Padding(
+          padding: EdgeInsetsDirectional.fromSTEB(
+            shapes.s4,
+            0,
+            shapes.s4,
+            shapes.s3,
+          ),
+          child: Text(
+            l10n.settingsSourceCodeNote,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: colors.inkMuted),
+          ),
         ),
         const SettingsDivider(),
         SettingsRow(
@@ -787,7 +839,7 @@ class AboutCard extends ConsumerWidget {
           trailing: Icon(
             Icons.adaptive.arrow_forward,
             size: 20,
-            color: DaybreakColors.of(context).inkMuted,
+            color: colors.inkMuted,
           ),
           onTap: () => showLicensePage(
             context: context,

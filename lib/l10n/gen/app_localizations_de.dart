@@ -654,6 +654,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsViewLicenses => 'Lizenzen ansehen';
 
   @override
+  String get settingsSourceCode => 'Open Source';
+
+  @override
+  String get settingsSourceCodeNote =>
+      'Der Code dieser App ist öffentlich. Jeder kann ihn lesen und selbst prüfen, dass nichts von dem, was Sie hier eingeben, dieses Telefon verlässt.';
+
+  @override
+  String settingsSourceCodeSemantics(String url) {
+    return 'Open Source. Öffnet $url in Ihrem Browser.';
+  }
+
+  @override
+  String get settingsSourceCodeCopied => 'Link kopiert';
+
+  @override
   String get settingsLicensesTitle => 'Lizenzen';
 
   @override
