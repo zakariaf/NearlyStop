@@ -369,6 +369,149 @@ void main() {
     });
   });
 
+  group('one version, in one file', () {
+    // `pubspec.yaml` is the only source. A literal in a platform file is a
+    // version that disagrees with the one the store was told, and it
+    // disagrees silently — the build succeeds and the number is wrong.
+    const offenders = <String, (String, String)>{
+      'a literal Android versionName': (
+        'android/app/build.gradle.kts',
+        'versionName = "1.0.0"',
+      ),
+      'a literal Android versionCode': (
+        'android/app/build.gradle.kts',
+        'versionCode = 1',
+      ),
+      // Written across TWO LINES, because that is how a real plist is
+      // written. The first version of this fixture put the key and the value
+      // on one line, and the rule — `grep -E`, which is line-based — passed
+      // over the real `Info.plist` while going red on the fixture. A gate
+      // that can only fail against a shape nothing produces is decoration.
+      'a literal CFBundleShortVersionString': (
+        'ios/Runner/Info.plist',
+        '<key>CFBundleShortVersionString</key>\n\t<string>1.0.0</string>',
+      ),
+      'a literal CFBundleVersion': (
+        'ios/Runner/Info.plist',
+        '<key>CFBundleVersion</key>\n\t<string>1</string>',
+      ),
+    };
+
+    for (final MapEntry<String, (String, String)>(key: what, value: pair)
+        in offenders.entries) {
+      test('$what turns the build red', () async {
+        write(pair.$1, pair.$2);
+
+        final result = await runGate();
+
+        expect(result.exitCode, 1, reason: '${result.stdout}');
+        expect(result.stdout, contains(pair.$1));
+      });
+    }
+
+    test('the Flutter-resolved forms stay green', () async {
+      // These are what the templates actually ship, and the rule must not
+      // ban the thing it exists to require.
+      write(
+        'android/app/build.gradle.kts',
+        'versionCode = flutter.versionCode\n'
+            'versionName = flutter.versionName\n',
+      );
+      write(
+        'ios/Runner/Info.plist',
+        '<key>CFBundleShortVersionString</key>\n'
+            '\t<string>\$(FLUTTER_BUILD_NAME)</string>\n'
+            '<key>CFBundleVersion</key>\n'
+            '\t<string>\$(FLUTTER_BUILD_NUMBER)</string>\n',
+      );
+
+      final result = await runGate();
+
+      expect(result.exitCode, 0, reason: '${result.stdout}${result.stderr}');
+    });
+  });
+
+  group('zero network calls, the whole rule group', () {
+    // The product's central claim, and the store listing depends on it. The
+    // import ban and the socket ban already exist from EPIC-01; this asserts
+    // every needle in the group can actually fail, because a rule that has
+    // never matched anything is indistinguishable from one with a typo.
+    const offenders = <String, String>{
+      'package:http': "import 'package:http/http.dart' as http;",
+      'package:dio': "import 'package:dio/dio.dart';",
+      'google_fonts': "import 'package:google_fonts/google_fonts.dart';",
+      'HttpClient': 'final c = HttpClient();',
+      'WebSocket': 'final s = WebSocket.connect("wss://x");',
+      'Socket': 'final s = Socket.connect("host", 80);',
+    };
+
+    for (final MapEntry<String, String>(key: needle, value: line)
+        in offenders.entries) {
+      test('$needle in lib turns the build red', () async {
+        write(
+          'lib/features/today/presentation/networked.dart',
+          '/// Scratch.\n$line\n',
+        );
+
+        final result = await runGate();
+
+        expect(result.exitCode, 1, reason: '${result.stdout}');
+        expect(result.stdout, contains('networked.dart'));
+      });
+    }
+
+    test('dart:io itself stays legal — EPIC-13 writes a backup file', () async {
+      // The ban is on the SOCKET half. A blunt `dart:io` rule would ban the
+      // file writing the whole export feature is built on.
+      write(
+        'lib/features/backup/data/writes_a_file.dart',
+        "/// Scratch.\nimport 'dart:io';\nfinal f = File('/tmp/x');\n",
+      );
+
+      final result = await runGate();
+
+      expect(result.exitCode, 0, reason: '${result.stdout}${result.stderr}');
+    });
+  });
+
+  group('no debug affordance survives into a release', () {
+    // R8 and tree-shaking only run in release, so this is the first moment a
+    // dev backdoor could ship. "Proved by a grep gate, not by memory" only
+    // holds if the grep was proved too — hence a must-fail fixture per needle.
+    const offenders = <String, String>{
+      'eraseDatabaseOnSchemaChange':
+          'final o = DriftOptions(eraseDatabaseOnSchemaChange: true);',
+      'a dev menu': 'void showDevMenu() {}',
+      'fixture seeding in lib': 'Future<void> seedFixtureData() async {}',
+    };
+
+    for (final MapEntry<String, String>(key: what, value: line)
+        in offenders.entries) {
+      test('$what turns the build red', () async {
+        write('lib/app/backdoor.dart', '/// Scratch.\n$line\n');
+
+        final result = await runGate();
+
+        expect(result.exitCode, 1, reason: '${result.stdout}');
+        expect(result.stdout, contains('backdoor.dart'));
+      });
+    }
+
+    test('a test-side fixture seeder stays legal', () async {
+      // `test/fixtures/` seeds a plan on purpose and always has. The rule is
+      // about `lib/`, and a blunt version would ban the fixtures the whole
+      // suite is built on.
+      write(
+        'test/fixtures/seeded_plan.dart',
+        '/// Scratch.\nFuture<void> seedFixtureData() async {}\n',
+      );
+
+      final result = await runGate();
+
+      expect(result.exitCode, 0, reason: '${result.stdout}${result.stderr}');
+    });
+  });
+
   test('a clean tree passes with nothing to say', () async {
     write('lib/features/schedule/presentation/fine.dart', '/// Scratch.\n');
 

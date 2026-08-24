@@ -368,7 +368,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get flareHistoryKept =>
-      'Ihr Verlauf und Ihre bisherige Gesamtmenge bleiben erhalten. Die Tage ab heute werden aus dieser Dosis neu berechnet.';
+      'Ihr Verlauf und Ihre bisherige Gesamtmenge bleiben erhalten. Die Tage ab heute werden aus dieser Dosis neu aufgebaut.';
 
   @override
   String get flareConfirm => 'Schub erfassen';

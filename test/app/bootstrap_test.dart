@@ -256,7 +256,11 @@ void main() {
     // story, so the launch writing to it is the only evidence a user could
     // ever hand back.
     expect(
-      CrashSink(directory: directory.path).readAll(),
+      CrashSink(
+        directory: directory.path,
+        appVersion: '1.0.0+1',
+        platform: 'test',
+      ).readAll(),
       isNotEmpty,
       reason: 'the launch failure never reached the crash log',
     );

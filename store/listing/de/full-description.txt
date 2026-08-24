@@ -1,0 +1,55 @@
+Langfristiges Prednisolon auszuschleichen dauert zwei bis fünf Jahre. Die
+sichere Methode aus der Patientengemeinschaft — "Dead Slow and Nearly Stop" —
+heißt nicht "1 mg weniger nehmen". Es ist ein Muster aus elf Blöcken, in dem
+die neue Dosis an immer näher beieinander liegenden Tagen kommt, für einen
+einzigen 1-mg-Schritt 52 Tage läuft und die Sieben-Tage-Woche bewusst außer
+Acht lässt.
+
+Auf einem Wandkalender ist das kaum zu behalten. Menschen verlieren den Faden,
+reduzieren zu schnell, und ein Schub kostet sie Monate.
+
+NearlyStop stellt den Plan dar, den Sie und Ihre Ärztin bereits vereinbart
+haben, und beantwortet jeden Morgen eine Frage: Was nehme ich heute, und aus
+welchen Tabletten?
+
+WAS DIE APP MACHT
+
+• Zeigt die heutige Dosis und die Tabletten, aus denen sie besteht — 6,5 mg
+  sind eine 5-mg-, eine 1-mg- und eine halbe 1-mg-Tablette, aus den Stärken,
+  die Sie tatsächlich zu Hause haben.
+• Stellt den 52-Tage-Schritt in seinen elf Blöcken dar, damit "was passiert an
+  den anderen vier Tagen" eine sichtbare Antwort hat.
+• Hält mit einer großen Schaltfläche fest, an welchen Tagen Sie eingenommen
+  haben.
+• Erfasst eine Pause oder einen Schub, ohne den Verlauf dahinter zu verlieren.
+• Zeigt Ihren Verlauf als Treppe, Tage unter dem Medikament und eine Summe —
+  nie eine Serie und nie einen Prozentwert.
+• Erstellt eine einseitige PDF und eine Tabelle für Ihren nächsten Termin.
+
+WAS DIE APP NICHT MACHT
+
+NearlyStop entscheidet nichts über Ihre Medikation. Es gibt keine
+Medikamentendatenbank und keine Wechselwirkungsprüfung. Jede Dosis, jede Stärke
+und jedes Datum geben Sie selbst ein, aus einem Plan, den Sie mit Ihrer Ärztin
+vereinbart haben. Die vorgeschlagene Schrittgröße ist eine änderbare Vorgabe,
+die Sie auf Anweisung Ihrer Ärztin anpassen.
+
+Befolgen Sie immer die Anweisungen Ihrer Ärztin oder Ihres Arztes.
+
+DATENSCHUTZ
+
+Ihr Plan wird nur in dieser App auf diesem Gerät gespeichert. Kein Konto, keine
+Anmeldung, kein Server. Unter Android hat die App überhaupt keine
+Internetberechtigung. Exporte verlassen die App nur, wenn Sie sie selbst teilen.
+
+BARRIEREFREIHEIT
+
+Gebaut für Leserinnen und Leser in den Siebzigern und Achtzigern, denn das sind
+die Menschen, die diese Medikamente nehmen. Jeder Bildschirm funktioniert bei
+der größten Schriftgröße Ihres Telefons, mit einem zusätzlichen Regler darüber
+hinaus. Durchgehend hoher Kontrast. Nichts wird allein über Farbe vermittelt.
+Vollständige Rechts-nach-links-Unterstützung.
+
+SPRACHEN
+
+Englisch, Deutsch, Persisch (فارسی) und Kurdisch Sorani (کوردیی ناوەندی).

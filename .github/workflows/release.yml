@@ -1,0 +1,117 @@
+name: release
+
+# MANUAL DISPATCH ONLY, deliberately.
+#
+# A release build burns a version code the moment it is uploaded anywhere, so
+# nothing here may be reachable from a push. There is no `on: push` and there
+# never should be.
+#
+# **This workflow does not upload.** It builds, asserts and archives. Uploading
+# is a separate, human decision — see `docs/release/RELEASING.md`, and note
+# that the bundle identifier is changing before anything is published.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type BUILD to confirm this burns a version code'
+        required: true
+        default: ''
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04 # pinned, never -latest
+    timeout-minutes: 45
+    steps:
+      - name: refuse an unconfirmed run
+        if: ${{ inputs.confirm != 'BUILD' }}
+        run: |
+          echo "Not confirmed. A release build spends a version code that can"
+          echo "never be reused. Re-run and type BUILD."
+          exit 1
+
+      - uses: actions/checkout@v4
+        with:
+          # The hygiene gate walks `git log --all`; a shallow clone cannot see
+          # a credential that was committed and later deleted.
+          fetch-depth: 0
+
+      - id: toolchain
+        run: echo "version=$(cat .flutter-version)" >> "$GITHUB_OUTPUT"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ steps.toolchain.outputs.version }}
+          cache: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - run: flutter pub get --enforce-lockfile
+
+      # Nothing signed is ever read from the tree. It is written here, from
+      # secrets, and the working directory is discarded with the runner.
+      - name: inject the upload keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "ANDROID_KEYSTORE_BASE64 is not set. A release build without"
+            echo "it would be UNSIGNED — see docs/release/RELEASING.md."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          cat > android/key.properties <<PROPS
+          storeFile=$RUNNER_TEMP/upload.jks
+          storePassword=$STORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          PROPS
+
+      # `flutter clean` before a release build is mandatory, not hygiene: a
+      # tree that last built for the simulator embeds a simulator framework
+      # slice, and Apple rejects the upload AFTER the build number is spent.
+      - run: flutter clean
+      - run: flutter pub get --enforce-lockfile
+
+      - name: build the signed, obfuscated bundle
+        run: |
+          V=$(grep '^version:' pubspec.yaml | awk '{print $2}')
+          echo "VERSION=$V" >> "$GITHUB_ENV"
+          flutter build appbundle --release \
+            --obfuscate --split-debug-info="build/symbols/$V"
+
+      # THE RELEASE LANE'S OWN ASSERTION, and the reason this workflow exists
+      # rather than trusting the PR lane. PR CI runs profile builds, which
+      # legitimately carry INTERNET; only here is there a real release merged
+      # manifest to assert the whole permission set against.
+      - name: assert the shipped permission set
+        run: flutter test test/policy/permissions_test.dart
+
+      - run: bash tool/check_release_hygiene.sh
+      - run: bash tool/check_bans.sh
+
+      # Archived BEFORE anything could be uploaded. A rebuilt binary produces
+      # different symbols and decodes nothing, so these are the only thing that
+      # will ever read a crash from this build.
+      - name: archive the symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: symbols-${{ env.VERSION }}
+          path: build/symbols/
+          retention-days: 90
+
+      - name: archive the bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: appbundle-${{ env.VERSION }}
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 90
+
+      - name: remove the injected credentials
+        if: always()
+        run: rm -f android/key.properties "$RUNNER_TEMP/upload.jks"

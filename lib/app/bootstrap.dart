@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:nearlystop/app/app.dart';
 import 'package:nearlystop/app/app_lifecycle.dart';
+import 'package:nearlystop/app/app_version.dart';
 import 'package:nearlystop/app/day_ticker.dart';
 import 'package:nearlystop/core/diagnostics/crash_sink.dart';
 import 'package:nearlystop/core/result.dart';
@@ -227,7 +228,17 @@ startUp({
   NotificationGateway? notificationGateway,
 }) async {
   registerFontLicenses();
-  final sink = CrashSink(directory: diagnosticsDirectory);
+  final sink = CrashSink(
+    directory: diagnosticsDirectory,
+    // From the generated build constant, not `package_info_plus`: that
+    // package pulls `package:http` into the binary of an app whose whole
+    // premise is that it has no network path (see `lib/app/app_version.dart`).
+    appVersion: kAppVersionLabel,
+    // Name and version, no device identifier. This file is written to be
+    // readable by the person who mails it, and an identifier in it would be
+    // data collection — which the store declaration says there is none of.
+    platform: '${Platform.operatingSystem} ${Platform.operatingSystemVersion}',
+  );
   final restoreHandlers = installCrashSink(sink);
 
   // `DateFormat('de')` throws on first use without this — but the ZERO-ARG

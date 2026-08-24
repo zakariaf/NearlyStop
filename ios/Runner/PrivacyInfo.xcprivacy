@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  NearlyStop's privacy manifest.
+
+	  Every value here is TRANSCRIBED from evidence, not reasoned from memory:
+	  see `docs/release/privacy-declarations.md`, which names the file or test
+	  behind each line.
+	-->
+
+	<!--
+	  No tracking. There is no analytics SDK, no attribution SDK, no advertising
+	  identifier and no account. Proved by `tool/audit_deps.py` walking the
+	  resolved tree — with a self-test that plants a banned package three hops
+	  down — and by the Android release manifest having no INTERNET permission
+	  at all.
+	-->
+	<key>NSPrivacyTracking</key>
+	<false/>
+
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+
+	<!--
+	  Nothing is collected. The taper lives in one SQLite file in this app's
+	  own container and is never read by anything else. What leaves the device
+	  leaves because the reader picked it out of a share sheet themselves.
+	-->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+
+	<!--
+	  EMPTY, and deliberately so rather than by omission.
+
+	  Apple merges this manifest with every framework's own. The required-reason
+	  APIs this build reaches are all inside plugins that ship their own
+	  manifest declaring them:
+
+	    * flutter_local_notifications 22.3.0 declares
+	      NSPrivacyAccessedAPICategoryUserDefaults with reason CA92.1
+	    * share_plus 13.3.0 and file_selector_ios 0.5.3+5 both declare an
+	      empty array
+	    * path_provider_foundation, sqlite3_flutter_libs and printing ship no
+	      manifest, and none of them reaches a required-reason API
+
+	  The app's OWN code reaches none: it reads no file timestamp, queries no
+	  disk space, reads no boot time and writes no UserDefaults. Declaring a
+	  reason code for an API nothing calls is a claim that cannot be defended
+	  at review, which is why this array is empty instead of padded.
+	-->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array/>
+</dict>
+</plist>

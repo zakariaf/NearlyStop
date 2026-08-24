@@ -89,7 +89,7 @@
   "todaySemanticsNewDose": "Heute, {dose} Milligramm: {breakdown}. Neuer Dosistag. Noch nicht eingenommen.",
   "flareTitle": "Schub erfassen",
   "flarePickDose": "Zurück zu einer Dosis, die gewirkt hat",
-  "flareHistoryKept": "Ihr Verlauf und Ihre bisherige Gesamtmenge bleiben erhalten. Die Tage ab heute werden aus dieser Dosis neu berechnet.",
+  "flareHistoryKept": "Ihr Verlauf und Ihre bisherige Gesamtmenge bleiben erhalten. Die Tage ab heute werden aus dieser Dosis neu aufgebaut.",
   "flareConfirm": "Schub erfassen",
   "flareDateRange": "{dose} — von {from} bis {to}",
   "flareNoHistory": "Sie haben noch keinen Schritt abgeschlossen, daher gibt es keine frühere Dosis.",

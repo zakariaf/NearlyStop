@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  What the app speaks, told to the OS.
+
+  Without this Android believes the app is English-only: the per-app Language
+  row in Settings never appears, so a Persian or Kurdish speaker whose phone is
+  set to English cannot reach their own language from outside the app. The
+  in-app picker still works, but they have to find it first, in a language they
+  do not read.
+
+  Asserted against the `lib/l10n/arb/app_*.arb` filenames by
+  `test/policy/permissions_test.dart`, so adding a language without declaring
+  it here fails the build.
+-->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
+    <locale android:name="de" />
+    <locale android:name="fa" />
+    <locale android:name="ckb" />
+</locale-config>

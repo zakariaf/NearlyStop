@@ -38,6 +38,11 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          # `check_release_hygiene.sh` walks `git log --all` for a credential
+          # that was committed and later deleted. A shallow clone cannot see
+          # one, and the gate would report OK over a leaked key.
+          fetch-depth: 0
 
       # subosito/flutter-action's `flutter-version-file` parses STRUCTURED files
       # (pubspec.yaml's environment block, .fvmrc JSON). Our .flutter-version is
@@ -148,6 +153,17 @@ jobs:
       # tree that opens a network or telemetry path.
       - run: bash tool/audit-deps.sh
 
+      # Contract: no signing material in the working tree OR anywhere in
+      # history. A credential committed and later deleted is invisible to a
+      # working-tree check and permanently present in every clone, so this
+      # walks `git log --all` too — which needs the full history below.
+      - run: bash tool/check_release_hygiene.sh
+
+      # Contract: the identifier inventory is printable, so changing the bundle
+      # ID before release is a mechanical sweep rather than a hunt. Informational
+      # — it exits 0 and its output is the point.
+      - run: bash tool/check_bundle_id.sh
+
       # REQUIRED before the suite: `flutter test --coverage` omits files no test
       # imports, so an untested file contributes zero DENOMINATOR lines and the
       # number lies upward. The generated file is gitignored.
@@ -236,10 +252,19 @@ jobs:
       # — no signing secret in this job means there is nothing here to leak.
       - run: flutter build apk --debug
 
-      # Contract: the MERGED manifest — the one that ships — declares exactly
-      # POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED and VIBRATE, registers the
-      # plugin's boot receiver, and carries neither exact-alarm permission nor
-      # INTERNET. The release build is what produces it; the debug manifest
-      # adds INTERNET on purpose and is not what this reads.
-      - run: flutter build apk --release
-      - run: bash tool/check-manifest-permissions.sh
+      # Contract: the MERGED manifest declares exactly POST_NOTIFICATIONS,
+      # RECEIVE_BOOT_COMPLETED and VIBRATE, registers the plugin's boot
+      # receiver, and carries no exact-alarm permission.
+      #
+      # **PROFILE, not release, and this lane is honest about the difference.**
+      # Since EPIC-15 a release build FAILS without signing credentials —
+      # correctly, because a debug-signed release installs and can then never
+      # be updated on Play — and this job has no secrets by design, so there is
+      # nothing here to leak. Profile carries INTERNET on purpose for the VM
+      # service; the gate knows which variant it is reading and says so.
+      #
+      # `INTERNET` **absent** is asserted in `release.yml`, against the real
+      # signed release build. That is the only place a release merged manifest
+      # exists. See `docs/release/RELEASING.md` §8.
+      - run: flutter build apk --profile
+      - run: bash tool/check-manifest-permissions.sh build/app/intermediates/merged_manifests/profile/processProfileManifest/AndroidManifest.xml
