@@ -18,6 +18,15 @@ enum ConfirmResult {
 
   /// The reader cancelled, tapped the scrim, or dragged the sheet down.
   cancelled,
+
+  /// The reader took the sheet's THIRD exit.
+  ///
+  /// Added for EPIC-13's export guard, which genuinely has three answers —
+  /// "export first", "continue without a backup" and "not now" — and needs
+  /// them to be three EXITS rather than two exits and a pre-action, because
+  /// choosing to export is also choosing to proceed. Every other consumer
+  /// leaves [ConfirmRequest.alternateLabel] null and never sees this value.
+  alternate,
 }
 
 /// Everything a [ConfirmSheet] says, as pre-localized strings.
@@ -31,6 +40,7 @@ class ConfirmRequest {
     required this.cancelLabel,
     this.preActionLabel,
     this.onPreAction,
+    this.alternateLabel,
     this.content,
     this.isDestructive = true,
   }) : assert(
@@ -63,6 +73,12 @@ class ConfirmRequest {
 
   /// Runs the pre-action. The sheet stays open.
   final Future<void> Function()? onPreAction;
+
+  /// A third exit, less prominent than the confirm action.
+  ///
+  /// Unlike [preActionLabel] this CLOSES the sheet, resolving to
+  /// [ConfirmResult.alternate]. Null for every consumer that has two answers.
+  final String? alternateLabel;
 
   /// An optional picker between the body and the actions.
   ///
@@ -204,6 +220,17 @@ class _ConfirmSheetState extends State<ConfirmSheet> {
                     onPressed: () =>
                         Navigator.of(context).pop(ConfirmResult.confirmed),
                   ),
+                if (request.alternateLabel case final label?) ...<Widget>[
+                  SizedBox(height: shapes.s2),
+                  // TERTIARY, deliberately. On the export guard this is
+                  // "continue without a backup": it has to be available and it
+                  // must not look like the recommended answer.
+                  TertiaryButton(
+                    label: label,
+                    onPressed: () =>
+                        Navigator.of(context).pop(ConfirmResult.alternate),
+                  ),
+                ],
                 SizedBox(height: shapes.s2),
                 TertiaryButton(
                   label: request.cancelLabel,
