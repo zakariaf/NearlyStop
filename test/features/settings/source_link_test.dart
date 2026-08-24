@@ -10,11 +10,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:nearlystop/app/app_links.dart';
-import 'package:nearlystop/core/links/link_opener.dart';
 import 'package:nearlystop/features/settings/application/settings_controller.dart';
 import 'package:nearlystop/features/settings/presentation/settings_screen.dart';
 import 'package:nearlystop/features/settings/presentation/widgets/settings_rows.dart';
 import 'package:nearlystop/l10n/gen/app_localizations.dart';
+import 'package:nearlystop/services/links/link_opener.dart';
 import 'package:riverpod/misc.dart' show Override;
 
 import '../../support/harness.dart';

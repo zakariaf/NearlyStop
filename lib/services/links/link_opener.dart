@@ -1,4 +1,10 @@
 /// The single seam through which this app leaves itself.
+///
+/// **`lib/services/`, not `lib/core/`.** Core is pure Dart —
+/// `tool/check_core_purity.sh` enforces it — and this file holds both a
+/// Riverpod provider and a Flutter plugin. It sits beside
+/// `services/files/share_plus_gateway.dart`, which is the same shape: hand
+/// something to the operating system and stop being involved.
 library;
 
 import 'package:riverpod/riverpod.dart';

@@ -61,7 +61,7 @@ remembered to look at.
 |---|---|---|
 | Static | `package:http`, `dio`, `google_fonts`, `HttpClient`, `WebSocket`, `Socket` banned anywhere in `lib/` — each with a must-fail fixture | `tool/check_bans.sh`, `test/tool/check_bans_test.dart` |
 | Static | `LaunchMode.inAppWebView`, `inAppBrowserView` and `platformDefault` banned anywhere in `lib/`, and `package:url_launcher` importable in exactly one file | `tool/check_bans.sh`, `test/tool/check_bans_test.dart` |
-| Call site | The mode `launchUrl` is actually given, against the real platform interface — the grep cannot see a **dropped** `mode:`, which defaults to an in-app browser on Android | `test/core/links/link_opener_test.dart` |
+| Call site | The mode `launchUrl` is actually given, against the real platform interface — the grep cannot see a **dropped** `mode:`, which defaults to an in-app browser on Android | `test/services/links/link_opener_test.dart` |
 | Dependency | The **resolved** tree, not the pubspec. A banned package three hops down fails | `tool/audit_deps.py`, `test/tool/audit_deps_test.dart` |
 | Runtime | Every `HttpClient` the process can create is made to throw, then all six screens are driven in two languages | `test/policy/no_network_test.dart` |
 | Manifest | `INTERNET` absent from the **release** merged manifest — on Android this makes a network call impossible, not merely absent | `test/policy/permissions_test.dart` |

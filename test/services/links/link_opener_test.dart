@@ -11,7 +11,7 @@
 // interface `url_launcher` talks to.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nearlystop/app/app_links.dart';
-import 'package:nearlystop/core/links/link_opener.dart';
+import 'package:nearlystop/services/links/link_opener.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:url_launcher_platform_interface/link.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';

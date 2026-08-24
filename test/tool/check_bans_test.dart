@@ -43,7 +43,7 @@ void main() {
     for (final mode in modes) {
       test('LaunchMode.$mode turns the build red', () async {
         write(
-          'lib/core/links/planted.dart',
+          'lib/services/links/planted.dart',
           '/// Scratch.\n'
               'final f = launchUrl(u, mode: LaunchMode.$mode);\n',
         );
@@ -63,7 +63,7 @@ void main() {
 
     test('LaunchMode.externalApplication stays legal', () async {
       write(
-        'lib/core/links/link_opener.dart',
+        'lib/services/links/link_opener.dart',
         '/// Scratch.\n'
             "import 'package:url_launcher/url_launcher.dart';\n"
             'final f = launchUrl(u, mode: LaunchMode.externalApplication);\n',

@@ -262,10 +262,10 @@ add_rule lib code - \
   "hand the URL to the OS with LaunchMode.externalApplication — an in-app webview puts a network client in a binary whose store listing says there is none"
 
 # One call site, so there is one place the mode is decided. An import anywhere
-# else is a second answer waiting to disagree with lib/core/links/.
-add_rule lib code lib/core/links/link_opener.dart \
+# else is a second answer waiting to disagree with lib/services/links/.
+add_rule lib code lib/services/links/link_opener.dart \
   "^[[:space:]]*import[[:space:]]+['\"]package:url_launcher/" \
-  "import url_launcher only in lib/core/links/link_opener.dart — it owns the launch mode, and a second import is a second answer"
+  "import url_launcher only in lib/services/links/link_opener.dart — it owns the launch mode, and a second import is a second answer"
 
 # ---------------------------------------------- EPIC-14: the a11y group
 # Accessibility is correctness for this audience, not polish. `FittedBox` and

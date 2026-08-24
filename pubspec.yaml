@@ -82,10 +82,10 @@ dependencies:
   # their tap. An in-app webview would make THIS app the client, inside this
   # app's process, against a store listing that says it never is. So
   # tool/check_bans.sh refuses `inAppWebView` and `inAppBrowserView` anywhere
-  # under lib/, and lib/core/links/link_opener.dart is the only call site.
+  # under lib/, and lib/services/links/link_opener.dart is the only call site.
   # The grep cannot see the subtle version of that mistake — dropping the
   # `mode:` argument defaults to `platformDefault`, which on Android IS an
-  # in-app browser — so test/core/links/link_opener_test.dart pins the mode
+  # in-app browser — so test/services/links/link_opener_test.dart pins the mode
   # against the real platform interface as well.
   url_launcher: ^6.3.0
 
