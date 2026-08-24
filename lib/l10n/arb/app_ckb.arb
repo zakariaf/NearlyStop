@@ -254,5 +254,33 @@
   "settingsAccessibilityCaps": "خوێندنەوە و بیرخەرەوەکان",
   "@settingsAccessibilityCaps": {
     "description": "The settingsAccessibility heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "reminderTitle": "پلانی ئەمڕۆت",
+  "@reminderTitle": {
+    "description": "Notification heading. NEVER an imperative: the app arranges a plan, it does not tell anybody to swallow anything (SPEC §11.4)."
+  },
+  "reminderBody": "بۆ بینینی پلانی ئەمڕۆ، نیەرلیستۆپ بکەرەوە.",
+  "@reminderBody": {
+    "description": "Notification body. Carries NO dose, no drug name and no digit: a lock-screen preview must not tell a stranger holding the phone that its owner has a chronic illness."
+  },
+  "reminderChannelName": "بیرخەرەوەی ڕۆژانە",
+  "@reminderChannelName": {
+    "description": "The Android channel name, as the OS settings list shows it."
+  },
+  "reminderChannelDescription": "هەموو بەیانییەک یەک بیرخەرەوەی نەرم.",
+  "@reminderChannelDescription": {
+    "description": "The Android channel description, as the OS settings list shows it."
+  },
+  "reminderBlocked": "لە ڕێکخستنەکانی سیستەم بلۆک کراوە",
+  "@reminderBlocked": {
+    "description": "Settings: the reminder row when the OS will not post, though the setting is on."
+  },
+  "reminderBlockedIos": "ئاگادارییەکان بۆ نیەرلیستۆپ لە ڕێکخستن › ئاگادارییەکان بکەرەوە.",
+  "@reminderBlockedIos": {
+    "description": "Settings: where to go on iOS. Spelled out in words because no plugin here can open that page."
+  },
+  "reminderBlockedAndroid": "ئاگادارییەکان بۆ نیەرلیستۆپ لە ڕێکخستن › ئەپەکان › نیەرلیستۆپ بکەرەوە.",
+  "@reminderBlockedAndroid": {
+    "description": "Settings: where to go on Android."
   }
 }

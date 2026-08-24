@@ -1166,5 +1166,33 @@
   "settingsAccessibilityCaps": "READING AND REMINDERS",
   "@settingsAccessibilityCaps": {
     "description": "The settingsAccessibility heading as DISPLAYED: upper case in Latin, unchanged in Perso-Arabic. See chartOverlineCaps."
+  },
+  "reminderTitle": "Your plan for today",
+  "@reminderTitle": {
+    "description": "Notification heading. NEVER an imperative: the app arranges a plan, it does not tell anybody to swallow anything (SPEC §11.4)."
+  },
+  "reminderBody": "Open NearlyStop to see today's plan.",
+  "@reminderBody": {
+    "description": "Notification body. Carries NO dose, no drug name and no digit: a lock-screen preview must not tell a stranger holding the phone that its owner has a chronic illness."
+  },
+  "reminderChannelName": "Daily reminder",
+  "@reminderChannelName": {
+    "description": "The Android channel name, as the OS settings list shows it."
+  },
+  "reminderChannelDescription": "One gentle reminder each morning.",
+  "@reminderChannelDescription": {
+    "description": "The Android channel description, as the OS settings list shows it."
+  },
+  "reminderBlocked": "Blocked in system settings",
+  "@reminderBlocked": {
+    "description": "Settings: the reminder row when the OS will not post, though the setting is on."
+  },
+  "reminderBlockedIos": "Turn notifications on for NearlyStop in Settings › Notifications.",
+  "@reminderBlockedIos": {
+    "description": "Settings: where to go on iOS. Spelled out in words because no plugin here can open that page."
+  },
+  "reminderBlockedAndroid": "Turn notifications on for NearlyStop in Settings › Apps › NearlyStop.",
+  "@reminderBlockedAndroid": {
+    "description": "Settings: where to go on Android."
   }
 }

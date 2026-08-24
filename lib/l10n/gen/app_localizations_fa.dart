@@ -822,4 +822,27 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get settingsAccessibilityCaps => 'خواندن و یادآوری‌ها';
+
+  @override
+  String get reminderTitle => 'برنامه امروز شما';
+
+  @override
+  String get reminderBody => 'برای دیدن برنامه امروز، نیرلی‌استاپ را باز کنید.';
+
+  @override
+  String get reminderChannelName => 'یادآوری روزانه';
+
+  @override
+  String get reminderChannelDescription => 'هر صبح یک یادآوری ملایم.';
+
+  @override
+  String get reminderBlocked => 'در تنظیمات سیستم مسدود شده است';
+
+  @override
+  String get reminderBlockedIos =>
+      'اعلان‌ها را برای نیرلی‌استاپ در تنظیمات › اعلان‌ها روشن کنید.';
+
+  @override
+  String get reminderBlockedAndroid =>
+      'اعلان‌ها را برای نیرلی‌استاپ در تنظیمات › برنامه‌ها › نیرلی‌استاپ روشن کنید.';
 }

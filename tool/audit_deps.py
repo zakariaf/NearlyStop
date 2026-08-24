@@ -54,6 +54,25 @@ ALLOW: set[str] = {
     # drops `test` to a dev dependency.
     "web_socket",
     "web_socket_channel",
+    # `timezone` — which EPIC-12 needs and which every current
+    # `flutter_local_notifications` requires at `^0.11.0` — declares `http` as a
+    # regular dependency. Verified path and reachability:
+    #     flutter_local_notifications -> timezone -> http
+    # Inside `timezone`, `package:http` is imported by exactly ONE file,
+    # `lib/browser.dart`, which fetches the IANA database over HTTP in a WEB
+    # app. This app has no web target and imports `timezone/timezone.dart` and
+    # `timezone/data/latest_all.dart` — the bundled database — so no code path
+    # reaches it and it is tree-shaken out of the AOT snapshot.
+    # The enforced gates are real ones, not this note:
+    #   * tool/check_bans.sh bans an import of package:http anywhere under lib/
+    #     AND every socket call site (HttpClient, Socket, WebSocket, ...);
+    #   * tool/check-manifest-permissions.sh asserts the WHOLE permission set of
+    #     the merged release manifest, in which INTERNET is absent — so on
+    #     Android the process cannot open a socket even if something tried;
+    #   * EPIC-15 owns the airplane-mode clean-install check (SPEC §10).
+    # Re-audit if `timezone` ever moves `http` out of `lib/browser.dart`, or if
+    # this app ever gains a web target.
+    "http",
 }
 
 USAGE = """usage: audit_deps.py <deps.json>
