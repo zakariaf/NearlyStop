@@ -159,7 +159,7 @@ void main() {
       final row = (PayloadLine.parse(line) as Ok<PayloadLine, EnvelopeFailure>)
           .value
           .row;
-      for (final MapEntry(key: field, :final value) in row.entries) {
+      for (final MapEntry(key: field, :value) in row.entries) {
         if (!field.endsWith('_hundredths_mg')) continue;
         if (value == null) continue;
         // A list of strengths is a list of hundredths; every element still has
