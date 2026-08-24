@@ -1,0 +1,49 @@
+Coming off long-term prednisolone takes two to five years. The safe community
+method — "Dead Slow and Nearly Stop" — is not "take 1mg less". It is an
+eleven-block pattern in which the new dose arrives on progressively closer
+days, runs 52 days for a single 1mg step, and deliberately ignores that a week
+has seven days in it.
+
+That is very hard to hold on a wall calendar. People lose their place, cut too
+fast, and a flare costs them months.
+
+NearlyStop arranges the plan you and your doctor already agreed, and answers
+one question each morning: what do I swallow today, and out of which tablets?
+
+WHAT IT DOES
+
+• Shows today's dose, and the tablets it is made from — 6.5mg is one 5mg, one
+  1mg and half a 1mg, worked out from the strengths you actually hold.
+• Lays the 52-day step out in its eleven blocks, so "what is happening on the
+  other four days" has an answer you can see.
+• Records the days you took it, with one large button.
+• Keeps a hold or a flare without losing the history behind it.
+• Shows your progress as a staircase, days on the drug, and a total — never a
+  streak, and never a percentage.
+• Makes a one-page PDF and a spreadsheet for your next appointment.
+
+WHAT IT DOES NOT DO
+
+NearlyStop does not decide anything about your medication. It has no drug
+database and no interaction checking. Every dose, strength and date is one you
+enter, from a plan you agreed with your doctor. The suggested step size is an
+editable default that you change on your doctor's instruction.
+
+Always follow your doctor's instructions.
+
+PRIVACY
+
+Your taper is stored only in this app, on this device. There is no account, no
+sign-in and no server. On Android the app has no internet permission at all.
+Exports leave the app only when you choose to share them.
+
+ACCESSIBILITY
+
+Built for readers in their seventies and eighties, because that is who takes
+these drugs. Every screen works at the largest text size your phone offers,
+with an extra size control on top of it. High contrast throughout. Nothing is
+signalled by colour alone. Full right-to-left support.
+
+LANGUAGES
+
+English, German, Persian (فارسی) and Kurdish Sorani (کوردیی ناوەندی).
