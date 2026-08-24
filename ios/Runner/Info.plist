@@ -7,7 +7,14 @@
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
-		<string>Nearlystop</string>
+		<!--
+		  The name UNDER THE ICON. Capitalised as the product is written
+		  everywhere else — the ARB, the listing, the disclaimer. The Flutter
+		  template derives it from the package name and produces "Nearlystop",
+		  which nothing else in the app or the store copy ever says.
+		  Caught by looking at a home screen, not by any test.
+		-->
+		<string>NearlyStop</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
@@ -15,16 +22,17 @@
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>nearlystop</string>
+		<string>NearlyStop</string>
 		<key>CFBundleLocalizations</key>
 		<!--
-	  What the app speaks, told to the OS. Without it iOS believes the app is
-	  English-only and never shows the per-app Language row in Settings, so a
-	  Persian or Kurdish speaker whose phone is set to English cannot reach
-	  their own language from outside the app.
+		  What the app speaks, told to the OS. Without it iOS believes the app
+		  is English-only and never shows the per-app Language row in
+		  Settings, so a Persian or Kurdish speaker whose phone is set to
+		  English cannot reach their own language from outside the app.
 
-	  Asserted against the ARB filenames by test/policy/permissions_test.dart.
-	-->
+		  Asserted against the ARB filenames by
+		  test/policy/permissions_test.dart.
+		-->
 		<array>
 			<string>en</string>
 			<string>de</string>
