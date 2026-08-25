@@ -3,7 +3,7 @@
      CONTRACTS §12 forbids it, and a grep of the SOURCE manifest would never
      have seen it — which is why the gate reads the MERGED one. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.buzzjective.nearlystop">
+    package="io.applander.nearlystop">
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />

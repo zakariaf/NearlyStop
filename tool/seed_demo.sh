@@ -15,7 +15,7 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 DEVICE="${1:-${NEARLYSTOP_SIM:-iPhone 16 Pro}}"
-BUNDLE=com.buzzjective.nearlystop
+BUNDLE=io.applander.nearlystop
 
 UDID="$(xcrun simctl list devices available \
   | awk -v d="$DEVICE" '$0 ~ d {match($0, /[0-9A-F-]{36}/); if (RSTART) {print substr($0, RSTART, RLENGTH); exit}}')"

@@ -3,7 +3,7 @@
      RECEIVE_BOOT_COMPLETED and then nothing listens: every scheduled reminder
      is lost at the next reboot, silently, on a two-year taper. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.buzzjective.nearlystop">
+    package="io.applander.nearlystop">
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
