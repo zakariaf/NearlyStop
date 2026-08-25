@@ -7,13 +7,17 @@ order is the point.
 
 ## ⚠️ Two things are deliberately NOT done yet
 
-**1. The bundle identifier is going to change.** It is
-`com.buzzjective.nearlystop` throughout the tree today, and the owner has said
-it will be replaced before anything is published. Every place it appears is
-listed under *Bundle identifier inventory* below, and
-`tool/check_bundle_id.sh` prints them, so the change is a mechanical sweep
-rather than a hunt. **Do not upload anything under the current identifier** —
-a bundle ID is permanent on both stores once a build is accepted under it.
+**1. ~~The bundle identifier is going to change.~~ Done — it is now
+`io.applander.nearlystop`.** It was `com.buzzjective.nearlystop` up to
+2026-08-25. The sweep covered all ten files listed under *Bundle identifier
+inventory* below, including the Kotlin package **directory**, which a
+hand-written list had previously missed and which is the reason
+`tool/check_bundle_id.sh` exists.
+
+The App ID has been registered with Apple under the new identifier. It has
+**not** been used for an upload, so it is still free of the permanence rule:
+a bundle ID becomes irreversible on both stores only once a build is accepted
+under it.
 
 **2. Nothing has been submitted to either store**, by instruction. Everything
 short of submission is done and is described here. Section 12 is the part that
@@ -160,14 +164,16 @@ verification in step 5 happens before the upload.
 ## Bundle identifier inventory
 
 Run `bash tool/check_bundle_id.sh` to print these live. As of this writing the
-identifier `com.buzzjective.nearlystop` appears in:
+identifier `io.applander.nearlystop` appears in:
 
 | File | What | Note |
 |---|---|---|
 | `android/app/build.gradle.kts` | `namespace`, `applicationId` | |
-| `android/app/src/main/kotlin/com/buzzjective/nearlystop/MainActivity.kt` | the `package` line **and the directory path itself** | the directories have to be renamed too, not just the declaration — this is the one the hand-written list missed, and the reason this script exists |
+| `android/app/src/main/kotlin/io/applander/nearlystop/MainActivity.kt` | the `package` line **and the directory path itself** | the directories have to be renamed too, not just the declaration — this is the one the hand-written list missed, and the reason this script exists |
 | `ios/Runner.xcodeproj/project.pbxproj` | `PRODUCT_BUNDLE_IDENTIFIER` ×3 for Runner, ×3 for RunnerTests | the test target's is `<id>.RunnerTests` and derives from it |
 | `tool/run_simulator.sh` | the `BUNDLE` it launches | |
+| `tool/seed_demo.sh` | the `BUNDLE` it seeds and relaunches | added after the inventory above was first written |
+| `tool/fixtures/manifests/*.xml` (×5) | the `package=` attribute in each permission-gate fixture | not shipped; they must match or the manifest gate compares against a stale identity |
 
 **Nothing in Dart source hardcodes it**, and no manifest or plist does either.
 EPIC-13 chose the `.ndjson` / `application/x-ndjson` route for backups rather

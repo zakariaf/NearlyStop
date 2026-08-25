@@ -151,7 +151,7 @@ The schedule is a **pure function**, never stored: facts are persisted (plan,
 steps, dose logs, flares, holds) and `generateSchedule(...)` derives the rest,
 which is what makes rolling back a flare incapable of corrupting history.
 
-Application id / bundle id: `com.buzzjective.nearlystop`. Android and iOS only.
+Application id / bundle id: `io.applander.nearlystop`. Android and iOS only.
 
 ## Licence
 

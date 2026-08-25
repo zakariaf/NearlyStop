@@ -1,4 +1,4 @@
-package com.buzzjective.nearlystop
+package io.applander.nearlystop
 
 import io.flutter.embedding.android.FlutterActivity
 

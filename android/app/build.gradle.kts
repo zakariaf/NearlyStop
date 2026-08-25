@@ -15,7 +15,7 @@ val keystoreProperties: Properties? =
     }
 
 android {
-    namespace = "com.buzzjective.nearlystop"
+    namespace = "io.applander.nearlystop"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -29,7 +29,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.buzzjective.nearlystop"
+        applicationId = "io.applander.nearlystop"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

@@ -13,7 +13,7 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 DEVICE="${NEARLYSTOP_SIM:-iPhone 16 Pro}"
-BUNDLE=com.buzzjective.nearlystop
+BUNDLE=io.applander.nearlystop
 SHOT="${1:-/tmp/nearlystop-sim.png}"
 FRESH="${2:-}"
 
